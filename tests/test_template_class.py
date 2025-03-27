@@ -1,4 +1,5 @@
 """Tests for template."""
+
 from unittest import TestCase
 
 from prototype_template import TemplateClass
