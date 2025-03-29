@@ -1,4 +1,5 @@
 from qiskit_qward.validators.teleportation_validator import TeleportationValidator
+
 # Comment out the experiments import as it might not exist yet
 # from qiskit_qward.experiments.experiments import Experiments
 import numpy as np
@@ -19,12 +20,14 @@ def main():
     print("Teleportation Circuit:")
     print(f"Circuit depth: {validator.depth()}")
     print(f"Operation count: {validator.count_ops()}")
-    
+
     # Run simulation if available
     try:
         print("\nRunning simulation...")
-        results = validator.run_simulation()
-        print(f"Simulation results: {results}")
+        results = validator.run_simulation(
+            show_histogram=False
+        )  # Set show_histogram to False to avoid display issues in CI
+        print(f"Simulation results available: {bool(results)}")
     except Exception as e:
         print(f"Simulation error: {e}")
 
