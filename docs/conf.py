@@ -21,14 +21,14 @@ from pathlib import Path
 
 from importlib_metadata import version as metadata_version
 
-project = "Template project"
+project = "Qward"
 copyright = "2022"  # pylint: disable=redefined-builtin
 author = ""
 
 _rootdir = Path(__file__).parent.parent
 
 # The full version, including alpha/beta/rc tags
-release = metadata_version("prototype_template")
+release = metadata_version("qiskit-qward")
 # The short X.Y version
 version = ".".join(release.split(".")[:2])
 
@@ -51,7 +51,7 @@ numfig_format = {"table": "Table %s"}
 language = "en"
 pygments_style = "colorful"
 add_module_names = False
-modindex_common_prefix = ["template_project."]
+modindex_common_prefix = ["qiskit_qward."]
 
 # html theme options
 html_title = f"{project} {release}"
