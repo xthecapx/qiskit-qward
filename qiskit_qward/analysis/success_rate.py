@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional, Union
 import numpy as np
 from .analysis import Analysis
 
@@ -48,16 +48,19 @@ class SuccessRate(Analysis):
         """
         self.results_df = pd.concat([self.results_df, pd.DataFrame([results])], ignore_index=True)
 
-    def analyze(self, target_value: str = "0") -> Dict[str, float]:
+    def analyze(self, **kwargs) -> Dict[str, Any]:
         """
         Analyze the success rates from the results.
 
         Args:
-            target_value (str): The value we consider as success (e.g., '0' for heads)
+            **kwargs: Keyword arguments including:
+                target_value (str): The value we consider as success (e.g., '0' for heads)
 
         Returns:
             dict: Success rate analysis results
         """
+        target_value = kwargs.get("target_value", "0")
+
         if self.results_df.empty:
             raise ValueError("No results available to analyze")
 
@@ -76,25 +79,32 @@ class SuccessRate(Analysis):
         avg_tails = self.results_df["counts"].apply(lambda x: x.get("1", 0)).mean()
 
         analysis = {
-            "mean_success_rate": np.mean(success_rates),
-            "std_success_rate": np.std(success_rates),
-            "min_success_rate": np.min(success_rates),
-            "max_success_rate": np.max(success_rates),
+            "mean_success_rate": float(np.mean(success_rates)),
+            "std_success_rate": float(np.std(success_rates)),
+            "min_success_rate": float(np.min(success_rates)),
+            "max_success_rate": float(np.max(success_rates)),
             "total_trials": len(self.results_df),
             "target_value": target_value,
-            "average_counts": {"heads": avg_heads, "tails": avg_tails},
+            "average_counts": {"heads": float(avg_heads), "tails": float(avg_tails)},
         }
 
         return analysis
 
-    def plot(self, target_value: str = "0", ideal_rate: float = 0.5):
+    def plot(self, **kwargs) -> Any:
         """
         Plot the distribution of success rates.
 
         Args:
-            target_value (str): The value we consider as success (e.g., '0' for heads)
-            ideal_rate (float): The ideal success rate to mark on the plot
+            **kwargs: Keyword arguments including:
+                target_value (str): The value we consider as success (e.g., '0' for heads)
+                ideal_rate (float): The ideal success rate to mark on the plot
+
+        Returns:
+            Any: The plot figure or display object
         """
+        target_value = kwargs.get("target_value", "0")
+        ideal_rate = kwargs.get("ideal_rate", 0.5)
+
         if self.results_df.empty:
             raise ValueError("No results available to plot")
 
@@ -115,4 +125,4 @@ class SuccessRate(Analysis):
         plt.xlabel("Success Rate")
         plt.ylabel("Count")
         plt.legend()
-        plt.show()
+        return plt.gcf()
