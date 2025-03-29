@@ -8,6 +8,7 @@ This example creates a teleportation validator and runs a simulation.
 # Third-party imports
 # Local imports
 from qiskit_qward.validators.teleportation_validator import TeleportationValidator
+from qiskit.exceptions import QiskitError
 
 # Comment out the experiments import as it might not exist yet
 # from qiskit_qward.experiments.experiments import Experiments
@@ -42,7 +43,7 @@ def main():
             show_histogram=False
         )  # Set show_histogram to False to avoid display issues in CI
         print(f"Simulation results available: {bool(results)}")
-    except Exception as e:
+    except (QiskitError, ImportError, RuntimeError) as e:
         print(f"Simulation error: {e}")
 
     # Use Qiskit features directly
