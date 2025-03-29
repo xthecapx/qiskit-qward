@@ -4,9 +4,19 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.visualization import plot_histogram
 import os
-from typing import List
+from typing import List, Dict, Any, Optional, Union
 from dotenv import load_dotenv
 from ..analysis.analysis import Analysis
+
+# For visualization support in notebooks - wrap in try/except for CI environments
+try:
+    from IPython.display import display
+except ImportError:
+    # Define a no-op display function for environments without IPython
+    def display(*args, **kwargs):
+        """Stub for IPython.display when not available."""
+        pass
+
 
 # Load environment variables
 load_dotenv()
