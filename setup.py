@@ -16,8 +16,23 @@ import sys
 import os
 import re
 
-with open("requirements.txt") as f:
-    REQUIREMENTS = f.read().splitlines()
+# Define requirements directly
+REQUIREMENTS = [
+    "qiskit==1.4.1",
+    "qiskit-aer==0.16.3",
+    "qiskit-ibm-runtime==0.36.1",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "python-dotenv>=1.0.0",
+    "pylatexenc",
+    "ibm-cloud-sdk-core==3.23.0",
+    "ibm-platform-services==0.59.1",
+    "pydantic-settings",
+    "requests==2.32.3",
+    "dotenv",
+    "statsmodels",
+]
 
 if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
     setuptools.find_namespace_packages
@@ -28,19 +43,24 @@ if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
     )
     sys.exit(1)
 
+# Get version info
+VERSION = "0.1.0"  # Default version
 VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_qward", "VERSION.txt")
-with open(VERSION_PATH, "r") as version_file:
-    VERSION = version_file.read().strip()
+if os.path.isfile(VERSION_PATH):
+    with open(VERSION_PATH, "r") as version_file:
+        VERSION = version_file.read().strip()
 
 # Read long description from README.
+README = ""
 README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
-with open(README_PATH) as readme_file:
-    README = re.sub(
-        "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
-        "",
-        readme_file.read(),
-        flags=re.S | re.M,
-    )
+if os.path.isfile(README_PATH):
+    with open(README_PATH) as readme_file:
+        README = re.sub(
+            "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
+            "",
+            readme_file.read(),
+            flags=re.S | re.M,
+        )
 
 setuptools.setup(
     name="qiskit-qward",
@@ -70,6 +90,7 @@ setuptools.setup(
     packages=setuptools.find_packages(include=["qiskit_qward", "qiskit_qward.*"]),
     install_requires=REQUIREMENTS,
     include_package_data=True,
+    package_data={"qiskit_qward": ["VERSION.txt"]},
     python_requires=">=3.8",
     project_urls={
         "Bug Tracker": "https://github.com/xthecapx/qiskit-qward/issues",
