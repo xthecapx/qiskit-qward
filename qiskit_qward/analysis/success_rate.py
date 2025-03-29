@@ -102,6 +102,7 @@ class SuccessRate(Analysis):
         Returns:
             Any: The plot figure or display object
         """
+        # Get parameters from kwargs
         target_value = kwargs.get("target_value", "0")
         ideal_rate = kwargs.get("ideal_rate", 0.5)
 
@@ -121,7 +122,8 @@ class SuccessRate(Analysis):
         plt.figure(figsize=(10, 6))
         plt.hist(success_rates, bins=20, alpha=0.7)
         plt.axvline(x=ideal_rate, color="r", linestyle="--", label=f"Ideal Rate ({ideal_rate:.0%})")
-        plt.title("Distribution of Success Rates")
+        # Add title that includes the target value
+        plt.title(f"Distribution of Success Rates (Target: '{target_value}')")
         plt.xlabel("Success Rate")
         plt.ylabel("Count")
         plt.legend()
