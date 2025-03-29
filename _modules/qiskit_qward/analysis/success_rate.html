@@ -231,7 +231,7 @@
           <h1>Source code for qiskit_qward.analysis.success_rate</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analysis</span>
 
@@ -292,16 +292,19 @@
 
 <div class="viewcode-block" id="SuccessRate.analyze">
 <a class="viewcode-back" href="../../../apidocs/analysis.html#qiskit_qward.analysis.SuccessRate.analyze">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Analyze the success rates from the results.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            target_value (str): The value we consider as success (e.g., &#39;0&#39; for heads)</span>
+<span class="sd">            **kwargs: Keyword arguments including:</span>
+<span class="sd">                target_value (str): The value we consider as success (e.g., &#39;0&#39; for heads)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: Success rate analysis results</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">target_value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_value&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No results available to analyze&quot;</span><span class="p">)</span>
 
@@ -320,13 +323,13 @@
         <span class="n">avg_tails</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
         <span class="n">analysis</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">success_rates</span><span class="p">),</span>
-            <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">success_rates</span><span class="p">),</span>
-            <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">success_rates</span><span class="p">),</span>
-            <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">success_rates</span><span class="p">),</span>
+            <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">success_rates</span><span class="p">)),</span>
+            <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">success_rates</span><span class="p">)),</span>
+            <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">success_rates</span><span class="p">)),</span>
+            <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">success_rates</span><span class="p">)),</span>
             <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="p">),</span>
             <span class="s2">&quot;target_value&quot;</span><span class="p">:</span> <span class="n">target_value</span><span class="p">,</span>
-            <span class="s2">&quot;average_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;heads&quot;</span><span class="p">:</span> <span class="n">avg_heads</span><span class="p">,</span> <span class="s2">&quot;tails&quot;</span><span class="p">:</span> <span class="n">avg_tails</span><span class="p">},</span>
+            <span class="s2">&quot;average_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;heads&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">avg_heads</span><span class="p">),</span> <span class="s2">&quot;tails&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">avg_tails</span><span class="p">)},</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">analysis</span></div>
@@ -334,14 +337,21 @@
 
 <div class="viewcode-block" id="SuccessRate.plot">
 <a class="viewcode-back" href="../../../apidocs/analysis.html#qiskit_qward.analysis.SuccessRate.plot">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">ideal_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the distribution of success rates.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            target_value (str): The value we consider as success (e.g., &#39;0&#39; for heads)</span>
-<span class="sd">            ideal_rate (float): The ideal success rate to mark on the plot</span>
+<span class="sd">            **kwargs: Keyword arguments including:</span>
+<span class="sd">                target_value (str): The value we consider as success (e.g., &#39;0&#39; for heads)</span>
+<span class="sd">                ideal_rate (float): The ideal success rate to mark on the plot</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Any: The plot figure or display object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">target_value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_value&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">ideal_rate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ideal_rate&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No results available to plot&quot;</span><span class="p">)</span>
 
@@ -362,7 +372,7 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Success Rate&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span></div>
 </div>
 
 </pre></div>
