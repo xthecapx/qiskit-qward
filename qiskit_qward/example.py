@@ -6,13 +6,13 @@ This example creates a teleportation validator and runs a simulation.
 
 # Standard imports
 # Third-party imports
+from qiskit.exceptions import QiskitError
+
 # Local imports
 from qiskit_qward.validators.teleportation_validator import TeleportationValidator
-from qiskit.exceptions import QiskitError
 
 # Comment out the experiments import as it might not exist yet
 # from qiskit_qward.experiments.experiments import Experiments
-import numpy as np
 
 
 def main():
