@@ -1,0 +1,810 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="qiskit_qward.validators.BaseValidator" href="../stubs/qiskit_qward.validators.BaseValidator.html" /><link rel="prev" title="Qward API References" href="index.html" />
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2024.01.29 -->
+        <title>Validators - Qward 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-ecosystem.css?v=745c5aa7" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
+  <body>
+    
+    <script>document.body.dataset.theme = "light";</script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <defs><style>.cls-1{fill:none;}</style></defs>
+      <path d="M28,4H4A2,2,0,0,0,2,6V26a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V6A2,2,0,0,0,28,4ZM4,6H20V26H4ZM28,26H22V6h6Z"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <defs><style>.cls-1{fill:none;}</style></defs>
+      <rect x="4" y="6" width="24" height="2"/>
+      <rect x="4" y="24" width="24" height="2"/>
+      <rect x="4" y="12" width="24" height="2"/>
+      <rect x="4" y="18" width="24" height="2"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg version="1.1" id="icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+         viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve"><polygon points="22,16 12,26 10.6,24.6 19.2,16 10.6,7.4 12,6 " stroke="currentColor"/>
+      <rect id="_x3C_Transparent_Rectangle_x3E_" fill="none" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-new-tab" viewBox="0 0 32 32">
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <defs>
+        <style>
+          .cls-1 {
+            fill: none;
+          }
+        </style>
+      </defs>
+      <path fill="#6929C4" d="M26,28H6a2.0027,2.0027,0,0,1-2-2V6A2.0027,2.0027,0,0,1,6,4H16V6H6V26H26V16h2V26A2.0027,2.0027,0,0,1,26,28Z"/>
+      <polygon fill="#6929C4" points="20 2 20 4 26.586 4 18 12.586 19.414 14 28 5.414 28 12 30 12 30 2 20 2"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Qward 0.1.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><div class="sidebar-brand">
+  <a href="https://www.qiskit.org/ecosystem">
+    <div class="sidebar-logo-container">
+      <img class="sidebar-logo" src="../_static/images/ecosystem-logo.svg" alt="Qiskit Ecosystem logo"/>
+    </div>
+  </a>
+  
+  <span class="sidebar-brand-text">Qward 0.1.0</span>
+</div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/example_tutorial.html">Quantum Prototype Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/example_how_to.html">Quantum Prototype How-To</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">Validators</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Validators</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_qward.validators.BaseValidator.html">qiskit_qward.validators.BaseValidator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_qward.validators.TeleportationValidator.html">qiskit_qward.validators.TeleportationValidator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_qward.validators.FlipCoinValidator.html">qiskit_qward.validators.FlipCoinValidator</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="analysis.html">Analysis</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Analysis</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_qward.analysis.Analysis.html">qiskit_qward.analysis.Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../stubs/qiskit_qward.analysis.SuccessRate.html">qiskit_qward.analysis.SuccessRate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="module-qiskit_qward.validators">
+<span id="validators"></span><span id="qiskit-qward-validators"></span><h1>Validators<a class="headerlink" href="#module-qiskit_qward.validators" title="Link to this heading">¶</a></h1>
+<section id="validators-module-qiskit-qward-validators">
+<h2>Validators module (<a class="reference internal" href="#module-qiskit_qward.validators" title="qiskit_qward.validators"><code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_qward.validators</span></code></a>)<a class="headerlink" href="#validators-module-qiskit-qward-validators" title="Link to this heading">¶</a></h2>
+<p>This module contains the validator classes for quantum code execution quality validation.</p>
+<section id="validator-classes">
+<h3>Validator classes<a class="headerlink" href="#validator-classes" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_qward.validators.BaseValidator.html#qiskit_qward.validators.BaseValidator" title="qiskit_qward.validators.BaseValidator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseValidator</span></code></a>([num_qubits, num_clbits, ...])</p></td>
+<td><p>Base class for quantum algorithm validators in the Qiskit ecosystem.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../stubs/qiskit_qward.validators.TeleportationValidator.html#qiskit_qward.validators.TeleportationValidator" title="qiskit_qward.validators.TeleportationValidator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TeleportationValidator</span></code></a>([payload_size, ...])</p></td>
+<td><p>Validator for quantum teleportation protocol.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../stubs/qiskit_qward.validators.FlipCoinValidator.html#qiskit_qward.validators.FlipCoinValidator" title="qiskit_qward.validators.FlipCoinValidator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlipCoinValidator</span></code></a>([use_barriers])</p></td>
+<td><p>Validator for quantum coin flip circuit.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BaseValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_clbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></p>
+<p>Base class for quantum algorithm validators in the Qiskit ecosystem.
+Extends Qiskit’s QuantumCircuit to provide standardized validation capabilities.</p>
+<p>Initialize the base validator with a quantum circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_qubits</strong> (<em>int</em>) – Number of qubits in the circuit</p></li>
+<li><p><strong>num_clbits</strong> (<em>int</em>) – Number of classical bits for measurement</p></li>
+<li><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the circuit</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.add_analyzer">
+<span class="sig-name descname"><span class="pre">add_analyzer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analyzer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.add_analyzer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.add_analyzer" title="Link to this definition">¶</a></dt>
+<dd><p>Add an analyzer to the validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>analyzer</strong> (<a class="reference internal" href="../stubs/qiskit_qward.analysis.Analysis.html#qiskit_qward.analysis.Analysis" title="qiskit_qward.analysis.Analysis"><em>Analysis</em></a>) – The analyzer to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.draw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Draw the quantum circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The circuit diagram</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.plot_analysis">
+<span class="sig-name descname"><span class="pre">plot_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ideal_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.plot_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.plot_analysis" title="Link to this definition">¶</a></dt>
+<dd><p>Generate plots for all analyzers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ideal_rate</strong> (<em>float</em>) – The ideal success rate to mark on the plots</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.run_analysis">
+<span class="sig-name descname"><span class="pre">run_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.run_analysis" title="Link to this definition">¶</a></dt>
+<dd><p>Run analysis on all analyzers and return their results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing analysis results from each analyzer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.run_on_ibm">
+<span class="sig-name descname"><span class="pre">run_on_ibm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_on_ibm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.run_on_ibm" title="Link to this definition">¶</a></dt>
+<dd><p>Run the circuit on IBM Quantum hardware.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> (<em>str</em><em>, </em><em>optional</em>) – IBM Quantum channel</p></li>
+<li><p><strong>token</strong> (<em>str</em><em>, </em><em>optional</em>) – IBM Quantum token</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing execution results and job information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.BaseValidator.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots_per_job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.BaseValidator.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run a simulation of the circuit and return comprehensive results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_histogram</strong> (<em>bool</em>) – Whether to display the measurement histogram</p></li>
+<li><p><strong>num_jobs</strong> (<em>int</em>) – Number of jobs to run (each job is an independent experiment)</p></li>
+<li><p><strong>shots_per_job</strong> (<em>int</em>) – Number of shots per job</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing simulation results and circuit metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_qward.validators.FlipCoinValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FlipCoinValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.FlipCoinValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator" title="qiskit_qward.validators.base_validator.BaseValidator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseValidator</span></code></a></p>
+<p>Validator for quantum coin flip circuit.</p>
+<p>Initialize the quantum coin flip validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.FlipCoinValidator.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots_per_job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.FlipCoinValidator.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation with success rate analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_histogram</strong> (<em>bool</em>) – Whether to display the measurement histogram</p></li>
+<li><p><strong>num_jobs</strong> (<em>int</em>) – Number of independent jobs to run</p></li>
+<li><p><strong>shots_per_job</strong> (<em>int</em>) – Number of shots per job</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Simulation results including success rate analysis</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_qward.validators.TeleportationValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TeleportationValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_statevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.TeleportationValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator" title="qiskit_qward.validators.base_validator.BaseValidator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseValidator</span></code></a></p>
+<p>Validator for quantum teleportation protocol.
+Implements the standard teleportation protocol with optional gate operations.</p>
+<p>Initialize the teleportation validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payload_size</strong> (<em>int</em>) – Size of the payload qubit</p></li>
+<li><p><strong>gates</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>int</em><em>]</em>) – List of gates to apply to the payload qubit</p></li>
+<li><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p></li>
+<li><p><strong>save_statevector</strong> (<em>bool</em>) – Whether to save the statevector</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.TeleportationValidator.get_generic_backend">
+<span class="sig-name descname"><span class="pre">get_generic_backend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.get_generic_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.TeleportationValidator.get_generic_backend" title="Link to this definition">¶</a></dt>
+<dd><p>Get a generic backend for simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The backend instance</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Backend</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.TeleportationValidator.get_ibm_credentials">
+<span class="sig-name descname"><span class="pre">get_ibm_credentials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.get_ibm_credentials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.TeleportationValidator.get_ibm_credentials" title="Link to this definition">¶</a></dt>
+<dd><p>Get IBM Quantum credentials from environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(channel, token)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.TeleportationValidator.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.TeleportationValidator.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Validate the teleportation circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>expected_state</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Expected final state vector</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="base-validator">
+<h2>Base Validator<a class="headerlink" href="#base-validator" title="Link to this heading">¶</a></h2>
+<dl class="py class" id="module-qiskit_qward.validators.base_validator">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BaseValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_clbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></p>
+<p>Base class for quantum algorithm validators in the Qiskit ecosystem.
+Extends Qiskit’s QuantumCircuit to provide standardized validation capabilities.</p>
+<p>Initialize the base validator with a quantum circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_qubits</strong> (<em>int</em>) – Number of qubits in the circuit</p></li>
+<li><p><strong>num_clbits</strong> (<em>int</em>) – Number of classical bits for measurement</p></li>
+<li><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the circuit</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.add_analyzer">
+<span class="sig-name descname"><span class="pre">add_analyzer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analyzer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.add_analyzer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.add_analyzer" title="Link to this definition">¶</a></dt>
+<dd><p>Add an analyzer to the validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>analyzer</strong> (<a class="reference internal" href="../stubs/qiskit_qward.analysis.Analysis.html#qiskit_qward.analysis.Analysis" title="qiskit_qward.analysis.Analysis"><em>Analysis</em></a>) – The analyzer to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.draw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.draw" title="Link to this definition">¶</a></dt>
+<dd><p>Draw the quantum circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The circuit diagram</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.plot_analysis">
+<span class="sig-name descname"><span class="pre">plot_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ideal_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.plot_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.plot_analysis" title="Link to this definition">¶</a></dt>
+<dd><p>Generate plots for all analyzers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ideal_rate</strong> (<em>float</em>) – The ideal success rate to mark on the plots</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.run_analysis">
+<span class="sig-name descname"><span class="pre">run_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.run_analysis" title="Link to this definition">¶</a></dt>
+<dd><p>Run analysis on all analyzers and return their results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing analysis results from each analyzer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.run_on_ibm">
+<span class="sig-name descname"><span class="pre">run_on_ibm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_on_ibm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.run_on_ibm" title="Link to this definition">¶</a></dt>
+<dd><p>Run the circuit on IBM Quantum hardware.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> (<em>str</em><em>, </em><em>optional</em>) – IBM Quantum channel</p></li>
+<li><p><strong>token</strong> (<em>str</em><em>, </em><em>optional</em>) – IBM Quantum token</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing execution results and job information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.base_validator.BaseValidator.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots_per_job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/base_validator.html#BaseValidator.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.base_validator.BaseValidator.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run a simulation of the circuit and return comprehensive results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_histogram</strong> (<em>bool</em>) – Whether to display the measurement histogram</p></li>
+<li><p><strong>num_jobs</strong> (<em>int</em>) – Number of jobs to run (each job is an independent experiment)</p></li>
+<li><p><strong>shots_per_job</strong> (<em>int</em>) – Number of shots per job</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing simulation results and circuit metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="teleportation-validator">
+<h2>Teleportation Validator<a class="headerlink" href="#teleportation-validator" title="Link to this heading">¶</a></h2>
+<dl class="py class" id="module-qiskit_qward.validators.teleportation_validator">
+<dt class="sig sig-object py" id="qiskit_qward.validators.teleportation_validator.TeleportationValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TeleportationValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_statevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator" title="qiskit_qward.validators.base_validator.BaseValidator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseValidator</span></code></a></p>
+<p>Validator for quantum teleportation protocol.
+Implements the standard teleportation protocol with optional gate operations.</p>
+<p>Initialize the teleportation validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payload_size</strong> (<em>int</em>) – Size of the payload qubit</p></li>
+<li><p><strong>gates</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>int</em><em>]</em>) – List of gates to apply to the payload qubit</p></li>
+<li><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p></li>
+<li><p><strong>save_statevector</strong> (<em>bool</em>) – Whether to save the statevector</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_generic_backend">
+<span class="sig-name descname"><span class="pre">get_generic_backend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.get_generic_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_generic_backend" title="Link to this definition">¶</a></dt>
+<dd><p>Get a generic backend for simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The backend instance</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Backend</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_ibm_credentials">
+<span class="sig-name descname"><span class="pre">get_ibm_credentials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.get_ibm_credentials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_ibm_credentials" title="Link to this definition">¶</a></dt>
+<dd><p>Get IBM Quantum credentials from environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(channel, token)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.teleportation_validator.TeleportationValidator.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/teleportation_validator.html#TeleportationValidator.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Validate the teleportation circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>expected_state</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Expected final state vector</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="flip-coin-validator">
+<h2>Flip Coin Validator<a class="headerlink" href="#flip-coin-validator" title="Link to this heading">¶</a></h2>
+<dl class="py class" id="module-qiskit_qward.validators.flip_coin_validator">
+<dt class="sig sig-object py" id="qiskit_qward.validators.flip_coin_validator.FlipCoinValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FlipCoinValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.flip_coin_validator.FlipCoinValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator" title="qiskit_qward.validators.base_validator.BaseValidator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseValidator</span></code></a></p>
+<p>Validator for quantum coin flip circuit.</p>
+<p>Initialize the quantum coin flip validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.flip_coin_validator.FlipCoinValidator.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots_per_job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.flip_coin_validator.FlipCoinValidator.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation with success rate analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_histogram</strong> (<em>bool</em>) – Whether to display the measurement histogram</p></li>
+<li><p><strong>num_jobs</strong> (<em>int</em>) – Number of independent jobs to run</p></li>
+<li><p><strong>shots_per_job</strong> (<em>int</em>) – Number of shots per job</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Simulation results including success rate analysis</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        <div class="related-pages">
+          <a class="next-page" href="../stubs/qiskit_qward.validators.BaseValidator.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">qiskit_qward.validators.BaseValidator</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Qward API References</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Validators</a><ul>
+<li><a class="reference internal" href="#validators-module-qiskit-qward-validators">Validators module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_qward.validators</span></code>)</a><ul>
+<li><a class="reference internal" href="#validator-classes">Validator classes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator"><code class="docutils literal notranslate"><span class="pre">BaseValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.add_analyzer"><code class="docutils literal notranslate"><span class="pre">BaseValidator.add_analyzer()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.draw"><code class="docutils literal notranslate"><span class="pre">BaseValidator.draw()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.plot_analysis"><code class="docutils literal notranslate"><span class="pre">BaseValidator.plot_analysis()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.run_analysis"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_analysis()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.run_on_ibm"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_on_ibm()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.BaseValidator.run_simulation"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_simulation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskit_qward.validators.FlipCoinValidator"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.FlipCoinValidator.run_simulation"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator.run_simulation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskit_qward.validators.TeleportationValidator"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.TeleportationValidator.get_generic_backend"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.get_generic_backend()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.TeleportationValidator.get_ibm_credentials"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.get_ibm_credentials()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.TeleportationValidator.validate"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.validate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#base-validator">Base Validator</a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator"><code class="docutils literal notranslate"><span class="pre">BaseValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.add_analyzer"><code class="docutils literal notranslate"><span class="pre">BaseValidator.add_analyzer()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.draw"><code class="docutils literal notranslate"><span class="pre">BaseValidator.draw()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.plot_analysis"><code class="docutils literal notranslate"><span class="pre">BaseValidator.plot_analysis()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.run_analysis"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_analysis()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.run_on_ibm"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_on_ibm()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.base_validator.BaseValidator.run_simulation"><code class="docutils literal notranslate"><span class="pre">BaseValidator.run_simulation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#teleportation-validator">Teleportation Validator</a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_generic_backend"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.get_generic_backend()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.get_ibm_credentials"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.get_ibm_credentials()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_qward.validators.teleportation_validator.TeleportationValidator.validate"><code class="docutils literal notranslate"><span class="pre">TeleportationValidator.validate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#flip-coin-validator">Flip Coin Validator</a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.flip_coin_validator.FlipCoinValidator"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.flip_coin_validator.FlipCoinValidator.run_simulation"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator.run_simulation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

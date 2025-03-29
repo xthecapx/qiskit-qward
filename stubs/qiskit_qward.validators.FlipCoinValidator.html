@@ -1,0 +1,881 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Analysis" href="../apidocs/analysis.html" /><link rel="prev" title="qiskit_qward.validators.TeleportationValidator" href="qiskit_qward.validators.TeleportationValidator.html" />
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2024.01.29 -->
+        <title>qiskit_qward.validators.FlipCoinValidator - Qward 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=fe84956c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-ecosystem.css?v=745c5aa7" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<script src="../_static/js/web-components/top-nav-bar.js"></script></head>
+  <body>
+    
+    <script>document.body.dataset.theme = "light";</script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <defs><style>.cls-1{fill:none;}</style></defs>
+      <path d="M28,4H4A2,2,0,0,0,2,6V26a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V6A2,2,0,0,0,28,4ZM4,6H20V26H4ZM28,26H22V6h6Z"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <defs><style>.cls-1{fill:none;}</style></defs>
+      <rect x="4" y="6" width="24" height="2"/>
+      <rect x="4" y="24" width="24" height="2"/>
+      <rect x="4" y="12" width="24" height="2"/>
+      <rect x="4" y="18" width="24" height="2"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg version="1.1" id="icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+         viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve"><polygon points="22,16 12,26 10.6,24.6 19.2,16 10.6,7.4 12,6 " stroke="currentColor"/>
+      <rect id="_x3C_Transparent_Rectangle_x3E_" fill="none" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-new-tab" viewBox="0 0 32 32">
+    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <defs>
+        <style>
+          .cls-1 {
+            fill: none;
+          }
+        </style>
+      </defs>
+      <path fill="#6929C4" d="M26,28H6a2.0027,2.0027,0,0,1-2-2V6A2.0027,2.0027,0,0,1,6,4H16V6H6V26H26V16h2V26A2.0027,2.0027,0,0,1,26,28Z"/>
+      <polygon fill="#6929C4" points="20 2 20 4 26.586 4 18 12.586 19.414 14 28 5.414 28 12 30 12 30 2 20 2"/>
+      <rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Qward 0.1.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><div class="sidebar-brand">
+  <a href="https://www.qiskit.org/ecosystem">
+    <div class="sidebar-logo-container">
+      <img class="sidebar-logo" src="../_static/images/ecosystem-logo.svg" alt="Qiskit Ecosystem logo"/>
+    </div>
+  </a>
+  
+  <span class="sidebar-brand-text">Qward 0.1.0</span>
+</div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/example_tutorial.html">Quantum Prototype Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/example_how_to.html">Quantum Prototype How-To</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../apidocs/index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../apidocs/validators.html">Validators</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Validators</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qiskit_qward.validators.BaseValidator.html">qiskit_qward.validators.BaseValidator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_qward.validators.TeleportationValidator.html">qiskit_qward.validators.TeleportationValidator</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">qiskit_qward.validators.FlipCoinValidator</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../apidocs/analysis.html">Analysis</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Analysis</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_qward.analysis.Analysis.html">qiskit_qward.analysis.Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qiskit_qward.analysis.SuccessRate.html">qiskit_qward.analysis.SuccessRate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="qiskit-qward-validators-flipcoinvalidator">
+<h1>qiskit_qward.validators.FlipCoinValidator<a class="headerlink" href="#qiskit-qward-validators-flipcoinvalidator" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_qward.validators.FlipCoinValidator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FlipCoinValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.FlipCoinValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Validator for quantum coin flip circuit.</p>
+<p>Initialize the quantum coin flip validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_qward.validators.FlipCoinValidator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qiskit_qward/validators/flip_coin_validator.html#FlipCoinValidator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_qward.validators.FlipCoinValidator.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize the quantum coin flip validator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>use_barriers</strong> (<em>bool</em>) – Whether to include barriers in the circuit</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qiskit_qward.validators.FlipCoinValidator.__init__" title="qiskit_qward.validators.FlipCoinValidator.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([use_barriers])</p></td>
+<td><p>Initialize the quantum coin flip validator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_analyzer</span></code>(analyzer)</p></td>
+<td><p>Add an analyzer to the validator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_bits</span></code>(bits)</p></td>
+<td><p>Add Bits to the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_calibration</span></code>(gate, qubits, schedule[, params])</p></td>
+<td><p>Register a low-level, custom pulse definition for the given gate.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_capture</span></code>(var)</p></td>
+<td><p>Add a variable to the circuit that it should capture from a scope it will be contained within.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_input</span></code>(name_or_var[, type_])</p></td>
+<td><p>Register a variable as an input to the circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_register</span></code>(*regs)</p></td>
+<td><p>Add registers.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_uninitialized_var</span></code>(var, /)</p></td>
+<td><p>Add a variable with no initializer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_var</span></code>(name_or_var, /, initial)</p></td>
+<td><p>Add a classical variable with automatic storage and scope to this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code>(instruction[, qargs, cargs, copy])</p></td>
+<td><p>Append one or more instructions to the end of the circuit, modifying the circuit in place.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_parameters</span></code>(parameters[, inplace, ...])</p></td>
+<td><p>Assign parameters to new parameters or values.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">barrier</span></code>(*qargs[, label])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">Barrier</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">break_loop</span></code>()</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">BreakLoopOp</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cast</span></code>(value, type_)</p></td>
+<td><p>Best effort to cast value to type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cbit_argument_conversion</span></code>(clbit_representation)</p></td>
+<td><p>Converts several classical bit representations (such as indexes, range, etc.) into a list of classical bits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ccx</span></code>(control_qubit1, control_qubit2, target_qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CCXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ccz</span></code>(control_qubit1, control_qubit2, target_qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CCZGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ch</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CHGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code>()</p></td>
+<td><p>Clear all instructions in self.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cls_instances</span></code>(cls)</p></td>
+<td><p>Return the current number of instances of this class, useful for auto naming.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cls_prefix</span></code>(cls)</p></td>
+<td><p>Return the prefix to use for auto naming.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose</span></code>(other[, qubits, clbits, front, ...])</p></td>
+<td><p>Apply the instructions from one circuit onto specified qubits and/or clbits on another.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">continue_loop</span></code>()</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">ContinueLoopOp</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">control</span></code>([num_ctrl_qubits, label, ...])</p></td>
+<td><p>Control this circuit on <code class="docutils literal notranslate"><span class="pre">num_ctrl_qubits</span></code> qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>([name])</p></td>
+<td><p>Copy the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy_empty_like</span></code>([name, vars_mode])</p></td>
+<td><p>Return a copy of self with the same structure but empty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_ops</span></code>()</p></td>
+<td><p>Count each operation kind in the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cp</span></code>(theta, control_qubit, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CPhaseGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">crx</span></code>(theta, control_qubit, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CRXGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cry</span></code>(theta, control_qubit, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CRYGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">crz</span></code>(theta, control_qubit, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CRZGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cs</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CSGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">csdg</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CSdgGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cswap</span></code>(control_qubit, target_qubit1, ...[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CSwapGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">csx</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CSXGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cu</span></code>(theta, phi, lam, gamma, control_qubit, ...)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CUGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cx</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CXGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cy</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CYGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cz</span></code>(control_qubit, target_qubit[, label, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">CZGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dcx</span></code>(qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">DCXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">decompose</span></code>([gates_to_decompose, reps])</p></td>
+<td><p>Call a decomposition pass on this circuit, to decompose one level (shallow decompose).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">delay</span></code>(duration[, qarg, unit])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">Delay</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth</span></code>([filter_function])</p></td>
+<td><p>Return circuit depth (i.e., length of critical path).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw</span></code>()</p></td>
+<td><p>Draw the quantum circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ecr</span></code>(qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">ECRGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimate_duration</span></code>(target[, unit])</p></td>
+<td><p>Estimate the duration of a scheduled circuit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_bit</span></code>(bit)</p></td>
+<td><p>Find locations in the circuit which can be used to reference a given <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bit</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">for_loop</span></code>(indexset[, loop_parameter, body, ...])</p></td>
+<td><p>Create a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop on this circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_instructions</span></code>(instructions, *[, qubits, ...])</p></td>
+<td><p>Construct a circuit from an iterable of <code class="xref py py-class docutils literal notranslate"><span class="pre">CircuitInstruction</span></code>s.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_qasm_file</span></code>(path)</p></td>
+<td><p>Read an OpenQASM 2.0 program from a file and convert to an instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_qasm_str</span></code>(qasm_str)</p></td>
+<td><p>Convert a string containing an OpenQASM 2.0 program to a <code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_instructions</span></code>(name)</p></td>
+<td><p>Get instructions matching name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code>(name[, default])</p></td>
+<td><p>Retrieve a compile-time parameter that is accessible in this circuit scope by name.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_var</span></code>(name[, default])</p></td>
+<td><p>Retrieve a variable that is accessible in this circuit scope by name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">h</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">HGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_calibration_for</span></code>(instruction)</p></td>
+<td><p>Return True if the circuit has a calibration defined for the instruction context.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code>(name_or_param, /)</p></td>
+<td><p>Check whether a parameter object exists in this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_register</span></code>(register)</p></td>
+<td><p>Test if this circuit has the register r.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_var</span></code>(name_or_var, /)</p></td>
+<td><p>Check whether a variable is accessible in this scope.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">IGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">if_else</span></code>(condition, true_body, false_body, ...)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">IfElseOp</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">if_test</span></code>(condition[, true_body, qubits, ...])</p></td>
+<td><p>Create an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement on this circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code>(params[, qubits, normalize])</p></td>
+<td><p>Initialize qubits in a specific state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">inverse</span></code>([annotated])</p></td>
+<td><p>Invert (take adjoint of) this circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">iswap</span></code>(qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">iSwapGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_captured_vars</span></code>()</p></td>
+<td><p>Get an iterable over all real-time classical variables that are captured by this circuit scope from a containing scope.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_declared_vars</span></code>()</p></td>
+<td><p>Get an iterable over all real-time classical variables that are declared with automatic storage duration in this scope.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_input_vars</span></code>()</p></td>
+<td><p>Get an iterable over all real-time classical variables that are declared as inputs to this circuit scope.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_vars</span></code>()</p></td>
+<td><p>Get an iterable over all real-time classical variables in scope within this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcp</span></code>(lam, control_qubits, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">MCPhaseGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcrx</span></code>(theta, q_controls, q_target[, ...])</p></td>
+<td><p>Apply Multiple-Controlled X rotation gate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcry</span></code>(theta, q_controls, q_target[, ...])</p></td>
+<td><p>Apply Multiple-Controlled Y rotation gate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcrz</span></code>(lam, q_controls, q_target[, ...])</p></td>
+<td><p>Apply Multiple-Controlled Z rotation gate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcx</span></code>(control_qubits, target_qubit[, ...])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">MCXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure</span></code>(qubit, cbit)</p></td>
+<td><p>Measure a quantum bit (<code class="docutils literal notranslate"><span class="pre">qubit</span></code>) in the Z basis into a classical bit (<code class="docutils literal notranslate"><span class="pre">cbit</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_active</span></code>([inplace])</p></td>
+<td><p>Adds measurement to all non-idle qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_all</span></code>([inplace, add_bits])</p></td>
+<td><p>Adds measurement to all qubits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ms</span></code>(theta, qubits)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">MSGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_connected_components</span></code>([unitary_only])</p></td>
+<td><p>How many non-entangled subcircuits can the circuit be factored to.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_nonlocal_gates</span></code>()</p></td>
+<td><p>Return number of non-local gates (i.e. involving 2+ qubits).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_tensor_factors</span></code>()</p></td>
+<td><p>Computes the number of tensor factors in the unitary (quantum) part of the circuit only.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_unitary_factors</span></code>()</p></td>
+<td><p>Computes the number of tensor factors in the unitary (quantum) part of the circuit only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">p</span></code>(theta, qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">PhaseGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pauli</span></code>(pauli_string, qubits)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">PauliGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_analysis</span></code>([ideal_rate])</p></td>
+<td><p>Generate plots for all analyzers.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">power</span></code>(power[, matrix_power, annotated])</p></td>
+<td><p>Raise this circuit to the power of <code class="docutils literal notranslate"><span class="pre">power</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_state</span></code>(state[, qubits, label, normalize])</p></td>
+<td><p>Prepare qubits in a specific state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qbit_argument_conversion</span></code>(qubit_representation)</p></td>
+<td><p>Converts several qubit representations (such as indexes, range, etc.) into a list of qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qubit_duration</span></code>(*qubits)</p></td>
+<td><p>Return the duration between the start and stop time of the first and last instructions, excluding delays, over the supplied qubits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qubit_start_time</span></code>(*qubits)</p></td>
+<td><p>Return the start time of the first instruction, excluding delays, over the supplied qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qubit_stop_time</span></code>(*qubits)</p></td>
+<td><p>Return the stop time of the last instruction, excluding delays, over the supplied qubits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">r</span></code>(theta, phi, qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rcccx</span></code>(control_qubit1, control_qubit2, ...)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RC3XGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rccx</span></code>(control_qubit1, control_qubit2, ...)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RCCXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_final_measurements</span></code>([inplace])</p></td>
+<td><p>Removes final measurements and barriers on all qubits if they are present.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">repeat</span></code>(reps, *[, insert_barriers])</p></td>
+<td><p>Repeat this circuit <code class="docutils literal notranslate"><span class="pre">reps</span></code> times.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code>(qubit)</p></td>
+<td><p>Reset the quantum bit(s) to their default state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse_bits</span></code>()</p></td>
+<td><p>Return a circuit with the opposite order of wires.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse_ops</span></code>()</p></td>
+<td><p>Reverse the circuit by reversing the order of instructions.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_analysis</span></code>()</p></td>
+<td><p>Run analysis on all analyzers and return their results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_on_ibm</span></code>([channel, token])</p></td>
+<td><p>Run the circuit on IBM Quantum hardware.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../apidocs/validators.html#qiskit_qward.validators.FlipCoinValidator.run_simulation" title="qiskit_qward.validators.FlipCoinValidator.run_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_simulation</span></code></a>([show_histogram, num_jobs, ...])</p></td>
+<td><p>Run simulation with success rate analysis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rv</span></code>(vx, vy, vz, qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RVGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rx</span></code>(theta, qubit[, label])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rxx</span></code>(theta, qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RXXGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ry</span></code>(theta, qubit[, label])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RYGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ryy</span></code>(theta, qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RYYGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rz</span></code>(phi, qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RZGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rzx</span></code>(theta, qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RZXGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rzz</span></code>(theta, qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">RZZGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">s</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">SGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_amplitudes</span></code>(params[, label, pershot, ...])</p></td>
+<td><p>Save complex statevector amplitudes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_amplitudes_squared</span></code>(params[, label, ...])</p></td>
+<td><p>Save squared statevector amplitudes (probabilities).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_clifford</span></code>([label, pershot])</p></td>
+<td><p>Save the current stabilizer simulator quantum state as a Clifford.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_density_matrix</span></code>([qubits, label, ...])</p></td>
+<td><p>Save the current simulator quantum state as a density matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_expectation_value</span></code>(operator, qubits[, ...])</p></td>
+<td><p>Save the expectation value of a Hermitian operator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_expectation_value_variance</span></code>(operator, qubits)</p></td>
+<td><p>Save the expectation value of a Hermitian operator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_matrix_product_state</span></code>([label, pershot, ...])</p></td>
+<td><p>Save the current simulator quantum state as a matrix product state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_probabilities</span></code>([qubits, label, ...])</p></td>
+<td><p>Save measurement outcome probabilities vector.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_probabilities_dict</span></code>([qubits, label, ...])</p></td>
+<td><p>Save measurement outcome probabilities vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_stabilizer</span></code>([label, pershot, conditional])</p></td>
+<td><p>Save the current stabilizer simulator quantum state as a StabilizerState.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_state</span></code>([label, pershot, conditional])</p></td>
+<td><p>Save the current simulator quantum state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_statevector</span></code>([label, pershot, conditional])</p></td>
+<td><p>Save the current simulator quantum state as a statevector.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_statevector_dict</span></code>([label, pershot, ...])</p></td>
+<td><p>Save the current simulator quantum state as a statevector as a dict.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_superop</span></code>([label, pershot])</p></td>
+<td><p>Save the current state of the superop simulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_unitary</span></code>([label, pershot])</p></td>
+<td><p>Save the current state of the unitary simulator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sdg</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">SdgGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_density_matrix</span></code>(state)</p></td>
+<td><p>Set the density matrix state of the simulator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_matrix_product_state</span></code>(state)</p></td>
+<td><p>Set the matrix product state of the simulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_stabilizer</span></code>(state)</p></td>
+<td><p>Set the Clifford stabilizer state of the simulator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_statevector</span></code>(state)</p></td>
+<td><p>Set the statevector state of the simulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_superop</span></code>(state)</p></td>
+<td><p>Set the superop state of the simulator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_unitary</span></code>(state)</p></td>
+<td><p>Set the state state of the simulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">size</span></code>([filter_function])</p></td>
+<td><p>Returns total number of instructions in circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code>(lvalue, rvalue, /)</p></td>
+<td><p>Store the result of the given real-time classical expression <code class="docutils literal notranslate"><span class="pre">rvalue</span></code> in the memory location defined by <code class="docutils literal notranslate"><span class="pre">lvalue</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">swap</span></code>(qubit1, qubit2)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">SwapGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">switch</span></code>(target[, cases, qubits, clbits, label])</p></td>
+<td><p>Create a <code class="docutils literal notranslate"><span class="pre">switch</span></code>/<code class="docutils literal notranslate"><span class="pre">case</span></code> structure on this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sx</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">SXGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sxdg</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">SXdgGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">t</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">TGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tdg</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">TdgGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tensor</span></code>(other[, inplace])</p></td>
+<td><p>Tensor <code class="docutils literal notranslate"><span class="pre">self</span></code> with <code class="docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_gate</span></code>([parameter_map, label])</p></td>
+<td><p>Create a <code class="xref py py-class docutils literal notranslate"><span class="pre">Gate</span></code> out of this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_instruction</span></code>([parameter_map, label])</p></td>
+<td><p>Create an <code class="xref py py-class docutils literal notranslate"><span class="pre">Instruction</span></code> out of this circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">u</span></code>(theta, phi, lam, qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">UGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unitary</span></code>(obj, qubits[, label])</p></td>
+<td><p>Apply unitary gate specified by <code class="docutils literal notranslate"><span class="pre">obj</span></code> to <code class="docutils literal notranslate"><span class="pre">qubits</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">while_loop</span></code>(condition[, body, qubits, ...])</p></td>
+<td><p>Create a <code class="docutils literal notranslate"><span class="pre">while</span></code> loop on this circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">width</span></code>()</p></td>
+<td><p>Return number of qubits plus clbits in circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code>(qubit[, label])</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">XGate</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">YGate</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">z</span></code>(qubit)</p></td>
+<td><p>Apply <code class="xref py py-class docutils literal notranslate"><span class="pre">ZGate</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ancillas</span></code></p></td>
+<td><p>A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">AncillaQubit</span></code>s in the order that they were added.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">calibrations</span></code></p></td>
+<td><p>Return calibration dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clbits</span></code></p></td>
+<td><p>A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Clbit</span></code>s in the order that they were added.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<td><p>The circuit data (instructions and context).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></p></td>
+<td><p>The total duration of the circuit, set by a scheduling transpiler pass.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_phase</span></code></p></td>
+<td><p>The global phase of the current circuit scope in radians.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">instances</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">layout</span></code></p></td>
+<td><p>Return any associated layout information about the circuit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></p></td>
+<td><p>The user provided metadata associated with the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_ancillas</span></code></p></td>
+<td><p>Return the number of ancilla qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_captured_vars</span></code></p></td>
+<td><p>The number of real-time classical variables in the circuit marked as captured from an enclosing scope.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_clbits</span></code></p></td>
+<td><p>Return number of classical bits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_declared_vars</span></code></p></td>
+<td><p>The number of real-time classical variables in the circuit that are declared by this circuit scope, excluding inputs or captures.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_input_vars</span></code></p></td>
+<td><p>The number of real-time classical variables in the circuit marked as circuit inputs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_parameters</span></code></p></td>
+<td><p>The number of parameter objects in the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_qubits</span></code></p></td>
+<td><p>Return number of qubits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_vars</span></code></p></td>
+<td><p>The number of real-time classical variables in the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">op_start_times</span></code></p></td>
+<td><p>Return a list of operation start times.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code></p></td>
+<td><p>The parameters defined in the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">prefix</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qubits</span></code></p></td>
+<td><p>A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Qubit</span></code>s in the order that they were added.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit</span></code></p></td>
+<td><p>The unit that <code class="xref py py-attr docutils literal notranslate"><span class="pre">duration</span></code> is specified in.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p>A human-readable name for the circuit.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">qregs</span></code></p></td>
+<td><p>A list of the <code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumRegister</span></code>s in this circuit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cregs</span></code></p></td>
+<td><p>A list of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ClassicalRegister</span></code>s in this circuit.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        <div class="related-pages">
+          <a class="next-page" href="../apidocs/analysis.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Analysis</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="qiskit_qward.validators.TeleportationValidator.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">qiskit_qward.validators.TeleportationValidator</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">qiskit_qward.validators.FlipCoinValidator</a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.FlipCoinValidator"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_qward.validators.FlipCoinValidator.__init__"><code class="docutils literal notranslate"><span class="pre">FlipCoinValidator.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/qiskit-sphinx-theme.js?v=4d77b8ca"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>
