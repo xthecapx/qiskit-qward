@@ -1,14 +1,16 @@
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.circuit.library import XGate, HGate
+# from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+# from qiskit.circuit.library import XGate, HGate
 from qiskit.primitives import PrimitiveResult
 from qiskit.providers import Backend
 from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-from qiskit.visualization import plot_histogram
-from qiskit.exceptions import QiskitError
+
+# from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
+# from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+# from qiskit.visualization import plot_histogram
+# from qiskit.exceptions import QiskitError
 import numpy as np
 import os
+from typing import Union, List
 from dotenv import load_dotenv
 from .base_validator import BaseValidator
 
@@ -22,7 +24,7 @@ class TeleportationValidator(BaseValidator):
     def __init__(
         self,
         payload_size: int = 3,
-        gates: list | int = None,
+        gates: Union[List, int] = None,
         use_barriers: bool = True,
         save_statevector: bool = False,
     ):
@@ -31,7 +33,7 @@ class TeleportationValidator(BaseValidator):
 
         Args:
             payload_size (int): Size of the payload qubit
-            gates (list | int): List of gates to apply to the payload qubit
+            gates (Union[List, int]): List of gates to apply to the payload qubit
             use_barriers (bool): Whether to include barriers in the circuit
             save_statevector (bool): Whether to save the statevector
         """
