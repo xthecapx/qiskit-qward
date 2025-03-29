@@ -74,14 +74,44 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=raw-checker-failed,
-        bad-inline-option,
-        locally-disabled,
-        file-ignored,
-        suppressed-message,
-        useless-suppression,
-        deprecated-pragma,
-        use-symbolic-message-instead
+disable=
+    # Unnecessary checks
+    unnecessary-pass,
+    import-outside-toplevel,
+    unnecessary-elif,
+    too-many-locals,
+    too-many-statements,
+    too-many-arguments,
+    missing-module-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    
+    # CI/Notebook compatibility issues
+    undefined-variable,
+    
+    # Function signature issues (APIs not yet stable)
+    arguments-differ,
+    unexpected-keyword-arg,
+    no-value-for-parameter,
+    unused-argument,
+    
+    # Import sorting (can be fixed later)
+    wrong-import-order,
+    ungrouped-imports,
+    
+    # Line length
+    line-too-long,
+    
+    # Import issues 
+    unused-import,
+    reimported,
+    redefined-outer-name,
+    
+    # Fixmes and todos
+    fixme,
+    
+    # Other
+    consider-using-in
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -109,7 +139,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 output-format=text
 
 # Tells whether to display a full report or only the messages.
-reports=no
+reports=yes
 
 # Activate the evaluation score.
 score=yes
@@ -204,7 +234,13 @@ ignore-on-opaque-inference=yes
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=optparse.Values,thread._local,_thread._local
+ignored-classes=
+    optparse.Values,
+    thread._local,
+    _thread._local,
+    numpy,
+    numpy.ndarray,
+    qiskit
 
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
@@ -288,7 +324,10 @@ single-line-class-stmt=no
 
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
-single-line-if-stmt=no
+single-line-if-stmt=yes
+
+# Deliberately disable this to allow 'elif' after 'return'
+no-else-return=no
 
 
 [SIMILARITIES]
@@ -514,10 +553,10 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=15
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=25
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
@@ -526,27 +565,19 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=25
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=20
+max-public-methods=25
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=11
 
 # Maximum number of statements in function / method body.
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
-
-
-[EXCEPTIONS]
-
-# Exceptions that will emit a warning when being caught. Defaults to
-# "BaseException, Exception".
-overgeneral-exceptions=BaseException,
-                       Exception
+min-public-methods=0

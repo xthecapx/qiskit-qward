@@ -1,3 +1,12 @@
+"""
+Example demonstrating the use of Qiskit Qward teleportation validator.
+
+This example creates a teleportation validator and runs a simulation.
+"""
+
+# Standard imports
+# Third-party imports
+# Local imports
 from qiskit_qward.validators.teleportation_validator import TeleportationValidator
 
 # Comment out the experiments import as it might not exist yet
@@ -6,6 +15,11 @@ import numpy as np
 
 
 def main():
+    """
+    Create a teleportation validator and run simulations.
+
+    Demonstrates basic capabilities of the Qward framework.
+    """
     # Create a teleportation validator
     validator = TeleportationValidator(
         payload_size=3,
