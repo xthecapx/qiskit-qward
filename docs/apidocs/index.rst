@@ -1,12 +1,13 @@
-.. prototype_template:
+.. qiskit_qward:
 
-.. module:: prototype_template
+.. module:: qiskit_qward
 
 =============================
-Template API References
+Qward API References
 =============================
 
 .. toctree::
    :maxdepth: 1
 
-   template
+   validators
+   analysis
