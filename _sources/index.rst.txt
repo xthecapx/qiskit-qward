@@ -14,7 +14,12 @@ Qward provides tools to execute quantum circuits on QPUs, collect comprehensive 
 
 .. toctree::
   :maxdepth: 1
+  :caption: Documentation
 
+  quickstart_guide
+  beginners_guide
+  technical_docs
+  project_overview
   Tutorials <tutorials/index>
   User Guide <how_tos/index>
   API References <apidocs/index>
