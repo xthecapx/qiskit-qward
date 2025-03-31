@@ -4,21 +4,35 @@ Qiskit Qward is a framework for analyzing and validating quantum code execution 
 
 ## Installation
 
-To install Qiskit Qward and its dependencies:
+### Option 1: Local Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/your-org/qiskit-qward.git
 cd qiskit-qward
 
-# Install dependencies
-pip install -r requirements.txt
+# Install in development mode
+pip install -e .
+
+# Set up IBM Quantum credentials
+cp .env.example .env
+# Edit .env with your IBM Quantum token
 ```
 
-For IBM Quantum backend access, create a `.env` file with your credentials:
-```
-IBM_QUANTUM_CHANNEL=ibm_quantum
-IBM_QUANTUM_TOKEN=your_token_here
+### Option 2: Using Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/qiskit-qward.git
+cd qiskit-qward
+
+# Copy and edit .env file
+cp .env.example .env
+# Edit .env with your IBM Quantum token
+
+# Start Docker container with Jupyter Lab
+chmod +x start.sh
+./start.sh
 ```
 
 ## Usage
@@ -68,7 +82,7 @@ ibm_results = validator.run_on_ibm()
 For a more complex example, try the Two Doors Enigma validator:
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.quantum_enigma import QuantumEnigmaValidator
+from qiskit_qward.examples.two_doors_enigma.validator import QuantumEnigmaValidator
 
 # Create the validator
 validator = QuantumEnigmaValidator()
@@ -120,6 +134,28 @@ class MyCustomValidator(BaseValidator):
             
         self.measure([0, 1], [0, 1])  # Measure both qubits
 ```
+
+## Using Jupyter Notebooks
+
+The easiest way to work with Qiskit Qward is using Jupyter notebooks. When using the Docker setup with `./start.sh`, you'll have access to:
+
+1. **Tutorials**: `docs/tutorials/example_tutorial.ipynb`
+2. **How-to Guides**: `docs/how_tos/example_how_to.ipynb`
+3. **Example Notebooks**: 
+   - `qiskit_qward/examples/flip_coin/notebook_demo.ipynb`
+   - `qiskit_qward/examples/two_doors_enigma/notebook_demo.ipynb`
+
+## IBM Quantum Execution
+
+To run on real quantum hardware, you need an IBM Quantum account:
+
+1. Register at [IBM Quantum Experience](https://quantum-computing.ibm.com/)
+2. Get your API token from your account settings
+3. Add it to your `.env` file:
+   ```
+   IBM_QUANTUM_CHANNEL=ibm_quantum
+   IBM_QUANTUM_TOKEN=your_token_here
+   ```
 
 ## Next Steps
 
