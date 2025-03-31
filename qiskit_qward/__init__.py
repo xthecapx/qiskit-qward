@@ -9,10 +9,10 @@ from .analysis.analysis import Analysis
 from .analysis.success_rate import SuccessRate
 
 try:
-    __version__ = metadata_version("qiskit-qward")
+    __version__ = metadata_version("qiskit_qward")
 except PackageNotFoundError:  # pragma: no cover
     # package is not installed
-    __version__ = "0.1.0"
+    __version__ = "0.0.0"
 
 __all__ = [
     "BaseValidator",
