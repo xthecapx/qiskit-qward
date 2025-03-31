@@ -34,28 +34,47 @@ Qiskit Qward provides analysis tools to help you understand your quantum algorit
 
 ### Installation
 
-To install Qiskit Qward:
+You can set up Qiskit Qward in two ways:
+
+#### Option 1: Local Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/your-org/qiskit-qward.git
 cd qiskit-qward
 
-# Install dependencies
-pip install -r requirements.txt
+# Install in development mode
+pip install -e .
+
+# Set up IBM Quantum credentials
+cp .env.example .env
+# Edit .env with your IBM Quantum token
 ```
 
-For IBM Quantum access, create a `.env` file with your credentials:
+#### Option 2: Using Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/qiskit-qward.git
+cd qiskit-qward
+
+# Copy and edit .env file
+cp .env.example .env
+# Edit .env with your IBM Quantum token
+
+# Start Docker container with Jupyter Lab
+chmod +x start.sh
+./start.sh
 ```
-IBM_QUANTUM_CHANNEL=ibm_quantum
-IBM_QUANTUM_TOKEN=your_token_here
-```
+
+This will open a Jupyter Lab interface in your browser where you can run the examples and tutorials.
 
 ### First Steps: The Quantum Coin Flip
 
 Let's start with a simple example - the quantum coin flip. This uses a single qubit in superposition to simulate a fair coin toss.
 
 ```python
+# If running in a notebook, ensure paths are set up correctly
 from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
 
 # Create the validator
@@ -109,7 +128,7 @@ The results should show approximately 50% heads and 50% tails, demonstrating qua
 For a more complex example, try the Two Doors Enigma validator. This implements a quantum solution to a classic puzzle involving truth-tellers and liars.
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.quantum_enigma import QuantumEnigmaValidator
+from qiskit_qward.examples.two_doors_enigma.validator import QuantumEnigmaValidator
 
 # Create the validator
 validator = QuantumEnigmaValidator()
@@ -164,13 +183,29 @@ class MyFirstValidator(BaseValidator):
         self.measure(0, 0)
 ```
 
+## Using Jupyter Notebooks
+
+The easiest way to work with Qiskit Qward is using Jupyter notebooks. We provide example notebooks in the repository:
+
+1. **Tutorials**: For detailed examples with explanations
+   - Located in `docs/tutorials/example_tutorial.ipynb`
+
+2. **How-to Guides**: For specific tasks
+   - Located in `docs/how_tos/example_how_to.ipynb`
+
+3. **Example Implementations**:
+   - Flip Coin: `qiskit_qward/examples/flip_coin/notebook_demo.ipynb`
+   - Two Doors Enigma: `qiskit_qward/examples/two_doors_enigma/notebook_demo.ipynb`
+
+When using Docker with `./start.sh`, these notebooks will be accessible directly from the Jupyter Lab interface.
+
 ## Next Steps
 
 After getting familiar with the basics, you can:
 
-1. Explore the [Quantum Coin Flip example](examples/flip_coin/notebook_demo.ipynb) in detail
-2. Study the [Two Doors Enigma example](examples/two_doors_enigma/notebook_demo.ipynb)
-3. Check the [Technical Documentation](technical_docs.md) for more details
+1. Explore the tutorials in the `docs/tutorials` directory
+2. Check out the how-to guides in `docs/how_tos`
+3. Review the [Technical Documentation](technical_docs.md) for more details
 4. Learn how to customize success criteria and analyze different metrics
 5. Create validators for your own quantum algorithms
 

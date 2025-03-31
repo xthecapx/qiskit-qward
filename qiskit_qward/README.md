@@ -73,6 +73,26 @@ print(f"Operation count: {results['circuit_metrics']['count_ops']}")
 ibm_results = validator.run_on_ibm()
 ```
 
+## Example Usage
+
+```python
+from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
+
+# Create a validator
+validator = FlipCoinValidator(use_barriers=True)
+
+# Run simulation
+results = validator.run_simulation(
+    show_histogram=True,  # Show histogram of first job
+    num_jobs=100,         # Number of independent jobs
+    shots_per_job=1024    # Number of shots per job
+)
+
+# Access analysis results
+analysis = results["analysis"]["analyzer_0"]
+print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
+```
+
 ## Core Components
 
 ### 1. Base Validator System (✅ Implemented)
