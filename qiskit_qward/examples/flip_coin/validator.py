@@ -1,6 +1,5 @@
-from qiskit import QuantumCircuit
-from .base_validator import BaseValidator
-from ..analysis.success_rate import SuccessRate
+from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.analysis.success_rate import SuccessRate
 
 
 class FlipCoinValidator(BaseValidator):
