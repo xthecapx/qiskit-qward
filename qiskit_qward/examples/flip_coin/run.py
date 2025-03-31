@@ -2,12 +2,19 @@
 import sys
 import os
 from IPython.display import display
+import pathlib
 
-# Get the absolute path to the project root directory
-project_root = os.path.dirname(os.getcwd())
-sys.path.append(project_root)
+# For Jupyter notebooks where __file__ doesn't exist
+current_dir = pathlib.Path().resolve()
+project_root = current_dir
+# Keep going up until we find the qiskit_qward directory or hit the filesystem root
+while not (project_root / "qiskit_qward").exists() and project_root != project_root.parent:
+    project_root = project_root.parent
 
-from validator import FlipCoinValidator
+# Add project root to path
+sys.path.append(str(project_root))
+
+from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
 
 # Cell 2 - Create and Display Circuit
 # Create a flip coin validator

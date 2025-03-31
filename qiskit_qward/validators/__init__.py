@@ -14,12 +14,8 @@ Validator classes
     :toctree: ../stubs/
 
     BaseValidator
-    TeleportationValidator
-    FlipCoinValidator
 """
 
 from .base_validator import BaseValidator
-from .teleportation_validator import TeleportationValidator
-from .flip_coin_validator import FlipCoinValidator
 
-__all__ = ["BaseValidator", "TeleportationValidator", "FlipCoinValidator"]
+__all__ = ["BaseValidator"]
