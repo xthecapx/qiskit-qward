@@ -1,93 +1,177 @@
-# Qward Beginner's Guide
+# Qiskit Qward Beginner's Guide
 
-This guide provides a comprehensive introduction to Qward, a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs).
+This guide provides a comprehensive introduction to Qiskit Qward, a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs).
 
-## About the Project
+## What is Qiskit Qward?
 
-Qward is designed to help quantum developers and researchers understand how their quantum algorithms perform on real hardware. The framework provides tools to execute quantum circuits on QPUs, collect comprehensive execution metrics, analyze circuit performance, validate algorithm correctness, generate insights about QPU behavior, and compare results across different backends.
+Qiskit Qward is a framework built on top of Qiskit that helps quantum developers understand how their quantum algorithms perform on both simulators and real quantum hardware. It provides tools to:
 
-## Installation
+1. Create and run quantum circuits
+2. Collect execution metrics
+3. Analyze circuit performance
+4. Validate algorithm correctness
+5. Compare results across different backends
 
-To install Qward, follow these steps:
+## Key Concepts
 
-1. Clone the repository:
+### Validators
+
+In Qiskit Qward, validators are the main components you'll work with. They are quantum circuits with added functionality for:
+- Setting up experiments
+- Defining success criteria
+- Running simulations with multiple jobs/shots
+- Executing on IBM Quantum hardware
+- Analyzing results
+
+### Analysis
+
+Qiskit Qward provides analysis tools to help you understand your quantum algorithm's performance:
+- Success rate analysis
+- Statistical aggregation
+- Visualization tools
+
+## Getting Started
+
+### Installation
+
+To install Qiskit Qward:
+
 ```bash
+# Clone the repository
 git clone https://github.com/your-org/qiskit-qward.git
 cd qiskit-qward
-```
 
-2. Install the required dependencies:
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-3. Set up your IBM Quantum credentials in a `.env` file:
+For IBM Quantum access, create a `.env` file with your credentials:
 ```
 IBM_QUANTUM_CHANNEL=ibm_quantum
 IBM_QUANTUM_TOKEN=your_token_here
 ```
 
-## Usage
+### First Steps: The Quantum Coin Flip
 
-Qward is built around validators that extend Qiskit's QuantumCircuit functionality. Here's how to use one of the built-in validators:
+Let's start with a simple example - the quantum coin flip. This uses a single qubit in superposition to simulate a fair coin toss.
 
 ```python
-from qward.validators.teleportation_validator import TeleportationValidator
+from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
 
-# Create a validator
-validator = TeleportationValidator(
-    payload_size=3,
-    gates=["h", "x"],
-    use_barriers=True
+# Create the validator
+validator = FlipCoinValidator(use_barriers=True)
+
+# Show the circuit
+print("Quantum Coin Flip Circuit:")
+circuit_fig = validator.draw()
+display(circuit_fig)
+
+# Run simulation
+print("\nRunning quantum simulation jobs...")
+results = validator.run_simulation(
+    show_histogram=True,
+    num_jobs=100,
+    shots_per_job=1024
 )
+
+# Check results
+analysis = results["analysis"]["analyzer_0"]
+print(f"\nSuccess rate (tails): {analysis['mean_success_rate']:.2%}")
+print(f"Standard deviation: {analysis['std_success_rate']:.2%}")
+```
+
+This circuit:
+1. Applies a Hadamard gate to put a qubit in superposition (50% |0⟩, 50% |1⟩)
+2. Measures the qubit
+3. Runs multiple jobs to collect statistics
+4. Analyzes the results to verify the coin is fair
+
+### Understanding the Circuit
+
+The quantum coin flip circuit is simple but demonstrates important quantum principles:
+
+```
+┌───┐┌─┐
+┤ H ├┤M├
+└───┘└╥┘
+     ┌╨┐
+     │0│
+     └─┘
+```
+
+1. **H gate**: Creates an equal superposition of |0⟩ and |1⟩
+2. **Measurement**: Collapses the superposition into either 0 (heads) or 1 (tails)
+
+The results should show approximately 50% heads and 50% tails, demonstrating quantum randomness.
+
+## Going Further: The Two Doors Enigma
+
+For a more complex example, try the Two Doors Enigma validator. This implements a quantum solution to a classic puzzle involving truth-tellers and liars.
+
+```python
+from qiskit_qward.examples.two_doors_enigma.quantum_enigma import QuantumEnigmaValidator
+
+# Create the validator
+validator = QuantumEnigmaValidator()
 
 # Run simulation
 results = validator.run_simulation(show_histogram=True)
 
-# Access results
-print(f"Circuit depth: {results['circuit_metrics']['depth']}")
-print(f"Circuit width: {results['circuit_metrics']['width']}")
-print(f"Operation count: {results['circuit_metrics']['count_ops']}")
-
-# Run on IBM hardware (if configured)
-ibm_results = validator.run_on_ibm()
+# Check analysis results
+analysis = validator.run_analysis()["analyzer_0"]
+print(f"Success rate: {analysis['mean_success_rate']:.2%}")
 ```
 
-## Example Problem
+This example demonstrates more advanced quantum concepts:
+- Multiple qubits and classical bits
+- Entanglement with CNOT gates
+- Complex quantum logic
 
-Let's explore a simple use case: validating a quantum teleportation circuit.
+## Creating Your Own Validator
 
-1. **Problem**: You want to assess how well a quantum teleportation algorithm performs on different backends.
+Once you're comfortable with the existing examples, you can create your own validator:
 
-2. **Solution with Qward**:
 ```python
-from qward.validators.teleportation_validator import TeleportationValidator
-from qward.analysis.success_rate import SuccessRate
+from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.analysis.success_rate import SuccessRate
 
-# Create a teleportation validator
-validator = TeleportationValidator(
-    payload_size=1,  # Single qubit teleportation
-    gates=["h", "x"],  # Gates to prepare the payload
-    use_barriers=True  # Add barriers for readability
-)
-
-# Run on simulator
-sim_results = validator.run_simulation()
-
-# Run on IBM hardware (if configured)
-ibm_results = validator.run_on_ibm()
-
-# Analyze success rate
-analyzer = SuccessRate()
-sim_rate = analyzer.analyze(sim_results)
-ibm_rate = analyzer.analyze(ibm_results)
-
-print(f"Simulator success rate: {sim_rate}")
-print(f"IBM hardware success rate: {ibm_rate}")
+class MyFirstValidator(BaseValidator):
+    def __init__(self, use_barriers=True):
+        # Initialize with one qubit and one classical bit
+        super().__init__(num_qubits=1, num_clbits=1, use_barriers=use_barriers, name="my_first")
+        
+        # Define what "success" means for this circuit
+        # In this case, measuring |1⟩ is considered success
+        def success_criteria(state):
+            return state == "1"
+        
+        # Add success rate analyzer
+        success_analyzer = SuccessRate()
+        success_analyzer.set_success_criteria(success_criteria)
+        self.add_analyzer(success_analyzer)
+        
+        # Build your circuit
+        self._build_circuit()
+    
+    def _build_circuit(self):
+        # Apply X gate to flip from |0⟩ to |1⟩
+        self.x(0)
+        
+        if self.use_barriers:
+            self.barrier()
+            
+        # Measure the qubit
+        self.measure(0, 0)
 ```
 
-3. **Interpretation**: The difference between simulator and hardware success rates gives you insights into the real-world performance limitations of the quantum hardware.
+## Next Steps
 
-## Conclusion
+After getting familiar with the basics, you can:
 
-Qward provides a structured way to evaluate quantum algorithm performance across different backends. By using validators and analyzers, you can gain insights into how your quantum code executes on real hardware and identify opportunities for optimization. As you become more familiar with the framework, you can create custom validators for your specific quantum algorithms.
+1. Explore the [Quantum Coin Flip example](examples/flip_coin/notebook_demo.ipynb) in detail
+2. Study the [Two Doors Enigma example](examples/two_doors_enigma/notebook_demo.ipynb)
+3. Check the [Technical Documentation](technical_docs.md) for more details
+4. Learn how to customize success criteria and analyze different metrics
+5. Create validators for your own quantum algorithms
+
+Remember, Qiskit Qward is about understanding how quantum algorithms perform in practice, helping you bridge the gap between theoretical quantum computing and practical implementation on real hardware.

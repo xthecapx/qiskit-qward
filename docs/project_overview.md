@@ -1,4 +1,46 @@
-# Project Overview
+# Qiskit Qward Project Overview
+
+Qiskit Qward is a framework for analyzing and validating quantum algorithm execution quality on quantum processing units (QPUs). It provides a structured approach for building quantum validators that can be used to assess how well quantum circuits perform on real hardware.
+
+## Key Components
+
+The framework consists of several key components:
+
+1. **Base Validator System**: 
+   - Extends Qiskit's QuantumCircuit to provide validation capabilities
+   - Handles circuit creation, simulation, and execution on IBM Quantum hardware
+   - Provides a standardized interface for implementing quantum validators
+
+2. **Analysis Framework**:
+   - Processes execution results to extract meaningful insights
+   - Includes success rate analysis to evaluate algorithm performance
+   - Supports visualization of results for better understanding
+
+3. **Example Implementations**:
+   - **Flip Coin Validator**: A simple quantum coin flip example showcasing basic superposition
+   - **Two Doors Enigma Validator**: A more complex validator implementing the quantum solution to the "two doors enigma" puzzle
+
+## Getting Started
+
+To get started with Qiskit Qward, refer to the [Quickstart Guide](quickstart_guide.md) for installation instructions and basic usage patterns.
+
+## Documentation Structure
+
+- **Beginner's Guide**: Introduction to quantum validation concepts
+- **Quickstart Guide**: Installation and basic usage
+- **Technical Documentation**: Detailed component descriptions
+- **Tutorials**: Step-by-step guides for common tasks
+- **How-Tos**: Practical examples for specific use cases
+- **API Documentation**: Full API reference
+
+## Project Goals
+
+The primary goals of the Qiskit Qward project are:
+
+1. Provide tools to evaluate quantum algorithm performance
+2. Enable comparison between simulated and real hardware execution
+3. Support quantum algorithm validation through standardized metrics
+4. Create a framework for consistent quantum experiment design
 
 ## Background
 
