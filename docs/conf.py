@@ -49,8 +49,8 @@ extensions = [
 
 # Add Markdown support
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
 templates_path = ["_templates"]
