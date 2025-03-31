@@ -32,6 +32,7 @@ REQUIREMENTS = [
     "requests==2.32.3",
     "dotenv",
     "statsmodels",
+    "myst-parser==3.0.1",
 ]
 
 if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
