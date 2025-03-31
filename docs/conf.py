@@ -44,7 +44,15 @@ extensions = [
     "reno.sphinxext",
     "nbsphinx",
     "qiskit_sphinx_theme",
+    "myst_parser",
 ]
+
+# Add Markdown support
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
 templates_path = ["_templates"]
 numfig = True
 numfig_format = {"table": "Table %s"}
