@@ -41,23 +41,23 @@ chmod +x start.sh
 
 Qiskit Qward provides two main ways to use the framework:
 
-1. Using existing validators
-2. Creating your own custom validators
+1. Using existing scanning circuits
+2. Creating your own custom scanning circuits
 
-### Using Existing Validators
+### Using Existing Scanning Circuits
 
 #### Example 1: Quantum Coin Flip
 
-The Quantum Coin Flip validator demonstrates a simple quantum circuit that simulates a fair coin toss:
+The Quantum Coin Flip scanner demonstrates a simple quantum circuit that simulates a fair coin toss:
 
 ```python
-from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
-# Create a validator
-validator = FlipCoinValidator(use_barriers=True)
+# Create a scanner
+scanner = ScanningQuantumFlipCoin(use_barriers=True)
 
 # Run simulation with multiple jobs
-results = validator.run_simulation(
+results = scanner.run_simulation(
     show_histogram=True,   # Display histogram of results
     num_jobs=1000,         # Run 1000 independent jobs 
     shots_per_job=1024     # With 1024 shots each
@@ -70,43 +70,67 @@ print(f"Standard deviation: {analysis['std_success_rate']:.2%}")
 print(f"Average heads count: {analysis['average_counts']['heads']:.2f}")
 print(f"Average tails count: {analysis['average_counts']['tails']:.2f}")
 
+# Access complexity metrics
+complexity = results["complexity_metrics"]
+print(f"\nCircuit complexity metrics:")
+print(f"Gate count: {complexity['gate_based_metrics']['gate_count']}")
+print(f"Circuit depth: {complexity['gate_based_metrics']['circuit_depth']}")
+print(f"Circuit volume: {complexity['standardized_metrics']['circuit_volume']}")
+
+# Access quantum volume
+qv = results["quantum_volume"]
+print(f"\nQuantum Volume: {qv['standard_quantum_volume']}")
+print(f"Enhanced Quantum Volume: {qv['enhanced_quantum_volume']}")
+
 # Plot results
-validator.plot_analysis(ideal_rate=0.5)
+scanner.plot_analysis(ideal_rate=0.5)
 
 # Run on IBM Quantum hardware (if configured)
-ibm_results = validator.run_on_ibm()
+ibm_results = scanner.run_on_ibm()
 ```
 
 #### Example 2: Two Doors Enigma
 
-For a more complex example, try the Two Doors Enigma validator:
+For a more complex example, try the Two Doors Enigma scanner:
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.validator import QuantumEnigmaValidator
+from qiskit_qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
 
-# Create the validator
-validator = QuantumEnigmaValidator()
+# Create the scanner
+scanner = ScanningQuantumEnigma()
 
 # Run simulation
-results = validator.run_simulation(show_histogram=True)
+results = scanner.run_simulation(show_histogram=True)
 
 # Access analysis results
-analysis = validator.run_analysis()["analyzer_0"]
+analysis = scanner.run_analysis()["analyzer_0"]
 print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
 
+# Access complexity metrics
+complexity = results["complexity_metrics"]
+print(f"\nCircuit complexity metrics:")
+print(f"Gate count: {complexity['gate_based_metrics']['gate_count']}")
+print(f"CNOT count: {complexity['gate_based_metrics']['cnot_count']}")
+print(f"Entangling gate density: {complexity['entanglement_metrics']['entangling_gate_density']}")
+
+# Access quantum volume
+qv = results["quantum_volume"]
+print(f"\nQuantum Volume: {qv['standard_quantum_volume']}")
+print(f"Enhanced Quantum Volume: {qv['enhanced_quantum_volume']}")
+
 # Plot analysis results
-validator.plot_analysis(ideal_rate=1.0)
+scanner.plot_analysis(ideal_rate=1.0)
 ```
 
-### Creating Custom Validators
+### Creating Custom Scanning Circuits
 
-To create your own validator, extend the ScanningQuantumCircuit class:
+To create your own scanner, extend the ScanningQuantumCircuit class:
 
 ```python
 from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
-class MyCustomValidator(ScanningQuantumCircuit):
+class MyCustomScanner(ScanningQuantumCircuit):
     def __init__(self, use_barriers=True):
         # Initialize with desired qubits and classical bits
         super().__init__(num_qubits=2, num_clbits=2, use_barriers=use_barriers, name="my_circuit")
@@ -134,6 +158,60 @@ class MyCustomValidator(ScanningQuantumCircuit):
             
         self.measure([0, 1], [0, 1])  # Measure both qubits
 ```
+
+After running your custom scanner, you can access complexity metrics and quantum volume estimates:
+
+```python
+# Create your scanner
+my_scanner = MyCustomScanner()
+
+# Run simulation
+results = my_scanner.run_simulation()
+
+# Calculate complexity metrics directly
+complexity_metrics = my_scanner.calculate_complexity_metrics()
+print(f"Circuit depth: {complexity_metrics['gate_based_metrics']['circuit_depth']}")
+print(f"Gate density: {complexity_metrics['standardized_metrics']['gate_density']}")
+
+# Estimate quantum volume
+qv_estimate = my_scanner.estimate_quantum_volume()
+print(f"Quantum Volume: {qv_estimate['enhanced_quantum_volume']}")
+```
+
+## Circuit Complexity and Quantum Volume
+
+Qiskit Qward provides two key methods for analyzing circuit properties:
+
+### 1. Calculate Complexity Metrics
+
+The `calculate_complexity_metrics()` method returns detailed circuit complexity metrics:
+
+```python
+# Get metrics for any circuit
+metrics = scanner.calculate_complexity_metrics()
+```
+
+Key metric categories include:
+- Gate-based metrics (count, depth, T-count, CNOT count)
+- Entanglement metrics (gate density, entangling width)
+- Standardized metrics (volume, density, Clifford ratios)
+- Advanced metrics (parallelism, efficiency)
+- Derived metrics (weighted complexity)
+
+### 2. Estimate Quantum Volume
+
+The `estimate_quantum_volume()` method provides quantum volume metrics:
+
+```python
+# Get quantum volume for any circuit
+qv = scanner.estimate_quantum_volume()
+```
+
+This returns both standard quantum volume (2^n) and an enhanced volume that considers:
+- Square ratio (how close depth is to width)
+- Circuit density (operations per time-step)
+- Multi-qubit operation ratio
+- Connectivity factors
 
 ## Using Jupyter Notebooks
 
