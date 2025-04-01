@@ -9,5 +9,5 @@ Qward API References
 .. toctree::
    :maxdepth: 1
 
-   validators
+   quantum_circuits
    analysis

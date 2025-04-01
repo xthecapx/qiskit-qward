@@ -209,11 +209,9 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/validators.html">Validators</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Validators</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="stubs/qiskit_qward.validators.BaseValidator.html">qiskit_qward.validators.BaseValidator</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/analysis.html">Analysis</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Analysis</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html">Quantum Circuits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html#example-validators">Example Validators</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/analysis.html">Analysis</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Analysis</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="stubs/qiskit_qward.analysis.Analysis.html">qiskit_qward.analysis.Analysis</a></li>
 <li class="toctree-l3"><a class="reference internal" href="stubs/qiskit_qward.analysis.SuccessRate.html">qiskit_qward.analysis.SuccessRate</a></li>
 </ul>
@@ -268,7 +266,7 @@
 <h3>1. Validators<a class="headerlink" href="#validators" title="Link to this heading">¶</a></h3>
 <p>The validator system is the core of Qiskit Qward, built around extending Qiskit’s QuantumCircuit:</p>
 <ul class="simple">
-<li><p><strong>BaseValidator</strong>: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.</p></li>
+<li><p><strong>ScanningQuantumCircuit</strong>: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.</p></li>
 <li><p><strong>Example Validators</strong>: Specific implementations for different quantum algorithms:</p>
 <ul>
 <li><p><strong>FlipCoinValidator</strong>: Implements a simple quantum coin flip using a Hadamard gate</p></li>
@@ -295,9 +293,9 @@
 </section>
 <section id="implementation-details">
 <h3>3. Implementation Details<a class="headerlink" href="#implementation-details" title="Link to this heading">¶</a></h3>
-<section id="basevalidator">
-<h4>BaseValidator<a class="headerlink" href="#basevalidator" title="Link to this heading">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">BaseValidator</span></code> extends Qiskit’s <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and adds:</p>
+<section id="scanningquantumcircuit">
+<h4>ScanningQuantumCircuit<a class="headerlink" href="#scanningquantumcircuit" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">ScanningQuantumCircuit</span></code> extends Qiskit’s <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and adds:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_clbits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_barriers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">):</span>
@@ -390,7 +388,7 @@
 <h2>Technical Guidelines<a class="headerlink" href="#technical-guidelines" title="Link to this heading">¶</a></h2>
 <p>When extending Qiskit Qward with custom validators:</p>
 <ol class="arabic simple">
-<li><p>Inherit from BaseValidator</p></li>
+<li><p>Inherit from ScanningQuantumCircuit</p></li>
 <li><p>Initialize with appropriate number of qubits and classical bits</p></li>
 <li><p>Define custom success criteria for your algorithm</p></li>
 <li><p>Add appropriate analyzers</p></li>
@@ -422,10 +420,10 @@
 </section>
 <section id="pattern-2-creating-custom-validators">
 <h3>Pattern 2: Creating Custom Validators<a class="headerlink" href="#pattern-2-creating-custom-validators" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.validators.base_validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseValidator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.scanning_quantum_circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.analysis.success_rate</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRate</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomValidator</span><span class="p">(</span><span class="n">BaseValidator</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomValidator</span><span class="p">(</span><span class="n">ScanningQuantumCircuit</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_clbits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_validator&quot;</span><span class="p">)</span>
         
@@ -473,7 +471,7 @@
 <h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Link to this heading">¶</a></h2>
 <p>When extending Qward with custom validators:</p>
 <ol class="arabic simple">
-<li><p>Inherit from BaseValidator</p></li>
+<li><p>Inherit from ScanningQuantumCircuit</p></li>
 <li><p>Implement the required abstract methods:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">validate()</span></code>: Your circuit construction logic</p></li>
@@ -560,7 +558,7 @@
 <li><a class="reference internal" href="#validators">1. Validators</a></li>
 <li><a class="reference internal" href="#analysis-framework">2. Analysis Framework</a></li>
 <li><a class="reference internal" href="#implementation-details">3. Implementation Details</a><ul>
-<li><a class="reference internal" href="#basevalidator">BaseValidator</a></li>
+<li><a class="reference internal" href="#scanningquantumcircuit">ScanningQuantumCircuit</a></li>
 <li><a class="reference internal" href="#success-rate-analyzer">Success Rate Analyzer</a></li>
 </ul>
 </li>

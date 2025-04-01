@@ -10,7 +10,7 @@ Qiskit Qward is organized into several key components:
 
 The validator system is the core of Qiskit Qward, built around extending Qiskit's QuantumCircuit:
 
-- **BaseValidator**: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.
+- **ScanningQuantumCircuit**: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.
   
 - **Example Validators**: Specific implementations for different quantum algorithms:
   - **FlipCoinValidator**: Implements a simple quantum coin flip using a Hadamard gate
@@ -32,9 +32,9 @@ The analysis framework processes execution results:
 
 ### 3. Implementation Details
 
-#### BaseValidator
+#### ScanningQuantumCircuit
 
-The `BaseValidator` extends Qiskit's `QuantumCircuit` and adds:
+The `ScanningQuantumCircuit` extends Qiskit's `QuantumCircuit` and adds:
 
 ```python
 def __init__(
@@ -123,7 +123,7 @@ Success criteria focus on detecting when both guardians point to the same door.
 
 When extending Qiskit Qward with custom validators:
 
-1. Inherit from BaseValidator
+1. Inherit from ScanningQuantumCircuit
 2. Initialize with appropriate number of qubits and classical bits
 3. Define custom success criteria for your algorithm
 4. Add appropriate analyzers
@@ -155,10 +155,10 @@ validator.plot_analysis()
 ### Pattern 2: Creating Custom Validators
 
 ```python
-from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
-class MyCustomValidator(BaseValidator):
+class MyCustomValidator(ScanningQuantumCircuit):
     def __init__(self):
         super().__init__(num_qubits=2, num_clbits=2, use_barriers=True, name="my_validator")
         
@@ -199,7 +199,7 @@ class MyCustomValidator(BaseValidator):
 
 When extending Qward with custom validators:
 
-1. Inherit from BaseValidator
+1. Inherit from ScanningQuantumCircuit
 2. Implement the required abstract methods:
    - `validate()`: Your circuit construction logic
 3. Add appropriate metrics collection
