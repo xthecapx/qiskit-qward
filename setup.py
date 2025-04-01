@@ -16,15 +16,16 @@ import sys
 import os
 import re
 
+
 def parse_requirements(filename):
     """Parse a requirements file, handling reference directives."""
     requirements = []
     with open(filename) as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
-            if line.startswith('-r '):
+            if line.startswith("-r "):
                 # For reference to another requirements file
                 ref_file = line[3:].strip()
                 if os.path.exists(ref_file):
@@ -32,6 +33,7 @@ def parse_requirements(filename):
             else:
                 requirements.append(line)
     return requirements
+
 
 # Parse requirements directly from qward requirements file for more reliable results
 REQUIREMENTS = parse_requirements("requirements.qward.txt")
