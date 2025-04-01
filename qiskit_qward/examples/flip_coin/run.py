@@ -14,22 +14,22 @@ while not (project_root / "qiskit_qward").exists() and project_root != project_r
 # Add project root to path
 sys.path.append(str(project_root))
 
-from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Cell 2 - Create and Display Circuit
-# Create a flip coin validator
-validator = FlipCoinValidator(use_barriers=True)
+# Create a flip coin scanner
+scanner = ScanningQuantumFlipCoin(use_barriers=True)
 
 # Display the circuit
 print("Quantum Coin Flip Circuit:")
-circuit_fig = validator.draw()
+circuit_fig = scanner.draw()
 display(circuit_fig)
 
 # Cell 3 - Run Simulation and Analysis
 # Run multiple jobs with many shots each to gather statistics
 print("\nRunning quantum simulation jobs...")
 print("(1000 jobs with 1024 shots each)")
-results = validator.run_simulation(
+results = scanner.run_simulation(
     show_histogram=True,  # Show histogram of first job
     num_jobs=1000,  # Number of independent jobs
     shots_per_job=1024,  # Number of coin flips per job
@@ -49,19 +49,19 @@ for key, value in analysis.items():
 # Cell 4 - Plot Results
 # Plot success rate distribution for tails
 print("\nPlotting success rate distribution for tails...")
-validator.plot_analysis(ideal_rate=0.5)  # For a fair coin, we expect 50% tails
+scanner.plot_analysis(ideal_rate=0.5)  # For a fair coin, we expect 50% tails
 
 # Cell 5 - Export Results
 # Export results to CSV
 print("\nExporting results...")
-validator.analyzers[0].export_results("flip_coin_results.csv")
+scanner.analyzers[0].export_results("flip_coin_results.csv")
 
 # Cell 6 - Run on IBM Quantum Hardware
 print("\nRunning on IBM Quantum Hardware...")
 print("(Single job with 1024 shots)")
 
-# Create a new validator for IBM run to keep results separate
-ibm_validator = FlipCoinValidator(use_barriers=True)
+# Create a new scanner for IBM run to keep results separate
+ibm_validator = ScanningQuantumFlipCoin(use_barriers=True)
 
 # Run on IBM with a single job
 ibm_results = ibm_validator.run_on_ibm()
