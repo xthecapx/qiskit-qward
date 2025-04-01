@@ -6,8 +6,8 @@ Qiskit Qward is a framework for analyzing and validating quantum algorithm execu
 
 The framework consists of several key components:
 
-1. **Base Validator System**: 
-   - Extends Qiskit's QuantumCircuit to provide validation capabilities
+1. **Scanning Quantum Circuit System**: 
+   - Extends Qiskit's QuantumCircuit to provide validation and scanning capabilities
    - Handles circuit creation, simulation, and execution on IBM Quantum hardware
    - Provides a standardized interface for implementing quantum validators
 
