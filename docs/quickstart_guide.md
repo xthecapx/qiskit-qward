@@ -100,13 +100,13 @@ validator.plot_analysis(ideal_rate=1.0)
 
 ### Creating Custom Validators
 
-To create your own validator, extend the BaseValidator class:
+To create your own validator, extend the ScanningQuantumCircuit class:
 
 ```python
-from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
-class MyCustomValidator(BaseValidator):
+class MyCustomValidator(ScanningQuantumCircuit):
     def __init__(self, use_barriers=True):
         # Initialize with desired qubits and classical bits
         super().__init__(num_qubits=2, num_clbits=2, use_barriers=use_barriers, name="my_circuit")

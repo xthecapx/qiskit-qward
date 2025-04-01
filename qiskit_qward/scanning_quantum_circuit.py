@@ -6,7 +6,7 @@ from qiskit.visualization import plot_histogram
 import os
 from typing import List, Dict, Any, Optional, Union
 from dotenv import load_dotenv
-from ..analysis import Analysis
+from .analysis import Analysis
 
 # For visualization support in notebooks - wrap in try/except for CI environments
 try:
@@ -26,17 +26,17 @@ IBM_QUANTUM_CHANNEL = os.getenv("IBM_QUANTUM_CHANNEL", "ibm_quantum")
 IBM_QUANTUM_TOKEN = os.getenv("IBM_QUANTUM_TOKEN")
 
 
-class BaseValidator(QuantumCircuit):
+class ScanningQuantumCircuit(QuantumCircuit):
     """
-    Base class for quantum algorithm validators in the Qiskit ecosystem.
-    Extends Qiskit's QuantumCircuit to provide standardized validation capabilities.
+    Base class for quantum circuit scanning and validation in the Qiskit ecosystem.
+    Extends Qiskit's QuantumCircuit to provide standardized analysis and validation capabilities.
     """
 
     def __init__(
         self, num_qubits: int = 1, num_clbits: int = 1, use_barriers: bool = True, name: str = None
     ):
         """
-        Initialize the base validator with a quantum circuit.
+        Initialize the scanning quantum circuit.
 
         Args:
             num_qubits (int): Number of qubits in the circuit
@@ -373,4 +373,4 @@ class BaseValidator(QuantumCircuit):
         """
         for i, analyzer in enumerate(self.analyzers):
             print(f"\nPlotting analysis for analyzer {i}:")
-            analyzer.plot(ideal_rate=ideal_rate)
+            analyzer.plot(ideal_rate=ideal_rate) 

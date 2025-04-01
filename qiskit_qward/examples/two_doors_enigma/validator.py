@@ -1,8 +1,8 @@
-from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
 
-class QuantumEnigmaValidator(BaseValidator):
+class QuantumEnigmaValidator(ScanningQuantumCircuit):
     def __init__(self):
         # Initialize with named registers
         super().__init__(num_qubits=3, num_clbits=3, name="quantum_enigma")
