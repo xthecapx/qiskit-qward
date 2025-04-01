@@ -7,6 +7,7 @@ import os
 from typing import List
 from dotenv import load_dotenv
 from .analysis import Analysis
+import time
 
 # For visualization support in notebooks - wrap in try/except for CI environments
 try:
@@ -99,7 +100,7 @@ class ScanningQuantumCircuit(QuantumCircuit):
             dict: Dictionary containing simulation results and circuit metrics
         """
         # Start timing
-        import time
+        
 
         start_time = time.time()
         start_timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
@@ -107,7 +108,7 @@ class ScanningQuantumCircuit(QuantumCircuit):
         # Get first simulation results
         sim_results = self._simulate(shots=shots_per_job, show_histogram=show_histogram)
 
-        # Circuit metrics
+        # Basic circuit metrics
         circuit_metrics = {
             "depth": self.depth(),
             "width": self.width(),
@@ -120,6 +121,12 @@ class ScanningQuantumCircuit(QuantumCircuit):
             "has_calibrations": bool(self.calibrations),
             "has_layout": bool(self.layout),
         }
+
+        # Calculate advanced complexity metrics
+        complexity_metrics = self.calculate_complexity_metrics()
+        
+        # Calculate quantum volume estimate
+        qv_estimate = self.estimate_quantum_volume()
 
         # Add first job results to analyzers
         for analyzer in self.analyzers:
@@ -163,6 +170,8 @@ class ScanningQuantumCircuit(QuantumCircuit):
         return {
             "results_metrics": sim_results,
             "circuit_metrics": circuit_metrics,
+            "complexity_metrics": complexity_metrics,
+            "quantum_volume": qv_estimate,
             "timing_info": timing_info,
         }
 
@@ -178,9 +187,6 @@ class ScanningQuantumCircuit(QuantumCircuit):
             dict: Dictionary containing execution results and job information
         """
         try:
-            # Start timing
-            import time
-
             overall_start_time = time.time()
             overall_start_timestamp = time.strftime(
                 "%Y-%m-%d %H:%M:%S", time.localtime(overall_start_time)
@@ -250,6 +256,12 @@ class ScanningQuantumCircuit(QuantumCircuit):
                     for analyzer in self.analyzers:
                         analyzer.add_results({"counts": counts})
 
+                    # Calculate advanced complexity metrics
+                    complexity_metrics = self.calculate_complexity_metrics()
+                    
+                    # Calculate quantum volume estimate
+                    qv_estimate = self.estimate_quantum_volume()
+
                     # Calculate overall timing
                     overall_end_time = time.time()
                     overall_end_timestamp = time.strftime(
@@ -278,11 +290,17 @@ class ScanningQuantumCircuit(QuantumCircuit):
                         "counts": counts,
                         "backend": backend.configuration().backend_name,
                         "timing_info": timing_info,
+                        "complexity_metrics": complexity_metrics,
+                        "quantum_volume": qv_estimate,
                     }
                 elif status != "RUNNING" and status != "QUEUED":
                     # Calculate timing even for errors
                     execution_end_time = time.time()
                     overall_end_time = time.time()
+
+                    # Calculate complexity metrics even for failures
+                    complexity_metrics = self.calculate_complexity_metrics()
+                    qv_estimate = self.estimate_quantum_volume()
 
                     timing_info = {
                         "overall_start_time": overall_start_timestamp,
@@ -302,12 +320,19 @@ class ScanningQuantumCircuit(QuantumCircuit):
                         "error": f"Job ended with status: {status}",
                         "backend": backend.configuration().backend_name,
                         "timing_info": timing_info,
+                        "complexity_metrics": complexity_metrics,
+                        "quantum_volume": qv_estimate,
                     }
 
                 time.sleep(polling_interval)
 
             # Handle timeout
             overall_end_time = time.time()
+            
+            # Calculate complexity metrics even for timeouts
+            complexity_metrics = self.calculate_complexity_metrics()
+            qv_estimate = self.estimate_quantum_volume()
+            
             timing_info = {
                 "overall_start_time": overall_start_timestamp,
                 "overall_end_time": time.strftime(
@@ -325,11 +350,21 @@ class ScanningQuantumCircuit(QuantumCircuit):
                 "job_id": job_id,
                 "backend": backend.configuration().backend_name,
                 "timing_info": timing_info,
+                "complexity_metrics": complexity_metrics,
+                "quantum_volume": qv_estimate,
             }
         except Exception as e:
             # Calculate timing even for exceptions
             overall_end_time = time.time()
             overall_time = overall_end_time - overall_start_time
+            
+            # Try to calculate complexity metrics if possible
+            try:
+                complexity_metrics = self.calculate_complexity_metrics()
+                qv_estimate = self.estimate_quantum_volume()
+                include_metrics = True
+            except Exception:
+                include_metrics = False
 
             timing_info = {
                 "overall_start_time": overall_start_timestamp,
@@ -341,7 +376,14 @@ class ScanningQuantumCircuit(QuantumCircuit):
             }
 
             print(f"An error occurred: {e}")
-            return {"status": "error", "error": str(e), "timing_info": timing_info}
+            result = {"status": "error", "error": str(e), "timing_info": timing_info}
+            
+            # Add metrics if they were successfully calculated
+            if include_metrics:
+                result["complexity_metrics"] = complexity_metrics
+                result["quantum_volume"] = qv_estimate
+                
+            return result
 
     def draw(self):
         """
@@ -374,3 +416,236 @@ class ScanningQuantumCircuit(QuantumCircuit):
         for i, analyzer in enumerate(self.analyzers):
             print(f"\nPlotting analysis for analyzer {i}:")
             analyzer.plot(ideal_rate=ideal_rate)
+
+    def estimate_quantum_volume(self):
+        """
+        Estimate the quantum volume of the current circuit.
+        
+        This is a circuit complexity metric based on the existing circuit's
+        characteristics rather than the formal IBM Quantum Volume protocol.
+        
+        The estimate considers:
+        - Circuit depth (temporal complexity)
+        - Circuit width (spatial complexity)
+        - Operation counts and types
+        - Connectivity patterns
+        
+        Returns:
+            dict: Quantum volume estimate and related metrics
+        """
+        # Get circuit metrics
+        depth = self.depth()
+        width = self.width()
+        num_qubits = self.num_qubits
+        size = self.size()
+        op_counts = self.count_ops()
+        
+        # Start with baseline QV calculation based on effective square size
+        effective_depth = min(depth, num_qubits)
+        
+        # Calculate standard QV base as 2^n where n is effective depth
+        standard_qv = 2**effective_depth
+        
+        # Calculate complexity factors
+        
+        # 1. Square circuit factor - how close is it to a square circuit?
+        # Perfect square circuit has depth = width
+        square_ratio = min(depth, width) / max(depth, width) if max(depth, width) > 0 else 1.0
+        
+        # 2. Circuit density - how many operations per qubit-timestep?
+        max_possible_ops = depth * width
+        density = size / max_possible_ops if max_possible_ops > 0 else 0.0
+        
+        # 3. Gate complexity - multi-qubit operations are more complex
+        # Count 2+ qubit gates (like cx, swaps) vs single-qubit gates
+        multi_qubit_ops = sum(count for gate, count in op_counts.items() 
+                            if gate not in ['barrier', 'measure', 'id', 'u1', 'u2', 'u3', 'rx', 'ry', 'rz', 'h', 'x', 'y', 'z', 's', 't'])
+        multi_qubit_ratio = multi_qubit_ops / size if size > 0 else 0.0
+        
+        # 4. Connectivity factor - for current circuit
+        # This is a simplified approximation based on the presence of entangling operations
+        connectivity_factor = 0.5 + 0.5 * (multi_qubit_ratio > 0)
+        
+        # Calculate the enhanced quantum volume
+        # Use factors to adjust the standard QV
+        enhanced_factor = (
+            0.4 * square_ratio +     # Square circuits are foundational to QV
+            0.3 * density +          # Dense circuits are more complex
+            0.2 * multi_qubit_ratio + # Multi-qubit operations increase complexity
+            0.1 * connectivity_factor # Connectivity affects feasibility
+        )
+        
+        # Enhanced QV: apply enhancement factor to standard QV
+        enhanced_qv = standard_qv * (1 + enhanced_factor)
+        
+        # Round to significant figures for clarity
+        enhanced_qv_rounded = round(enhanced_qv, 2)
+        
+        return {
+            "standard_quantum_volume": standard_qv,
+            "enhanced_quantum_volume": enhanced_qv_rounded,
+            "effective_depth": effective_depth,
+            "factors": {
+                "square_ratio": round(square_ratio, 2),
+                "circuit_density": round(density, 2),
+                "multi_qubit_ratio": round(multi_qubit_ratio, 2),
+                "connectivity_factor": round(connectivity_factor, 2),
+                "enhancement_factor": round(enhanced_factor, 2)
+            },
+            "circuit_metrics": {
+                "depth": depth,
+                "width": width,
+                "size": size,
+                "num_qubits": num_qubits,
+                "operation_counts": op_counts
+            }
+        }
+        
+    def calculate_complexity_metrics(self):
+        """
+        Calculate various quantum circuit complexity measures as described in
+        "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by Daksh Shami.
+        
+        This includes traditional gate-based metrics, entanglement-based metrics,
+        and approximation-based metrics.
+        
+        Returns:
+            dict: Dictionary containing various complexity metrics
+        """
+        # Basic circuit properties
+        depth = self.depth()
+        width = self.num_qubits
+        size = self.size()
+        op_counts = self.count_ops()
+        
+        # 1. Gate-based metrics
+        
+        # 1.1 Gate count (total number of gates)
+        gate_count = size
+        
+        # 1.2 Circuit depth (longest path through the circuit)
+        circuit_depth = depth
+        
+        # 1.3 T-count (number of T gates, often considered costly in fault-tolerant implementations)
+        t_count = op_counts.get('t', 0) + op_counts.get('tdg', 0)
+        
+        # 1.4 CNOT count (number of CNOT gates, important for entanglement)
+        cnot_count = op_counts.get('cx', 0)
+        
+        # 1.5 Two-qubit gate count
+        two_qubit_gates = ['cx', 'cz', 'swap', 'iswap', 'cp', 'cu', 'rxx', 'ryy', 'rzz', 'crx', 'cry', 'crz']
+        two_qubit_count = sum(op_counts.get(gate, 0) for gate in two_qubit_gates)
+        
+        # 1.6 Multi-qubit gate ratio
+        single_qubit_gates = ['id', 'x', 'y', 'z', 'h', 's', 'sdg', 't', 'tdg', 'rx', 'ry', 'rz', 'u1', 'u2', 'u3', 'p']
+        single_qubit_count = sum(op_counts.get(gate, 0) for gate in single_qubit_gates)
+        multi_qubit_count = gate_count - single_qubit_count - op_counts.get('barrier', 0) - op_counts.get('measure', 0)
+        multi_qubit_ratio = multi_qubit_count / gate_count if gate_count > 0 else 0
+        
+        # 2. Entanglement-based metrics
+        
+        # 2.1 Entangling gate density
+        # Ratio of entangling gates to total gates
+        entangling_gate_density = two_qubit_count / gate_count if gate_count > 0 else 0
+        
+        # 2.2 Entangling width
+        # Approximation: maximum number of qubits that could be entangled
+        # This is an upper bound based on connectivity through CNOT gates
+        entangling_width = min(width, two_qubit_count + 1) if two_qubit_count > 0 else 1
+        
+        # 3. Standardized metrics
+        
+        # 3.1 Circuit volume (depth × width)
+        circuit_volume = depth * width
+        
+        # 3.2 Gate density (gates per qubit-time-step)
+        gate_density = gate_count / circuit_volume if circuit_volume > 0 else 0
+        
+        # 3.3 Clifford vs non-Clifford ratio
+        # Clifford gates: h, s, sdg, cx, cz, x, y, z
+        clifford_gates = ['h', 's', 'sdg', 'cx', 'cz', 'x', 'y', 'z']
+        clifford_count = sum(op_counts.get(gate, 0) for gate in clifford_gates)
+        non_clifford_count = gate_count - clifford_count - op_counts.get('barrier', 0) - op_counts.get('measure', 0)
+        clifford_ratio = clifford_count / gate_count if gate_count > 0 else 0
+        non_clifford_ratio = non_clifford_count / gate_count if gate_count > 0 else 0
+        
+        # 4. Advanced metrics based on circuit structure
+        
+        # 4.1 Parallelism factor
+        # How many gates can be executed in parallel on average
+        parallelism_factor = gate_count / depth if depth > 0 else 0
+        max_parallelism = width  # Maximum gates that could be executed in parallel (width of circuit)
+        parallelism_efficiency = parallelism_factor / max_parallelism if max_parallelism > 0 else 0
+        
+        # 4.2 Circuit efficiency 
+        # How efficiently the circuit uses the available qubits
+        circuit_efficiency = gate_count / (width * depth) if (width * depth) > 0 else 0
+        
+        # 4.3 Quantum resource utilization
+        # Combination of space (qubits) and time (depth) efficiency
+        quantum_resource_utilization = 0.5 * (gate_count / (width * width) if width > 0 else 0) + 0.5 * (gate_count / (depth * depth) if depth > 0 else 0)
+        
+        # 5. Derived complexity metrics
+        
+        # 5.1 Square circuit factor (from Quantum Volume calculation)
+        square_ratio = min(depth, width) / max(depth, width) if max(depth, width) > 0 else 1.0
+        
+        # 5.2 Weighted gate complexity
+        # Assigning weights to different gate types based on their complexity
+        gate_weights = {
+            # Single-qubit gates
+            'id': 1, 'x': 1, 'y': 1, 'z': 1, 'h': 1, 's': 1, 'sdg': 1,
+            # More complex single-qubit gates
+            't': 2, 'tdg': 2, 'rx': 2, 'ry': 2, 'rz': 2, 'p': 2,
+            'u1': 2, 'u2': 3, 'u3': 4,
+            # Two-qubit gates
+            'cx': 10, 'cz': 10, 'swap': 12, 'cp': 12, 
+            # Multi-qubit gates
+            'ccx': 30, 'cswap': 32, 'mcx': 40,
+            # Others default to 5
+        }
+        
+        weighted_complexity = sum(count * gate_weights.get(gate, 5) for gate, count in op_counts.items())
+        
+        # 5.3 Normalized weighted complexity (per qubit)
+        normalized_weighted_complexity = weighted_complexity / width if width > 0 else 0
+        
+        # Combine all metrics
+        return {
+            "gate_based_metrics": {
+                "gate_count": gate_count,
+                "circuit_depth": circuit_depth,
+                "t_count": t_count,
+                "cnot_count": cnot_count,
+                "two_qubit_count": two_qubit_count,
+                "multi_qubit_ratio": round(multi_qubit_ratio, 3)
+            },
+            "entanglement_metrics": {
+                "entangling_gate_density": round(entangling_gate_density, 3),
+                "entangling_width": entangling_width
+            },
+            "standardized_metrics": {
+                "circuit_volume": circuit_volume,
+                "gate_density": round(gate_density, 3),
+                "clifford_ratio": round(clifford_ratio, 3),
+                "non_clifford_ratio": round(non_clifford_ratio, 3)
+            },
+            "advanced_metrics": {
+                "parallelism_factor": round(parallelism_factor, 3),
+                "parallelism_efficiency": round(parallelism_efficiency, 3),
+                "circuit_efficiency": round(circuit_efficiency, 3),
+                "quantum_resource_utilization": round(quantum_resource_utilization, 3)
+            },
+            "derived_metrics": {
+                "square_ratio": round(square_ratio, 3),
+                "weighted_complexity": weighted_complexity,
+                "normalized_weighted_complexity": round(normalized_weighted_complexity, 3)
+            },
+            "basic_properties": {
+                "num_qubits": width,
+                "depth": depth,
+                "size": size,
+                "operation_counts": op_counts
+            }
+        }
+
