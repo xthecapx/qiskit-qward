@@ -16,24 +16,25 @@ import sys
 import os
 import re
 
-# Define requirements directly
-REQUIREMENTS = [
-    "qiskit==1.4.1",
-    "qiskit-aer==0.16.3",
-    "qiskit-ibm-runtime==0.36.1",
-    "numpy>=1.24.0",
-    "pandas>=2.0.0",
-    "matplotlib>=3.7.0",
-    "python-dotenv>=1.0.0",
-    "pylatexenc",
-    "ibm-cloud-sdk-core==3.23.0",
-    "ibm-platform-services==0.59.1",
-    "pydantic-settings",
-    "requests==2.32.3",
-    "dotenv",
-    "statsmodels",
-    "myst-parser==3.0.1",
-]
+def parse_requirements(filename):
+    """Parse a requirements file, handling reference directives."""
+    requirements = []
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith('-r '):
+                # For reference to another requirements file
+                ref_file = line[3:].strip()
+                if os.path.exists(ref_file):
+                    requirements.extend(parse_requirements(ref_file))
+            else:
+                requirements.append(line)
+    return requirements
+
+# Parse requirements directly from qward requirements file for more reliable results
+REQUIREMENTS = parse_requirements("requirements.qward.txt")
 
 if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
     setuptools.find_namespace_packages
@@ -44,24 +45,19 @@ if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
     )
     sys.exit(1)
 
-# Get version info
-VERSION = "0.1.0"  # Default version
 VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_qward", "VERSION.txt")
-if os.path.isfile(VERSION_PATH):
-    with open(VERSION_PATH, "r") as version_file:
-        VERSION = version_file.read().strip()
+with open(VERSION_PATH, "r") as version_file:
+    VERSION = version_file.read().strip()
 
 # Read long description from README.
-README = ""
 README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
-if os.path.isfile(README_PATH):
-    with open(README_PATH) as readme_file:
-        README = re.sub(
-            "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
-            "",
-            readme_file.read(),
-            flags=re.S | re.M,
-        )
+with open(README_PATH) as readme_file:
+    README = re.sub(
+        "<!--- long-description-skip-begin -->.*<!--- long-description-skip-end -->",
+        "",
+        readme_file.read(),
+        flags=re.S | re.M,
+    )
 
 setuptools.setup(
     name="qiskit-qward",
@@ -74,25 +70,24 @@ setuptools.setup(
     author_email="xthecapx@gmail.com",
     license="Apache-2.0",
     classifiers=[
-        "Development Status :: 3 - Alpha",
         "Environment :: Console",
-        "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
+        "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Topic :: Scientific/Engineering :: Physics",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering",
     ],
-    keywords="qiskit quantum validation analysis metrics quality",
+    keywords="qiskit sdk quantum validation analysis metrics quality",
     packages=setuptools.find_packages(include=["qiskit_qward", "qiskit_qward.*"]),
     install_requires=REQUIREMENTS,
     include_package_data=True,
-    package_data={"qiskit_qward": ["VERSION.txt"]},
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     project_urls={
         "Bug Tracker": "https://github.com/xthecapx/qiskit-qward/issues",
         "Documentation": "https://xthecapx.github.io/qiskit-qward/",

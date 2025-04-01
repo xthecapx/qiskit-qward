@@ -6,7 +6,7 @@ from qiskit.visualization import plot_histogram
 import os
 from typing import List, Dict, Any, Optional, Union
 from dotenv import load_dotenv
-from ..analysis.analysis import Analysis
+from ..analysis import Analysis
 
 # For visualization support in notebooks - wrap in try/except for CI environments
 try:
