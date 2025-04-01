@@ -22,6 +22,8 @@ Validators handle:
 - IBM Quantum execution
 - Results collection
 - Analysis integration
+- Complexity metrics calculation
+- Quantum volume estimation
 
 ### 2. Analysis Framework
 
@@ -29,6 +31,8 @@ The analysis framework processes execution results:
 
 - **Analysis**: Base class for all analyzers with core functionality for processing results
 - **SuccessRate**: Calculates and analyzes success rates for circuit executions based on custom criteria
+- **Complexity Metrics**: Provides comprehensive circuit complexity analysis
+- **Quantum Volume**: Estimates quantum volume metrics for circuits
 
 ### 3. Implementation Details
 
@@ -57,6 +61,8 @@ Key methods include:
 - `run_simulation(show_histogram, num_jobs, shots_per_job)`: Runs local simulations
 - `run_on_ibm()`: Executes the circuit on IBM Quantum hardware
 - `plot_analysis()`: Visualizes analysis results
+- `calculate_complexity_metrics()`: Calculates detailed circuit complexity metrics
+- `estimate_quantum_volume()`: Estimates the quantum volume of the circuit
 
 #### Success Rate Analyzer
 
@@ -75,6 +81,100 @@ Key features:
 - Custom success criteria definition
 - Statistical analysis (mean, std dev, min/max)
 - Visualization of success rate distributions
+
+## Circuit Complexity Metrics
+
+The `ScanningQuantumCircuit` now includes comprehensive circuit complexity analysis capabilities through the `calculate_complexity_metrics()` method. This feature implements metrics described in "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by Daksh Shami.
+
+### Gate-based Metrics
+
+- **Gate Count**: Total number of gates in the circuit
+- **Circuit Depth**: Longest path through the circuit
+- **T-count**: Number of T gates (costly in fault-tolerant implementations)
+- **CNOT Count**: Number of CNOT gates (important for entanglement)
+- **Two-qubit Gate Count**: Total count of two-qubit operations
+- **Multi-qubit Gate Ratio**: Proportion of multi-qubit gates to total gates
+
+### Entanglement Metrics
+
+- **Entangling Gate Density**: Ratio of entangling gates to total gates
+- **Entangling Width**: Estimate of maximum number of qubits that could be entangled
+
+### Standardized Metrics
+
+- **Circuit Volume**: Product of depth and width (depth × width)
+- **Gate Density**: Gates per qubit-time-step
+- **Clifford Ratio**: Proportion of Clifford gates
+- **Non-Clifford Ratio**: Proportion of non-Clifford gates
+
+### Advanced Metrics
+
+- **Parallelism Factor**: Average gates executable in parallel
+- **Parallelism Efficiency**: Actual parallelism relative to maximum possible
+- **Circuit Efficiency**: How efficiently the circuit uses available qubits
+- **Quantum Resource Utilization**: Efficiency of both space (qubits) and time (depth)
+
+### Derived Metrics
+
+- **Square Ratio**: How close the circuit is to a square circuit (depth ≈ width)
+- **Weighted Complexity**: Gates weighted by their implementation complexity
+- **Normalized Weighted Complexity**: Weighted complexity per qubit
+
+Example usage:
+```python
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+
+# Create scanner
+scanner = ScanningQuantumFlipCoin()
+
+# Calculate complexity metrics
+metrics = scanner.calculate_complexity_metrics()
+
+# Access specific metrics
+gate_count = metrics["gate_based_metrics"]["gate_count"]
+entangling_density = metrics["entanglement_metrics"]["entangling_gate_density"]
+circuit_volume = metrics["standardized_metrics"]["circuit_volume"]
+```
+
+## Quantum Volume Estimation
+
+The `estimate_quantum_volume()` method provides an analysis of a circuit's quantum volume, an important metric for understanding the computational capacity of a quantum circuit.
+
+### Standard Quantum Volume
+
+The standard quantum volume is calculated as 2^n where n is the effective depth (minimum of depth and number of qubits).
+
+### Enhanced Quantum Volume
+
+Qiskit Qward extends the standard quantum volume with an enhanced estimate that factors in:
+
+1. **Square Ratio**: How close the circuit is to a square circuit (depth ≈ width)
+2. **Circuit Density**: How many operations per qubit-timestep
+3. **Multi-qubit Operation Ratio**: Proportion of entangling operations
+4. **Connectivity Factor**: Presence of entangling operations
+
+The method returns a comprehensive dictionary with:
+- Standard quantum volume
+- Enhanced quantum volume
+- Effective depth
+- Contributing factors
+- Circuit metrics
+
+Example usage:
+```python
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+
+# Create scanner
+scanner = ScanningQuantumFlipCoin()
+
+# Estimate quantum volume
+qv = scanner.estimate_quantum_volume()
+
+# Access quantum volume metrics
+standard_qv = qv["standard_quantum_volume"]
+enhanced_qv = qv["enhanced_quantum_volume"]
+square_ratio = qv["factors"]["square_ratio"]
+```
 
 ## Example Use Cases
 
@@ -117,7 +217,9 @@ Success criteria focus on detecting when both guardians point to the same door.
 2. **Simulation Execution**: Circuit is submitted to a simulator or IBM Quantum hardware
 3. **Results Collection**: Outcomes are gathered with execution metrics
 4. **Analysis Processing**: Results are passed to analyzers
-5. **Visualization**: Analysis results are plotted and interpreted
+5. **Complexity Analysis**: Circuit structure is analyzed for complexity metrics
+6. **Quantum Volume Estimation**: Circuit's quantum volume is calculated
+7. **Visualization**: Analysis results are plotted and interpreted
 
 ## Technical Guidelines
 
@@ -129,6 +231,7 @@ When extending Qiskit Qward with custom validators:
 4. Add appropriate analyzers
 5. Implement your circuit-building logic
 6. Use the built-in methods for simulation, execution, and analysis
+7. Leverage complexity metrics and quantum volume estimation for deeper insights
 
 ## API Flow and Usage Patterns
 
@@ -136,20 +239,25 @@ When extending Qiskit Qward with custom validators:
 
 ```python
 # Import a validator
-from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create validator instance
-validator = FlipCoinValidator(use_barriers=True)
+scanner = ScanningQuantumFlipCoin(use_barriers=True)
 
 # Run simulation
-results = validator.run_simulation(show_histogram=True, num_jobs=100, shots_per_job=1024)
+results = scanner.run_simulation(show_histogram=True, num_jobs=100, shots_per_job=1024)
 
 # Access analysis results
 analysis = results["analysis"]["analyzer_0"]
 print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
 
+# Access complexity metrics
+complexity = results["complexity_metrics"]
+print(f"Gate count: {complexity['gate_based_metrics']['gate_count']}")
+print(f"Quantum Volume: {results['quantum_volume']['enhanced_quantum_volume']}")
+
 # Visualize results
-validator.plot_analysis()
+scanner.plot_analysis()
 ```
 
 ### Pattern 2: Creating Custom Validators
@@ -187,6 +295,8 @@ class MyCustomValidator(ScanningQuantumCircuit):
 4. Backend selection and configuration
 5. Results collection and primary processing
 6. Metrics collection
+7. Complexity analysis
+8. Quantum volume estimation
 
 ### Analysis Pipeline
 
@@ -194,6 +304,8 @@ class MyCustomValidator(ScanningQuantumCircuit):
 2. Processing based on algorithm expectations
 3. Metrics calculation
 4. Result formatting
+5. Complexity assessment
+6. Quantum volume calculation
 
 ## Development Guidelines
 
@@ -204,6 +316,8 @@ When extending Qward with custom validators:
    - `validate()`: Your circuit construction logic
 3. Add appropriate metrics collection
 4. Ensure compatibility with the analysis framework
+5. Consider circuit complexity in your design
+6. Analyze quantum volume for performance insights
 
 ## Technical Roadmap
 
@@ -218,3 +332,5 @@ Future technical enhancements include:
 7. Visualization tools
 8. Complete data management
 9. Integration with the broader Qiskit ecosystem
+10. Enhanced complexity metrics
+11. Quantum resource estimation

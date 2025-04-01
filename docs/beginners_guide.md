@@ -11,6 +11,8 @@ Qiskit Qward is a framework built on top of Qiskit that helps quantum developers
 3. Analyze circuit performance
 4. Validate algorithm correctness
 5. Compare results across different backends
+6. Calculate circuit complexity metrics
+7. Estimate quantum volume
 
 ## Key Concepts
 
@@ -22,6 +24,8 @@ In Qiskit Qward, validators are the main components you'll work with. They are q
 - Running simulations with multiple jobs/shots
 - Executing on IBM Quantum hardware
 - Analyzing results
+- Calculating circuit complexity
+- Estimating quantum volume
 
 ### Analysis
 
@@ -29,6 +33,8 @@ Qiskit Qward provides analysis tools to help you understand your quantum algorit
 - Success rate analysis
 - Statistical aggregation
 - Visualization tools
+- Circuit complexity metrics
+- Quantum volume estimation
 
 ## Getting Started
 
@@ -75,19 +81,19 @@ Let's start with a simple example - the quantum coin flip. This uses a single qu
 
 ```python
 # If running in a notebook, ensure paths are set up correctly
-from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
+from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create the validator
-validator = FlipCoinValidator(use_barriers=True)
+scanner = ScanningQuantumFlipCoin(use_barriers=True)
 
 # Show the circuit
 print("Quantum Coin Flip Circuit:")
-circuit_fig = validator.draw()
+circuit_fig = scanner.draw()
 display(circuit_fig)
 
 # Run simulation
 print("\nRunning quantum simulation jobs...")
-results = validator.run_simulation(
+results = scanner.run_simulation(
     show_histogram=True,
     num_jobs=100,
     shots_per_job=1024
@@ -97,6 +103,17 @@ results = validator.run_simulation(
 analysis = results["analysis"]["analyzer_0"]
 print(f"\nSuccess rate (tails): {analysis['mean_success_rate']:.2%}")
 print(f"Standard deviation: {analysis['std_success_rate']:.2%}")
+
+# Examine complexity metrics
+complexity = results["complexity_metrics"]
+print(f"\nGate count: {complexity['gate_based_metrics']['gate_count']}")
+print(f"Circuit depth: {complexity['gate_based_metrics']['circuit_depth']}")
+print(f"Circuit volume: {complexity['standardized_metrics']['circuit_volume']}")
+
+# Check quantum volume
+qv = results["quantum_volume"]
+print(f"\nQuantum Volume: {qv['standard_quantum_volume']}")
+print(f"Enhanced Quantum Volume: {qv['enhanced_quantum_volume']}")
 ```
 
 This circuit:
@@ -104,6 +121,8 @@ This circuit:
 2. Measures the qubit
 3. Runs multiple jobs to collect statistics
 4. Analyzes the results to verify the coin is fair
+5. Calculates circuit complexity metrics
+6. Estimates quantum volume
 
 ### Understanding the Circuit
 
@@ -128,23 +147,104 @@ The results should show approximately 50% heads and 50% tails, demonstrating qua
 For a more complex example, try the Two Doors Enigma validator. This implements a quantum solution to a classic puzzle involving truth-tellers and liars.
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.validator import QuantumEnigmaValidator
+from qiskit_qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
 
 # Create the validator
-validator = QuantumEnigmaValidator()
+scanner = ScanningQuantumEnigma()
 
 # Run simulation
-results = validator.run_simulation(show_histogram=True)
+results = scanner.run_simulation(show_histogram=True)
 
 # Check analysis results
-analysis = validator.run_analysis()["analyzer_0"]
+analysis = scanner.run_analysis()["analyzer_0"]
 print(f"Success rate: {analysis['mean_success_rate']:.2%}")
+
+# Examine complexity metrics
+complexity = results["complexity_metrics"]
+print(f"Circuit depth: {complexity['gate_based_metrics']['circuit_depth']}")
+print(f"CNOT count: {complexity['gate_based_metrics']['cnot_count']}")
+print(f"Entangling gate density: {complexity['entanglement_metrics']['entangling_gate_density']}")
+
+# Check quantum volume
+qv = results["quantum_volume"]
+print(f"Quantum Volume: {qv['standard_quantum_volume']}")
+print(f"Enhanced Quantum Volume: {qv['enhanced_quantum_volume']}")
 ```
 
 This example demonstrates more advanced quantum concepts:
 - Multiple qubits and classical bits
 - Entanglement with CNOT gates
 - Complex quantum logic
+- Higher circuit complexity
+- Larger quantum volume
+
+## Understanding Circuit Complexity
+
+Qiskit Qward provides comprehensive circuit complexity analysis through the `calculate_complexity_metrics()` method. This helps you understand your circuit's resource requirements and algorithmic complexity.
+
+Key metrics include:
+
+1. **Gate-based Metrics**:
+   - Gate count, circuit depth, T-count, CNOT count
+   - Two-qubit gate count and multi-qubit operation ratio
+
+2. **Entanglement Metrics**:
+   - Entangling gate density
+   - Entangling width (maximum qubits that could be entangled)
+
+3. **Standardized Metrics**:
+   - Circuit volume (depth × width)
+   - Gate density
+   - Clifford vs non-Clifford gate ratios
+
+4. **Advanced Metrics**:
+   - Parallelism factors
+   - Circuit efficiency 
+   - Quantum resource utilization
+
+You can access these metrics directly:
+
+```python
+# Create a scanner
+scanner = ScanningQuantumFlipCoin()
+
+# Calculate complexity metrics
+metrics = scanner.calculate_complexity_metrics()
+
+# Print selected metrics
+print(f"Gate count: {metrics['gate_based_metrics']['gate_count']}")
+print(f"Circuit depth: {metrics['gate_based_metrics']['circuit_depth']}")
+print(f"Circuit volume: {metrics['standardized_metrics']['circuit_volume']}")
+```
+
+## Quantum Volume Estimation
+
+Quantum Volume is an important metric for understanding a circuit's computational capacity. Qiskit Qward extends the standard quantum volume calculation with an enhanced metric that considers additional circuit characteristics.
+
+The `estimate_quantum_volume()` method returns:
+
+1. **Standard Quantum Volume**: Calculated as 2^n where n is the effective depth
+2. **Enhanced Quantum Volume**: Factors in square ratio, density, and gate complexity
+3. **Contributing Factors**: Details on what affects the quantum volume
+
+Example usage:
+
+```python
+# Create a scanner
+scanner = ScanningQuantumEnigma()
+
+# Calculate quantum volume
+qv = scanner.estimate_quantum_volume()
+
+# Access quantum volume metrics
+print(f"Standard QV: {qv['standard_quantum_volume']}")
+print(f"Enhanced QV: {qv['enhanced_quantum_volume']}")
+print(f"Effective depth: {qv['effective_depth']}")
+
+# Examine contributing factors
+for factor, value in qv['factors'].items():
+    print(f"{factor}: {value}")
+```
 
 ## Creating Your Own Validator
 
@@ -183,6 +283,8 @@ class MyFirstValidator(ScanningQuantumCircuit):
         self.measure(0, 0)
 ```
 
+Your custom validator will automatically inherit all the advanced features like complexity metrics calculation and quantum volume estimation.
+
 ## Using Jupyter Notebooks
 
 The easiest way to work with Qiskit Qward is using Jupyter notebooks. We provide example notebooks in the repository:
@@ -207,6 +309,7 @@ After getting familiar with the basics, you can:
 2. Check out the how-to guides in `docs/how_tos`
 3. Review the [Technical Documentation](technical_docs.md) for more details
 4. Learn how to customize success criteria and analyze different metrics
-5. Create validators for your own quantum algorithms
+5. Understand circuit complexity and quantum volume metrics
+6. Create validators for your own quantum algorithms
 
 Remember, Qiskit Qward is about understanding how quantum algorithms perform in practice, helping you bridge the gap between theoretical quantum computing and practical implementation on real hardware.
