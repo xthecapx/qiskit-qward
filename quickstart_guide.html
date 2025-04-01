@@ -299,22 +299,22 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <h3>Core Components<a class="headerlink" href="#core-components" title="Link to this heading">¶</a></h3>
 <p>Qiskit Qward provides two main ways to use the framework:</p>
 <ol class="arabic simple">
-<li><p>Using existing validators</p></li>
-<li><p>Creating your own custom validators</p></li>
+<li><p>Using existing scanning circuits</p></li>
+<li><p>Creating your own custom scanning circuits</p></li>
 </ol>
 </section>
-<section id="using-existing-validators">
-<h3>Using Existing Validators<a class="headerlink" href="#using-existing-validators" title="Link to this heading">¶</a></h3>
+<section id="using-existing-scanning-circuits">
+<h3>Using Existing Scanning Circuits<a class="headerlink" href="#using-existing-scanning-circuits" title="Link to this heading">¶</a></h3>
 <section id="example-1-quantum-coin-flip">
 <h4>Example 1: Quantum Coin Flip<a class="headerlink" href="#example-1-quantum-coin-flip" title="Link to this heading">¶</a></h4>
-<p>The Quantum Coin Flip validator demonstrates a simple quantum circuit that simulates a fair coin toss:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlipCoinValidator</span>
+<p>The Quantum Coin Flip scanner demonstrates a simple quantum circuit that simulates a fair coin toss:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.scanner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumFlipCoin</span>
 
-<span class="c1"># Create a validator</span>
-<span class="n">validator</span> <span class="o">=</span> <span class="n">FlipCoinValidator</span><span class="p">(</span><span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Create a scanner</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanningQuantumFlipCoin</span><span class="p">(</span><span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Run simulation with multiple jobs</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
     <span class="n">show_histogram</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># Display histogram of results</span>
     <span class="n">num_jobs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>         <span class="c1"># Run 1000 independent jobs </span>
     <span class="n">shots_per_job</span><span class="o">=</span><span class="mi">1024</span>     <span class="c1"># With 1024 shots each</span>
@@ -327,42 +327,66 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average heads count: </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;average_counts&#39;</span><span class="p">][</span><span class="s1">&#39;heads&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average tails count: </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;average_counts&#39;</span><span class="p">][</span><span class="s1">&#39;tails&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+<span class="c1"># Access complexity metrics</span>
+<span class="n">complexity</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;complexity_metrics&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Circuit complexity metrics:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;gate_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;circuit_depth&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit volume: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;standardized_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;circuit_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access quantum volume</span>
+<span class="n">qv</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;quantum_volume&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Quantum Volume: </span><span class="si">{</span><span class="n">qv</span><span class="p">[</span><span class="s1">&#39;standard_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enhanced Quantum Volume: </span><span class="si">{</span><span class="n">qv</span><span class="p">[</span><span class="s1">&#39;enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
 <span class="c1"># Plot results</span>
-<span class="n">validator</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">(</span><span class="n">ideal_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">(</span><span class="n">ideal_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 
 <span class="c1"># Run on IBM Quantum hardware (if configured)</span>
-<span class="n">ibm_results</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">run_on_ibm</span><span class="p">()</span>
+<span class="n">ibm_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">run_on_ibm</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
 <section id="example-2-two-doors-enigma">
 <h4>Example 2: Two Doors Enigma<a class="headerlink" href="#example-2-two-doors-enigma" title="Link to this heading">¶</a></h4>
-<p>For a more complex example, try the Two Doors Enigma validator:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.two_doors_enigma.validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumEnigmaValidator</span>
+<p>For a more complex example, try the Two Doors Enigma scanner:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.two_doors_enigma.scanner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumEnigma</span>
 
-<span class="c1"># Create the validator</span>
-<span class="n">validator</span> <span class="o">=</span> <span class="n">QuantumEnigmaValidator</span><span class="p">()</span>
+<span class="c1"># Create the scanner</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanningQuantumEnigma</span><span class="p">()</span>
 
 <span class="c1"># Run simulation</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">show_histogram</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">show_histogram</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Access analysis results</span>
-<span class="n">analysis</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">run_analysis</span><span class="p">()[</span><span class="s2">&quot;analyzer_0&quot;</span><span class="p">]</span>
+<span class="n">analysis</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">run_analysis</span><span class="p">()[</span><span class="s2">&quot;analyzer_0&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean success rate: </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;mean_success_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+<span class="c1"># Access complexity metrics</span>
+<span class="n">complexity</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;complexity_metrics&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Circuit complexity metrics:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;gate_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CNOT count: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;cnot_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entangling gate density: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;entanglement_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;entangling_gate_density&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access quantum volume</span>
+<span class="n">qv</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;quantum_volume&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Quantum Volume: </span><span class="si">{</span><span class="n">qv</span><span class="p">[</span><span class="s1">&#39;standard_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enhanced Quantum Volume: </span><span class="si">{</span><span class="n">qv</span><span class="p">[</span><span class="s1">&#39;enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
 <span class="c1"># Plot analysis results</span>
-<span class="n">validator</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">(</span><span class="n">ideal_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">(</span><span class="n">ideal_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="creating-custom-validators">
-<h3>Creating Custom Validators<a class="headerlink" href="#creating-custom-validators" title="Link to this heading">¶</a></h3>
-<p>To create your own validator, extend the ScanningQuantumCircuit class:</p>
+<section id="creating-custom-scanning-circuits">
+<h3>Creating Custom Scanning Circuits<a class="headerlink" href="#creating-custom-scanning-circuits" title="Link to this heading">¶</a></h3>
+<p>To create your own scanner, extend the ScanningQuantumCircuit class:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.scanning_quantum_circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.analysis.success_rate</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRate</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomValidator</span><span class="p">(</span><span class="n">ScanningQuantumCircuit</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomScanner</span><span class="p">(</span><span class="n">ScanningQuantumCircuit</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="c1"># Initialize with desired qubits and classical bits</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_qubits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_clbits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_barriers</span><span class="o">=</span><span class="n">use_barriers</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_circuit&quot;</span><span class="p">)</span>
@@ -391,6 +415,58 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
         <span class="bp">self</span><span class="o">.</span><span class="n">measure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># Measure both qubits</span>
 </pre></div>
 </div>
+<p>After running your custom scanner, you can access complexity metrics and quantum volume estimates:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create your scanner</span>
+<span class="n">my_scanner</span> <span class="o">=</span> <span class="n">MyCustomScanner</span><span class="p">()</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">my_scanner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">()</span>
+
+<span class="c1"># Calculate complexity metrics directly</span>
+<span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">my_scanner</span><span class="o">.</span><span class="n">calculate_complexity_metrics</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">complexity_metrics</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;circuit_depth&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate density: </span><span class="si">{</span><span class="n">complexity_metrics</span><span class="p">[</span><span class="s1">&#39;standardized_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;gate_density&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Estimate quantum volume</span>
+<span class="n">qv_estimate</span> <span class="o">=</span> <span class="n">my_scanner</span><span class="o">.</span><span class="n">estimate_quantum_volume</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Quantum Volume: </span><span class="si">{</span><span class="n">qv_estimate</span><span class="p">[</span><span class="s1">&#39;enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="circuit-complexity-and-quantum-volume">
+<h2>Circuit Complexity and Quantum Volume<a class="headerlink" href="#circuit-complexity-and-quantum-volume" title="Link to this heading">¶</a></h2>
+<p>Qiskit Qward provides two key methods for analyzing circuit properties:</p>
+<section id="calculate-complexity-metrics">
+<h3>1. Calculate Complexity Metrics<a class="headerlink" href="#calculate-complexity-metrics" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">calculate_complexity_metrics()</span></code> method returns detailed circuit complexity metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get metrics for any circuit</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_complexity_metrics</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Key metric categories include:</p>
+<ul class="simple">
+<li><p>Gate-based metrics (count, depth, T-count, CNOT count)</p></li>
+<li><p>Entanglement metrics (gate density, entangling width)</p></li>
+<li><p>Standardized metrics (volume, density, Clifford ratios)</p></li>
+<li><p>Advanced metrics (parallelism, efficiency)</p></li>
+<li><p>Derived metrics (weighted complexity)</p></li>
+</ul>
+</section>
+<section id="estimate-quantum-volume">
+<h3>2. Estimate Quantum Volume<a class="headerlink" href="#estimate-quantum-volume" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">estimate_quantum_volume()</span></code> method provides quantum volume metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get quantum volume for any circuit</span>
+<span class="n">qv</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">estimate_quantum_volume</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This returns both standard quantum volume (2^n) and an enhanced volume that considers:</p>
+<ul class="simple">
+<li><p>Square ratio (how close depth is to width)</p></li>
+<li><p>Circuit density (operations per time-step)</p></li>
+<li><p>Multi-qubit operation ratio</p></li>
+<li><p>Connectivity factors</p></li>
+</ul>
 </section>
 </section>
 <section id="using-jupyter-notebooks">
@@ -494,12 +570,17 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 </li>
 <li><a class="reference internal" href="#usage">Usage</a><ul>
 <li><a class="reference internal" href="#core-components">Core Components</a></li>
-<li><a class="reference internal" href="#using-existing-validators">Using Existing Validators</a><ul>
+<li><a class="reference internal" href="#using-existing-scanning-circuits">Using Existing Scanning Circuits</a><ul>
 <li><a class="reference internal" href="#example-1-quantum-coin-flip">Example 1: Quantum Coin Flip</a></li>
 <li><a class="reference internal" href="#example-2-two-doors-enigma">Example 2: Two Doors Enigma</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#creating-custom-validators">Creating Custom Validators</a></li>
+<li><a class="reference internal" href="#creating-custom-scanning-circuits">Creating Custom Scanning Circuits</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#circuit-complexity-and-quantum-volume">Circuit Complexity and Quantum Volume</a><ul>
+<li><a class="reference internal" href="#calculate-complexity-metrics">1. Calculate Complexity Metrics</a></li>
+<li><a class="reference internal" href="#estimate-quantum-volume">2. Estimate Quantum Volume</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#using-jupyter-notebooks">Using Jupyter Notebooks</a></li>

@@ -281,6 +281,8 @@
 <li><p>IBM Quantum execution</p></li>
 <li><p>Results collection</p></li>
 <li><p>Analysis integration</p></li>
+<li><p>Complexity metrics calculation</p></li>
+<li><p>Quantum volume estimation</p></li>
 </ul>
 </section>
 <section id="analysis-framework">
@@ -289,6 +291,8 @@
 <ul class="simple">
 <li><p><strong>Analysis</strong>: Base class for all analyzers with core functionality for processing results</p></li>
 <li><p><strong>SuccessRate</strong>: Calculates and analyzes success rates for circuit executions based on custom criteria</p></li>
+<li><p><strong>Complexity Metrics</strong>: Provides comprehensive circuit complexity analysis</p></li>
+<li><p><strong>Quantum Volume</strong>: Estimates quantum volume metrics for circuits</p></li>
 </ul>
 </section>
 <section id="implementation-details">
@@ -317,6 +321,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">run_simulation(show_histogram,</span> <span class="pre">num_jobs,</span> <span class="pre">shots_per_job)</span></code>: Runs local simulations</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">run_on_ibm()</span></code>: Executes the circuit on IBM Quantum hardware</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_analysis()</span></code>: Visualizes analysis results</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculate_complexity_metrics()</span></code>: Calculates detailed circuit complexity metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimate_quantum_volume()</span></code>: Estimates the quantum volume of the circuit</p></li>
 </ul>
 </section>
 <section id="success-rate-analyzer">
@@ -337,6 +343,110 @@
 <li><p>Visualization of success rate distributions</p></li>
 </ul>
 </section>
+</section>
+</section>
+<section id="circuit-complexity-metrics">
+<h2>Circuit Complexity Metrics<a class="headerlink" href="#circuit-complexity-metrics" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ScanningQuantumCircuit</span></code> now includes comprehensive circuit complexity analysis capabilities through the <code class="docutils literal notranslate"><span class="pre">calculate_complexity_metrics()</span></code> method. This feature implements metrics described in “Character Complexity: A Novel Measure for Quantum Circuit Analysis” by Daksh Shami.</p>
+<section id="gate-based-metrics">
+<h3>Gate-based Metrics<a class="headerlink" href="#gate-based-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Gate Count</strong>: Total number of gates in the circuit</p></li>
+<li><p><strong>Circuit Depth</strong>: Longest path through the circuit</p></li>
+<li><p><strong>T-count</strong>: Number of T gates (costly in fault-tolerant implementations)</p></li>
+<li><p><strong>CNOT Count</strong>: Number of CNOT gates (important for entanglement)</p></li>
+<li><p><strong>Two-qubit Gate Count</strong>: Total count of two-qubit operations</p></li>
+<li><p><strong>Multi-qubit Gate Ratio</strong>: Proportion of multi-qubit gates to total gates</p></li>
+</ul>
+</section>
+<section id="entanglement-metrics">
+<h3>Entanglement Metrics<a class="headerlink" href="#entanglement-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Entangling Gate Density</strong>: Ratio of entangling gates to total gates</p></li>
+<li><p><strong>Entangling Width</strong>: Estimate of maximum number of qubits that could be entangled</p></li>
+</ul>
+</section>
+<section id="standardized-metrics">
+<h3>Standardized Metrics<a class="headerlink" href="#standardized-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Circuit Volume</strong>: Product of depth and width (depth × width)</p></li>
+<li><p><strong>Gate Density</strong>: Gates per qubit-time-step</p></li>
+<li><p><strong>Clifford Ratio</strong>: Proportion of Clifford gates</p></li>
+<li><p><strong>Non-Clifford Ratio</strong>: Proportion of non-Clifford gates</p></li>
+</ul>
+</section>
+<section id="advanced-metrics">
+<h3>Advanced Metrics<a class="headerlink" href="#advanced-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Parallelism Factor</strong>: Average gates executable in parallel</p></li>
+<li><p><strong>Parallelism Efficiency</strong>: Actual parallelism relative to maximum possible</p></li>
+<li><p><strong>Circuit Efficiency</strong>: How efficiently the circuit uses available qubits</p></li>
+<li><p><strong>Quantum Resource Utilization</strong>: Efficiency of both space (qubits) and time (depth)</p></li>
+</ul>
+</section>
+<section id="derived-metrics">
+<h3>Derived Metrics<a class="headerlink" href="#derived-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Square Ratio</strong>: How close the circuit is to a square circuit (depth ≈ width)</p></li>
+<li><p><strong>Weighted Complexity</strong>: Gates weighted by their implementation complexity</p></li>
+<li><p><strong>Normalized Weighted Complexity</strong>: Weighted complexity per qubit</p></li>
+</ul>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.scanner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumFlipCoin</span>
+
+<span class="c1"># Create scanner</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanningQuantumFlipCoin</span><span class="p">()</span>
+
+<span class="c1"># Calculate complexity metrics</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_complexity_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access specific metrics</span>
+<span class="n">gate_count</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics&quot;</span><span class="p">][</span><span class="s2">&quot;gate_count&quot;</span><span class="p">]</span>
+<span class="n">entangling_density</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;entanglement_metrics&quot;</span><span class="p">][</span><span class="s2">&quot;entangling_gate_density&quot;</span><span class="p">]</span>
+<span class="n">circuit_volume</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;standardized_metrics&quot;</span><span class="p">][</span><span class="s2">&quot;circuit_volume&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="quantum-volume-estimation">
+<h2>Quantum Volume Estimation<a class="headerlink" href="#quantum-volume-estimation" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">estimate_quantum_volume()</span></code> method provides an analysis of a circuit’s quantum volume, an important metric for understanding the computational capacity of a quantum circuit.</p>
+<section id="standard-quantum-volume">
+<h3>Standard Quantum Volume<a class="headerlink" href="#standard-quantum-volume" title="Link to this heading">¶</a></h3>
+<p>The standard quantum volume is calculated as 2^n where n is the effective depth (minimum of depth and number of qubits).</p>
+</section>
+<section id="enhanced-quantum-volume">
+<h3>Enhanced Quantum Volume<a class="headerlink" href="#enhanced-quantum-volume" title="Link to this heading">¶</a></h3>
+<p>Qiskit Qward extends the standard quantum volume with an enhanced estimate that factors in:</p>
+<ol class="arabic simple">
+<li><p><strong>Square Ratio</strong>: How close the circuit is to a square circuit (depth ≈ width)</p></li>
+<li><p><strong>Circuit Density</strong>: How many operations per qubit-timestep</p></li>
+<li><p><strong>Multi-qubit Operation Ratio</strong>: Proportion of entangling operations</p></li>
+<li><p><strong>Connectivity Factor</strong>: Presence of entangling operations</p></li>
+</ol>
+<p>The method returns a comprehensive dictionary with:</p>
+<ul class="simple">
+<li><p>Standard quantum volume</p></li>
+<li><p>Enhanced quantum volume</p></li>
+<li><p>Effective depth</p></li>
+<li><p>Contributing factors</p></li>
+<li><p>Circuit metrics</p></li>
+</ul>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.scanner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumFlipCoin</span>
+
+<span class="c1"># Create scanner</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanningQuantumFlipCoin</span><span class="p">()</span>
+
+<span class="c1"># Estimate quantum volume</span>
+<span class="n">qv</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">estimate_quantum_volume</span><span class="p">()</span>
+
+<span class="c1"># Access quantum volume metrics</span>
+<span class="n">standard_qv</span> <span class="o">=</span> <span class="n">qv</span><span class="p">[</span><span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">]</span>
+<span class="n">enhanced_qv</span> <span class="o">=</span> <span class="n">qv</span><span class="p">[</span><span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">]</span>
+<span class="n">square_ratio</span> <span class="o">=</span> <span class="n">qv</span><span class="p">[</span><span class="s2">&quot;factors&quot;</span><span class="p">][</span><span class="s2">&quot;square_ratio&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="example-use-cases">
@@ -381,6 +491,8 @@
 <li><p><strong>Simulation Execution</strong>: Circuit is submitted to a simulator or IBM Quantum hardware</p></li>
 <li><p><strong>Results Collection</strong>: Outcomes are gathered with execution metrics</p></li>
 <li><p><strong>Analysis Processing</strong>: Results are passed to analyzers</p></li>
+<li><p><strong>Complexity Analysis</strong>: Circuit structure is analyzed for complexity metrics</p></li>
+<li><p><strong>Quantum Volume Estimation</strong>: Circuit’s quantum volume is calculated</p></li>
 <li><p><strong>Visualization</strong>: Analysis results are plotted and interpreted</p></li>
 </ol>
 </section>
@@ -394,6 +506,7 @@
 <li><p>Add appropriate analyzers</p></li>
 <li><p>Implement your circuit-building logic</p></li>
 <li><p>Use the built-in methods for simulation, execution, and analysis</p></li>
+<li><p>Leverage complexity metrics and quantum volume estimation for deeper insights</p></li>
 </ol>
 </section>
 <section id="api-flow-and-usage-patterns">
@@ -401,20 +514,25 @@
 <section id="pattern-1-using-existing-validators">
 <h3>Pattern 1: Using Existing Validators<a class="headerlink" href="#pattern-1-using-existing-validators" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import a validator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlipCoinValidator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_qward.examples.flip_coin.scanner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScanningQuantumFlipCoin</span>
 
 <span class="c1"># Create validator instance</span>
-<span class="n">validator</span> <span class="o">=</span> <span class="n">FlipCoinValidator</span><span class="p">(</span><span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanningQuantumFlipCoin</span><span class="p">(</span><span class="n">use_barriers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Run simulation</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">show_histogram</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_jobs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">shots_per_job</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">show_histogram</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_jobs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">shots_per_job</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
 <span class="c1"># Access analysis results</span>
 <span class="n">analysis</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;analyzer_0&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean success rate: </span><span class="si">{</span><span class="n">analysis</span><span class="p">[</span><span class="s1">&#39;mean_success_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+<span class="c1"># Access complexity metrics</span>
+<span class="n">complexity</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;complexity_metrics&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">complexity</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;gate_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Quantum Volume: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;quantum_volume&#39;</span><span class="p">][</span><span class="s1">&#39;enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
 <span class="c1"># Visualize results</span>
-<span class="n">validator</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">()</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">plot_analysis</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -455,6 +573,8 @@
 <li><p>Backend selection and configuration</p></li>
 <li><p>Results collection and primary processing</p></li>
 <li><p>Metrics collection</p></li>
+<li><p>Complexity analysis</p></li>
+<li><p>Quantum volume estimation</p></li>
 </ol>
 </section>
 <section id="analysis-pipeline">
@@ -464,6 +584,8 @@
 <li><p>Processing based on algorithm expectations</p></li>
 <li><p>Metrics calculation</p></li>
 <li><p>Result formatting</p></li>
+<li><p>Complexity assessment</p></li>
+<li><p>Quantum volume calculation</p></li>
 </ol>
 </section>
 </section>
@@ -479,6 +601,8 @@
 </li>
 <li><p>Add appropriate metrics collection</p></li>
 <li><p>Ensure compatibility with the analysis framework</p></li>
+<li><p>Consider circuit complexity in your design</p></li>
+<li><p>Analyze quantum volume for performance insights</p></li>
 </ol>
 </section>
 <section id="technical-roadmap">
@@ -494,6 +618,8 @@
 <li><p>Visualization tools</p></li>
 <li><p>Complete data management</p></li>
 <li><p>Integration with the broader Qiskit ecosystem</p></li>
+<li><p>Enhanced complexity metrics</p></li>
+<li><p>Quantum resource estimation</p></li>
 </ol>
 </section>
 </section>
@@ -562,6 +688,19 @@
 <li><a class="reference internal" href="#success-rate-analyzer">Success Rate Analyzer</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a class="reference internal" href="#circuit-complexity-metrics">Circuit Complexity Metrics</a><ul>
+<li><a class="reference internal" href="#gate-based-metrics">Gate-based Metrics</a></li>
+<li><a class="reference internal" href="#entanglement-metrics">Entanglement Metrics</a></li>
+<li><a class="reference internal" href="#standardized-metrics">Standardized Metrics</a></li>
+<li><a class="reference internal" href="#advanced-metrics">Advanced Metrics</a></li>
+<li><a class="reference internal" href="#derived-metrics">Derived Metrics</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#quantum-volume-estimation">Quantum Volume Estimation</a><ul>
+<li><a class="reference internal" href="#standard-quantum-volume">Standard Quantum Volume</a></li>
+<li><a class="reference internal" href="#enhanced-quantum-volume">Enhanced Quantum Volume</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#example-use-cases">Example Use Cases</a><ul>
