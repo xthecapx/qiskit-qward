@@ -1,0 +1,30 @@
+FROM jupyter/datascience-notebook
+
+WORKDIR /home/jovyan/work
+
+# Copy requirements and install dependencies
+COPY requirements.qward.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements.qward.txt
+
+# Copy only necessary package files, excluding docs and tests
+COPY setup.py pyproject.toml /home/jovyan/work/
+COPY qiskit_qward /home/jovyan/work/qiskit_qward/
+
+# Pre-create the egg-info directory with correct permissions
+USER root
+RUN mkdir -p /home/jovyan/work/qiskit_qward.egg-info && \
+    chown -R jovyan:users /home/jovyan/work/qiskit_qward.egg-info && \
+    chown -R jovyan:users /home/jovyan/work/qiskit_qward && \
+    chown jovyan:users /home/jovyan/work/setup.py /home/jovyan/work/pyproject.toml && \
+    # Ensure pip is in the path for jovyan user
+    pip_path=$(which pip) && \
+    # Pre-install the package to avoid permission issues during runtime
+    su jovyan -c "cd /home/jovyan/work && $pip_path install -e ."
+USER jovyan
+
+# Set environment variables
+ENV PYTHONPATH=/home/jovyan/work
+
+# Note about .env file
+# The .env file is mounted via docker-compose.yml, not copied here
+# This prevents sensitive credentials from being built into the image

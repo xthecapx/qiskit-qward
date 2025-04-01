@@ -1,0 +1,19 @@
+FROM sphinxdoc/sphinx
+
+# Copy requirements files first
+COPY requirements*.txt /docs/
+
+# Install documentation dependencies
+RUN pip install -r /docs/requirements.docs.txt
+
+# Copy package files needed for documentation
+COPY setup.py pyproject.toml README.md /docs/
+COPY qiskit_qward /docs/qiskit_qward/
+COPY docs /docs/docs/
+
+# Pre-install the package - do this after copying all files
+WORKDIR /docs
+RUN pip install -e .
+
+# Default command to build and serve documentation
+CMD ["bash", "-c", "sphinx-build -b html docs docs/_build/html && cd docs/_build/html && python -m http.server 1234"] 

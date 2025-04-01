@@ -4,13 +4,43 @@ services:
     restart: always
     build:
       context: .
+      dockerfile: Dockerfile.qward
     ports:
       - "4321:4321"
     volumes:
-      - .:/home/jovyan/work
+      # Mount only essential directories for development
+      - ./qiskit_qward:/home/jovyan/work/qiskit_qward
+      - ./setup.py:/home/jovyan/work/setup.py
+      - ./pyproject.toml:/home/jovyan/work/pyproject.toml
+      - ./requirements.txt:/home/jovyan/work/requirements.txt
+      - ./requirements.qward.txt:/home/jovyan/work/requirements.qward.txt
       - ./.env:/home/jovyan/work/.env
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_PORT=4321
       - PYTHONPATH=/home/jovyan/work
       - JUPYTER_ENABLE_AUTORELOAD=yes
+    # We don't need to pip install since it's already done in the Dockerfile
+    command: >
+      jupyter lab --ip=0.0.0.0 --port=4321 --no-browser
+
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.docs
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./docs:/docs/docs
+      - ./qiskit_qward:/docs/qiskit_qward
+      - ./setup.py:/docs/setup.py
+      - ./pyproject.toml:/docs/pyproject.toml
+      - ./README.md:/docs/README.md
+      - ./requirements.txt:/docs/requirements.txt
+      - ./requirements.qward.txt:/docs/requirements.qward.txt
+      - ./requirements.docs.txt:/docs/requirements.docs.txt
+    # Package is already installed in the Dockerfile
+    command: >
+      bash -c "sphinx-build -b html docs docs/_build/html && 
+               cd docs/_build/html && 
+               python -m http.server 1234"
