@@ -17,7 +17,7 @@ Qward provides tools to:
 This project is under active development. Here's the current status:
 
 ### ✅ Implemented Features
-- Base validator system (extends Qiskit's QuantumCircuit)
+- Scanning quantum circuit system (extends Qiskit's QuantumCircuit)
 - Algorithm validators (Teleportation, FlipCoin)
 - Circuit execution on simulators and IBM Quantum hardware
 - Basic analysis framework with success rate validator
@@ -50,16 +50,12 @@ IBM_QUANTUM_CHANNEL=ibm_quantum
 IBM_QUANTUM_TOKEN=your_token_here
 ```
 
-2. Run the example (note: Experiments framework is under development):
+2. Run the example:
 ```python
-from qward.validators.teleportation_validator import TeleportationValidator
+from qiskit_qward.examples.flip_coin.validator import FlipCoinValidator
 
 # Create a validator
-validator = TeleportationValidator(
-    payload_size=3,
-    gates=["h", "x"],
-    use_barriers=True
-)
+validator = FlipCoinValidator(use_barriers=True)
 
 # Run simulation
 results = validator.run_simulation(show_histogram=True)
@@ -95,14 +91,14 @@ print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
 
 ## Core Components
 
-### 1. Base Validator System (✅ Implemented)
+### 1. Scanning Quantum Circuit System (✅ Implemented)
 
-The framework provides a base validator system that can be extended for different quantum algorithms:
+The framework provides a scanning quantum circuit system that can be extended for different quantum algorithms:
 
 ```python
-from qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 
-class YourAlgorithmValidator(BaseValidator):
+class YourAlgorithmValidator(ScanningQuantumCircuit):
     def __init__(self, num_qubits=1, num_clbits=1, use_barriers=True, name=None):
         super().__init__(num_qubits, num_clbits, use_barriers, name)
         
@@ -174,7 +170,7 @@ In the upcoming releases, we plan to implement:
 
 We welcome contributions! To add your own validator:
 
-1. Create a new validator class extending BaseValidator
+1. Create a new validator class extending ScanningQuantumCircuit
 2. Implement required methods
 3. Add tests
 4. Update documentation

@@ -151,10 +151,10 @@ This example demonstrates more advanced quantum concepts:
 Once you're comfortable with the existing examples, you can create your own validator:
 
 ```python
-from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
-class MyFirstValidator(BaseValidator):
+class MyFirstValidator(ScanningQuantumCircuit):
     def __init__(self, use_barriers=True):
         # Initialize with one qubit and one classical bit
         super().__init__(num_qubits=1, num_clbits=1, use_barriers=use_barriers, name="my_first")

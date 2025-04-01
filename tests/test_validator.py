@@ -2,15 +2,15 @@
 
 from unittest import TestCase
 
-from qiskit_qward.validators.base_validator import BaseValidator
+from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 
 
-class TestBaseValidator(TestCase):
-    """Tests base validator."""
+class TestScanningQuantumCircuit(TestCase):
+    """Tests scanning quantum circuit."""
 
-    def test_base_validator_init(self):
-        """Tests base validator initialization."""
-        validator = BaseValidator(
+    def test_scanning_circuit_init(self):
+        """Tests scanning quantum circuit initialization."""
+        validator = ScanningQuantumCircuit(
             num_qubits=2, num_clbits=2, use_barriers=True, name="test_validator"
         )
 

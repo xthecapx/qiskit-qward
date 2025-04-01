@@ -4,7 +4,7 @@ Qward - A framework for analyzing and validating quantum code execution quality.
 
 from importlib_metadata import version as metadata_version, PackageNotFoundError
 
-from .validators.base_validator import BaseValidator
+from .scanning_quantum_circuit import ScanningQuantumCircuit
 from .analysis.analysis import Analysis
 from .analysis.success_rate import SuccessRate
 
@@ -15,7 +15,7 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
 
 __all__ = [
-    "BaseValidator",
+    "ScanningQuantumCircuit",
     "Analysis",
     "SuccessRate",
 ]
