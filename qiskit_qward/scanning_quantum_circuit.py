@@ -4,7 +4,7 @@ from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.visualization import plot_histogram
 import os
-from typing import List, Dict, Any, Optional, Union
+from typing import List
 from dotenv import load_dotenv
 from .analysis import Analysis
 
@@ -57,7 +57,7 @@ class ScanningQuantumCircuit(QuantumCircuit):
 
     def add_analyzer(self, analyzer: Analysis):
         """
-        Add an analyzer to the validator.
+        Add an analyzer to the scanner.
 
         Args:
             analyzer (Analysis): The analyzer to add
@@ -373,4 +373,4 @@ class ScanningQuantumCircuit(QuantumCircuit):
         """
         for i, analyzer in enumerate(self.analyzers):
             print(f"\nPlotting analysis for analyzer {i}:")
-            analyzer.plot(ideal_rate=ideal_rate) 
+            analyzer.plot(ideal_rate=ideal_rate)

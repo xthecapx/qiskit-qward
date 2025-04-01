@@ -2,7 +2,7 @@ from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
 from qiskit_qward.analysis.success_rate import SuccessRate
 
 
-class FlipCoinValidator(ScanningQuantumCircuit):
+class ScanningQuantumFlipCoin(ScanningQuantumCircuit):
     """
     Validator for quantum coin flip circuit.
     """

@@ -1,12 +1,12 @@
-from validator import QuantumEnigmaValidator
+from qiskit_qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
 
 
 def run():
-    # Create and run the quantum enigma validator
-    validator = QuantumEnigmaValidator()
+    # Create and run the quantum enigma scanner
+    scanner = ScanningQuantumEnigma()
 
     # Run simulation with histogram
-    results = validator.run_simulation(show_histogram=True, num_jobs=1000, shots_per_job=1000)
+    results = scanner.run_simulation(show_histogram=True, num_jobs=1000, shots_per_job=1000)
 
     # Print the results
     print("\nQuantum Enigma Results:")
@@ -43,7 +43,7 @@ def run():
     # Print success analysis
     print("\nSuccess Analysis:")
     print("----------------")
-    analysis_results = validator.run_analysis()
+    analysis_results = scanner.run_analysis()
     analysis = analysis_results["analyzer_0"]  # Get the first analyzer's results
     print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
     print(f"Standard deviation: {analysis['std_success_rate']:.2%}")
@@ -53,12 +53,12 @@ def run():
 
     # Plot analysis results
     print("\nGenerating analysis plots...")
-    validator.plot_analysis(ideal_rate=1.0)
+    scanner.plot_analysis(ideal_rate=1.0)
 
-    return validator
+    return scanner
 
 
 if __name__ == "__main__":
-    validator = run()
+    scanner = run()
     print("\nCircuit:")
-    validator.draw()  # This will use the matplotlib output
+    scanner.draw()  # This will use the matplotlib output
