@@ -6,9 +6,11 @@ COPY requirements*.txt /docs/
 # Install documentation dependencies
 RUN pip install -r /docs/requirements.docs.txt
 
-# Copy package files needed for documentation
+# Copy only essential files for documentation
 COPY setup.py pyproject.toml README.md /docs/
-COPY qiskit_qward /docs/qiskit_qward/
+COPY qiskit_qward/__init__.py /docs/qiskit_qward/
+COPY qiskit_qward/*.py /docs/qiskit_qward/
+COPY qiskit_qward/VERSION.txt /docs/qiskit_qward/
 COPY docs /docs/docs/
 
 # Pre-install the package - do this after copying all files
