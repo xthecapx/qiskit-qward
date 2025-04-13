@@ -1,10 +1,10 @@
-# Qiskit Qward Beginner's Guide
+# Qward Beginner's Guide
 
-This guide provides a comprehensive introduction to Qiskit Qward, a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs).
+This guide provides a comprehensive introduction to Qward, a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs).
 
-## What is Qiskit Qward?
+## What is Qward?
 
-Qiskit Qward is a framework built on top of Qiskit that helps quantum developers understand how their quantum algorithms perform on both simulators and real quantum hardware. It provides tools to:
+Qward is a framework built on top of Qiskit that helps quantum developers understand how their quantum algorithms perform on both simulators and real quantum hardware. It provides tools to:
 
 1. Create and run quantum circuits
 2. Collect execution metrics
@@ -18,7 +18,7 @@ Qiskit Qward is a framework built on top of Qiskit that helps quantum developers
 
 ### Validators
 
-In Qiskit Qward, validators are the main components you'll work with. They are quantum circuits with added functionality for:
+In Qward, validators are the main components you'll work with. They are quantum circuits with added functionality for:
 - Setting up experiments
 - Defining success criteria
 - Running simulations with multiple jobs/shots
@@ -29,7 +29,7 @@ In Qiskit Qward, validators are the main components you'll work with. They are q
 
 ### Analysis
 
-Qiskit Qward provides analysis tools to help you understand your quantum algorithm's performance:
+Qward provides analysis tools to help you understand your quantum algorithm's performance:
 - Success rate analysis
 - Statistical aggregation
 - Visualization tools
@@ -40,7 +40,7 @@ Qiskit Qward provides analysis tools to help you understand your quantum algorit
 
 ### Installation
 
-You can set up Qiskit Qward in two ways:
+You can set up Qward in two ways:
 
 #### Option 1: Local Installation
 
@@ -81,7 +81,7 @@ Let's start with a simple example - the quantum coin flip. This uses a single qu
 
 ```python
 # If running in a notebook, ensure paths are set up correctly
-from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create the validator
 scanner = ScanningQuantumFlipCoin(use_barriers=True)
@@ -147,7 +147,7 @@ The results should show approximately 50% heads and 50% tails, demonstrating qua
 For a more complex example, try the Two Doors Enigma validator. This implements a quantum solution to a classic puzzle involving truth-tellers and liars.
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
+from qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
 
 # Create the validator
 scanner = ScanningQuantumEnigma()
@@ -180,7 +180,7 @@ This example demonstrates more advanced quantum concepts:
 
 ## Understanding Circuit Complexity
 
-Qiskit Qward provides comprehensive circuit complexity analysis through the `calculate_complexity_metrics()` method. This helps you understand your circuit's resource requirements and algorithmic complexity.
+Qward provides comprehensive circuit complexity analysis through the `calculate_complexity_metrics()` method. This helps you understand your circuit's resource requirements and algorithmic complexity.
 
 Key metrics include:
 
@@ -219,7 +219,7 @@ print(f"Circuit volume: {metrics['standardized_metrics']['circuit_volume']}")
 
 ## Quantum Volume Estimation
 
-Quantum Volume is an important metric for understanding a circuit's computational capacity. Qiskit Qward extends the standard quantum volume calculation with an enhanced metric that considers additional circuit characteristics.
+Quantum Volume is an important metric for understanding a circuit's computational capacity. Qward extends the standard quantum volume calculation with an enhanced metric that considers additional circuit characteristics.
 
 The `estimate_quantum_volume()` method returns:
 
@@ -248,68 +248,46 @@ for factor, value in qv['factors'].items():
 
 ## Creating Your Own Validator
 
-Once you're comfortable with the existing examples, you can create your own validator:
+To create your own validator, extend the ScanningQuantumCircuit class:
 
 ```python
-from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
-from qiskit_qward.analysis.success_rate import SuccessRate
+from qward.scanning_quantum_circuit import ScanningQuantumCircuit
+from qward.analysis.success_rate import SuccessRate
 
-class MyFirstValidator(ScanningQuantumCircuit):
+class MyCustomValidator(ScanningQuantumCircuit):
     def __init__(self, use_barriers=True):
-        # Initialize with one qubit and one classical bit
-        super().__init__(num_qubits=1, num_clbits=1, use_barriers=use_barriers, name="my_first")
+        # Initialize with desired qubits and classical bits
+        super().__init__(num_qubits=2, num_clbits=2, use_barriers=use_barriers, name="my_circuit")
         
-        # Define what "success" means for this circuit
-        # In this case, measuring |1⟩ is considered success
+        # Define success criteria
         def success_criteria(state):
-            return state == "1"
+            # For example, consider "00" a success
+            return state == "00"
         
-        # Add success rate analyzer
+        # Add success rate analyzer with custom criteria
         success_analyzer = SuccessRate()
         success_analyzer.set_success_criteria(success_criteria)
         self.add_analyzer(success_analyzer)
         
-        # Build your circuit
+        # Build the circuit
         self._build_circuit()
     
     def _build_circuit(self):
-        # Apply X gate to flip from |0⟩ to |1⟩
-        self.x(0)
+        # Implement your quantum circuit here
+        self.h(0)              # Apply Hadamard to qubit 0
+        self.cx(0, 1)          # CNOT with control qubit 0, target qubit 1
         
         if self.use_barriers:
             self.barrier()
             
-        # Measure the qubit
-        self.measure(0, 0)
+        self.measure([0, 1], [0, 1])  # Measure both qubits
 ```
-
-Your custom validator will automatically inherit all the advanced features like complexity metrics calculation and quantum volume estimation.
-
-## Using Jupyter Notebooks
-
-The easiest way to work with Qiskit Qward is using Jupyter notebooks. We provide example notebooks in the repository:
-
-1. **Tutorials**: For detailed examples with explanations
-   - Located in `docs/tutorials/example_tutorial.ipynb`
-
-2. **How-to Guides**: For specific tasks
-   - Located in `docs/how_tos/example_how_to.ipynb`
-
-3. **Example Implementations**:
-   - Flip Coin: `qiskit_qward/examples/flip_coin/notebook_demo.ipynb`
-   - Two Doors Enigma: `qiskit_qward/examples/two_doors_enigma/notebook_demo.ipynb`
-
-When using Docker with `./start.sh`, these notebooks will be accessible directly from the Jupyter Lab interface.
 
 ## Next Steps
 
-After getting familiar with the basics, you can:
-
-1. Explore the tutorials in the `docs/tutorials` directory
-2. Check out the how-to guides in `docs/how_tos`
-3. Review the [Technical Documentation](technical_docs.md) for more details
-4. Learn how to customize success criteria and analyze different metrics
-5. Understand circuit complexity and quantum volume metrics
-6. Create validators for your own quantum algorithms
-
-Remember, Qiskit Qward is about understanding how quantum algorithms perform in practice, helping you bridge the gap between theoretical quantum computing and practical implementation on real hardware.
+- Explore the [Tutorials](tutorials/index.rst) for more detailed examples
+- Check the [Technical Documentation](technical_docs.md) for advanced usage
+- Read the [API Documentation](apidocs/index.rst) for a complete reference
+- Try the example notebooks:
+  - Flip Coin: `qward/examples/flip_coin/notebook_demo.ipynb`
+  - Two Doors Enigma: `qward/examples/two_doors_enigma/notebook_demo.ipynb`
