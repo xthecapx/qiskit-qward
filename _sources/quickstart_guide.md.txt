@@ -1,6 +1,6 @@
 # Quickstart Guide
 
-Qiskit Qward is a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs). This guide will help you quickly get started with using Qiskit Qward.
+Qward is a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs). This guide will help you quickly get started with using Qward.
 
 ## Installation
 
@@ -39,7 +39,7 @@ chmod +x start.sh
 
 ### Core Components
 
-Qiskit Qward provides two main ways to use the framework:
+Qward provides two main ways to use the framework:
 
 1. Using existing scanning circuits
 2. Creating your own custom scanning circuits
@@ -51,7 +51,7 @@ Qiskit Qward provides two main ways to use the framework:
 The Quantum Coin Flip scanner demonstrates a simple quantum circuit that simulates a fair coin toss:
 
 ```python
-from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create a scanner
 scanner = ScanningQuantumFlipCoin(use_barriers=True)
@@ -94,7 +94,7 @@ ibm_results = scanner.run_on_ibm()
 For a more complex example, try the Two Doors Enigma scanner:
 
 ```python
-from qiskit_qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
+from qward.examples.two_doors_enigma.scanner import ScanningQuantumEnigma
 
 # Create the scanner
 scanner = ScanningQuantumEnigma()
@@ -127,8 +127,8 @@ scanner.plot_analysis(ideal_rate=1.0)
 To create your own scanner, extend the ScanningQuantumCircuit class:
 
 ```python
-from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
-from qiskit_qward.analysis.success_rate import SuccessRate
+from qward.scanning_quantum_circuit import ScanningQuantumCircuit
+from qward.analysis.success_rate import SuccessRate
 
 class MyCustomScanner(ScanningQuantumCircuit):
     def __init__(self, use_barriers=True):
@@ -180,7 +180,7 @@ print(f"Quantum Volume: {qv_estimate['enhanced_quantum_volume']}")
 
 ## Circuit Complexity and Quantum Volume
 
-Qiskit Qward provides two key methods for analyzing circuit properties:
+Qward provides two key methods for analyzing circuit properties:
 
 ### 1. Calculate Complexity Metrics
 
@@ -215,13 +215,13 @@ This returns both standard quantum volume (2^n) and an enhanced volume that cons
 
 ## Using Jupyter Notebooks
 
-The easiest way to work with Qiskit Qward is using Jupyter notebooks. When using the Docker setup with `./start.sh`, you'll have access to:
+The easiest way to work with Qward is using Jupyter notebooks. When using the Docker setup with `./start.sh`, you'll have access to:
 
 1. **Tutorials**: `docs/tutorials/example_tutorial.ipynb`
 2. **How-to Guides**: `docs/how_tos/example_how_to.ipynb`
 3. **Example Notebooks**: 
-   - `qiskit_qward/examples/flip_coin/notebook_demo.ipynb`
-   - `qiskit_qward/examples/two_doors_enigma/notebook_demo.ipynb`
+   - `qward/examples/flip_coin/notebook_demo.ipynb`
+   - `qward/examples/two_doors_enigma/notebook_demo.ipynb`
 
 ## IBM Quantum Execution
 
