@@ -20,6 +20,7 @@ Qward provides tools to execute quantum circuits on QPUs, collect comprehensive 
   beginners_guide
   technical_docs
   project_overview
+  architecture
   Tutorials <tutorials/index>
   User Guide <how_tos/index>
   API References <apidocs/index>
