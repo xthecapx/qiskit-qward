@@ -1,14 +1,14 @@
 # Technical Documentation
 
-This document provides detailed technical information about the Qiskit Qward framework's architecture, components, and usage patterns.
+This document provides detailed technical information about the Qward framework's architecture, components, and usage patterns.
 
 ## Framework Architecture
 
-Qiskit Qward is organized into several key components:
+Qward is organized into several key components:
 
 ### 1. Validators
 
-The validator system is the core of Qiskit Qward, built around extending Qiskit's QuantumCircuit:
+The validator system is the core of Qward, built around extending Qiskit's QuantumCircuit:
 
 - **ScanningQuantumCircuit**: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.
   
@@ -122,7 +122,7 @@ The `ScanningQuantumCircuit` now includes comprehensive circuit complexity analy
 
 Example usage:
 ```python
-from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create scanner
 scanner = ScanningQuantumFlipCoin()
@@ -146,7 +146,7 @@ The standard quantum volume is calculated as 2^n where n is the effective depth 
 
 ### Enhanced Quantum Volume
 
-Qiskit Qward extends the standard quantum volume with an enhanced estimate that factors in:
+Qward extends the standard quantum volume with an enhanced estimate that factors in:
 
 1. **Square Ratio**: How close the circuit is to a square circuit (depth ≈ width)
 2. **Circuit Density**: How many operations per qubit-timestep
@@ -162,7 +162,7 @@ The method returns a comprehensive dictionary with:
 
 Example usage:
 ```python
-from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create scanner
 scanner = ScanningQuantumFlipCoin()
@@ -223,7 +223,7 @@ Success criteria focus on detecting when both guardians point to the same door.
 
 ## Technical Guidelines
 
-When extending Qiskit Qward with custom validators:
+When extending Qward with custom validators:
 
 1. Inherit from ScanningQuantumCircuit
 2. Initialize with appropriate number of qubits and classical bits
@@ -239,7 +239,7 @@ When extending Qiskit Qward with custom validators:
 
 ```python
 # Import a validator
-from qiskit_qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
 
 # Create validator instance
 scanner = ScanningQuantumFlipCoin(use_barriers=True)
@@ -253,84 +253,46 @@ print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
 
 # Access complexity metrics
 complexity = results["complexity_metrics"]
-print(f"Gate count: {complexity['gate_based_metrics']['gate_count']}")
-print(f"Quantum Volume: {results['quantum_volume']['enhanced_quantum_volume']}")
+print(f"Circuit depth: {complexity['gate_based_metrics']['circuit_depth']}")
 
-# Visualize results
-scanner.plot_analysis()
+# Estimate quantum volume
+qv = scanner.estimate_quantum_volume()
+print(f"Quantum Volume: {qv['standard_quantum_volume']}")
 ```
 
 ### Pattern 2: Creating Custom Validators
 
 ```python
-from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
-from qiskit_qward.analysis.success_rate import SuccessRate
+from qward.scanning_quantum_circuit import ScanningQuantumCircuit
+from qward.analysis.success_rate import SuccessRate
 
 class MyCustomValidator(ScanningQuantumCircuit):
-    def __init__(self):
-        super().__init__(num_qubits=2, num_clbits=2, use_barriers=True, name="my_validator")
+    def __init__(self, use_barriers=True):
+        super().__init__(num_qubits=2, num_clbits=2, use_barriers=use_barriers, name="my_circuit")
         
         # Define success criteria
+        def success_criteria(state):
+            return state == "00"
+        
+        # Add success rate analyzer
         success_analyzer = SuccessRate()
-        success_analyzer.set_success_criteria(lambda state: state == "00")
+        success_analyzer.set_success_criteria(success_criteria)
         self.add_analyzer(success_analyzer)
         
-        # Build your circuit
+        # Build the circuit
         self._build_circuit()
     
     def _build_circuit(self):
-        # Implement your circuit logic here
+        # Implement your quantum circuit here
         self.h(0)
         self.cx(0, 1)
+        
+        if self.use_barriers:
+            self.barrier()
+            
         self.measure([0, 1], [0, 1])
 ```
 
-## Technical Details
+## Conclusion
 
-### Validator Operation
-
-1. Circuit initialization with configurable parameters
-2. Validation algorithm implementation
-3. Execution preparation
-4. Backend selection and configuration
-5. Results collection and primary processing
-6. Metrics collection
-7. Complexity analysis
-8. Quantum volume estimation
-
-### Analysis Pipeline
-
-1. Raw results acceptance from validators
-2. Processing based on algorithm expectations
-3. Metrics calculation
-4. Result formatting
-5. Complexity assessment
-6. Quantum volume calculation
-
-## Development Guidelines
-
-When extending Qward with custom validators:
-
-1. Inherit from ScanningQuantumCircuit
-2. Implement the required abstract methods:
-   - `validate()`: Your circuit construction logic
-3. Add appropriate metrics collection
-4. Ensure compatibility with the analysis framework
-5. Consider circuit complexity in your design
-6. Analyze quantum volume for performance insights
-
-## Technical Roadmap
-
-Future technical enhancements include:
-
-1. Parameter correlation analysis
-2. Fixed parameter testing
-3. Dynamic parameter testing
-4. Depth analysis
-5. Target performance testing
-6. Advanced analysis capabilities
-7. Visualization tools
-8. Complete data management
-9. Integration with the broader Qiskit ecosystem
-10. Enhanced complexity metrics
-11. Quantum resource estimation
+Qward provides a comprehensive framework for analyzing and validating quantum circuits. By leveraging the validator system, analysis framework, and advanced metrics, you can gain deep insights into your quantum algorithms' performance and resource requirements.

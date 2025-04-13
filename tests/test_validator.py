@@ -1,20 +1,20 @@
-"""Tests for qiskit_qward validators."""
+"""Tests for qward validators."""
 
 from unittest import TestCase
 
-from qiskit_qward.scanning_quantum_circuit import ScanningQuantumCircuit
+from qiskit import QuantumCircuit
+from qward.scanner import Scanner
 
 
-class TestScanningQuantumCircuit(TestCase):
-    """Tests scanning quantum circuit."""
+class TestScanner(TestCase):
+    """Tests scanner class."""
 
-    def test_scanning_circuit_init(self):
-        """Tests scanning quantum circuit initialization."""
-        validator = ScanningQuantumCircuit(
-            num_qubits=2, num_clbits=2, use_barriers=True, name="test_validator"
-        )
+    def test_scanner_init(self):
+        """Tests scanner initialization."""
+        circuit = QuantumCircuit(2, 2)
+        scanner = Scanner(circuit=circuit)
 
-        self.assertEqual(validator.num_qubits, 2)
-        self.assertEqual(validator.num_clbits, 2)
-        self.assertTrue(validator.use_barriers)
-        self.assertEqual(validator.name, "test_validator")
+        self.assertEqual(scanner.circuit, circuit)
+        self.assertIsNone(scanner.job)
+        self.assertIsNone(scanner.result)
+        self.assertEqual(scanner.metrics, [])

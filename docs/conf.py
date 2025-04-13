@@ -19,8 +19,6 @@ Sphinx documentation builder
 # General options:
 from pathlib import Path
 
-from importlib_metadata import version as metadata_version
-
 project = "Qward"
 copyright = "2022"  # pylint: disable=redefined-builtin
 author = ""
@@ -28,7 +26,7 @@ author = ""
 _rootdir = Path(__file__).parent.parent
 
 # The full version, including alpha/beta/rc tags
-release = metadata_version("qiskit-qward")
+release = "0.1.0"
 # The short X.Y version
 version = ".".join(release.split(".")[:2])
 
@@ -45,6 +43,7 @@ extensions = [
     "nbsphinx",
     "qiskit_sphinx_theme",
     "myst_parser",
+    "sphinxcontrib.mermaid",
 ]
 
 # Add Markdown support
@@ -59,7 +58,7 @@ numfig_format = {"table": "Table %s"}
 language = "en"
 pygments_style = "colorful"
 add_module_names = False
-modindex_common_prefix = ["qiskit_qward."]
+modindex_common_prefix = ["qward."]
 
 # html theme options
 html_title = f"{project} {release}"

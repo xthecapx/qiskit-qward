@@ -47,7 +47,7 @@ if not hasattr(setuptools, "find_namespace_packages") or not inspect.ismethod(
     )
     sys.exit(1)
 
-VERSION_PATH = os.path.join(os.path.dirname(__file__), "qiskit_qward", "VERSION.txt")
+VERSION_PATH = os.path.join(os.path.dirname(__file__), "qward", "VERSION.txt")
 with open(VERSION_PATH, "r") as version_file:
     VERSION = version_file.read().strip()
 
@@ -86,7 +86,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     keywords="qiskit sdk quantum validation analysis metrics quality",
-    packages=setuptools.find_packages(include=["qiskit_qward", "qiskit_qward.*"]),
+    packages=setuptools.find_packages(include=["qward", "qward.*"]),
     install_requires=REQUIREMENTS,
     include_package_data=True,
     python_requires=">=3.9",
