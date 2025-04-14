@@ -113,7 +113,7 @@ class QiskitMetrics(Metric):
         metrics = {"is_scheduled": False}
 
         # Check if circuit is scheduled by checking if op_start_times is not None
-        if hasattr(circuit, "_op_start_times") and circuit._op_start_times is not None:
+        if hasattr(circuit, "op_start_times") and circuit.op_start_times is not None:
             metrics.update(
                 {
                     "is_scheduled": True,
