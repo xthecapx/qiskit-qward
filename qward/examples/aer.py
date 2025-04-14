@@ -54,20 +54,12 @@ def example_default_metrics(circuit: QuantumCircuit):
     scanner.add_metric(ComplexityMetrics(circuit))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Circuit metrics DataFrame:")
-    display(metrics_df)
-
-    # Display specific metrics
-    print("\nQiskit basic metrics:")
-    basic_cols = [col for col in metrics_df.columns if "QiskitMetrics_basic_metrics" in col]
-    display(metrics_df[basic_cols])
-
-    print("\nComplexity metrics:")
-    complexity_cols = [col for col in metrics_df.columns if "ComplexityMetrics" in col]
-    display(metrics_df[complexity_cols])
+    # Display each metric DataFrame
+    for metric_name, df in metrics_dict.items():
+        print(f"\n{metric_name} DataFrame:")
+        display(df)
 
     return scanner
 
@@ -91,16 +83,11 @@ def example_qiskit_metrics(circuit: QuantumCircuit):
     scanner.add_metric(QiskitMetrics(circuit))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
     # Display the metrics
     print("Qiskit metrics DataFrame:")
-    display(metrics_df)
-
-    # Display specific metrics
-    print("\nBasic metrics:")
-    basic_cols = [col for col in metrics_df.columns if "basic_metrics" in col]
-    display(metrics_df[basic_cols])
+    display(metrics_dict["QiskitMetrics"])
 
     return scanner
 
@@ -124,16 +111,11 @@ def example_complexity_metrics(circuit: QuantumCircuit):
     scanner.add_metric(ComplexityMetrics(circuit))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
     # Display the metrics
     print("Complexity metrics DataFrame:")
-    display(metrics_df)
-
-    # Display specific metrics
-    print("\nGate-based metrics:")
-    gate_cols = [col for col in metrics_df.columns if "gate_based_metrics" in col]
-    display(metrics_df[gate_cols])
+    display(metrics_dict["ComplexityMetrics"])
 
     return scanner
 
@@ -158,11 +140,12 @@ def example_multiple_metrics(circuit: QuantumCircuit):
     scanner.add_metric(ComplexityMetrics(circuit))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Multiple metrics DataFrame:")
-    display(metrics_df)
+    # Display each metric DataFrame
+    for metric_name, df in metrics_dict.items():
+        print(f"\n{metric_name} DataFrame:")
+        display(df)
 
     return scanner
 
@@ -203,14 +186,17 @@ def example_success_rate_metrics(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit, result=qward_result)
 
     # Add SuccessRate metric
-    scanner.add_metric(SuccessRate(circuit, job=job, success_criteria=lambda x: x == "11"))
+    scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11"))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Success rate metrics DataFrame:")
-    display(metrics_df)
+    # Display both individual and aggregate metrics
+    print("\nSuccess rate individual jobs DataFrame:")
+    display(metrics_dict["SuccessRate.individual_jobs"])
+
+    print("\nSuccess rate aggregate metrics DataFrame:")
+    display(metrics_dict["SuccessRate.aggregate"])
 
     return scanner, job
 
@@ -241,14 +227,26 @@ def example_all_metrics(circuit: QuantumCircuit, job: AerJob):
     # Add all metrics
     scanner.add_metric(QiskitMetrics(circuit))
     scanner.add_metric(ComplexityMetrics(circuit))
-    scanner.add_metric(SuccessRate(circuit, job=job))
+    scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11"))
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("All metrics DataFrame:")
-    display(metrics_df)
+    # Display each metric DataFrame
+    for metric_name, df in metrics_dict.items():
+        # Skip SuccessRate metrics as we'll handle them separately
+        if not metric_name.startswith("SuccessRate"):
+            print(f"\n{metric_name} DataFrame:")
+            display(df)
+
+    # Display SuccessRate metrics separately
+    if "SuccessRate.individual_jobs" in metrics_dict:
+        print("\nSuccessRate Individual Jobs DataFrame:")
+        display(metrics_dict["SuccessRate.individual_jobs"])
+
+    if "SuccessRate.aggregate" in metrics_dict:
+        print("\nSuccessRate Aggregate Metrics DataFrame:")
+        display(metrics_dict["SuccessRate.aggregate"])
 
     return scanner
 
@@ -332,7 +330,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit)
 
     # Add SuccessRate metric with multiple jobs
-    success_rate = SuccessRate(circuit, success_criteria=lambda x: x == "11")
+    success_rate = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
 
     # Add jobs one by one to demonstrate the new functionality
     success_rate.add_job(jobs[0])  # Add first job
@@ -341,16 +339,15 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     scanner.add_metric(success_rate)
 
     # Calculate metrics
-    metrics_df = scanner.calculate_metrics()
+    metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Multiple jobs success rate metrics DataFrame:")
-    display(metrics_df)
+    # Display the individual jobs metrics
+    print("\nSuccess rate individual jobs DataFrame:")
+    display(metrics_dict["SuccessRate.individual_jobs"])
 
-    # Display specific metrics
-    print("\nSuccess rate metrics:")
-    success_cols = [col for col in metrics_df.columns if "SuccessRate" in col]
-    display(metrics_df[success_cols])
+    # Display the aggregate metrics
+    print("\nSuccess rate aggregate metrics DataFrame:")
+    display(metrics_dict["SuccessRate.aggregate"])
 
     # Compare individual job results
     print("\nIndividual job results:")

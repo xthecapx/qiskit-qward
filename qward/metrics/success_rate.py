@@ -2,6 +2,7 @@
 Success rate metrics implementation for QWARD.
 """
 
+import math
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
@@ -24,6 +25,7 @@ class SuccessRate(Metric):
     def __init__(
         self,
         circuit: QuantumCircuit,
+        *,
         job: Optional[Union[AerJob, QiskitJob]] = None,
         jobs: Optional[List[Union[AerJob, QiskitJob]]] = None,
         result: Optional[Dict] = None,
@@ -125,14 +127,13 @@ class SuccessRate(Metric):
 
         if not counts:
             return {
-                "mean_success_rate": 0.0,
-                "std_success_rate": 0.0,
-                "min_success_rate": 0.0,
-                "max_success_rate": 0.0,
-                "total_trials": 0,
-                "average_counts": {"heads": 0.0, "tails": 0.0},
-                "fidelity": 0.0,
+                "job_id": 0,
+                "success_rate": 0.0,
                 "error_rate": 1.0,
+                "fidelity": 0.0,
+                "total_shots": 0,
+                "successful_shots": 0,
+                "average_counts": counts,
             }
 
         # Calculate success rate using the custom success criteria
@@ -152,35 +153,14 @@ class SuccessRate(Metric):
         # Calculate error rate as 1 - success_rate
         error_rate = 1.0 - success_rate
 
-        # Calculate counts for heads and tails
-        heads_count = 0
-        tails_count = 0
-
-        # For multi-qubit circuits, we need to handle different bit strings
-        if len(counts) > 0:
-            # Get the first key to determine the bit string length
-            first_key = next(iter(counts))
-            bit_length = len(first_key)
-
-            # For multi-qubit circuits, we need to determine what counts as heads and tails
-            if bit_length > 1:
-                # For a 2-qubit circuit, "00" would be heads, "11" would be tails
-                heads_count = counts.get("0" * bit_length, 0)
-                tails_count = counts.get("1" * bit_length, 0)
-            else:
-                # For a single qubit circuit
-                heads_count = counts.get("0", 0)
-                tails_count = counts.get("1", 0)
-
         metrics = {
-            "mean_success_rate": float(success_rate),
-            "std_success_rate": 0.0,  # Not applicable for a single run
-            "min_success_rate": float(success_rate),
-            "max_success_rate": float(success_rate),
-            "total_trials": total_shots,
-            "average_counts": {"heads": float(heads_count), "tails": float(tails_count)},
-            "fidelity": float(fidelity),
+            "job_id": 0,  # Single job is always id 0
+            "success_rate": float(success_rate),
             "error_rate": float(error_rate),
+            "fidelity": float(fidelity),
+            "total_shots": total_shots,
+            "successful_shots": successful_shots,
+            "average_counts": counts,
         }
 
         return metrics
@@ -190,7 +170,8 @@ class SuccessRate(Metric):
         Calculate success rate metrics from multiple job results.
 
         Returns:
-            dict: Success rate metrics for multiple jobs
+            dict: Success rate metrics for multiple jobs, including individual job metrics
+                  and aggregate metrics across all jobs
         """
         if not self.runtime_jobs:
             raise ValueError("We need multiple runtime jobs to calculate multiple job metrics")
@@ -200,45 +181,49 @@ class SuccessRate(Metric):
         fidelities = []
         total_shots_list = []
         successful_shots_list = []
-        counts_list = []
+        job_metrics = []
 
         for i, job in enumerate(self.runtime_jobs):
-            result = job.result()
-            counts = result.get_counts()
+            # Temporarily set the current job to calculate single job metrics
+            original_job = self.runtime_job
+            self.runtime_job = job
 
-            if not counts:
-                continue
+            # Reuse single job metrics calculation
+            single_job_metrics = self.get_single_job_metrics()
 
-            # Calculate success rate for this job
-            total_shots = sum(counts.values())
-            total_shots_list.append(total_shots)
+            # Restore the original job
+            self.runtime_job = original_job
 
-            successful_shots = 0
-            for state, count in counts.items():
-                if self.success_criteria(state):
-                    successful_shots += count
+            # Extract metrics we need for aggregation
+            success_rates.append(single_job_metrics["success_rate"])
+            fidelities.append(single_job_metrics["fidelity"])
+            total_shots_list.append(single_job_metrics["total_shots"])
+            successful_shots_list.append(single_job_metrics["successful_shots"])
 
-            successful_shots_list.append(successful_shots)
-            success_rate = successful_shots / total_shots if total_shots > 0 else 0.0
-            success_rates.append(success_rate)
-
-            # Calculate fidelity for this job
-            max_count = max(counts.values())
-            fidelity = max_count / total_shots if total_shots > 0 else 0.0
-            fidelities.append(fidelity)
-
-            counts_list.append(counts)
+            # Add to job metrics list
+            job_metrics.append(
+                {
+                    "job_id": i,
+                    "success_rate": single_job_metrics["success_rate"],
+                    "error_rate": single_job_metrics["error_rate"],
+                    "fidelity": single_job_metrics["fidelity"],
+                    "total_shots": single_job_metrics["total_shots"],
+                    "successful_shots": single_job_metrics["successful_shots"],
+                }
+            )
 
         if not success_rates:
             return {
-                "job_metrics": [],
-                "mean_success_rate": 0.0,
-                "std_success_rate": 0.0,
-                "min_success_rate": 0.0,
-                "max_success_rate": 0.0,
-                "total_trials": 0,
-                "fidelity": 0.0,
-                "error_rate": 1.0,
+                "individual_jobs": [],
+                "aggregate": {
+                    "mean_success_rate": 0.0,
+                    "std_success_rate": 0.0,
+                    "min_success_rate": 0.0,
+                    "max_success_rate": 0.0,
+                    "total_trials": 0,
+                    "fidelity": 0.0,
+                    "error_rate": 1.0,
+                },
             }
 
         # Calculate aggregate metrics
@@ -255,30 +240,18 @@ class SuccessRate(Metric):
         # Calculate error rate as 1 - mean_success_rate
         error_rate = 1.0 - mean_success_rate
 
-        # Create job metrics list
-        job_metrics = []
-        for i in range(len(success_rates)):
-            job_metrics.append(
-                {
-                    "job_id": i,
-                    "success_rate": float(success_rates[i]),
-                    "error_rate": 1.0 - float(success_rates[i]),
-                    "fidelity": float(fidelities[i]),
-                    "total_shots": total_shots_list[i],
-                    "successful_shots": successful_shots_list[i],
-                    "counts": counts_list[i],
-                }
-            )
-
+        # Return both individual job metrics and aggregate metrics
         metrics = {
-            "job_metrics": job_metrics,
-            "mean_success_rate": mean_success_rate,
-            "std_success_rate": std_success_rate,
-            "min_success_rate": min_success_rate,
-            "max_success_rate": max_success_rate,
-            "total_trials": total_trials,
-            "fidelity": avg_fidelity,
-            "error_rate": error_rate,
+            "individual_jobs": job_metrics,
+            "aggregate": {
+                "mean_success_rate": mean_success_rate,
+                "std_success_rate": std_success_rate,
+                "min_success_rate": min_success_rate,
+                "max_success_rate": max_success_rate,
+                "total_trials": total_trials,
+                "fidelity": avg_fidelity,
+                "error_rate": error_rate,
+            },
         }
 
         return metrics
