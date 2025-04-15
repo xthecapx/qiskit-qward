@@ -2,6 +2,8 @@
 Example demonstrating how to use QWARD with Aer simulator.
 """
 
+from typing import Any, Callable, cast
+
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator, AerJob
 from qward import Scanner, Result
@@ -9,10 +11,11 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 
 # Try to import display from IPython, fall back to print if not available
 try:
-    from IPython.display import display
+    from IPython.display import display as ipython_display
+    display: Callable[..., Any] = ipython_display
 except ImportError:
     # Define display as print if IPython is not available
-    display = print
+    display = print  # type: ignore
 
 
 def create_example_circuit():
@@ -330,13 +333,13 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit)
 
     # Add SuccessRate metric with multiple jobs
-    success_rate = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
+    success_rate_metric = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
 
     # Add jobs one by one to demonstrate the new functionality
-    success_rate.add_job(jobs[0])  # Add first job
-    success_rate.add_job(jobs[1:])  # Add remaining jobs as a list
+    success_rate_metric.add_job(jobs[0])  # Add first job
+    success_rate_metric.add_job(jobs[1:])  # Add remaining jobs as a list
 
-    scanner.add_metric(success_rate)
+    scanner.add_metric(success_rate_metric)
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()

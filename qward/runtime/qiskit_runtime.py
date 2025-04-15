@@ -131,7 +131,7 @@ class QiskitRuntimeService(QiskitRuntimeServiceBase):
         # Create a Result object
         self._result = Result(
             job=self._job,
-            quasi_dists=job_result.quasi_dists if hasattr(job_result, "quasi_dists") else [],
+            counts=job_result.get_counts() if hasattr(job_result, "get_counts") else {},
             metadata=job_result.metadata if hasattr(job_result, "metadata") else {},
         )
 
@@ -175,3 +175,17 @@ class QiskitRuntimeService(QiskitRuntimeServiceBase):
 
         # Get the results
         return self.get_results()
+
+    def _create_result(self, job: QiskitJob) -> Result:
+        """
+        Create a Result object from a Qiskit job.
+
+        Args:
+            job: The Qiskit job
+
+        Returns:
+            Result: The created Result object
+        """
+        result = job.result()
+        counts = result.get_counts()
+        return Result(job=job, counts=counts)

@@ -2,7 +2,7 @@
 Scanner class for QWARD.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 import pandas as pd
 
 from qiskit import QuantumCircuit
@@ -168,7 +168,7 @@ class Scanner:
         Returns:
             Dict[str, Any]: The flattened dictionary
         """
-        items = []
+        items: List[Tuple[str, Any]] = []
         for k, v in d.items():
             new_key = f"{parent_key}{sep}{k}" if parent_key else k
             if isinstance(v, dict):
