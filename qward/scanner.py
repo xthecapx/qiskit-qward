@@ -102,7 +102,7 @@ class Scanner:
         metric_dataframes = {}
 
         # Calculate metrics for each metric class
-        for i, metric_class in enumerate(self.metrics):
+        for _, metric_class in enumerate(self.metrics):
             # Get the metrics from the metric class
             metric_results = metric_class.get_metrics()
 

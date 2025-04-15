@@ -129,6 +129,34 @@ class Result:
             }
         )
 
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the result to a dictionary.
+
+        Returns:
+            Dict[str, Any]: Dictionary representation of the result
+        """
+        return {
+            "counts": self._counts,
+            "metadata": self._metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Result":
+        """
+        Create a Result object from a dictionary.
+
+        Args:
+            data: Dictionary containing the result data
+
+        Returns:
+            Result: The created Result object
+        """
+        return cls(
+            counts=data.get("counts", {}),
+            metadata=data.get("metadata", {}),
+        )
+
     def save_to_file(self, filename: str) -> None:
         """Save the result to a file."""
         with open(filename, "w", encoding="utf-8") as f:
