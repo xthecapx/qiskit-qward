@@ -12,6 +12,7 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 # Try to import display from IPython, fall back to print if not available
 try:
     from IPython.display import display as ipython_display
+
     display: Callable[..., Any] = ipython_display
 except ImportError:
     # Define display as print if IPython is not available
