@@ -51,20 +51,32 @@ class QiskitRuntimeService(QiskitRuntimeServiceBase):
         """
         return self._circuit
 
-    @property
-    def backend(self) -> Union[Backend, str]:
+    def backend(self, name=None, instance=None, use_fractional_gates=False) -> Union[Backend, str]:
         """
         Get the backend.
+
+        This method overrides the parent class method but returns the stored backend
+        instead of looking up a backend by name.
+
+        Args:
+            name: Ignored, kept for compatibility with parent class
+            instance: Ignored, kept for compatibility with parent class
+            use_fractional_gates: Ignored, kept for compatibility with parent class
 
         Returns:
             Union[Backend, str]: The backend
         """
         return self._backend
 
-    @property
-    def job(self) -> Optional[Union[AerJob, QiskitJob]]:
+    def job(self, job_id=None) -> Optional[Union[AerJob, QiskitJob]]:
         """
         Get the job.
+
+        This method overrides the parent class method but returns the stored job
+        instead of looking up a job by ID.
+
+        Args:
+            job_id: Ignored, kept for compatibility with parent class
 
         Returns:
             Optional[Union[AerJob, QiskitJob]]: The job
