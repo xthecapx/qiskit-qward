@@ -2,21 +2,19 @@
 Example demonstrating how to use QWARD with Aer simulator.
 """
 
-from typing import Any, Callable, cast
+from typing import Any, Callable
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator, AerJob
 from qward import Scanner, Result
 from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 
-# Try to import display from IPython, fall back to print if not available
 try:
     from IPython.display import display as ipython_display
 
     display: Callable[..., Any] = ipython_display
 except ImportError:
-    # Define display as print if IPython is not available
-    display = print  # type: ignore
+    display = print
 
 
 def create_example_circuit():
