@@ -126,8 +126,10 @@ class SuccessRate(Metric):
         counts = result.get_counts()
 
         if not counts:
+            # Use job_id from job object if available
+            job_id = job_to_use.job_id() if hasattr(job_to_use, 'job_id') else "0"
             return {
-                "job_id": 0,
+                "job_id": job_id,
                 "success_rate": 0.0,
                 "error_rate": 1.0,
                 "fidelity": 0.0,
@@ -153,8 +155,11 @@ class SuccessRate(Metric):
         # Calculate error rate as 1 - success_rate
         error_rate = 1.0 - success_rate
 
+        # Extract job_id from the job object if available
+        job_id = job_to_use.job_id() if hasattr(job_to_use, 'job_id') else "0"
+        
         metrics = {
-            "job_id": 0,  # Single job is always id 0
+            "job_id": job_id,
             "success_rate": float(success_rate),
             "error_rate": float(error_rate),
             "fidelity": float(fidelity),
@@ -177,40 +182,38 @@ class SuccessRate(Metric):
             raise ValueError("We need multiple runtime jobs to calculate multiple job metrics")
 
         # Calculate metrics for each job
-        success_rates = []
-        fidelities = []
-        total_shots_list = []
-        successful_shots_list = []
-        job_metrics = []
+        success_rates: List[float] = []
+        fidelities: List[float] = []
+        total_shots_list: List[int] = []
+        successful_shots_list: List[int] = []
+        job_metrics: List[Dict[str, Any]] = []
 
         for i, job in enumerate(self.runtime_jobs):
             # Temporarily set the current job to calculate single job metrics
             original_job = self.runtime_job
             self.runtime_job = job
-
+            
             # Reuse single job metrics calculation
             single_job_metrics = self.get_single_job_metrics()
-
+            
             # Restore the original job
             self.runtime_job = original_job
-
+            
             # Extract metrics we need for aggregation
             success_rates.append(single_job_metrics["success_rate"])
             fidelities.append(single_job_metrics["fidelity"])
             total_shots_list.append(single_job_metrics["total_shots"])
             successful_shots_list.append(single_job_metrics["successful_shots"])
-
-            # Add to job metrics list
-            job_metrics.append(
-                {
-                    "job_id": i,
-                    "success_rate": single_job_metrics["success_rate"],
-                    "error_rate": single_job_metrics["error_rate"],
-                    "fidelity": single_job_metrics["fidelity"],
-                    "total_shots": single_job_metrics["total_shots"],
-                    "successful_shots": single_job_metrics["successful_shots"],
-                }
-            )
+            
+            # Add to job metrics list with actual job_id from the job object
+            job_metrics.append({
+                "job_id": job.job_id() if hasattr(job, 'job_id') else str(i),
+                "success_rate": single_job_metrics["success_rate"],
+                "error_rate": single_job_metrics["error_rate"],
+                "fidelity": single_job_metrics["fidelity"],
+                "total_shots": single_job_metrics["total_shots"],
+                "successful_shots": single_job_metrics["successful_shots"]
+            })
 
         if not success_rates:
             return {
@@ -222,16 +225,16 @@ class SuccessRate(Metric):
                     "max_success_rate": 0.0,
                     "total_trials": 0,
                     "fidelity": 0.0,
-                    "error_rate": 1.0,
-                },
+                    "error_rate": 1.0
+                }
             }
 
         # Calculate aggregate metrics
-        success_rates = np.array(success_rates)
-        mean_success_rate = float(np.mean(success_rates))
-        std_success_rate = float(np.std(success_rates)) if len(success_rates) > 1 else 0.0
-        min_success_rate = float(np.min(success_rates))
-        max_success_rate = float(np.max(success_rates))
+        success_rates_array = np.array(success_rates)
+        mean_success_rate = float(np.mean(success_rates_array))
+        std_success_rate = float(np.std(success_rates_array)) if len(success_rates_array) > 1 else 0.0
+        min_success_rate = float(np.min(success_rates_array))
+        max_success_rate = float(np.max(success_rates_array))
         total_trials = sum(total_shots_list)
 
         # Calculate average fidelity
@@ -250,8 +253,8 @@ class SuccessRate(Metric):
                 "max_success_rate": max_success_rate,
                 "total_trials": total_trials,
                 "fidelity": avg_fidelity,
-                "error_rate": error_rate,
-            },
+                "error_rate": error_rate
+            }
         }
 
         return metrics
