@@ -4,10 +4,9 @@ Qiskit metrics implementation for QWARD.
 
 from typing import Any, Dict
 
-from qiskit import QuantumCircuit
-
 from qward.metrics.base_metric import Metric
 from qward.metrics.types import MetricsType, MetricsId
+from qward.utils.flatten import flatten_dict
 
 
 class QiskitMetrics(Metric):
@@ -47,16 +46,28 @@ class QiskitMetrics(Metric):
 
     def get_metrics(self) -> Dict[str, Any]:
         """
-        Get the metrics.
+        Get the metrics, flattening nested dictionaries for DataFrame compatibility.
 
         Returns:
-            Dict[str, Any]: Dictionary containing the metrics
+            Dict[str, Any]: Dictionary containing the metrics (flattened)
         """
-        return {
+        metrics = {
             "basic_metrics": self.get_basic_metrics(),
             "instruction_metrics": self.get_instruction_metrics(),
             "scheduling_metrics": self.get_scheduling_metrics(),
         }
+        # Flatten nested dicts for count_ops and instructions
+        to_flatten = {}
+        if "count_ops" in metrics["basic_metrics"]:
+            count_ops = metrics["basic_metrics"].pop("count_ops")
+            to_flatten.update({"basic_metrics.count_ops": count_ops})
+        if "instructions" in metrics["instruction_metrics"]:
+            instructions = metrics["instruction_metrics"].pop("instructions")
+            to_flatten.update({"instruction_metrics.instructions": instructions})
+        # Flatten and merge
+        flat_metrics = flatten_dict(metrics)
+        flat_metrics.update(flatten_dict(to_flatten))
+        return flat_metrics
 
     def get_basic_metrics(self) -> Dict[str, Any]:
         """
