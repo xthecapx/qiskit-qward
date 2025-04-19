@@ -2,38 +2,14 @@
 Example demonstrating how to use QWARD with Aer simulator.
 """
 
-from typing import Any, Callable
+from qward.examples.utils import get_display, create_example_circuit
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator, AerJob
 from qward import Scanner, Result
 from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 
-try:
-    from IPython.display import display as ipython_display
-
-    display: Callable[..., Any] = ipython_display
-except ImportError:
-    display = print
-
-
-def create_example_circuit():
-    """
-    Create a simple quantum circuit for demonstration.
-
-    Returns:
-        QuantumCircuit: A 2-qubit GHZ state circuit
-    """
-    circuit = QuantumCircuit(2, 2)
-    circuit.h(0)
-    circuit.cx(0, 1)
-    circuit.measure([0, 1], [0, 1])
-
-    # Print the circuit
-    print("Circuit:")
-    print(circuit)
-
-    return circuit
+display = get_display()
 
 
 def example_default_metrics(circuit: QuantumCircuit):

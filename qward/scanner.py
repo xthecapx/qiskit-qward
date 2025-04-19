@@ -25,6 +25,7 @@ class Scanner:
         circuit: Optional[QuantumCircuit] = None,
         job: Optional[Union[AerJob, QiskitJob]] = None,
         result: Optional[Result] = None,
+        metrics: Optional[list] = None,
     ):
         """
         Initialize a Scanner object.
@@ -33,11 +34,31 @@ class Scanner:
             circuit: The quantum circuit to analyze
             job: The job that executed the circuit
             result: The result of the job execution
+            metrics: Optional list of metric classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner's circuit if it has one.
         """
         self._circuit = circuit
         self._job = job
         self._result = result
         self._metrics: List[Metric] = []
+
+        if metrics is not None:
+            for metric in metrics:
+                # If metric is a class (not instance), instantiate with circuit
+                if isinstance(metric, type):
+                    self._metrics.append(metric(circuit))
+                else:
+                    # If metric is an instance, check for .circuit or ._circuit attribute
+                    metric_circuit = getattr(metric, "circuit", None)
+                    if metric_circuit is None:
+                        # Try protected attribute (for base class)
+                        metric_circuit = getattr(metric, "_circuit", None)
+                    if metric_circuit is not None:
+                        if metric_circuit is not circuit:
+                            raise ValueError(
+                                f"Metric instance {metric.__class__.__name__} was initialized with a different circuit than the Scanner."
+                            )
+                    self._metrics.append(metric)
+        # If metrics is None, user can add metrics later with add_metric (backward compatible)
 
     @property
     def circuit(self) -> Optional[QuantumCircuit]:
