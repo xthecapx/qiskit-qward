@@ -2,25 +2,12 @@
 Example demonstrating Scanner metrics shortcut via constructor.
 """
 
-from typing import Any, Callable
-from qiskit import QuantumCircuit
+from qward.examples.utils import get_display, create_example_circuit
 from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics
+from qiskit import QuantumCircuit
 
-try:
-    from IPython.display import display as ipython_display
-
-    display: Callable[..., Any] = ipython_display
-except ImportError:
-    display = print
-
-
-def create_example_circuit():
-    circuit = QuantumCircuit(2, 2)
-    circuit.h(0)
-    circuit.cx(0, 1)
-    circuit.measure([0, 1], [0, 1])
-    return circuit
+display = get_display()
 
 
 def example_metrics_with_classes():
