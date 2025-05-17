@@ -10,10 +10,10 @@ QWARD is designed with a clear separation between execution and analysis compone
 classDiagram
     class Scanner {
         +circuit: QuantumCircuit
-        +job: Union[AerJob, RuntimeJob]
+        +job: Union[AerJob, QiskitJob]
         +result: Result
         +metrics: List[Metric]
-        +__init__(circuit, job, result)
+        +__init__(circuit, job, result, metrics)
         +add_metric(metric)
         +calculate_metrics()
     }
@@ -32,27 +32,30 @@ classDiagram
     }
 
     class Result {
-        +job: Union[AerJob, RuntimeJob]
-        +quasi_dists: List[Dict]
-        +metadata: Dict
-        +__init__(job, quasi_dists, metadata)
+        +job: Union[AerJob, QiskitJob]
+        +counts: Dict[str, int]
+        +metadata: Dict[str, Any]
+        +__init__(job, counts, metadata)
         +save(path)
         +load(path)
+        +update_from_job()
     }
 
     class Metric {
         <<abstract>>
-        +_metric_type: MetricsType
-        +_id: MetricsId
-        +_circuit: QuantumCircuit
+        # Attributes are initialized by _get_metric_type() and _get_metric_id() in __init__
+        # _metric_type: MetricsType  (accessed via property)
+        # _id: MetricsId (accessed via property)
+        _circuit: QuantumCircuit # Direct attribute from __init__
         +__init__(circuit)
         +metric_type: MetricsType
         +id: MetricsId
         +name: str
         +circuit: QuantumCircuit
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
+        +_get_metric_type() # abstract
+        +_get_metric_id() # abstract
+        +is_ready() # abstract
+        +get_metrics() # abstract
     }
 
     class MetricsType {
@@ -66,7 +69,6 @@ classDiagram
         QISKIT
         COMPLEXITY
         SUCCESS_RATE
-        +get_default_metrics()
     }
 
     class QiskitMetrics {
@@ -77,7 +79,6 @@ classDiagram
         +get_basic_metrics()
         +get_instruction_metrics()
         +get_scheduling_metrics()
-        +get_all_metrics()
     }
 
     class ComplexityMetrics {
@@ -88,12 +89,19 @@ classDiagram
     }
 
     class SuccessRate {
-        +_job: Union[AerJob, RuntimeJob]
-        +_result: Result
-        +__init__(circuit, job, result)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
+        # Attributes from __init__
+        _job: Optional[Union[AerJob, QiskitJob]]
+        _jobs: List[Union[AerJob, QiskitJob]]
+        _result: Optional[Dict] # Note: This is Dict, not qward.Result
+        success_criteria: Callable
+        # Inherits _circuit from Metric
+
+        +__init__(circuit, job, jobs, result, success_criteria)
+        +_get_metric_type() # Implemented from Metric
+        # _get_metric_id() // Implemented from Metric
+        +is_ready() # Implemented from Metric
+        +get_metrics() # Implemented from Metric
+        +add_job(job) # New method
     }
 
     Scanner --> Result
@@ -116,25 +124,26 @@ The QWARD library is organized into the following folder structure:
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
 │   ├── __init__.py
-│   ├── qiskit_runtime.py       # QiskitRuntimeService implementation
-│   └── device.py               # Device-specific implementations
+│   └── qiskit_runtime.py       # QiskitRuntimeService implementation
 ├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
 │   ├── base_metric.py          # Base Metric class
 │   ├── types.py                # MetricsType and MetricsId enums
+│   ├── defaults.py             # Default metric configurations
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
 │   └── success_rate.py         # SuccessRate implementation
 ├── utils/
 │   ├── __init__.py
+│   ├── flatten.py              # Utility for flattening nested lists
 │   └── helpers.py              # Utility functions
 └── examples/
     ├── __init__.py
-    ├── basic_usage.py          # Basic usage examples
-    ├── custom_metrics.py       # Examples of creating custom metrics
-    ├── runtime_execution.py    # Examples of using QiskitRuntimeService
-    └── result_analysis.py      # Examples of analyzing results
+    ├── utils.py                # Utilities for examples
+    ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
+    ├── aer.py                  # Example Aer simulator usage
+    └── example_metrics_constructor.py # Example for custom metrics constructor
 ```
 
 This structure provides a clean organization for the code, with:
@@ -148,25 +157,19 @@ This structure provides a clean organization for the code, with:
 ## Components
 
 ### Scanner
-The Scanner class is the main entry point for analyzing quantum circuits. It takes a circuit, job, and result as input and allows users to add and calculate metrics.
+The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them.
 
 ### QiskitRuntimeService
 The QiskitRuntimeService class extends Qiskit's `QiskitRuntimeService` class to provide enhanced functionality for quantum circuit execution. It inherits all standard Qiskit runtime capabilities and adds the `run_and_watch` method for improved job monitoring. This class manages the job lifecycle and result collection, providing a streamlined interface for executing circuits on IBM quantum hardware.
 
 ### Result
-The Result class represents the output of a quantum circuit execution. It includes the job information, quasi-probability distributions, and metadata. It provides methods for saving and loading results, as well as updating results from a job.
+The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.
 
 ### Metric
-The Metric class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. Concrete implementations include QiskitMetrics, ComplexityMetrics, and SuccessRate.
-
-### MetricsType
-The MetricsType enum defines the different types of metrics available, such as PRE_RUNTIME and POST_RUNTIME.
-
-### MetricsId
-The MetricsId enum defines the different IDs for metrics, such as QISKIT, COMPLEXITY, and SUCCESS_RATE. It also provides a method to get the default metric classes.
+The Metric class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. Concrete implementations include QiskitMetrics, ComplexityMetrics, and SuccessRate. Default metric classes can be obtained using the `get_default_metrics()` function from the `qward.metrics.defaults` module.
 
 ### SuccessRate
-The SuccessRate class calculates success rate metrics for quantum circuits, including success rate, fidelity, and error rate. These metrics are calculated based on the quasi-probability distributions from the job result.
+The SuccessRate class calculates success rate metrics for quantum circuits, such as success rate, fidelity, and error rate. It is initialized with a `QuantumCircuit`, and can optionally take a single `job` or a list of `jobs`, a `result` dictionary (containing counts), and a custom `success_criteria` function. Metrics are calculated based on the execution counts from the provided job(s) or result. Additional jobs can be added using the `add_job` method for aggregate analysis.
 
 ## Usage Examples
 
@@ -235,9 +238,10 @@ results = scanner.calculate_metrics()
 ### Using Custom Metrics
 ```python
 from qward import Metric, MetricsType, MetricsId
+from qiskit import QuantumCircuit
 
 class MyCustomMetric(Metric):
-    def __init__(self, circuit):
+    def __init__(self, circuit: QuantumCircuit):
         super().__init__(circuit)
     
     def _get_metric_type(self) -> MetricsType:
@@ -248,18 +252,30 @@ class MyCustomMetric(Metric):
             MetricsType: The type of this metric
         """
         return MetricsType.PRE_RUNTIME
+
+    def _get_metric_id(self) -> MetricsId:
+        """
+        Get the ID of this metric.
+        For custom metrics, you might extend MetricsId or use a general ID.
+        Returns:
+            MetricsId: The ID of this metric (e.g., reusing an existing one for simplicity)
+        """
+        return MetricsId.QISKIT
     
-    def is_ready(self):
+    def is_ready(self) -> bool:
         return True
     
-    def get_metrics(self):
+    def get_metrics(self) -> dict:
         # Custom metric calculation
+        value = 42
         return {"my_metric": value}
 
-# Use the custom metric
-scanner = Scanner(circuit=circuit)
-scanner.add_metric(MyCustomMetric(circuit))
-results = scanner.calculate_metrics()
+# Example usage (assuming 'circuit' is a QuantumCircuit instance)
+# circuit = QuantumCircuit(1)
+# scanner = Scanner(circuit=circuit)
+# scanner.add_metric(MyCustomMetric(circuit))
+# results = scanner.calculate_metrics()
+# print(results)
 ```
 
 ## Best Practices
