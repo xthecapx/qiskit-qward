@@ -203,16 +203,15 @@
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Qiskit Qward Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="how_tos/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html">Quantum Circuits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html#example-validators">Example Validators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/analysis.html">Analysis</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/runtime.html">Runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
 </ul>
@@ -255,102 +254,116 @@
         <article role="main" id="furo-main-content">
           <section id="qiskit-qward-project-overview">
 <h1>Qiskit Qward Project Overview<a class="headerlink" href="#qiskit-qward-project-overview" title="Link to this heading">¶</a></h1>
-<p>Qiskit Qward is a framework for analyzing and validating quantum algorithm execution quality on quantum processing units (QPUs). It provides a structured approach for building quantum validators that can be used to assess how well quantum circuits perform on real hardware.</p>
+<p>Qiskit Qward is a Python library designed to assist in the analysis of quantum circuits and their execution quality, particularly when targeting quantum processing units (QPUs) or simulators. It offers a structured way to apply various metrics to quantum circuits and their results.</p>
 <section id="key-components">
 <h2>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">¶</a></h2>
-<p>The framework consists of several key components:</p>
+<p>The library revolves around the following key components:</p>
 <ol class="arabic simple">
-<li><p><strong>Scanning Quantum Circuit System</strong>:</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Scanner</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code>)</strong>:</p>
 <ul class="simple">
-<li><p>Extends Qiskit’s QuantumCircuit to provide validation and scanning capabilities</p></li>
-<li><p>Handles circuit creation, simulation, and execution on IBM Quantum hardware</p></li>
-<li><p>Provides a standardized interface for implementing quantum validators</p></li>
+<li><p>The main orchestrator for analysis.</p></li>
+<li><p>Takes a Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and optionally execution <code class="docutils literal notranslate"><span class="pre">Job</span></code> or <code class="docutils literal notranslate"><span class="pre">Result</span></code> objects.</p></li>
+<li><p>Users add various <code class="docutils literal notranslate"><span class="pre">Metric</span></code> objects to the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to perform specific analyses.</p></li>
 </ul>
 </li>
-<li><p><strong>Analysis Framework</strong>:</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metric</span></code> System (<code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code>)</strong>:</p>
 <ul class="simple">
-<li><p>Processes execution results to extract meaningful insights</p></li>
-<li><p>Includes success rate analysis to evaluate algorithm performance</p></li>
-<li><p>Supports visualization of results for better understanding</p></li>
+<li><p>A collection of classes for performing specific analyses. Each metric class typically focuses on a particular aspect of the circuit or its execution results.</p></li>
+<li><p>Key built-in metrics include:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>: For basic circuit properties (depth, width, gate counts).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>: For advanced circuit complexity analysis (based on D. Shami’s work) and Quantum Volume estimation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>: For calculating success/error rates from execution counts against user-defined criteria.</p></li>
 </ul>
 </li>
-<li><p><strong>Example Implementations</strong>:</p>
+<li><p>Extensible: Users can create custom metrics by inheriting from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.Metric</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Result</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.Result</span></code>)</strong>:</p>
 <ul class="simple">
-<li><p><strong>Flip Coin Validator</strong>: A simple quantum coin flip example showcasing basic superposition</p></li>
-<li><p><strong>Two Doors Enigma Validator</strong>: A more complex validator implementing the quantum solution to the “two doors enigma” puzzle</p></li>
+<li><p>A helper class to encapsulate Qiskit job execution results, particularly counts and metadata, for use with the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> and certain metrics.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.runtime.qiskit_runtime.QiskitRuntimeService</span></code>)</strong>:</p>
+<ul class="simple">
+<li><p>Extends Qiskit’s own runtime service client, offering a streamlined way to run circuits, particularly with a <code class="docutils literal notranslate"><span class="pre">run_and_watch</span></code> method for easier job monitoring on IBM Quantum hardware (though it can be used with simulators too via Qiskit’s backend system).</p></li>
+</ul>
+</li>
+<li><p><strong>Example Implementations (<code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code>)</strong>:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code> directory contains scripts and notebooks (e.g., <code class="docutils literal notranslate"><span class="pre">aer.py</span></code>, <code class="docutils literal notranslate"><span class="pre">run_on_aer.ipynb</span></code>) demonstrating how to use the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> with various metrics and Qiskit’s Aer simulator.</p></li>
 </ul>
 </li>
 </ol>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
-<p>To get started with Qiskit Qward, refer to the <a class="reference internal" href="quickstart_guide.html"><span class="std std-doc">Quickstart Guide</span></a> for installation instructions and basic usage patterns.</p>
+<p>To get started with Qiskit Qward, refer to the <a class="reference internal" href="beginners_guide.html"><span class="std std-doc">Beginner’s Guide</span></a> and <a class="reference internal" href="quickstart_guide.html"><span class="std std-doc">Quickstart Guide</span></a> for installation instructions and basic usage patterns.</p>
 </section>
 <section id="documentation-structure">
 <h2>Documentation Structure<a class="headerlink" href="#documentation-structure" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><strong>Beginner’s Guide</strong>: Introduction to quantum validation concepts</p></li>
-<li><p><strong>Quickstart Guide</strong>: Installation and basic usage</p></li>
-<li><p><strong>Technical Documentation</strong>: Detailed component descriptions</p></li>
-<li><p><strong>Tutorials</strong>: Step-by-step guides for common tasks</p></li>
-<li><p><strong>How-Tos</strong>: Practical examples for specific use cases</p></li>
-<li><p><strong>API Documentation</strong>: Full API reference</p></li>
+<li><p><strong>Beginner’s Guide</strong>: Introduction to Qward concepts and basic examples.</p></li>
+<li><p><strong>Quickstart Guide</strong>: Installation and core usage patterns.</p></li>
+<li><p><strong>Technical Documentation</strong>: More detailed component descriptions (see <code class="docutils literal notranslate"><span class="pre">docs/architecture.md</span></code>).</p></li>
+<li><p><strong>API Documentation</strong>: Full API reference (see <code class="docutils literal notranslate"><span class="pre">docs/apidocs/index.rst</span></code>).</p></li>
+<li><p><strong>Examples</strong>: Practical code examples in the <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code> directory.</p></li>
 </ul>
 </section>
 <section id="project-goals">
 <h2>Project Goals<a class="headerlink" href="#project-goals" title="Link to this heading">¶</a></h2>
-<p>The primary goals of the Qiskit Qward project are:</p>
+<p>The primary goals of the Qiskit Qward project are to:</p>
 <ol class="arabic simple">
-<li><p>Provide tools to evaluate quantum algorithm performance</p></li>
-<li><p>Enable comparison between simulated and real hardware execution</p></li>
-<li><p>Support quantum algorithm validation through standardized metrics</p></li>
-<li><p>Create a framework for consistent quantum experiment design</p></li>
+<li><p>Provide a flexible toolkit for evaluating quantum circuit properties and execution performance.</p></li>
+<li><p>Enable comparison between simulated and real hardware execution through consistent metric application.</p></li>
+<li><p>Support quantum algorithm analysis through a standardized and extensible metrics framework.</p></li>
+<li><p>Offer robust circuit complexity and Quantum Volume estimation capabilities.</p></li>
 </ol>
 </section>
 <section id="background">
 <h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
-<p>Qward is a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs). As quantum computing continues to evolve, developers and researchers need tools to understand how their quantum algorithms perform on real hardware.</p>
+<p>Qward aims to simplify the process of analyzing quantum circuits and understanding their behavior. As quantum computing continues to evolve, developers and researchers need tools to assess how their quantum algorithms perform, both in simulation and on actual hardware.</p>
 </section>
 <section id="solution-explanation">
 <h2>Solution Explanation<a class="headerlink" href="#solution-explanation" title="Link to this heading">¶</a></h2>
 <p>Qward helps bridge the gap between theoretical quantum algorithms and their practical implementation by providing:</p>
 <ul class="simple">
-<li><p>Execution tools for quantum circuits on QPUs</p></li>
-<li><p>Comprehensive metrics collection systems</p></li>
-<li><p>Analysis frameworks for circuit performance</p></li>
-<li><p>Validation tools for algorithm correctness</p></li>
-<li><p>Insights about QPU behavior and limitations</p></li>
-<li><p>Comparison capabilities across different backends</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to orchestrate the application of various analytical <code class="docutils literal notranslate"><span class="pre">Metric</span></code> objects.</p></li>
+<li><p>Comprehensive metrics for circuit structure (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>), advanced complexity and QV estimation (<code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>), and execution outcome analysis (<code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>).</p></li>
+<li><p>An extensible system for users to define their own custom metrics.</p></li>
+<li><p>Utilities like <code class="docutils literal notranslate"><span class="pre">Result</span></code> for easier data handling and <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> for streamlined execution.</p></li>
 </ul>
-<p>This framework enables researchers and developers to identify performance bottlenecks, understand error sources, and optimize their quantum algorithms for specific hardware implementations.</p>
+<p>This framework enables researchers and developers to gain deeper insights into their circuits, identify performance characteristics, understand error sources when results are available, and potentially optimize their quantum algorithms.</p>
 </section>
 <section id="current-implementation-status">
 <h2>Current Implementation Status<a class="headerlink" href="#current-implementation-status" title="Link to this heading">¶</a></h2>
-<p>The project is under active development with the following status:</p>
+<p>The project is under active development. Key implemented features include:</p>
 <section id="implemented-features">
 <h3>Implemented Features<a class="headerlink" href="#implemented-features" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>Base validator system (extends Qiskit’s QuantumCircuit)</p></li>
-<li><p>Algorithm validators (Teleportation, FlipCoin)</p></li>
-<li><p>Circuit execution on simulators and IBM Quantum hardware</p></li>
-<li><p>Basic analysis framework with success rate validator</p></li>
-<li><p>Circuit metrics collection (depth, width, size, etc.)</p></li>
-<li><p>Execution metrics (basic success rates)</p></li>
+<li><p>Core <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> class for metric-based analysis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Result</span></code> class for handling execution data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> for enhanced job execution.</p></li>
+<li><p>Metrics System:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code> for circuit basics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> including detailed complexity categories and Quantum Volume estimation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code> metric for execution outcome analysis.</p></li>
+<li><p>Abstract <code class="docutils literal notranslate"><span class="pre">Metric</span></code> base class for custom metric development.</p></li>
+</ul>
+</li>
+<li><p>Integration with Qiskit’s <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>, <code class="docutils literal notranslate"><span class="pre">Job</span></code>, and <code class="docutils literal notranslate"><span class="pre">Result</span></code> objects.</p></li>
+<li><p>Example usage scripts in <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code>.</p></li>
 </ul>
 </section>
-<section id="in-progress-coming-soon">
-<h3>In Progress / Coming Soon<a class="headerlink" href="#in-progress-coming-soon" title="Link to this heading">¶</a></h3>
+<section id="in-progress-potential-future-enhancements">
+<h3>In Progress / Potential Future Enhancements<a class="headerlink" href="#in-progress-potential-future-enhancements" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>Experiments framework</p></li>
-<li><p>Parameter correlation analysis</p></li>
-<li><p>Fixed parameter testing</p></li>
-<li><p>Dynamic parameter testing</p></li>
-<li><p>Depth analysis</p></li>
-<li><p>Target performance testing</p></li>
-<li><p>Advanced analysis capabilities</p></li>
-<li><p>Visualization tools</p></li>
-<li><p>Complete data management</p></li>
-<li><p>Integration with Qiskit ecosystem</p></li>
+<li><p>Expansion of built-in metrics (e.g., specific noise analysis, advanced error mitigation metrics).</p></li>
+<li><p>More sophisticated data management and visualization tools integrated with the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> or as separate utilities.</p></li>
+<li><p>Tighter integration with different Qiskit providers or other quantum SDKs.</p></li>
+<li><p>Development of more complex example use-cases and tutorials.</p></li>
+<li><p>Formalized parameter sweeping and experiment management utilities.</p></li>
 </ul>
 </section>
 </section>
@@ -420,7 +433,7 @@
 <li><a class="reference internal" href="#solution-explanation">Solution Explanation</a></li>
 <li><a class="reference internal" href="#current-implementation-status">Current Implementation Status</a><ul>
 <li><a class="reference internal" href="#implemented-features">Implemented Features</a></li>
-<li><a class="reference internal" href="#in-progress-coming-soon">In Progress / Coming Soon</a></li>
+<li><a class="reference internal" href="#in-progress-potential-future-enhancements">In Progress / Potential Future Enhancements</a></li>
 </ul>
 </li>
 </ul>
