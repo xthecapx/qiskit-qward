@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorials" href="tutorials/index.html" /><link rel="prev" title="Qiskit Qward Project Overview" href="project_overview.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Qward API References" href="apidocs/index.html" /><link rel="prev" title="Qiskit Qward Project Overview" href="project_overview.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>QWARD Architecture - Qward 0.1.0</title>
@@ -203,16 +203,15 @@
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QWARD Architecture</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Tutorials</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="how_tos/index.html">User Guide</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of User Guide</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html">Quantum Circuits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/quantum_circuits.html#example-validators">Example Validators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/analysis.html">Analysis</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/runtime.html">Runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
 </ul>
@@ -262,10 +261,10 @@
 <div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>classDiagram
     class Scanner {
         +circuit: QuantumCircuit
-        +job: Union[AerJob, RuntimeJob]
+        +job: Union[AerJob, QiskitJob]
         +result: Result
         +metrics: List[Metric]
-        +__init__(circuit, job, result)
+        +__init__(circuit, job, result, metrics)
         +add_metric(metric)
         +calculate_metrics()
     }
@@ -284,27 +283,30 @@
     }
 
     class Result {
-        +job: Union[AerJob, RuntimeJob]
-        +quasi_dists: List[Dict]
-        +metadata: Dict
-        +__init__(job, quasi_dists, metadata)
+        +job: Union[AerJob, QiskitJob]
+        +counts: Dict[str, int]
+        +metadata: Dict[str, Any]
+        +__init__(job, counts, metadata)
         +save(path)
         +load(path)
+        +update_from_job()
     }
 
     class Metric {
         &lt;&lt;abstract&gt;&gt;
-        +_metric_type: MetricsType
-        +_id: MetricsId
-        +_circuit: QuantumCircuit
+        # Attributes are initialized by _get_metric_type() and _get_metric_id() in __init__
+        # _metric_type: MetricsType  (accessed via property)
+        # _id: MetricsId (accessed via property)
+        _circuit: QuantumCircuit # Direct attribute from __init__
         +__init__(circuit)
         +metric_type: MetricsType
         +id: MetricsId
         +name: str
         +circuit: QuantumCircuit
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
+        +_get_metric_type() # abstract
+        +_get_metric_id() # abstract
+        +is_ready() # abstract
+        +get_metrics() # abstract
     }
 
     class MetricsType {
@@ -318,7 +320,6 @@
         QISKIT
         COMPLEXITY
         SUCCESS_RATE
-        +get_default_metrics()
     }
 
     class QiskitMetrics {
@@ -329,7 +330,6 @@
         +get_basic_metrics()
         +get_instruction_metrics()
         +get_scheduling_metrics()
-        +get_all_metrics()
     }
 
     class ComplexityMetrics {
@@ -340,12 +340,19 @@
     }
 
     class SuccessRate {
-        +_job: Union[AerJob, RuntimeJob]
-        +_result: Result
-        +__init__(circuit, job, result)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
+        # Attributes from __init__
+        _job: Optional[Union[AerJob, QiskitJob]]
+        _jobs: List[Union[AerJob, QiskitJob]]
+        _result: Optional[Dict] # Note: This is Dict, not qward.Result
+        success_criteria: Callable
+        # Inherits _circuit from Metric
+
+        +__init__(circuit, job, jobs, result, success_criteria)
+        +_get_metric_type() # Implemented from Metric
+        # _get_metric_id() // Implemented from Metric
+        +is_ready() # Implemented from Metric
+        +get_metrics() # Implemented from Metric
+        +add_job(job) # New method
     }
 
     Scanner --&gt; Result
@@ -367,25 +374,26 @@
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
 │   ├── __init__.py
-│   ├── qiskit_runtime.py       # QiskitRuntimeService implementation
-│   └── device.py               # Device-specific implementations
+│   └── qiskit_runtime.py       # QiskitRuntimeService implementation
 ├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
 │   ├── base_metric.py          # Base Metric class
 │   ├── types.py                # MetricsType and MetricsId enums
+│   ├── defaults.py             # Default metric configurations
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
 │   └── success_rate.py         # SuccessRate implementation
 ├── utils/
 │   ├── __init__.py
+│   ├── flatten.py              # Utility for flattening nested lists
 │   └── helpers.py              # Utility functions
 └── examples/
     ├── __init__.py
-    ├── basic_usage.py          # Basic usage examples
-    ├── custom_metrics.py       # Examples of creating custom metrics
-    ├── runtime_execution.py    # Examples of using QiskitRuntimeService
-    └── result_analysis.py      # Examples of analyzing results
+    ├── utils.py                # Utilities for examples
+    ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
+    ├── aer.py                  # Example Aer simulator usage
+    └── example_metrics_constructor.py # Example for custom metrics constructor
 </pre></div>
 </div>
 <p>This structure provides a clean organization for the code, with:</p>
@@ -401,7 +409,7 @@
 <h2>Components<a class="headerlink" href="#components" title="Link to this heading">¶</a></h2>
 <section id="scanner">
 <h3>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h3>
-<p>The Scanner class is the main entry point for analyzing quantum circuits. It takes a circuit, job, and result as input and allows users to add and calculate metrics.</p>
+<p>The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them.</p>
 </section>
 <section id="qiskitruntimeservice">
 <h3>QiskitRuntimeService<a class="headerlink" href="#qiskitruntimeservice" title="Link to this heading">¶</a></h3>
@@ -409,23 +417,15 @@
 </section>
 <section id="result">
 <h3>Result<a class="headerlink" href="#result" title="Link to this heading">¶</a></h3>
-<p>The Result class represents the output of a quantum circuit execution. It includes the job information, quasi-probability distributions, and metadata. It provides methods for saving and loading results, as well as updating results from a job.</p>
+<p>The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.</p>
 </section>
 <section id="metric">
 <h3>Metric<a class="headerlink" href="#metric" title="Link to this heading">¶</a></h3>
-<p>The Metric class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. Concrete implementations include QiskitMetrics, ComplexityMetrics, and SuccessRate.</p>
-</section>
-<section id="metricstype">
-<h3>MetricsType<a class="headerlink" href="#metricstype" title="Link to this heading">¶</a></h3>
-<p>The MetricsType enum defines the different types of metrics available, such as PRE_RUNTIME and POST_RUNTIME.</p>
-</section>
-<section id="metricsid">
-<h3>MetricsId<a class="headerlink" href="#metricsid" title="Link to this heading">¶</a></h3>
-<p>The MetricsId enum defines the different IDs for metrics, such as QISKIT, COMPLEXITY, and SUCCESS_RATE. It also provides a method to get the default metric classes.</p>
+<p>The Metric class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. Concrete implementations include QiskitMetrics, ComplexityMetrics, and SuccessRate. Default metric classes can be obtained using the <code class="docutils literal notranslate"><span class="pre">get_default_metrics()</span></code> function from the <code class="docutils literal notranslate"><span class="pre">qward.metrics.defaults</span></code> module.</p>
 </section>
 <section id="successrate">
 <h3>SuccessRate<a class="headerlink" href="#successrate" title="Link to this heading">¶</a></h3>
-<p>The SuccessRate class calculates success rate metrics for quantum circuits, including success rate, fidelity, and error rate. These metrics are calculated based on the quasi-probability distributions from the job result.</p>
+<p>The SuccessRate class calculates success rate metrics for quantum circuits, such as success rate, fidelity, and error rate. It is initialized with a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>, and can optionally take a single <code class="docutils literal notranslate"><span class="pre">job</span></code> or a list of <code class="docutils literal notranslate"><span class="pre">jobs</span></code>, a <code class="docutils literal notranslate"><span class="pre">result</span></code> dictionary (containing counts), and a custom <code class="docutils literal notranslate"><span class="pre">success_criteria</span></code> function. Metrics are calculated based on the execution counts from the provided job(s) or result. Additional jobs can be added using the <code class="docutils literal notranslate"><span class="pre">add_job</span></code> method for aggregate analysis.</p>
 </section>
 </section>
 <section id="usage-examples">
@@ -498,9 +498,10 @@
 <section id="using-custom-metrics">
 <h3>Using Custom Metrics<a class="headerlink" href="#using-custom-metrics" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span><span class="p">,</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
@@ -511,18 +512,30 @@
 <span class="sd">            MetricsType: The type of this metric</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ID of this metric.</span>
+<span class="sd">        For custom metrics, you might extend MetricsId or use a general ID.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            MetricsId: The ID of this metric (e.g., reusing an existing one for simplicity)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">QISKIT</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="c1"># Custom metric calculation</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="mi">42</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;my_metric&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
 
-<span class="c1"># Use the custom metric</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">MyCustomMetric</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+<span class="c1"># Example usage (assuming &#39;circuit&#39; is a QuantumCircuit instance)</span>
+<span class="c1"># circuit = QuantumCircuit(1)</span>
+<span class="c1"># scanner = Scanner(circuit=circuit)</span>
+<span class="c1"># scanner.add_metric(MyCustomMetric(circuit))</span>
+<span class="c1"># results = scanner.calculate_metrics()</span>
+<span class="c1"># print(results)</span>
 </pre></div>
 </div>
 </section>
@@ -576,12 +589,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorials/index.html">
+          <a class="next-page" href="apidocs/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Tutorials</div>
+                <div class="title">Qward API References</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -634,8 +647,6 @@
 <li><a class="reference internal" href="#qiskitruntimeservice">QiskitRuntimeService</a></li>
 <li><a class="reference internal" href="#result">Result</a></li>
 <li><a class="reference internal" href="#metric">Metric</a></li>
-<li><a class="reference internal" href="#metricstype">MetricsType</a></li>
-<li><a class="reference internal" href="#metricsid">MetricsId</a></li>
 <li><a class="reference internal" href="#successrate">SuccessRate</a></li>
 </ul>
 </li>

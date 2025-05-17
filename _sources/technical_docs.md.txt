@@ -1,298 +1,197 @@
 # Technical Documentation
 
-This document provides detailed technical information about the Qward framework's architecture, components, and usage patterns.
+This document provides detailed technical information about the Qward library's architecture, components, and advanced usage patterns. For a structural overview and class diagrams, please refer to `docs/architecture.md`.
 
-## Framework Architecture
+## Core Architecture
 
-Qward is organized into several key components:
+Qward is designed around a `Scanner` that applies various `Metric` objects to Qiskit `QuantumCircuit`s and their execution results.
 
-### 1. Validators
+### 1. `Scanner` (`qward.Scanner`)
 
-The validator system is the core of Qward, built around extending Qiskit's QuantumCircuit:
+The `Scanner` is the central class for orchestrating analysis. 
+-   **Initialization**: `Scanner(circuit: Optional[QuantumCircuit], job: Optional[Union[AerJob, QiskitJob]], result: Optional[qward.Result], metrics: Optional[list])`
+    -   It takes an optional Qiskit `QuantumCircuit`.
+    -   Optionally, a Qiskit `Job` (from Aer or a provider) and/or a `qward.Result` object (which wraps execution counts and metadata).
+    -   Optionally, a list of metric *classes* or *instances* can be provided at initialization.
+-   **Adding Metrics**: Metrics are added using `scanner.add_metric(metric_instance: Metric)`.
+-   **Calculating Metrics**: `scanner.calculate_metrics() -> Dict[str, pd.DataFrame]`
+    -   This method iterates through all added metrics, calls their `get_metrics()` method, and compiles the results into a dictionary. The keys are typically the metric class names (or a modified name for `SuccessRate` with multiple jobs), and values are pandas DataFrames containing the metric data.
+    -   For `SuccessRate` with multiple jobs, two DataFrames are produced: `SuccessRate.individual_jobs` and `SuccessRate.aggregate`.
 
-- **ScanningQuantumCircuit**: The foundation class that all validators inherit from. It provides core functionality for circuit creation, validation, execution, and analysis.
-  
-- **Example Validators**: Specific implementations for different quantum algorithms:
-  - **FlipCoinValidator**: Implements a simple quantum coin flip using a Hadamard gate
-  - **QuantumEnigmaValidator**: Implements the quantum solution to the "two doors enigma" problem
+### 2. `Metric` System (`qward.metrics`)
 
-Validators handle:
-- Circuit construction
-- Simulation configuration
-- IBM Quantum execution
-- Results collection
-- Analysis integration
-- Complexity metrics calculation
-- Quantum volume estimation
+Metrics are classes responsible for specific calculations or data extraction.
 
-### 2. Analysis Framework
+-   **Base Class**: `qward.metrics.base_metric.Metric`
+    -   All metrics inherit from this abstract base class.
+    -   Requires implementation of:
+        -   `_get_metric_type() -> MetricsType`: Returns `MetricsType.PRE_RUNTIME` (if only circuit is needed) or `MetricsType.POST_RUNTIME` (if job/result data is needed).
+        -   `_get_metric_id() -> MetricsId`: Returns a unique `MetricsId` enum value.
+        -   `is_ready() -> bool`: Checks if the metric has sufficient data to be calculated.
+        -   `get_metrics() -> Dict[str, Any]`: Performs the calculation and returns a dictionary of results.
+    -   The constructor `Metric(circuit: QuantumCircuit)` stores the circuit and initializes `_metric_type` and `_id` by calling the abstract getter methods.
 
-The analysis framework processes execution results:
+-   **Built-in Metrics**:
+    -   **`QiskitMetrics` (`qward.metrics.qiskit_metrics.QiskitMetrics`)**
+        -   Type: `PRE_RUNTIME`
+        -   ID: `MetricsId.QISKIT`
+        -   Extracts data directly from the `QuantumCircuit` object (e.g., depth, width, operations count, instruction details, basic scheduling info if available).
+        -   `get_metrics()` returns a flattened dictionary of these properties.
 
-- **Analysis**: Base class for all analyzers with core functionality for processing results
-- **SuccessRate**: Calculates and analyzes success rates for circuit executions based on custom criteria
-- **Complexity Metrics**: Provides comprehensive circuit complexity analysis
-- **Quantum Volume**: Estimates quantum volume metrics for circuits
+    -   **`ComplexityMetrics` (`qward.metrics.complexity_metrics.ComplexityMetrics`)**
+        -   Type: `PRE_RUNTIME`
+        -   ID: `MetricsId.COMPLEXITY`
+        -   Calculates a comprehensive set of complexity metrics based on D. Shami's "Character Complexity" paper, including gate-based, entanglement, standardized, advanced, and derived metrics.
+        -   Also includes Quantum Volume estimation (`standard_quantum_volume`, `enhanced_quantum_volume`, and contributing factors).
+        -   `get_metrics()` returns a dictionary where top-level keys correspond to these categories (e.g., "gate_based_metrics", "quantum_volume"), and values are sub-dictionaries of specific metrics.
 
-### 3. Implementation Details
+    -   **`SuccessRate` (`qward.metrics.success_rate.SuccessRate`)**
+        -   Type: `POST_RUNTIME`
+        -   ID: `MetricsId.SUCCESS_RATE`
+        -   Constructor: `SuccessRate(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
+            -   Requires a `QuantumCircuit`.
+            -   Needs execution data, provided via a single `job`, a list of `jobs`, or a `result` dictionary (though `job`/`jobs` are preferred for direct access to Qiskit's result objects).
+            -   `success_criteria` is a callable `(bitstring: str) -> bool` that defines a successful outcome. Defaults to `bitstring == "0"`.
+        -   `add_job(job_or_jobs)`: Allows adding more jobs after instantiation.
+        -   `get_metrics()`: Calculates success rate, error rate, fidelity, total shots, successful shots. If multiple jobs are provided, it returns individual job stats and aggregate stats.
 
-#### ScanningQuantumCircuit
+-   **Metric Types (`qward.metrics.types`)**
+    -   `MetricsId(Enum)`: Defines unique IDs for metric types (e.g., `QISKIT`, `COMPLEXITY`, `SUCCESS_RATE`).
+    -   `MetricsType(Enum)`: Defines when a metric is calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
 
-The `ScanningQuantumCircuit` extends Qiskit's `QuantumCircuit` and adds:
+-   **Default Metrics (`qward.metrics.defaults`)**
+    -   `get_default_metrics() -> List[Type[Metric]]`: Returns a list of default metric classes (`[QiskitMetrics, ComplexityMetrics, SuccessRate]`).
 
+### 3. `Result` (`qward.Result`)
+
+A utility class for encapsulating job execution data.
+-   Constructor: `Result(job: Optional[Job]=None, counts: Optional[Dict]=None, metadata: Optional[Dict]=None)`.
+-   Primarily stores Qiskit `Job` object, `counts` (measurement outcomes), and `metadata`.
+-   Provides `save()` and `load()` methods for serialization to/from JSON.
+-   `update_from_job()`: If a job is stored, this method (re-)populates counts and basic metadata from `job.result()`.
+
+### 4. `QiskitRuntimeService` (`qward.runtime.qiskit_runtime.QiskitRuntimeService`)
+
+Extends Qiskit's base `QiskitRuntimeService`.
+-   Constructor: `QiskitRuntimeService(circuit: QuantumCircuit, backend: Union[Backend, str], **kwargs)`
+    -   Takes a `QuantumCircuit` and a Qiskit `Backend` object or backend name string.
+    -   Passes `**kwargs` to the base `QiskitRuntimeService` constructor (e.g., for channel, token).
+-   Key Methods:
+    -   `run()`: Executes the circuit using a `SamplerV2` on the specified backend.
+    -   `run_and_watch()`: Runs the circuit and polls the job status until completion or failure, then returns a `qward.Result` object.
+    -   `get_results()`: Retrieves results from the completed job and returns a `qward.Result`.
+
+## Circuit Complexity Metrics (via `ComplexityMetrics`)
+
+The `ComplexityMetrics` class, when used with the `Scanner`, provides a detailed breakdown of circuit complexity. The output DataFrame from `scanner.calculate_metrics()["ComplexityMetrics"]` will have columns corresponding to flattened metric names (e.g., `gate_based_metrics.gate_count`, `entanglement_metrics.entangling_gate_density`).
+
+Refer to the `qward/metrics/complexity_metrics.py` source or its docstrings for a full list of all calculated metrics. The categories include:
+-   Gate-based Metrics
+-   Entanglement Metrics
+-   Standardized Metrics
+-   Advanced Metrics
+-   Derived Metrics
+
+Example access:
 ```python
-def __init__(
-    self, num_qubits: int = 1, num_clbits: int = 1, use_barriers: bool = True, name: str = None
-):
-    # Create quantum and classical registers
-    qr = QuantumRegister(num_qubits, "q")
-    cr = ClassicalRegister(num_clbits, "c")
-    
-    # Initialize the quantum circuit
-    super().__init__(qr, cr, name=name)
-    
-    # Store additional attributes
-    self.use_barriers = use_barriers
-    self.analyzers: List[Analysis] = []
+# results = scanner.calculate_metrics()
+# complexity_df = results.get("ComplexityMetrics")
+# if complexity_df is not None:
+#     gate_count = complexity_df['gate_based_metrics.gate_count'].iloc[0]
+#     t_count = complexity_df['gate_based_metrics.t_count'].iloc[0]
+#     # ... and so on
 ```
 
-Key methods include:
-- `add_analyzer(analyzer)`: Adds an analysis module to the validator
-- `run_simulation(show_histogram, num_jobs, shots_per_job)`: Runs local simulations
-- `run_on_ibm()`: Executes the circuit on IBM Quantum hardware
-- `plot_analysis()`: Visualizes analysis results
-- `calculate_complexity_metrics()`: Calculates detailed circuit complexity metrics
-- `estimate_quantum_volume()`: Estimates the quantum volume of the circuit
+## Quantum Volume Estimation (via `ComplexityMetrics`)
 
-#### Success Rate Analyzer
+The `ComplexityMetrics` class also performs Quantum Volume (QV) estimation based on the circuit's structure.
 
-The `SuccessRate` analyzer evaluates circuit execution outcomes:
+-   **Standard Quantum Volume**: `quantum_volume.standard_quantum_volume` (2^effective_depth)
+-   **Enhanced Quantum Volume**: `quantum_volume.enhanced_quantum_volume` (adjusts standard QV by factors like square ratio, density, multi-qubit ratio, connectivity).
+-   **Effective Depth**: `quantum_volume.effective_depth`
+-   **Contributing Factors**: `quantum_volume.factors.square_ratio`, etc.
 
+Example access from `ComplexityMetrics` DataFrame:
 ```python
-def __init__(self, results_df: pd.DataFrame = None):
-    super().__init__(results_df)
-    self.success_criteria = self._default_success_criteria()
-
-def set_success_criteria(self, criteria: Callable[[str], bool]):
-    self.success_criteria = criteria
+# enhanced_qv = complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]
 ```
 
-Key features:
-- Custom success criteria definition
-- Statistical analysis (mean, std dev, min/max)
-- Visualization of success rate distributions
+## Technical Guidelines for Custom Metrics
 
-## Circuit Complexity Metrics
-
-The `ScanningQuantumCircuit` now includes comprehensive circuit complexity analysis capabilities through the `calculate_complexity_metrics()` method. This feature implements metrics described in "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by Daksh Shami.
-
-### Gate-based Metrics
-
-- **Gate Count**: Total number of gates in the circuit
-- **Circuit Depth**: Longest path through the circuit
-- **T-count**: Number of T gates (costly in fault-tolerant implementations)
-- **CNOT Count**: Number of CNOT gates (important for entanglement)
-- **Two-qubit Gate Count**: Total count of two-qubit operations
-- **Multi-qubit Gate Ratio**: Proportion of multi-qubit gates to total gates
-
-### Entanglement Metrics
-
-- **Entangling Gate Density**: Ratio of entangling gates to total gates
-- **Entangling Width**: Estimate of maximum number of qubits that could be entangled
-
-### Standardized Metrics
-
-- **Circuit Volume**: Product of depth and width (depth × width)
-- **Gate Density**: Gates per qubit-time-step
-- **Clifford Ratio**: Proportion of Clifford gates
-- **Non-Clifford Ratio**: Proportion of non-Clifford gates
-
-### Advanced Metrics
-
-- **Parallelism Factor**: Average gates executable in parallel
-- **Parallelism Efficiency**: Actual parallelism relative to maximum possible
-- **Circuit Efficiency**: How efficiently the circuit uses available qubits
-- **Quantum Resource Utilization**: Efficiency of both space (qubits) and time (depth)
-
-### Derived Metrics
-
-- **Square Ratio**: How close the circuit is to a square circuit (depth ≈ width)
-- **Weighted Complexity**: Gates weighted by their implementation complexity
-- **Normalized Weighted Complexity**: Weighted complexity per qubit
-
-Example usage:
-```python
-from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
-
-# Create scanner
-scanner = ScanningQuantumFlipCoin()
-
-# Calculate complexity metrics
-metrics = scanner.calculate_complexity_metrics()
-
-# Access specific metrics
-gate_count = metrics["gate_based_metrics"]["gate_count"]
-entangling_density = metrics["entanglement_metrics"]["entangling_gate_density"]
-circuit_volume = metrics["standardized_metrics"]["circuit_volume"]
-```
-
-## Quantum Volume Estimation
-
-The `estimate_quantum_volume()` method provides an analysis of a circuit's quantum volume, an important metric for understanding the computational capacity of a quantum circuit.
-
-### Standard Quantum Volume
-
-The standard quantum volume is calculated as 2^n where n is the effective depth (minimum of depth and number of qubits).
-
-### Enhanced Quantum Volume
-
-Qward extends the standard quantum volume with an enhanced estimate that factors in:
-
-1. **Square Ratio**: How close the circuit is to a square circuit (depth ≈ width)
-2. **Circuit Density**: How many operations per qubit-timestep
-3. **Multi-qubit Operation Ratio**: Proportion of entangling operations
-4. **Connectivity Factor**: Presence of entangling operations
-
-The method returns a comprehensive dictionary with:
-- Standard quantum volume
-- Enhanced quantum volume
-- Effective depth
-- Contributing factors
-- Circuit metrics
-
-Example usage:
-```python
-from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
-
-# Create scanner
-scanner = ScanningQuantumFlipCoin()
-
-# Estimate quantum volume
-qv = scanner.estimate_quantum_volume()
-
-# Access quantum volume metrics
-standard_qv = qv["standard_quantum_volume"]
-enhanced_qv = qv["enhanced_quantum_volume"]
-square_ratio = qv["factors"]["square_ratio"]
-```
-
-## Example Use Cases
-
-### 1. Quantum Coin Flip
-
-The `FlipCoinValidator` implements a simple quantum coin toss:
-
-```python
-def _build_circuit(self):
-    # Apply Hadamard gate to create superposition
-    self.h(0)
-
-    if self.use_barriers:
-        self.barrier()
-
-    # Measure the qubit
-    self.measure(0, 0)
-```
-
-Success criteria:
-```python
-# Define success criteria: tails (1) is considered success
-def success_criteria(state):
-    return state == "1"
-```
-
-### 2. Two Doors Enigma
-
-The `QuantumEnigmaValidator` implements a more complex problem involving:
-- Multiple qubits (3 qubits)
-- Superposition with Hadamard gates
-- CNOT entanglement
-- Complex measurement interpretation
-
-Success criteria focus on detecting when both guardians point to the same door.
-
-## Execution Pipeline
-
-1. **Circuit Creation**: Validator constructs the quantum circuit
-2. **Simulation Execution**: Circuit is submitted to a simulator or IBM Quantum hardware
-3. **Results Collection**: Outcomes are gathered with execution metrics
-4. **Analysis Processing**: Results are passed to analyzers
-5. **Complexity Analysis**: Circuit structure is analyzed for complexity metrics
-6. **Quantum Volume Estimation**: Circuit's quantum volume is calculated
-7. **Visualization**: Analysis results are plotted and interpreted
-
-## Technical Guidelines
-
-When extending Qward with custom validators:
-
-1. Inherit from ScanningQuantumCircuit
-2. Initialize with appropriate number of qubits and classical bits
-3. Define custom success criteria for your algorithm
-4. Add appropriate analyzers
-5. Implement your circuit-building logic
-6. Use the built-in methods for simulation, execution, and analysis
-7. Leverage complexity metrics and quantum volume estimation for deeper insights
+When creating a new metric by inheriting from `qward.metrics.base_metric.Metric`:
+1.  **Implement Abstract Methods**: `_get_metric_type`, `_get_metric_id`, `is_ready`, `get_metrics`.
+2.  **Metric ID**: If your metric is conceptually new, consider if `MetricsId` enum in `qward.metrics.types` needs to be extended. For purely external or highly specific custom metrics, you might need a strategy if modifying the core enum is not desired (though the base class expects a `MetricsId` enum member).
+3.  **Data Requirements**: Clearly define if your metric is `PRE_RUNTIME` (only needs circuit) or `POST_RUNTIME` (needs job/results). If `POST_RUNTIME`, your `__init__` should accept job(s) or result data, and `is_ready` should check for their presence.
+4.  **Return Format**: `get_metrics()` must return a dictionary where keys are string metric names and values are the calculated metric values.
 
 ## API Flow and Usage Patterns
 
-### Pattern 1: Using Existing Validators
-
+### Pattern 1: Basic Circuit Analysis (No Execution Results)
 ```python
-# Import a validator
-from qward.examples.flip_coin.scanner import ScanningQuantumFlipCoin
+from qiskit import QuantumCircuit
+from qward import Scanner
+from qward.metrics import QiskitMetrics, ComplexityMetrics
 
-# Create validator instance
-scanner = ScanningQuantumFlipCoin(use_barriers=True)
+qc = QuantumCircuit(2); qc.h(0); qc.cx(0,1)
 
-# Run simulation
-results = scanner.run_simulation(show_histogram=True, num_jobs=100, shots_per_job=1024)
+scanner = Scanner(circuit=qc)
+scanner.add_metric(QiskitMetrics(qc))
+scanner.add_metric(ComplexityMetrics(qc))
 
-# Access analysis results
-analysis = results["analysis"]["analyzer_0"]
-print(f"Mean success rate: {analysis['mean_success_rate']:.2%}")
-
-# Access complexity metrics
-complexity = results["complexity_metrics"]
-print(f"Circuit depth: {complexity['gate_based_metrics']['circuit_depth']}")
-
-# Estimate quantum volume
-qv = scanner.estimate_quantum_volume()
-print(f"Quantum Volume: {qv['standard_quantum_volume']}")
+results = scanner.calculate_metrics()
+# print(results["QiskitMetrics"])
+# print(results["ComplexityMetrics"])
 ```
 
-### Pattern 2: Creating Custom Validators
-
+### Pattern 2: Analysis with Execution Results
 ```python
-from qward.scanning_quantum_circuit import ScanningQuantumCircuit
-from qward.analysis.success_rate import SuccessRate
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qward import Scanner, Result
+from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 
-class MyCustomValidator(ScanningQuantumCircuit):
-    def __init__(self, use_barriers=True):
-        super().__init__(num_qubits=2, num_clbits=2, use_barriers=use_barriers, name="my_circuit")
-        
-        # Define success criteria
-        def success_criteria(state):
-            return state == "00"
-        
-        # Add success rate analyzer
-        success_analyzer = SuccessRate()
-        success_analyzer.set_success_criteria(success_criteria)
-        self.add_analyzer(success_analyzer)
-        
-        # Build the circuit
-        self._build_circuit()
-    
-    def _build_circuit(self):
-        # Implement your quantum circuit here
-        self.h(0)
-        self.cx(0, 1)
-        
-        if self.use_barriers:
-            self.barrier()
-            
-        self.measure([0, 1], [0, 1])
+qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
+
+sim = AerSimulator()
+job = sim.run(qc).result()
+counts = job.get_counts()
+
+# For SuccessRate, we need the Qiskit Job object (not just its result)
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to SuccessRate
+
+qward_res = Result(job=qiskit_job_obj, counts=counts)
+
+scanner = Scanner(circuit=qc, job=qiskit_job_obj, result=qward_res)
+scanner.add_metric(QiskitMetrics(qc))
+scanner.add_metric(ComplexityMetrics(qc))
+
+def criteria(s): return s == '00' or s == '11' # GHZ state
+scanner.add_metric(SuccessRate(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+
+results = scanner.calculate_metrics()
+# print(results["SuccessRate.aggregate"])
+```
+
+### Pattern 3: Using `QiskitRuntimeService`
+```python
+# from qiskit import QuantumCircuit
+# from qward.runtime import QiskitRuntimeService as QwardRTService # alias for clarity
+# from qward import Scanner
+# from qward.metrics import SuccessRate
+
+# qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
+
+# Note: Ensure IBMQ credentials are set up if not using a simulator backend
+# qward_runtime = QwardRTService(circuit=qc, backend_name='ibmq_qasm_simulator') 
+# result_from_runtime = qward_runtime.run_and_watch() # This is a qward.Result object
+
+# scanner = Scanner(circuit=qc, job=result_from_runtime.job, result=result_from_runtime)
+# def criteria(s): return s == '00' or s == '11'
+# scanner.add_metric(SuccessRate(circuit=qc, job=result_from_runtime.job, success_criteria=criteria))
+# metrics = scanner.calculate_metrics()
+# print(metrics["SuccessRate.aggregate"])
 ```
 
 ## Conclusion
 
-Qward provides a comprehensive framework for analyzing and validating quantum circuits. By leveraging the validator system, analysis framework, and advanced metrics, you can gain deep insights into your quantum algorithms' performance and resource requirements.
+Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the `Metric` system, and associated helper classes like `Result` and `QiskitRuntimeService`, developers can gain significant insights into their quantum circuits and execution outcomes.
