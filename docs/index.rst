@@ -8,9 +8,9 @@ Qward Documentation
   Home <self>
 
 
-Qward is a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs). It helps developers and researchers understand how their quantum algorithms perform on real hardware, providing insights into QPU behavior and code quality metrics.
+Qward is a Python library designed to assist in analyzing quantum circuits and their execution quality on quantum processing units (QPUs) or simulators. It helps developers and researchers understand how their quantum algorithms perform by providing tools to collect and interpret various metrics related to circuit structure and execution outcomes.
 
-Qward provides tools to execute quantum circuits on QPUs, collect comprehensive execution metrics, analyze circuit performance, validate algorithm correctness, generate insights about QPU behavior, and compare results across different backends.
+Qward enables users to apply a range of metrics to quantum circuits, gather execution data, and analyze performance characteristics. This aids in understanding circuit behavior, complexity, and potential areas for optimization, whether working with simulated or real hardware backends.
 
 .. toctree::
   :maxdepth: 1
