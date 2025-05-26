@@ -6,7 +6,7 @@ This document outlines the architecture of the QWARD library and provides usage 
 
 QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components:
 
-```mermaid
+```{mermaid}
 classDiagram
     %% Strategy Pattern Implementation for Quantum Circuit Metrics Analysis
     
