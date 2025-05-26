@@ -38,14 +38,14 @@ pip install -e .
 
 ## Usage
 
-Qward revolves around the `Scanner` class, which uses various `Metric` objects to analyze Qiskit `QuantumCircuit` objects and their execution results.
+Qward revolves around the `Scanner` class, which uses various metric strategy objects to analyze Qiskit `QuantumCircuit` objects and their execution results.
 
 ### Core Workflow
 
 1.  **Create/Load a `QuantumCircuit`**: Use Qiskit to define your circuit.
 2.  **(Optional) Execute the Circuit**: Run your circuit on a simulator or quantum hardware to get a Qiskit `Job` and its `Result` (containing counts).
 3.  **Instantiate `qward.Scanner`**: Provide the circuit, and optionally the Qiskit `Job` and `qward.Result` (which wraps Qiskit's job result/counts).
-4.  **Add `Metric` Objects**: Instantiate and add desired metric classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `SuccessRate`) to the scanner.
+4.  **Add Strategy Objects**: Instantiate and add desired metric strategy classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `SuccessRate`) to the scanner.
 5.  **Calculate Metrics**: Call `scanner.calculate_metrics()`.
 6.  **Interpret Results**: The result is a dictionary of pandas DataFrames, one for each metric type.
 
@@ -55,7 +55,7 @@ Qward revolves around the `Scanner` class, which uses various `Metric` objects t
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner, Result # QWARD classes
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate # QWARD metrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate # QWARD strategies
 from qward.examples.utils import get_display # For pretty printing in notebooks
 
 display = get_display()
@@ -85,9 +85,9 @@ qward_result = Result(job=qiskit_job_instance, counts=counts, metadata=job.to_di
 
 scanner = Scanner(circuit=qc, job=qiskit_job_instance, result=qward_result)
 
-# 4. Add Metrics
-scanner.add_metric(QiskitMetrics(circuit=qc))
-scanner.add_metric(ComplexityMetrics(circuit=qc))
+# 4. Add Strategies
+scanner.add_strategy(QiskitMetrics(circuit=qc))
+scanner.add_strategy(ComplexityMetrics(circuit=qc))
 
 # For SuccessRate, define what a "successful" measurement is
 def success_if_00(bitstring):
@@ -95,7 +95,7 @@ def success_if_00(bitstring):
 
 # SuccessRate needs a job to get counts from, or you can pass counts directly if job not available at init
 # Here, we pass the qiskit_job_instance that the qward_result is also based on.
-scanner.add_metric(SuccessRate(circuit=qc, job=qiskit_job_instance, success_criteria=success_if_00))
+scanner.add_strategy(SuccessRate(circuit=qc, job=qiskit_job_instance, success_criteria=success_if_00))
 
 # 5. Calculate Metrics
 all_metric_data = scanner.calculate_metrics()
@@ -122,16 +122,33 @@ if "SuccessRate.aggregate" in all_metric_data: # For single job, aggregate is si
     print(f"  Total Shots: {success_df['total_trials'].iloc[0]}")
 ```
 
-### Creating Custom Metrics
+### Alternative: Using Constructor with Strategies
 
-To create your own metric, inherit from `qward.metrics.base_metric.Metric` and implement the required abstract methods (`_get_metric_type`, `_get_metric_id`, `is_ready`, `get_metrics`).
+You can also provide strategies directly in the Scanner constructor:
 
 ```python
-from qward.metrics.base_metric import Metric
+# Using strategy classes (will be instantiated automatically)
+scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics])
+
+# Using strategy instances
+qm = QiskitMetrics(qc)
+cm = ComplexityMetrics(qc)
+scanner = Scanner(circuit=qc, strategies=[qm, cm])
+
+# Calculate metrics
+all_metric_data = scanner.calculate_metrics()
+```
+
+### Creating Custom Strategies
+
+To create your own metric strategy, inherit from `qward.metrics.base_metric.MetricCalculator` and implement the required abstract methods (`_get_metric_type`, `_get_metric_id`, `is_ready`, `get_metrics`).
+
+```python
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 from qiskit import QuantumCircuit
 
-class MySimpleCustomMetric(Metric):
+class MySimpleCustomStrategy(MetricCalculator):
     def __init__(self, circuit: QuantumCircuit):
         super().__init__(circuit)
 
@@ -149,15 +166,15 @@ class MySimpleCustomMetric(Metric):
         return {"custom_depth_plus_width": self.circuit.depth() + self.circuit.width()}
 
 # Usage:
-# custom_metric = MySimpleCustomMetric(qc)
-# scanner.add_metric(custom_metric)
+# custom_strategy = MySimpleCustomStrategy(qc)
+# scanner.add_strategy(custom_strategy)
 # results = scanner.calculate_metrics() 
-# print(results['MySimpleCustomMetric'])
+# print(results['MySimpleCustomStrategy'])
 ```
 
 ## Key Metrics Provided
 
-Qward, through its built-in metric classes, offers insights into:
+Qward, through its built-in metric strategy classes, offers insights into:
 
 ### 1. Circuit Structure (`QiskitMetrics`)
    - Basic properties like depth, width, number of qubits/clbits, operations count.
@@ -190,7 +207,7 @@ To run on real quantum hardware via IBM Quantum, you need an IBM Quantum account
 2.  Get your API token from your account settings.
 3.  You can set environment variables `IBM_QUANTUM_TOKEN` and `IBM_QUANTUM_CHANNEL` (e.g. `ibm_quantum`), or manage credentials as per Qiskit's documentation for `QiskitRuntimeService`.
 
-Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward's Scanner and metrics.
+Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward's Scanner and metric strategies.
 
 ## Next Steps
 

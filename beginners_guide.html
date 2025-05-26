@@ -260,7 +260,7 @@
 <ol class="arabic simple">
 <li><p>Define and execute quantum circuits using Qiskit.</p></li>
 <li><p>Collect execution data like counts from simulators or hardware jobs.</p></li>
-<li><p>Analyze circuits and results using a variety of built-in <strong>Metrics</strong>.</p></li>
+<li><p>Analyze circuits and results using a variety of built-in <strong>metric strategies</strong>.</p></li>
 <li><p>Assess circuit properties, complexity, and estimate potential performance.</p></li>
 </ol>
 </section>
@@ -268,17 +268,17 @@
 <h2>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h2>
 <section id="scanner">
 <h3>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code> class is the central component for orchestrating circuit analysis. You provide it with a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and optionally an execution <code class="docutils literal notranslate"><span class="pre">Job</span></code> or <code class="docutils literal notranslate"><span class="pre">Result</span></code>. You then add various <strong>Metric</strong> objects to the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to perform different types of analysis.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code> class is the central component for orchestrating circuit analysis. You provide it with a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and optionally an execution <code class="docutils literal notranslate"><span class="pre">Job</span></code> or <code class="docutils literal notranslate"><span class="pre">Result</span></code>. You then add various <strong>metric strategy</strong> objects to the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to perform different types of analysis.</p>
 </section>
-<section id="metrics">
-<h3>Metrics<a class="headerlink" href="#metrics" title="Link to this heading">¶</a></h3>
-<p>Metrics are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metrics:</p>
+<section id="metric-strategies">
+<h3>Metric Strategies<a class="headerlink" href="#metric-strategies" title="Link to this heading">¶</a></h3>
+<p>Metric strategies are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metric strategies:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>: Extracts basic properties directly available from a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> object (e.g., depth, width, gate counts).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>: Calculates a wide range of complexity indicators, including those from “Character Complexity: A Novel Measure for Quantum Circuit Analysis” by D. Shami, and also provides Quantum Volume estimation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion.</p></li>
 </ul>
-<p>You can also create your own custom metrics by subclassing <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.Metric</span></code>.</p>
+<p>You can also create your own custom metric strategies by subclassing <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.MetricCalculator</span></code>.</p>
 </section>
 </section>
 <section id="getting-started">
@@ -325,7 +325,7 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span> <span class="c1"># For running the circuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span>   <span class="c1"># QWARD&#39;s Scanner and Result</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span> <span class="c1"># QWARD Metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span> <span class="c1"># QWARD strategies</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.examples.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_example_circuit</span><span class="p">,</span> <span class="n">get_display</span> <span class="c1"># Example helper</span>
 
 <span class="n">display</span> <span class="o">=</span> <span class="n">get_display</span><span class="p">()</span>
@@ -338,7 +338,7 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Quantum Circuit (2-qubit GHZ from examples):&quot;</span><span class="p">)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;mpl&#39;</span><span class="p">))</span>
 
-<span class="c1"># 2. Simulate the circuit to get results (optional for some metrics)</span>
+<span class="c1"># 2. Simulate the circuit to get results (optional for some strategies)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running quantum simulation...&quot;</span><span class="p">)</span>
 <span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
@@ -352,10 +352,10 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="c1"># We can initialize it with the circuit and the QWARD Result object</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">qward_result_obj</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
 
-<span class="c1"># 4. Add Metrics</span>
+<span class="c1"># 4. Add Strategies</span>
 <span class="c1"># QiskitMetrics and ComplexityMetrics only need the circuit</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
 
 <span class="c1"># SuccessRate needs the circuit and the job (or jobs) to get counts</span>
 <span class="c1"># Let&#39;s define success for the first qubit being &#39;0&#39; (e.g., &quot;tails&quot; if &#39;00&#39; or &#39;01&#39;)</span>
@@ -367,10 +367,10 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
     <span class="c1"># We are interested in the first qubit (q0) state.</span>
     <span class="k">return</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span> <span class="c1"># True if q0 is &#39;0&#39;</span>
 
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">coin_flip_success_q0_is_0</span><span class="p">))</span>
-<span class="c1"># For multiple jobs, you can pass a list of jobs or use success_rate_metric.add_job()</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">coin_flip_success_q0_is_0</span><span class="p">))</span>
+<span class="c1"># For multiple jobs, you can pass a list of jobs or use success_rate_strategy.add_job()</span>
 
-<span class="c1"># 5. Calculate all added metrics</span>
+<span class="c1"># 5. Calculate all added strategies</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Calculating metrics...&quot;</span><span class="p">)</span>
 <span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
@@ -397,12 +397,28 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total shots: </span><span class="si">{</span><span class="n">success_df</span><span class="p">[</span><span class="s1">&#39;total_trials&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="alternative-using-constructor-with-strategies">
+<h3>Alternative: Using Constructor with Strategies<a class="headerlink" href="#alternative-using-constructor-with-strategies" title="Link to this heading">¶</a></h3>
+<p>You can also provide strategies directly in the Scanner constructor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using strategy classes (will be instantiated automatically)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
+
+<span class="c1"># Using strategy instances</span>
+<span class="n">qm</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">cm</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">qm</span><span class="p">,</span> <span class="n">cm</span><span class="p">])</span>
+
+<span class="c1"># Calculate metrics</span>
+<span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+</pre></div>
+</div>
 <p>This example shows how to:</p>
 <ol class="arabic simple">
 <li><p>Create a quantum circuit.</p></li>
 <li><p>Simulate it using Qiskit Aer and obtain results (counts).</p></li>
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code> to analyze the circuit and its results.</p></li>
-<li><p>Add various <code class="docutils literal notranslate"><span class="pre">Metric</span></code> types (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>).</p></li>
+<li><p>Add various strategy types (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>).</p></li>
 <li><p>Calculate and interpret the metrics. For <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, this includes gate counts, depth, and Quantum Volume estimates. For <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>, it includes the mean success based on your criteria.</p></li>
 </ol>
 </section>
@@ -428,7 +444,7 @@ c: 2/═══════════╩══╩═
 </section>
 <section id="going-further-a-more-complex-circuit">
 <h2>Going Further: A More Complex Circuit<a class="headerlink" href="#going-further-a-more-complex-circuit" title="Link to this heading">¶</a></h2>
-<p>Instead of a specific named enigma, let’s focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>, then use the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> with appropriate metrics.</p>
+<p>Instead of a specific named enigma, let’s focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>, then use the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> with appropriate strategies.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span>
@@ -454,15 +470,15 @@ c: 2/═══════════╩══╩═
 <span class="n">counts</span> <span class="o">=</span> <span class="n">qiskit_job_result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 <span class="n">qward_result_obj</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">)</span>
 
-<span class="c1"># 3. Create Scanner and add Metrics</span>
+<span class="c1"># 3. Create Scanner and add Strategies</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">qward_result_obj</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 
 <span class="c1"># Example SuccessRate: success if all qubits are &#39;0&#39; (state &#39;000&#39;)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">all_zeros</span><span class="p">(</span><span class="n">bitstring</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">bitstring</span> <span class="o">==</span> <span class="s1">&#39;000&#39;</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">all_zeros</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">all_zeros</span><span class="p">))</span>
 
 <span class="c1"># 4. Calculate and display metrics</span>
 <span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -530,14 +546,14 @@ c: 2/═══════════╩══╩═
 </pre></div>
 </div>
 </section>
-<section id="creating-your-own-custom-metrics">
-<h2>Creating Your Own Custom Metrics<a class="headerlink" href="#creating-your-own-custom-metrics" title="Link to this heading">¶</a></h2>
-<p>To create your own custom metric, you need to inherit from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.Metric</span></code> and implement its abstract methods.</p>
+<section id="creating-your-own-custom-strategies">
+<h2>Creating Your Own Custom Strategies<a class="headerlink" href="#creating-your-own-custom-strategies" title="Link to this heading">¶</a></h2>
+<p>To create your own custom metric strategy, you need to inherit from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.MetricCalculator</span></code> and implement its abstract methods.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span> <span class="c1"># Enums for type and ID</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">an_extra_parameter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span> <span class="c1"># Call base class constructor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">an_extra_parameter</span> <span class="o">=</span> <span class="n">an_extra_parameter</span>
@@ -548,22 +564,22 @@ c: 2/═══════════╩══╩═
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a unique identifier for this metric. </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a unique identifier for this strategy. </span>
 <span class="sd">           You might need to add a new value to the MetricsId enum in types.py or manage custom IDs.</span>
 <span class="sd">           For this example, let&#39;s assume we are re-using one for simplicity, but this is not ideal.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># For a real custom metric, you&#39;d likely define a new MetricsId or handle it</span>
+        <span class="c1"># For a real custom strategy, you&#39;d likely define a new MetricsId or handle it</span>
         <span class="c1"># return MetricsId.COMPLEXITY # Placeholder - AVOID REUSING IDs like this in practice</span>
         <span class="c1"># A better approach for truly custom IDs might involve a string or a new Enum value if you modify types.py</span>
         <span class="c1"># For now, let&#39;s imagine a hypothetical CUSTOM_ID if we had added it to the Enum.</span>
         <span class="c1"># Since we can&#39;t modify the Enum here, we just return a string for the example, </span>
         <span class="c1"># but the base class expects a MetricsId enum. </span>
-        <span class="c1"># This part of the example highlights a design consideration for custom metric IDs.</span>
+        <span class="c1"># This part of the example highlights a design consideration for custom strategy IDs.</span>
         <span class="c1"># To make this runnable with current enums, we would pick an existing one, e.g., MetricsId.QISKIT</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">QISKIT</span> <span class="c1"># Using an existing ID for example purposes ONLY.</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the metric can be calculated (e.g., circuit is present).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the strategy can be calculated (e.g., circuit is present).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -572,18 +588,18 @@ c: 2/═══════════╩══╩═
         <span class="n">custom_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_extra_parameter</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;my_custom_metric_value&quot;</span><span class="p">:</span> <span class="n">custom_value</span><span class="p">,</span> <span class="s2">&quot;parameter_used&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_extra_parameter</span><span class="p">}</span>
 
-<span class="c1"># How to use your custom metric:</span>
+<span class="c1"># How to use your custom strategy:</span>
 <span class="c1"># my_circuit = QuantumCircuit(2)</span>
 <span class="c1"># my_circuit.h(0)</span>
 <span class="c1"># my_circuit.cx(0,1)</span>
 
-<span class="c1"># custom_metric_instance = MyCustomMetric(circuit=my_circuit, an_extra_parameter=5)</span>
+<span class="c1"># custom_strategy_instance = MyCustomStrategy(circuit=my_circuit, an_extra_parameter=5)</span>
 
 <span class="c1"># scanner = Scanner(circuit=my_circuit)</span>
-<span class="c1"># scanner.add_metric(custom_metric_instance)</span>
+<span class="c1"># scanner.add_strategy(custom_strategy_instance)</span>
 
 <span class="c1"># results = scanner.calculate_metrics()</span>
-<span class="c1"># print(results[&#39;MyCustomMetric&#39;])</span>
+<span class="c1"># print(results[&#39;MyCustomStrategy&#39;])</span>
 </pre></div>
 </div>
 </section>
@@ -657,7 +673,7 @@ c: 2/═══════════╩══╩═
 <li><a class="reference internal" href="#what-is-qward">What is Qward?</a></li>
 <li><a class="reference internal" href="#key-concepts">Key Concepts</a><ul>
 <li><a class="reference internal" href="#scanner">Scanner</a></li>
-<li><a class="reference internal" href="#metrics">Metrics</a></li>
+<li><a class="reference internal" href="#metric-strategies">Metric Strategies</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#getting-started">Getting Started</a><ul>
@@ -667,13 +683,14 @@ c: 2/═══════════╩══╩═
 </ul>
 </li>
 <li><a class="reference internal" href="#first-steps-the-quantum-coin-flip">First Steps: The Quantum Coin Flip</a></li>
+<li><a class="reference internal" href="#alternative-using-constructor-with-strategies">Alternative: Using Constructor with Strategies</a></li>
 <li><a class="reference internal" href="#understanding-the-circuit">Understanding the Circuit</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#going-further-a-more-complex-circuit">Going Further: A More Complex Circuit</a></li>
 <li><a class="reference internal" href="#understanding-circuit-complexity">Understanding Circuit Complexity</a></li>
 <li><a class="reference internal" href="#quantum-volume-estimation">Quantum Volume Estimation</a></li>
-<li><a class="reference internal" href="#creating-your-own-custom-metrics">Creating Your Own Custom Metrics</a></li>
+<li><a class="reference internal" href="#creating-your-own-custom-strategies">Creating Your Own Custom Strategies</a></li>
 <li><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>

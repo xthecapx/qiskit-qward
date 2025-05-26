@@ -250,7 +250,7 @@
 <span class="sd">Scanner class for QWARD.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
@@ -265,9 +265,9 @@
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Scanner</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class for analyzing quantum circuits.</span>
+<span class="sd">    Class for analyzing quantum circuits using the Strategy pattern.</span>
 
-<span class="sd">    This class provides methods for analyzing quantum circuits using various metrics.</span>
+<span class="sd">    This class provides methods for analyzing quantum circuits using various metric strategies.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -276,8 +276,7 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">calculators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Backward compatibility</span>
+        <span class="n">strategies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a Scanner object.</span>
@@ -286,35 +285,32 @@
 <span class="sd">            circuit: The quantum circuit to analyze</span>
 <span class="sd">            job: The job that executed the circuit</span>
 <span class="sd">            result: The result of the job execution</span>
-<span class="sd">            calculators: Optional list of metric calculator classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner&#39;s circuit if it has one.</span>
-<span class="sd">            metrics: Deprecated. Use &#39;calculators&#39; instead. Maintained for backward compatibility.</span>
+<span class="sd">            strategies: Optional list of metric strategy classes or instances.</span>
+<span class="sd">                       If a class is provided, it will be instantiated with the circuit.</span>
+<span class="sd">                       If an instance is provided, its circuit must match the Scanner&#39;s circuit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="c1"># Handle backward compatibility</span>
-        <span class="n">metric_list</span> <span class="o">=</span> <span class="n">calculators</span> <span class="k">if</span> <span class="n">calculators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">metrics</span>
-
-        <span class="k">if</span> <span class="n">metric_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">calculator</span> <span class="ow">in</span> <span class="n">metric_list</span><span class="p">:</span>
-                <span class="c1"># If calculator is a class (not instance), instantiate with circuit</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculator</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calculator</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">strategies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">strategy</span> <span class="ow">in</span> <span class="n">strategies</span><span class="p">:</span>
+                <span class="c1"># If strategy is a class (not instance), instantiate with circuit</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># If calculator is an instance, check for .circuit or ._circuit attribute</span>
-                    <span class="n">calculator_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">calculator</span><span class="p">,</span> <span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">calculator_circuit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># If strategy is an instance, check for .circuit or ._circuit attribute</span>
+                    <span class="n">strategy_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">strategy_circuit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="c1"># Try protected attribute (for base class)</span>
-                        <span class="n">calculator_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">calculator</span><span class="p">,</span> <span class="s2">&quot;_circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">calculator_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">calculator_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">circuit</span><span class="p">:</span>
+                        <span class="n">strategy_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">strategy_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">strategy_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">circuit</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                                <span class="sa">f</span><span class="s2">&quot;Calculator instance </span><span class="si">{</span><span class="n">calculator</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> was initialized with a different circuit than the Scanner.&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;Strategy instance </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> was initialized with a different circuit than the Scanner.&quot;</span>
                             <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calculator</span><span class="p">)</span>
-        <span class="c1"># If no calculators provided, user can add them later with add_calculator</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]:</span>
@@ -347,54 +343,32 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">strategies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the metric calculators.</span>
+<span class="sd">        Get the metric strategies.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            List[MetricCalculator]: The metric calculators</span>
+<span class="sd">            List[MetricCalculator]: The metric strategies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]:</span>
+<div class="viewcode-block" id="Scanner.add_strategy">
+<a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.add_strategy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">MetricCalculator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the metrics (backward compatibility alias for calculators).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            List[MetricCalculator]: The metric calculators</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span>
-
-<div class="viewcode-block" id="Scanner.add_calculator">
-<a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.add_calculator">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_calculator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calculator</span><span class="p">:</span> <span class="n">MetricCalculator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a metric calculator to the scanner.</span>
+<span class="sd">        Add a metric strategy to the scanner.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            calculator: The metric calculator to add</span>
+<span class="sd">            strategy: The metric strategy to add</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_calculators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calculator</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Scanner.add_metric">
-<a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.add_metric">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCalculator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a metric to the scanner (backward compatibility alias for add_calculator).</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            metric: The metric calculator to add</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Scanner.calculate_metrics">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.calculate_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate metrics for all jobs.</span>
+<span class="sd">        Calculate metrics using all registered strategies.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, pd.DataFrame]: Dictionary containing DataFrames for each metric type.</span>
@@ -405,13 +379,13 @@
         <span class="c1"># Initialize a dictionary to store DataFrames for each metric type</span>
         <span class="n">metric_dataframes</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="c1"># Calculate metrics for each calculator</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">calculator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="p">):</span>
-            <span class="c1"># Get the metrics from the calculator</span>
-            <span class="n">metric_results</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+        <span class="c1"># Calculate metrics for each strategy</span>
+        <span class="k">for</span> <span class="n">strategy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategies</span><span class="p">:</span>
+            <span class="c1"># Get the metrics from the strategy</span>
+            <span class="n">metric_results</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 
             <span class="c1"># Create a DataFrame for this metric type</span>
-            <span class="n">metric_name</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="n">metric_name</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
             <span class="c1"># Special handling for SuccessRate metrics</span>
             <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;SuccessRate&quot;</span><span class="p">:</span>
@@ -458,29 +432,6 @@
 
         <span class="k">return</span> <span class="n">metric_dataframes</span></div>
 
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_flatten_dict</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">parent_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Flatten a nested dictionary.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            d: The dictionary to flatten</span>
-<span class="sd">            parent_key: The parent key for the current level</span>
-<span class="sd">            sep: The separator to use between keys</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: The flattened dictionary</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">new_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parent_key</span><span class="si">}{</span><span class="n">sep</span><span class="si">}{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">parent_key</span> <span class="k">else</span> <span class="n">k</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flatten_dict</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">new_key</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_key</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Scanner.set_circuit">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.set_circuit">[docs]</a>
