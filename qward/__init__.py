@@ -6,9 +6,8 @@ QWARD is a library for analyzing quantum circuits and executing them on quantum 
 
 from qward.scanner import Scanner
 from qward.result import Result
-from qward.runtime import QiskitRuntimeService
 from qward.metrics import (
-    Metric,
+    MetricCalculator,
     MetricsType,
     MetricsId,
     QiskitMetrics,
@@ -21,8 +20,7 @@ from qward.version import __version__
 __all__ = [
     "Scanner",
     "Result",
-    "QiskitRuntimeService",
-    "Metric",
+    "MetricCalculator",
     "MetricsType",
     "MetricsId",
     "QiskitMetrics",

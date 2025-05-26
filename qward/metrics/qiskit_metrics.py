@@ -4,12 +4,12 @@ Qiskit metrics implementation for QWARD.
 
 from typing import Any, Dict
 
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 from qward.utils.flatten import flatten_dict
 
 
-class QiskitMetrics(Metric):
+class QiskitMetrics(MetricCalculator):
     """
     Class for extracting metrics from QuantumCircuit objects.
 

@@ -1,5 +1,5 @@
 """
-Base metric class for QWARD.
+Base metric calculator class for QWARD.
 """
 
 from abc import ABC, abstractmethod
@@ -11,17 +11,17 @@ if TYPE_CHECKING:
     from qward.metrics.types import MetricsType, MetricsId
 
 
-class Metric(ABC):
+class MetricCalculator(ABC):
     """
-    Base class for all metrics in QWARD.
+    Base class for all metric calculators in QWARD.
 
-    This class defines the interface that all metrics must implement,
+    This class defines the interface that all metric calculators must implement,
     providing methods for metric calculation and type identification.
     """
 
     def __init__(self, circuit: QuantumCircuit):
         """
-        Initialize a Metric object.
+        Initialize a MetricCalculator object.
 
         Args:
             circuit: The quantum circuit to analyze

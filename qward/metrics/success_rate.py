@@ -10,11 +10,11 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerJob
 from qiskit.providers.job import JobV1 as QiskitJob
 
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 
 
-class SuccessRate(Metric):
+class SuccessRate(MetricCalculator):
     """
     Class for calculating success rate metrics for quantum circuits.
 
