@@ -291,14 +291,14 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h2>
-<p>Qward revolves around the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> class, which uses various <code class="docutils literal notranslate"><span class="pre">Metric</span></code> objects to analyze Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> objects and their execution results.</p>
+<p>Qward revolves around the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> class, which uses various metric strategy objects to analyze Qiskit <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> objects and their execution results.</p>
 <section id="core-workflow">
 <h3>Core Workflow<a class="headerlink" href="#core-workflow" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p><strong>Create/Load a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></strong>: Use Qiskit to define your circuit.</p></li>
 <li><p><strong>(Optional) Execute the Circuit</strong>: Run your circuit on a simulator or quantum hardware to get a Qiskit <code class="docutils literal notranslate"><span class="pre">Job</span></code> and its <code class="docutils literal notranslate"><span class="pre">Result</span></code> (containing counts).</p></li>
 <li><p><strong>Instantiate <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code></strong>: Provide the circuit, and optionally the Qiskit <code class="docutils literal notranslate"><span class="pre">Job</span></code> and <code class="docutils literal notranslate"><span class="pre">qward.Result</span></code> (which wraps Qiskit’s job result/counts).</p></li>
-<li><p><strong>Add <code class="docutils literal notranslate"><span class="pre">Metric</span></code> Objects</strong>: Instantiate and add desired metric classes from <code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>) to the scanner.</p></li>
+<li><p><strong>Add Strategy Objects</strong>: Instantiate and add desired metric strategy classes from <code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>) to the scanner.</p></li>
 <li><p><strong>Calculate Metrics</strong>: Call <code class="docutils literal notranslate"><span class="pre">scanner.calculate_metrics()</span></code>.</p></li>
 <li><p><strong>Interpret Results</strong>: The result is a dictionary of pandas DataFrames, one for each metric type.</p></li>
 </ol>
@@ -308,7 +308,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span> <span class="c1"># QWARD classes</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span> <span class="c1"># QWARD metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span> <span class="c1"># QWARD strategies</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.examples.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_display</span> <span class="c1"># For pretty printing in notebooks</span>
 
 <span class="n">display</span> <span class="o">=</span> <span class="n">get_display</span><span class="p">()</span>
@@ -338,9 +338,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_instance</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">qward_result</span><span class="p">)</span>
 
-<span class="c1"># 4. Add Metrics</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
+<span class="c1"># 4. Add Strategies</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
 
 <span class="c1"># For SuccessRate, define what a &quot;successful&quot; measurement is</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">success_if_00</span><span class="p">(</span><span class="n">bitstring</span><span class="p">):</span>
@@ -348,7 +348,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="c1"># SuccessRate needs a job to get counts from, or you can pass counts directly if job not available at init</span>
 <span class="c1"># Here, we pass the qiskit_job_instance that the qward_result is also based on.</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_instance</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_instance</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">))</span>
 
 <span class="c1"># 5. Calculate Metrics</span>
 <span class="n">all_metric_data</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -376,14 +376,30 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="creating-custom-metrics">
-<h3>Creating Custom Metrics<a class="headerlink" href="#creating-custom-metrics" title="Link to this heading">¶</a></h3>
-<p>To create your own metric, inherit from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.Metric</span></code> and implement the required abstract methods (<code class="docutils literal notranslate"><span class="pre">_get_metric_type</span></code>, <code class="docutils literal notranslate"><span class="pre">_get_metric_id</span></code>, <code class="docutils literal notranslate"><span class="pre">is_ready</span></code>, <code class="docutils literal notranslate"><span class="pre">get_metrics</span></code>).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span>
+<section id="alternative-using-constructor-with-strategies">
+<h3>Alternative: Using Constructor with Strategies<a class="headerlink" href="#alternative-using-constructor-with-strategies" title="Link to this heading">¶</a></h3>
+<p>You can also provide strategies directly in the Scanner constructor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using strategy classes (will be instantiated automatically)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
+
+<span class="c1"># Using strategy instances</span>
+<span class="n">qm</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+<span class="n">cm</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">qm</span><span class="p">,</span> <span class="n">cm</span><span class="p">])</span>
+
+<span class="c1"># Calculate metrics</span>
+<span class="n">all_metric_data</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="creating-custom-strategies">
+<h3>Creating Custom Strategies<a class="headerlink" href="#creating-custom-strategies" title="Link to this heading">¶</a></h3>
+<p>To create your own metric strategy, inherit from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.MetricCalculator</span></code> and implement the required abstract methods (<code class="docutils literal notranslate"><span class="pre">_get_metric_type</span></code>, <code class="docutils literal notranslate"><span class="pre">_get_metric_id</span></code>, <code class="docutils literal notranslate"><span class="pre">is_ready</span></code>, <code class="docutils literal notranslate"><span class="pre">get_metrics</span></code>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MySimpleCustomMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MySimpleCustomStrategy</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 
@@ -401,17 +417,17 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;custom_depth_plus_width&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">width</span><span class="p">()}</span>
 
 <span class="c1"># Usage:</span>
-<span class="c1"># custom_metric = MySimpleCustomMetric(qc)</span>
-<span class="c1"># scanner.add_metric(custom_metric)</span>
+<span class="c1"># custom_strategy = MySimpleCustomStrategy(qc)</span>
+<span class="c1"># scanner.add_strategy(custom_strategy)</span>
 <span class="c1"># results = scanner.calculate_metrics() </span>
-<span class="c1"># print(results[&#39;MySimpleCustomMetric&#39;])</span>
+<span class="c1"># print(results[&#39;MySimpleCustomStrategy&#39;])</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="key-metrics-provided">
 <h2>Key Metrics Provided<a class="headerlink" href="#key-metrics-provided" title="Link to this heading">¶</a></h2>
-<p>Qward, through its built-in metric classes, offers insights into:</p>
+<p>Qward, through its built-in metric strategy classes, offers insights into:</p>
 <section id="circuit-structure-qiskitmetrics">
 <h3>1. Circuit Structure (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>)<a class="headerlink" href="#circuit-structure-qiskitmetrics" title="Link to this heading">¶</a></h3>
 <ul class="simple">
@@ -456,7 +472,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p>Get your API token from your account settings.</p></li>
 <li><p>You can set environment variables <code class="docutils literal notranslate"><span class="pre">IBM_QUANTUM_TOKEN</span></code> and <code class="docutils literal notranslate"><span class="pre">IBM_QUANTUM_CHANNEL</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">ibm_quantum</span></code>), or manage credentials as per Qiskit’s documentation for <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code>.</p></li>
 </ol>
-<p>Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward’s Scanner and metrics.</p>
+<p>Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward’s Scanner and metric strategies.</p>
 </section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
@@ -533,7 +549,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#usage">Usage</a><ul>
 <li><a class="reference internal" href="#core-workflow">Core Workflow</a></li>
 <li><a class="reference internal" href="#example-analyzing-a-simple-circuit">Example: Analyzing a Simple Circuit</a></li>
-<li><a class="reference internal" href="#creating-custom-metrics">Creating Custom Metrics</a></li>
+<li><a class="reference internal" href="#alternative-using-constructor-with-strategies">Alternative: Using Constructor with Strategies</a></li>
+<li><a class="reference internal" href="#creating-custom-strategies">Creating Custom Strategies</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#key-metrics-provided">Key Metrics Provided</a><ul>
