@@ -74,3 +74,27 @@ nbsphinx_timeout = 180
 nbsphinx_execute = "always"
 nbsphinx_widgets_path = ""
 exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+
+# Mermaid configuration
+mermaid_version = "latest"  # Use latest version of Mermaid.js
+mermaid_init_js = """
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+        primaryColor: '#ff6b6b',
+        primaryTextColor: '#333',
+        primaryBorderColor: '#ff6b6b',
+        lineColor: '#333',
+        secondaryColor: '#4ecdc4',
+        tertiaryColor: '#ffe66d'
+    },
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true
+    },
+    classDiagram: {
+        useMaxWidth: true
+    }
+});
+"""
