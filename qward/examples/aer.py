@@ -12,24 +12,24 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 display = get_display()
 
 
-def example_default_metrics(circuit: QuantumCircuit):
+def example_default_calculators(circuit: QuantumCircuit):
     """
-    Example 1: Using default metrics (QISKIT and COMPLEXITY)
+    Example 1: Using default metric calculators (QISKIT and COMPLEXITY)
 
-    This example demonstrates how to use the default metrics provided by QWARD.
-    The default metrics include QISKIT and COMPLEXITY metrics.
+    This example demonstrates how to use the default metric calculators provided by QWARD.
+    The default calculators include QISKIT and COMPLEXITY metrics.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 1: Using default metrics")
+    print("\nExample 1: Using default metric calculators")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add default metrics
-    scanner.add_metric(QiskitMetrics(circuit))
-    scanner.add_metric(ComplexityMetrics(circuit))
+    # Add default calculators
+    scanner.add_calculator(QiskitMetrics(circuit))
+    scanner.add_calculator(ComplexityMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -42,23 +42,23 @@ def example_default_metrics(circuit: QuantumCircuit):
     return scanner
 
 
-def example_qiskit_metrics(circuit: QuantumCircuit):
+def example_qiskit_calculator(circuit: QuantumCircuit):
     """
-    Example 2: Using only QISKIT metrics
+    Example 2: Using only QISKIT metric calculator
 
     This example demonstrates how to use only QISKIT metrics by creating a QiskitMetrics
-    instance and adding it to the Scanner.
+    calculator and adding it to the Scanner.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 2: Using only QISKIT metrics")
+    print("\nExample 2: Using only QISKIT metric calculator")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add only QiskitMetrics
-    scanner.add_metric(QiskitMetrics(circuit))
+    # Add only QiskitMetrics calculator
+    scanner.add_calculator(QiskitMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -66,6 +66,35 @@ def example_qiskit_metrics(circuit: QuantumCircuit):
     # Display the metrics
     print("Qiskit metrics DataFrame:")
     display(metrics_dict["QiskitMetrics"])
+
+    return scanner
+
+
+def example_backward_compatibility(circuit: QuantumCircuit):
+    """
+    Example 2b: Backward compatibility - using add_metric method
+
+    This example demonstrates backward compatibility by using the old add_metric method.
+
+    Args:
+        circuit: The quantum circuit to analyze
+    """
+    print("\nExample 2b: Backward compatibility - using add_metric method")
+
+    # Create a scanner with the circuit
+    scanner = Scanner(circuit=circuit)
+
+    # Add metrics using the old method (still works)
+    scanner.add_metric(QiskitMetrics(circuit))
+    scanner.add_metric(ComplexityMetrics(circuit))
+
+    # Calculate metrics
+    metrics_dict = scanner.calculate_metrics()
+
+    # Display each metric DataFrame
+    for metric_name, df in metrics_dict.items():
+        print(f"\n{metric_name} DataFrame:")
+        display(df)
 
     return scanner
 
@@ -244,7 +273,6 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     # Import noise model components
     from qiskit_aer.noise import (
         NoiseModel,
-        QuantumError,
         ReadoutError,
         pauli_error,
         depolarizing_error,
@@ -349,9 +377,10 @@ def main():
     # Create a simple quantum circuit
     circuit = create_example_circuit()
 
-    # Run the examples
-    example_default_metrics(circuit)
-    example_qiskit_metrics(circuit)
+    # Run the examples with new naming
+    example_default_calculators(circuit)
+    example_qiskit_calculator(circuit)
+    example_backward_compatibility(circuit)
     example_complexity_metrics(circuit)
     example_multiple_metrics(circuit)
 

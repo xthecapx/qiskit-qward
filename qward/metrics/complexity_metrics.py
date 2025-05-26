@@ -6,11 +6,11 @@ from typing import Any, Dict
 
 from qiskit import QuantumCircuit
 
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 
 
-class ComplexityMetrics(Metric):
+class ComplexityMetrics(MetricCalculator):
     """
     Class for calculating complexity metrics from QuantumCircuit objects.
 

@@ -9,7 +9,7 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerJob
 from qiskit.providers.job import Job as QiskitJob
 
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.result import Result
 
 
@@ -25,7 +25,8 @@ class Scanner:
         circuit: Optional[QuantumCircuit] = None,
         job: Optional[Union[AerJob, QiskitJob]] = None,
         result: Optional[Result] = None,
-        metrics: Optional[list] = None,
+        calculators: Optional[list] = None,
+        metrics: Optional[list] = None,  # Backward compatibility
     ):
         """
         Initialize a Scanner object.
@@ -34,31 +35,35 @@ class Scanner:
             circuit: The quantum circuit to analyze
             job: The job that executed the circuit
             result: The result of the job execution
-            metrics: Optional list of metric classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner's circuit if it has one.
+            calculators: Optional list of metric calculator classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner's circuit if it has one.
+            metrics: Deprecated. Use 'calculators' instead. Maintained for backward compatibility.
         """
         self._circuit = circuit
         self._job = job
         self._result = result
-        self._metrics: List[Metric] = []
+        self._calculators: List[MetricCalculator] = []
 
-        if metrics is not None:
-            for metric in metrics:
-                # If metric is a class (not instance), instantiate with circuit
-                if isinstance(metric, type):
-                    self._metrics.append(metric(circuit))
+        # Handle backward compatibility
+        metric_list = calculators if calculators is not None else metrics
+
+        if metric_list is not None:
+            for calculator in metric_list:
+                # If calculator is a class (not instance), instantiate with circuit
+                if isinstance(calculator, type):
+                    self._calculators.append(calculator(circuit))
                 else:
-                    # If metric is an instance, check for .circuit or ._circuit attribute
-                    metric_circuit = getattr(metric, "circuit", None)
-                    if metric_circuit is None:
+                    # If calculator is an instance, check for .circuit or ._circuit attribute
+                    calculator_circuit = getattr(calculator, "circuit", None)
+                    if calculator_circuit is None:
                         # Try protected attribute (for base class)
-                        metric_circuit = getattr(metric, "_circuit", None)
-                    if metric_circuit is not None:
-                        if metric_circuit is not circuit:
+                        calculator_circuit = getattr(calculator, "_circuit", None)
+                    if calculator_circuit is not None:
+                        if calculator_circuit is not circuit:
                             raise ValueError(
-                                f"Metric instance {metric.__class__.__name__} was initialized with a different circuit than the Scanner."
+                                f"Calculator instance {calculator.__class__.__name__} was initialized with a different circuit than the Scanner."
                             )
-                    self._metrics.append(metric)
-        # If metrics is None, user can add metrics later with add_metric (backward compatible)
+                    self._calculators.append(calculator)
+        # If no calculators provided, user can add them later with add_calculator
 
     @property
     def circuit(self) -> Optional[QuantumCircuit]:
@@ -91,23 +96,42 @@ class Scanner:
         return self._result
 
     @property
-    def metrics(self) -> List[Metric]:
+    def calculators(self) -> List[MetricCalculator]:
         """
-        Get the metrics.
+        Get the metric calculators.
 
         Returns:
-            List[Metric]: The metrics
+            List[MetricCalculator]: The metric calculators
         """
-        return self._metrics
+        return self._calculators
 
-    def add_metric(self, metric: Metric) -> None:
+    @property
+    def metrics(self) -> List[MetricCalculator]:
         """
-        Add a metric to the scanner.
+        Get the metrics (backward compatibility alias for calculators).
+
+        Returns:
+            List[MetricCalculator]: The metric calculators
+        """
+        return self._calculators
+
+    def add_calculator(self, calculator: MetricCalculator) -> None:
+        """
+        Add a metric calculator to the scanner.
 
         Args:
-            metric: The metric to add
+            calculator: The metric calculator to add
         """
-        self._metrics.append(metric)
+        self._calculators.append(calculator)
+
+    def add_metric(self, metric: MetricCalculator) -> None:
+        """
+        Add a metric to the scanner (backward compatibility alias for add_calculator).
+
+        Args:
+            metric: The metric calculator to add
+        """
+        self.add_calculator(metric)
 
     def calculate_metrics(self) -> Dict[str, pd.DataFrame]:
         """
@@ -122,13 +146,13 @@ class Scanner:
         # Initialize a dictionary to store DataFrames for each metric type
         metric_dataframes = {}
 
-        # Calculate metrics for each metric class
-        for _, metric_class in enumerate(self.metrics):
-            # Get the metrics from the metric class
-            metric_results = metric_class.get_metrics()
+        # Calculate metrics for each calculator
+        for _, calculator in enumerate(self.calculators):
+            # Get the metrics from the calculator
+            metric_results = calculator.get_metrics()
 
             # Create a DataFrame for this metric type
-            metric_name = metric_class.__class__.__name__
+            metric_name = calculator.__class__.__name__
 
             # Special handling for SuccessRate metrics
             if metric_name == "SuccessRate":

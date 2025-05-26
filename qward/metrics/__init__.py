@@ -3,10 +3,11 @@ Metrics package for QWARD.
 """
 
 from qward.metrics.types import MetricsId, MetricsType
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.qiskit_metrics import QiskitMetrics
 from qward.metrics.complexity_metrics import ComplexityMetrics
 from qward.metrics.success_rate import SuccessRate
+from qward.metrics.defaults import get_default_metrics_strategies
 
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "QiskitMetrics",
     "ComplexityMetrics",
     "SuccessRate",
-    "Metric",
+    "MetricCalculator",
+    "get_default_metrics_strategies",
 ]
