@@ -206,7 +206,6 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/runtime.html">Runtime</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
@@ -355,25 +354,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">update_from_job()</span></code>: If a job is stored, this method (re-)populates counts and basic metadata from <code class="docutils literal notranslate"><span class="pre">job.result()</span></code>.</p></li>
 </ul>
 </section>
-<section id="qiskitruntimeservice-qward-runtime-qiskit-runtime-qiskitruntimeservice">
-<h3>4. <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.runtime.qiskit_runtime.QiskitRuntimeService</span></code>)<a class="headerlink" href="#qiskitruntimeservice-qward-runtime-qiskit-runtime-qiskitruntimeservice" title="Link to this heading">¶</a></h3>
-<p>Extends Qiskit’s base <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code>.</p>
-<ul class="simple">
-<li><p>Constructor: <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">backend:</span> <span class="pre">Union[Backend,</span> <span class="pre">str],</span> <span class="pre">**kwargs)</span></code></p>
-<ul>
-<li><p>Takes a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and a Qiskit <code class="docutils literal notranslate"><span class="pre">Backend</span></code> object or backend name string.</p></li>
-<li><p>Passes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> to the base <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> constructor (e.g., for channel, token).</p></li>
-</ul>
-</li>
-<li><p>Key Methods:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">run()</span></code>: Executes the circuit using a <code class="docutils literal notranslate"><span class="pre">SamplerV2</span></code> on the specified backend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_and_watch()</span></code>: Runs the circuit and polls the job status until completion or failure, then returns a <code class="docutils literal notranslate"><span class="pre">qward.Result</span></code> object.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_results()</span></code>: Retrieves results from the completed job and returns a <code class="docutils literal notranslate"><span class="pre">qward.Result</span></code>.</p></li>
-</ul>
-</li>
-</ul>
-</section>
 </section>
 <section id="circuit-complexity-metrics-via-complexitymetrics">
 <h2>Circuit Complexity Metrics (via <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>)<a class="headerlink" href="#circuit-complexity-metrics-via-complexitymetrics" title="Link to this heading">¶</a></h2>
@@ -470,22 +450,26 @@
 </pre></div>
 </div>
 </section>
-<section id="pattern-3-using-qiskitruntimeservice">
-<h3>Pattern 3: Using <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code><a class="headerlink" href="#pattern-3-using-qiskitruntimeservice" title="Link to this heading">¶</a></h3>
+<section id="pattern-3-using-standard-qiskit-runtime-services">
+<h3>Pattern 3: Using Standard Qiskit Runtime Services<a class="headerlink" href="#pattern-3-using-standard-qiskit-runtime-services" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from qiskit import QuantumCircuit</span>
-<span class="c1"># from qward.runtime import QiskitRuntimeService as QwardRTService # alias for clarity</span>
-<span class="c1"># from qward import Scanner</span>
+<span class="c1"># from qiskit_ibm_runtime import QiskitRuntimeService</span>
+<span class="c1"># from qward import Scanner, Result</span>
 <span class="c1"># from qward.metrics import SuccessRate</span>
 
 <span class="c1"># qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()</span>
 
-<span class="c1"># Note: Ensure IBMQ credentials are set up if not using a simulator backend</span>
-<span class="c1"># qward_runtime = QwardRTService(circuit=qc, backend_name=&#39;ibmq_qasm_simulator&#39;) </span>
-<span class="c1"># result_from_runtime = qward_runtime.run_and_watch() # This is a qward.Result object</span>
+<span class="c1"># Note: Ensure IBM Quantum credentials are set up</span>
+<span class="c1"># service = QiskitRuntimeService()</span>
+<span class="c1"># backend = service.backend(&#39;ibmq_qasm_simulator&#39;)</span>
+<span class="c1"># job = service.run(qc, backend=backend)</span>
+<span class="c1"># result = job.result()</span>
+<span class="c1"># counts = result.get_counts()</span>
 
-<span class="c1"># scanner = Scanner(circuit=qc, job=result_from_runtime.job, result=result_from_runtime)</span>
+<span class="c1"># qward_result = Result(job=job, counts=counts)</span>
+<span class="c1"># scanner = Scanner(circuit=qc, job=job, result=qward_result)</span>
 <span class="c1"># def criteria(s): return s == &#39;00&#39; or s == &#39;11&#39;</span>
-<span class="c1"># scanner.add_metric(SuccessRate(circuit=qc, job=result_from_runtime.job, success_criteria=criteria))</span>
+<span class="c1"># scanner.add_metric(SuccessRate(circuit=qc, job=job, success_criteria=criteria))</span>
 <span class="c1"># metrics = scanner.calculate_metrics()</span>
 <span class="c1"># print(metrics[&quot;SuccessRate.aggregate&quot;])</span>
 </pre></div>
@@ -494,7 +478,7 @@
 </section>
 <section id="conclusion">
 <h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">¶</a></h2>
-<p>Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code>, the <code class="docutils literal notranslate"><span class="pre">Metric</span></code> system, and associated helper classes like <code class="docutils literal notranslate"><span class="pre">Result</span></code> and <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code>, developers can gain significant insights into their quantum circuits and execution outcomes.</p>
+<p>Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code>, the <code class="docutils literal notranslate"><span class="pre">Metric</span></code> system, and associated helper classes like <code class="docutils literal notranslate"><span class="pre">Result</span></code>, developers can gain significant insights into their quantum circuits and execution outcomes.</p>
 </section>
 </section>
 
@@ -558,7 +542,6 @@
 <li><a class="reference internal" href="#scanner-qward-scanner">1. <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code>)</a></li>
 <li><a class="reference internal" href="#metric-system-qward-metrics">2. <code class="docutils literal notranslate"><span class="pre">Metric</span></code> System (<code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code>)</a></li>
 <li><a class="reference internal" href="#result-qward-result">3. <code class="docutils literal notranslate"><span class="pre">Result</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.Result</span></code>)</a></li>
-<li><a class="reference internal" href="#qiskitruntimeservice-qward-runtime-qiskit-runtime-qiskitruntimeservice">4. <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.runtime.qiskit_runtime.QiskitRuntimeService</span></code>)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#circuit-complexity-metrics-via-complexitymetrics">Circuit Complexity Metrics (via <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>)</a></li>
@@ -567,7 +550,7 @@
 <li><a class="reference internal" href="#api-flow-and-usage-patterns">API Flow and Usage Patterns</a><ul>
 <li><a class="reference internal" href="#pattern-1-basic-circuit-analysis-no-execution-results">Pattern 1: Basic Circuit Analysis (No Execution Results)</a></li>
 <li><a class="reference internal" href="#pattern-2-analysis-with-execution-results">Pattern 2: Analysis with Execution Results</a></li>
-<li><a class="reference internal" href="#pattern-3-using-qiskitruntimeservice">Pattern 3: Using <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code></a></li>
+<li><a class="reference internal" href="#pattern-3-using-standard-qiskit-runtime-services">Pattern 3: Using Standard Qiskit Runtime Services</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#conclusion">Conclusion</a></li>
