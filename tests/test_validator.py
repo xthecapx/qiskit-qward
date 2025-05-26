@@ -17,4 +17,4 @@ class TestScanner(TestCase):
         self.assertEqual(scanner.circuit, circuit)
         self.assertIsNone(scanner.job)
         self.assertIsNone(scanner.result)
-        self.assertEqual(scanner.metrics, [])
+        self.assertEqual(scanner.strategies, [])

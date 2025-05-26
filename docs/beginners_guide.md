@@ -8,21 +8,21 @@ Qward is a library built on top of Qiskit that helps quantum developers understa
 
 1.  Define and execute quantum circuits using Qiskit.
 2.  Collect execution data like counts from simulators or hardware jobs.
-3.  Analyze circuits and results using a variety of built-in **Metrics**.
+3.  Analyze circuits and results using a variety of built-in **metric strategies**.
 4.  Assess circuit properties, complexity, and estimate potential performance.
 
 ## Key Concepts
 
 ### Scanner
-The `qward.Scanner` class is the central component for orchestrating circuit analysis. You provide it with a `QuantumCircuit` and optionally an execution `Job` or `Result`. You then add various **Metric** objects to the `Scanner` to perform different types of analysis.
+The `qward.Scanner` class is the central component for orchestrating circuit analysis. You provide it with a `QuantumCircuit` and optionally an execution `Job` or `Result`. You then add various **metric strategy** objects to the `Scanner` to perform different types of analysis.
 
-### Metrics
-Metrics are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metrics:
+### Metric Strategies
+Metric strategies are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metric strategies:
 -   `QiskitMetrics`: Extracts basic properties directly available from a `QuantumCircuit` object (e.g., depth, width, gate counts).
 -   `ComplexityMetrics`: Calculates a wide range of complexity indicators, including those from "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by D. Shami, and also provides Quantum Volume estimation.
 -   `SuccessRate`: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion.
 
-You can also create your own custom metrics by subclassing `qward.metrics.base_metric.Metric`.
+You can also create your own custom metric strategies by subclassing `qward.metrics.base_metric.MetricCalculator`.
 
 ## Getting Started
 
@@ -71,7 +71,7 @@ Let's analyze a simple quantum coin flip circuit. This uses a single qubit in su
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator # For running the circuit
 from qward import Scanner, Result   # QWARD's Scanner and Result
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate # QWARD Metrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate # QWARD strategies
 from qward.examples.utils import create_example_circuit, get_display # Example helper
 
 display = get_display()
@@ -84,7 +84,7 @@ circuit = create_example_circuit() # This is a 2-qubit circuit
 print("Quantum Circuit (2-qubit GHZ from examples):")
 display(circuit.draw(output='mpl'))
 
-# 2. Simulate the circuit to get results (optional for some metrics)
+# 2. Simulate the circuit to get results (optional for some strategies)
 print("\nRunning quantum simulation...")
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
@@ -98,10 +98,10 @@ qward_result_obj = Result(job=job, counts=counts) # Pass the actual job and coun
 # We can initialize it with the circuit and the QWARD Result object
 scanner = Scanner(circuit=circuit, result=qward_result_obj, job=job)
 
-# 4. Add Metrics
+# 4. Add Strategies
 # QiskitMetrics and ComplexityMetrics only need the circuit
-scanner.add_metric(QiskitMetrics(circuit=circuit))
-scanner.add_metric(ComplexityMetrics(circuit=circuit))
+scanner.add_strategy(QiskitMetrics(circuit=circuit))
+scanner.add_strategy(ComplexityMetrics(circuit=circuit))
 
 # SuccessRate needs the circuit and the job (or jobs) to get counts
 # Let's define success for the first qubit being '0' (e.g., "tails" if '00' or '01')
@@ -113,10 +113,10 @@ def coin_flip_success_q0_is_0(bitstring):
     # We are interested in the first qubit (q0) state.
     return bitstring.endswith('0') # True if q0 is '0'
 
-scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
-# For multiple jobs, you can pass a list of jobs or use success_rate_metric.add_job()
+scanner.add_strategy(SuccessRate(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
+# For multiple jobs, you can pass a list of jobs or use success_rate_strategy.add_job()
 
-# 5. Calculate all added metrics
+# 5. Calculate all added strategies
 print("\nCalculating metrics...")
 all_metrics_results = scanner.calculate_metrics()
 
@@ -143,11 +143,28 @@ if "SuccessRate.aggregate" in all_metrics_results:
     print(f"  Total shots: {success_df['total_trials'].iloc[0]}")
 ```
 
+### Alternative: Using Constructor with Strategies
+
+You can also provide strategies directly in the Scanner constructor:
+
+```python
+# Using strategy classes (will be instantiated automatically)
+scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
+
+# Using strategy instances
+qm = QiskitMetrics(circuit)
+cm = ComplexityMetrics(circuit)
+scanner = Scanner(circuit=circuit, strategies=[qm, cm])
+
+# Calculate metrics
+all_metrics_results = scanner.calculate_metrics()
+```
+
 This example shows how to:
 1.  Create a quantum circuit.
 2.  Simulate it using Qiskit Aer and obtain results (counts).
 3.  Use `qward.Scanner` to analyze the circuit and its results.
-4.  Add various `Metric` types (`QiskitMetrics`, `ComplexityMetrics`, `SuccessRate`).
+4.  Add various strategy types (`QiskitMetrics`, `ComplexityMetrics`, `SuccessRate`).
 5.  Calculate and interpret the metrics. For `ComplexityMetrics`, this includes gate counts, depth, and Quantum Volume estimates. For `SuccessRate`, it includes the mean success based on your criteria.
 
 ### Understanding the Circuit
@@ -170,7 +187,7 @@ The results should show approximately 50% "00" and 50% "11". Our "coin flip" suc
 
 ## Going Further: A More Complex Circuit
 
-Instead of a specific named enigma, let's focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for `SuccessRate`, then use the `Scanner` with appropriate metrics.
+Instead of a specific named enigma, let's focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for `SuccessRate`, then use the `Scanner` with appropriate strategies.
 
 ```python
 from qiskit import QuantumCircuit
@@ -198,15 +215,15 @@ qiskit_job_result = job.result()
 counts = qiskit_job_result.get_counts()
 qward_result_obj = Result(job=job, counts=counts)
 
-# 3. Create Scanner and add Metrics
+# 3. Create Scanner and add Strategies
 scanner = Scanner(circuit=circuit, result=qward_result_obj, job=job)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
 
 # Example SuccessRate: success if all qubits are '0' (state '000')
 def all_zeros(bitstring):
     return bitstring == '000'
-scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=all_zeros))
+scanner.add_strategy(SuccessRate(circuit=circuit, job=job, success_criteria=all_zeros))
 
 # 4. Calculate and display metrics
 all_metrics_results = scanner.calculate_metrics()
@@ -278,16 +295,16 @@ if "ComplexityMetrics" in all_metrics_results:
     # print(f"Square Ratio Factor: {square_ratio}")
 ```
 
-## Creating Your Own Custom Metrics
+## Creating Your Own Custom Strategies
 
-To create your own custom metric, you need to inherit from `qward.metrics.base_metric.Metric` and implement its abstract methods.
+To create your own custom metric strategy, you need to inherit from `qward.metrics.base_metric.MetricCalculator` and implement its abstract methods.
 
 ```python
 from qiskit import QuantumCircuit
-from qward.metrics.base_metric import Metric
+from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId # Enums for type and ID
 
-class MyCustomMetric(Metric):
+class MyCustomStrategy(MetricCalculator):
     def __init__(self, circuit: QuantumCircuit, an_extra_parameter: int = 0):
         super().__init__(circuit) # Call base class constructor
         self.an_extra_parameter = an_extra_parameter
@@ -298,22 +315,22 @@ class MyCustomMetric(Metric):
         return MetricsType.PRE_RUNTIME
 
     def _get_metric_id(self) -> MetricsId:
-        """Return a unique identifier for this metric. 
+        """Return a unique identifier for this strategy. 
            You might need to add a new value to the MetricsId enum in types.py or manage custom IDs.
            For this example, let's assume we are re-using one for simplicity, but this is not ideal.
         """
-        # For a real custom metric, you'd likely define a new MetricsId or handle it
+        # For a real custom strategy, you'd likely define a new MetricsId or handle it
         # return MetricsId.COMPLEXITY # Placeholder - AVOID REUSING IDs like this in practice
         # A better approach for truly custom IDs might involve a string or a new Enum value if you modify types.py
         # For now, let's imagine a hypothetical CUSTOM_ID if we had added it to the Enum.
         # Since we can't modify the Enum here, we just return a string for the example, 
         # but the base class expects a MetricsId enum. 
-        # This part of the example highlights a design consideration for custom metric IDs.
+        # This part of the example highlights a design consideration for custom strategy IDs.
         # To make this runnable with current enums, we would pick an existing one, e.g., MetricsId.QISKIT
         return MetricsId.QISKIT # Using an existing ID for example purposes ONLY.
 
     def is_ready(self) -> bool:
-        """Return True if the metric can be calculated (e.g., circuit is present)."""
+        """Return True if the strategy can be calculated (e.g., circuit is present)."""
         return self.circuit is not None
 
     def get_metrics(self) -> dict:
@@ -322,18 +339,18 @@ class MyCustomMetric(Metric):
         custom_value = self.circuit.depth() * self.an_extra_parameter
         return {"my_custom_metric_value": custom_value, "parameter_used": self.an_extra_parameter}
 
-# How to use your custom metric:
+# How to use your custom strategy:
 # my_circuit = QuantumCircuit(2)
 # my_circuit.h(0)
 # my_circuit.cx(0,1)
 
-# custom_metric_instance = MyCustomMetric(circuit=my_circuit, an_extra_parameter=5)
+# custom_strategy_instance = MyCustomStrategy(circuit=my_circuit, an_extra_parameter=5)
 
 # scanner = Scanner(circuit=my_circuit)
-# scanner.add_metric(custom_metric_instance)
+# scanner.add_strategy(custom_strategy_instance)
 
 # results = scanner.calculate_metrics()
-# print(results['MyCustomMetric'])
+# print(results['MyCustomStrategy'])
 ```
 
 ## Next Steps

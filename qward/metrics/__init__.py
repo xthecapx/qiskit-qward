@@ -7,7 +7,7 @@ from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.qiskit_metrics import QiskitMetrics
 from qward.metrics.complexity_metrics import ComplexityMetrics
 from qward.metrics.success_rate import SuccessRate
-from qward.metrics.defaults import get_default_metrics_strategies
+from qward.metrics.defaults import get_default_strategies
 
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     "ComplexityMetrics",
     "SuccessRate",
     "MetricCalculator",
-    "get_default_metrics_strategies",
+    "get_default_strategies",
 ]

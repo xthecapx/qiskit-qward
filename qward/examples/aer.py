@@ -12,24 +12,24 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
 display = get_display()
 
 
-def example_default_calculators(circuit: QuantumCircuit):
+def example_default_strategies(circuit: QuantumCircuit):
     """
-    Example 1: Using default metric calculators (QISKIT and COMPLEXITY)
+    Example 1: Using default metric strategies (QISKIT and COMPLEXITY)
 
-    This example demonstrates how to use the default metric calculators provided by QWARD.
-    The default calculators include QISKIT and COMPLEXITY metrics.
+    This example demonstrates how to use the default metric strategies provided by QWARD.
+    The default strategies include QISKIT and COMPLEXITY metrics.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 1: Using default metric calculators")
+    print("\nExample 1: Using default metric strategies")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add default calculators
-    scanner.add_calculator(QiskitMetrics(circuit))
-    scanner.add_calculator(ComplexityMetrics(circuit))
+    # Add default strategies
+    scanner.add_strategy(QiskitMetrics(circuit))
+    scanner.add_strategy(ComplexityMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -42,23 +42,23 @@ def example_default_calculators(circuit: QuantumCircuit):
     return scanner
 
 
-def example_qiskit_calculator(circuit: QuantumCircuit):
+def example_qiskit_strategy(circuit: QuantumCircuit):
     """
-    Example 2: Using only QISKIT metric calculator
+    Example 2: Using only QISKIT metric strategy
 
     This example demonstrates how to use only QISKIT metrics by creating a QiskitMetrics
-    calculator and adding it to the Scanner.
+    strategy and adding it to the Scanner.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 2: Using only QISKIT metric calculator")
+    print("\nExample 2: Using only QISKIT metric strategy")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add only QiskitMetrics calculator
-    scanner.add_calculator(QiskitMetrics(circuit))
+    # Add only QiskitMetrics strategy
+    scanner.add_strategy(QiskitMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -70,23 +70,19 @@ def example_qiskit_calculator(circuit: QuantumCircuit):
     return scanner
 
 
-def example_backward_compatibility(circuit: QuantumCircuit):
+def example_constructor_strategies(circuit: QuantumCircuit):
     """
-    Example 2b: Backward compatibility - using add_metric method
+    Example 2b: Using strategies via constructor
 
-    This example demonstrates backward compatibility by using the old add_metric method.
+    This example demonstrates using strategies via the Scanner constructor.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 2b: Backward compatibility - using add_metric method")
+    print("\nExample 2b: Using strategies via constructor")
 
-    # Create a scanner with the circuit
-    scanner = Scanner(circuit=circuit)
-
-    # Add metrics using the old method (still works)
-    scanner.add_metric(QiskitMetrics(circuit))
-    scanner.add_metric(ComplexityMetrics(circuit))
+    # Create a scanner with strategies via constructor
+    scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -115,7 +111,7 @@ def example_complexity_metrics(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit)
 
     # Add only ComplexityMetrics
-    scanner.add_metric(ComplexityMetrics(circuit))
+    scanner.add_strategy(ComplexityMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -127,24 +123,24 @@ def example_complexity_metrics(circuit: QuantumCircuit):
     return scanner
 
 
-def example_multiple_metrics(circuit: QuantumCircuit):
+def example_multiple_strategies(circuit: QuantumCircuit):
     """
-    Example 4: Using multiple metric instances
+    Example 4: Using multiple metric strategies
 
-    This example demonstrates how to use multiple metric instances together by creating
+    This example demonstrates how to use multiple metric strategies together by creating
     QiskitMetrics and ComplexityMetrics instances and adding them to the Scanner.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 4: Using multiple metric instances")
+    print("\nExample 4: Using multiple metric strategies")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add multiple metrics
-    scanner.add_metric(QiskitMetrics(circuit))
-    scanner.add_metric(ComplexityMetrics(circuit))
+    # Add multiple strategies
+    scanner.add_strategy(QiskitMetrics(circuit))
+    scanner.add_strategy(ComplexityMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -192,8 +188,10 @@ def example_success_rate_metrics(circuit: QuantumCircuit):
     # Create a scanner with the circuit and result
     scanner = Scanner(circuit=circuit, result=qward_result)
 
-    # Add SuccessRate metric
-    scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11"))
+    # Add SuccessRate strategy
+    scanner.add_strategy(
+        SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+    )
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -208,18 +206,18 @@ def example_success_rate_metrics(circuit: QuantumCircuit):
     return scanner, job
 
 
-def example_all_metrics(circuit: QuantumCircuit, job: AerJob):
+def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
     """
-    Example 6: Using all metrics together
+    Example 6: Using all strategies together
 
-    This example demonstrates how to use all metrics together by creating QiskitMetrics,
+    This example demonstrates how to use all strategies together by creating QiskitMetrics,
     ComplexityMetrics, and SuccessRate instances and adding them to the Scanner.
 
     Args:
         circuit: The quantum circuit to analyze
         job: The Aer job from the simulator
     """
-    print("\nExample 6: Using all metrics together")
+    print("\nExample 6: Using all strategies together")
 
     # Get the result
     result = job.result()
@@ -231,10 +229,12 @@ def example_all_metrics(circuit: QuantumCircuit, job: AerJob):
     # Create a scanner with the circuit and result
     scanner = Scanner(circuit=circuit, result=qward_result)
 
-    # Add all metrics
-    scanner.add_metric(QiskitMetrics(circuit))
-    scanner.add_metric(ComplexityMetrics(circuit))
-    scanner.add_metric(SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11"))
+    # Add all strategies
+    scanner.add_strategy(QiskitMetrics(circuit))
+    scanner.add_strategy(ComplexityMetrics(circuit))
+    scanner.add_strategy(
+        SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+    )
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -335,14 +335,14 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add SuccessRate metric with multiple jobs
-    success_rate_metric = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
+    # Add SuccessRate strategy with multiple jobs
+    success_rate_strategy = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
 
     # Add jobs one by one to demonstrate the new functionality
-    success_rate_metric.add_job(jobs[0])  # Add first job
-    success_rate_metric.add_job(jobs[1:])  # Add remaining jobs as a list
+    success_rate_strategy.add_job(jobs[0])  # Add first job
+    success_rate_strategy.add_job(jobs[1:])  # Add remaining jobs as a list
 
-    scanner.add_metric(success_rate_metric)
+    scanner.add_strategy(success_rate_strategy)
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -377,16 +377,16 @@ def main():
     # Create a simple quantum circuit
     circuit = create_example_circuit()
 
-    # Run the examples with new naming
-    example_default_calculators(circuit)
-    example_qiskit_calculator(circuit)
-    example_backward_compatibility(circuit)
+    # Run the examples with new strategy naming
+    example_default_strategies(circuit)
+    example_qiskit_strategy(circuit)
+    example_constructor_strategies(circuit)
     example_complexity_metrics(circuit)
-    example_multiple_metrics(circuit)
+    example_multiple_strategies(circuit)
 
     # Run success rate examples
     _, job = example_success_rate_metrics(circuit)
-    example_all_metrics(circuit, job)
+    example_all_strategies(circuit, job)
 
     # Run multiple jobs success rate example
     example_multiple_jobs_success_rate(circuit)
