@@ -256,7 +256,7 @@
 <p>Scanner class for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.scanner.Scanner">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Scanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.scanner.Scanner" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Scanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.scanner.Scanner" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for analyzing quantum circuits.</p>
 <p>This class provides methods for analyzing quantum circuits using various metrics.</p>
@@ -267,17 +267,32 @@
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>]</span>) – The quantum circuit to analyze</p></li>
 <li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Job</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The job that executed the circuit</p></li>
 <li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="result.html#id0" title="qward.result.Result"><code class="xref py py-class docutils literal notranslate"><span class="pre">Result</span></code></a>]</span>) – The result of the job execution</p></li>
-<li><p><strong>metrics</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Optional list of metric classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner’s circuit if it has one.</p></li>
+<li><p><strong>calculators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Optional list of metric calculator classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner’s circuit if it has one.</p></li>
+<li><p><strong>metrics</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Deprecated. Use ‘calculators’ instead. Maintained for backward compatibility.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.scanner.Scanner.add_metric">
-<span class="sig-name descname"><span class="pre">add_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.scanner.Scanner.add_metric" title="Link to this definition">¶</a></dt>
-<dd><p>Add a metric to the scanner.</p>
+<dt class="sig sig-object py" id="qward.scanner.Scanner.add_calculator">
+<span class="sig-name descname"><span class="pre">add_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_calculator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.scanner.Scanner.add_calculator" title="Link to this definition">¶</a></dt>
+<dd><p>Add a metric calculator to the scanner.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></span>) – The metric to add</p>
+<dd class="field-odd"><p><strong>calculator</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></span>) – The metric calculator to add</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.scanner.Scanner.add_metric">
+<span class="sig-name descname"><span class="pre">add_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.scanner.Scanner.add_metric" title="Link to this definition">¶</a></dt>
+<dd><p>Add a metric to the scanner (backward compatibility alias for add_calculator).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></span>) – The metric calculator to add</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -298,6 +313,20 @@ For SuccessRate metrics, returns two DataFrames:
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qward.scanner.Scanner.calculators">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculators</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><span class="pre">MetricCalculator</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qward.scanner.Scanner.calculators" title="Link to this definition">¶</a></dt>
+<dd><p>Get the metric calculators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The metric calculators</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator">MetricCalculator</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -332,14 +361,14 @@ For SuccessRate metrics, returns two DataFrames:
 
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.scanner.Scanner.metrics">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric"><span class="pre">Metric</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qward.scanner.Scanner.metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><span class="pre">MetricCalculator</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qward.scanner.Scanner.metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get the metrics (backward compatibility alias for calculators).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The metrics</p>
+<dd class="field-odd"><p>The metric calculators</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric">Metric</a>]</p>
+<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator">MetricCalculator</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -404,7 +433,7 @@ For SuccessRate metrics, returns two DataFrames:
 
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Scanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Scanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for analyzing quantum circuits.</p>
 <p>This class provides methods for analyzing quantum circuits using various metrics.</p>
@@ -415,17 +444,18 @@ For SuccessRate metrics, returns two DataFrames:
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code>]</span>) – The quantum circuit to analyze</p></li>
 <li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Job</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – The job that executed the circuit</p></li>
 <li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="result.html#id0" title="qward.result.Result"><code class="xref py py-class docutils literal notranslate"><span class="pre">Result</span></code></a>]</span>) – The result of the job execution</p></li>
-<li><p><strong>metrics</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Optional list of metric classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner’s circuit if it has one.</p></li>
+<li><p><strong>calculators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Optional list of metric calculator classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner’s circuit if it has one.</p></li>
+<li><p><strong>metrics</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>]</span>) – Deprecated. Use ‘calculators’ instead. Maintained for backward compatibility.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">add_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd><p>Add a metric to the scanner.</p>
+<span class="sig-name descname"><span class="pre">add_calculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_calculator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Add a metric calculator to the scanner.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></span>) – The metric to add</p>
+<dd class="field-odd"><p><strong>calculator</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></span>) – The metric calculator to add</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -435,7 +465,21 @@ For SuccessRate metrics, returns two DataFrames:
 
 <dl class="py method">
 <dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">calculate_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.calculate_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.add_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>Add a metric to the scanner (backward compatibility alias for add_calculator).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metric</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></span>) – The metric calculator to add</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">calculate_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.calculate_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate metrics for all jobs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -451,8 +495,22 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id3">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id4">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculators</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><span class="pre">MetricCalculator</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dd><p>Get the metric calculators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The metric calculators</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator">MetricCalculator</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id5">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
 <dd><p>Get the quantum circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -465,8 +523,8 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id4">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">job</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AerJob</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Job</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id6">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">job</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AerJob</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Job</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
 <dd><p>Get the job that executed the circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -479,22 +537,22 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id5">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric"><span class="pre">Metric</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<dt class="sig sig-object py" id="id7">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><span class="pre">MetricCalculator</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dd><p>Get the metrics (backward compatibility alias for calculators).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The metrics</p>
+<dd class="field-odd"><p>The metric calculators</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.Metric">Metric</a>]</p>
+<dd class="field-even"><p>List[<a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator">MetricCalculator</a>]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id6">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="result.html#id0" title="qward.result.Result"><span class="pre">Result</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id8">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="result.html#id0" title="qward.result.Result"><span class="pre">Result</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
 <dd><p>Get the result of the job execution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -507,8 +565,8 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id7">
-<span class="sig-name descname"><span class="pre">set_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">set_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
 <dd><p>Set the quantum circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -521,8 +579,8 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id8">
-<span class="sig-name descname"><span class="pre">set_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">set_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id10" title="Link to this definition">¶</a></dt>
 <dd><p>Set the job that executed the circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -535,8 +593,8 @@ For SuccessRate metrics, returns two DataFrames:
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id9">
-<span class="sig-name descname"><span class="pre">set_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">set_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/scanner.html#Scanner.set_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition">¶</a></dt>
 <dd><p>Set the result of the job execution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -609,8 +667,10 @@ For SuccessRate metrics, returns two DataFrames:
             <ul>
 <li><a class="reference internal" href="#">Scanner</a><ul>
 <li><a class="reference internal" href="#qward.scanner.Scanner"><code class="docutils literal notranslate"><span class="pre">Scanner</span></code></a><ul>
+<li><a class="reference internal" href="#qward.scanner.Scanner.add_calculator"><code class="docutils literal notranslate"><span class="pre">Scanner.add_calculator()</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.add_metric"><code class="docutils literal notranslate"><span class="pre">Scanner.add_metric()</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.calculate_metrics"><code class="docutils literal notranslate"><span class="pre">Scanner.calculate_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.scanner.Scanner.calculators"><code class="docutils literal notranslate"><span class="pre">Scanner.calculators</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.circuit"><code class="docutils literal notranslate"><span class="pre">Scanner.circuit</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.job"><code class="docutils literal notranslate"><span class="pre">Scanner.job</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.metrics"><code class="docutils literal notranslate"><span class="pre">Scanner.metrics</span></code></a></li>
@@ -621,15 +681,17 @@ For SuccessRate metrics, returns two DataFrames:
 </ul>
 </li>
 <li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Scanner</span></code></a><ul>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Scanner.add_metric()</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Scanner.calculate_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">Scanner.circuit</span></code></a></li>
-<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Scanner.job</span></code></a></li>
-<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Scanner.metrics</span></code></a></li>
-<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Scanner.result</span></code></a></li>
-<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">Scanner.set_circuit()</span></code></a></li>
-<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">Scanner.set_job()</span></code></a></li>
-<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">Scanner.set_result()</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Scanner.add_calculator()</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Scanner.add_metric()</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">Scanner.calculate_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Scanner.calculators</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Scanner.circuit</span></code></a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Scanner.job</span></code></a></li>
+<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">Scanner.metrics</span></code></a></li>
+<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">Scanner.result</span></code></a></li>
+<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">Scanner.set_circuit()</span></code></a></li>
+<li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">Scanner.set_job()</span></code></a></li>
+<li><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">Scanner.set_result()</span></code></a></li>
 </ul>
 </li>
 </ul>
