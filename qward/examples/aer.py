@@ -263,7 +263,12 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     Example 7: Using SuccessRate with multiple Aer simulator jobs
 
     This example demonstrates how to use SuccessRate with multiple Aer simulator jobs
-    to analyze the success rate across different runs.
+    to analyze the success rate across different runs. It includes comprehensive
+    visualizations showing:
+    - Individual job success vs error rates
+    - Fidelity comparison across jobs
+    - Shot distribution (successful vs failed)
+    - Aggregate statistics summary
 
     Args:
         circuit: The quantum circuit to analyze
@@ -354,6 +359,23 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     # Display the aggregate metrics
     print("\nSuccess rate aggregate metrics DataFrame:")
     display(metrics_dict["SuccessRate.aggregate"])
+
+    # Create visualizations using QWARD's visualization module
+    from qward.visualization import SuccessRateVisualizer, PlotConfig
+
+    print("\nCreating visualizations using QWARD SuccessRateVisualizer...")
+
+    # Create a custom configuration for the plots
+    config = PlotConfig(figsize=(10, 6), style="quantum", dpi=300, save_format="png")
+
+    # Initialize the visualizer
+    visualizer = SuccessRateVisualizer(metrics_dict=metrics_dict, output_dir="img", config=config)
+
+    # Option 1: Create all individual plots
+    figures = visualizer.plot_all(save=True, show=True)
+
+    # Option 2: Create a comprehensive dashboard (uncomment to use instead)
+    # dashboard = visualizer.create_dashboard(save=True, show=True)
 
     # Compare individual job results
     print("\nIndividual job results:")
