@@ -5,7 +5,7 @@ Base classes for QWARD visualization system.
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -83,7 +83,7 @@ class BaseVisualizer(ABC):
         else:
             plt.style.use("default")
 
-    def save_plot(self, fig: plt.Figure, filename: str, **kwargs) -> str:
+    def save_plot(self, fig: plt.Figure, filename: str, **kwargs: Any) -> str:
         """
         Save a plot with consistent settings.
 
@@ -97,7 +97,7 @@ class BaseVisualizer(ABC):
         """
         filepath = os.path.join(self.output_dir, f"{filename}.{self.config.save_format}")
 
-        save_kwargs = {
+        save_kwargs: Dict[str, Any] = {
             "dpi": self.config.dpi,
             "bbox_inches": "tight",
             "facecolor": "white",
@@ -197,7 +197,7 @@ class MetricVisualizer(BaseVisualizer):
         """
         # Calculate totals and create summary text
         summary_lines = []
-        for idx, (job_name, row) in enumerate(data.iterrows()):
+        for job_name, row in data.iterrows():
             total = row.sum()
             summary_lines.append(f"{job_name}: {int(total)} total")
             for col_name, value in row.items():
@@ -216,7 +216,7 @@ class MetricVisualizer(BaseVisualizer):
                 transform=ax.transAxes,
                 fontsize=9,
                 verticalalignment="center",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.8),
+                bbox={"boxstyle": "round,pad=0.3", "facecolor": "lightgray", "alpha": 0.8},
             )
         elif position == "bottom_left":
             # Place in bottom left corner of plot
@@ -227,7 +227,7 @@ class MetricVisualizer(BaseVisualizer):
                 transform=ax.transAxes,
                 fontsize=9,
                 verticalalignment="bottom",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.9),
+                bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "alpha": 0.9},
             )
         elif position == "top_right":
             # Place in top right corner of plot
@@ -239,5 +239,5 @@ class MetricVisualizer(BaseVisualizer):
                 fontsize=9,
                 verticalalignment="top",
                 horizontalalignment="right",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.9),
+                bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "alpha": 0.9},
             )

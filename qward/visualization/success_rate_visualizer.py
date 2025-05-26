@@ -46,11 +46,8 @@ class SuccessRateVisualizer(MetricVisualizer):
             ax: Matplotlib axes
             data: DataFrame with the stacked bar data
         """
-        # Get the bar containers from the axes
-        containers = ax.containers
-
         # For each job (x-position)
-        for i, (job_name, row) in enumerate(data.iterrows()):
+        for i, (_, row) in enumerate(data.iterrows()):
             total_height = row.sum()
 
             # Add total label on top of the stacked bar
@@ -66,7 +63,7 @@ class SuccessRateVisualizer(MetricVisualizer):
 
             # Add individual segment labels within each segment
             cumulative_height = 0
-            for j, (segment_name, value) in enumerate(row.items()):
+            for value in row.values:
                 if value > 0:  # Only add labels for non-zero segments
                     segment_center = cumulative_height + value / 2
                     ax.text(
@@ -207,7 +204,7 @@ class SuccessRateVisualizer(MetricVisualizer):
         # Create plot with extra space for summary
         fig, ax = plt.subplots(figsize=(self.config.figsize[0] + 3, self.config.figsize[1]))
 
-        bars = shot_data.plot(
+        shot_data.plot(
             kind="bar",
             stacked=True,
             ax=ax,

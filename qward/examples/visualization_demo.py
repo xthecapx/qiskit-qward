@@ -97,16 +97,16 @@ def demo_success_rate_visualization():
 
     # Create specific plots
     print("Creating success vs error comparison...")
-    fig1 = visualizer3.plot_success_error_comparison(save=True, show=False)
+    visualizer3.plot_success_error_comparison(save=True, show=False)
 
     print("Creating fidelity comparison...")
-    fig2 = visualizer3.plot_fidelity_comparison(save=True, show=False)
+    visualizer3.plot_fidelity_comparison(save=True, show=False)
 
     print("Creating shot distribution...")
-    fig3 = visualizer3.plot_shot_distribution(save=True, show=False)
+    visualizer3.plot_shot_distribution(save=True, show=False)
 
     print("Creating aggregate summary...")
-    fig4 = visualizer3.plot_aggregate_summary(save=True, show=False)
+    visualizer3.plot_aggregate_summary(save=True, show=False)
 
     print("✅ Created 4 individual plots")
 
@@ -116,7 +116,7 @@ def demo_success_rate_visualization():
     print("=" * 40)
 
     visualizer4 = SuccessRateVisualizer(metrics_dict, output_dir="img/demo_plots_dashboard")
-    dashboard = visualizer4.create_dashboard(save=True, show=False)
+    visualizer4.create_dashboard(save=True, show=False)
     print("✅ Created comprehensive dashboard")
 
     print("\n" + "=" * 40)
