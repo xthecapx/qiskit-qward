@@ -76,7 +76,7 @@ counts = job.get_counts(qc)
 
 # It's good practice to also have the Qiskit Job object if available
 # For this example, we use AerSimulator().run().result(), so the job object itself is ephemeral.
-# If using QiskitRuntimeService, you'd have a job object.
+# If using IBM Quantum runtime services, you'd have a job object.
 qiskit_job_instance = simulator.run(qc, shots=2048) # Re-run to get a job object for demonstration
 
 # 3. Instantiate QWARD Scanner and Result
@@ -190,32 +190,7 @@ To run on real quantum hardware via IBM Quantum, you need an IBM Quantum account
 2.  Get your API token from your account settings.
 3.  You can set environment variables `IBM_QUANTUM_TOKEN` and `IBM_QUANTUM_CHANNEL` (e.g. `ibm_quantum`), or manage credentials as per Qiskit's documentation for `QiskitRuntimeService`.
 
-Qward provides `qward.runtime.qiskit_runtime.QiskitRuntimeService` which can be used to run circuits on IBM backends. It offers a `run_and_watch()` method for convenience.
-
-```python
-# from qward.runtime import QiskitRuntimeService
-# from qiskit import QuantumCircuit
-
-# qc = QuantumCircuit(2)
-# qc.h(0)
-# qc.cx(0,1)
-
-# For IBM Quantum:
-# service = QiskitRuntimeService(channel='ibm_quantum') # Ensure token is available
-# runtime_service_qward = QiskitRuntimeServiceQward( # This class name is from docs/architecture.md, ensure correct import
-#     circuit=qc, 
-#     backend_name='ibmq_qasm_simulator', # or a real backend name
-#     service=service # Pass the base service
-# )
-# qward_result = runtime_service_qward.run_and_watch()
-# print(qward_result.counts)
-
-# Note: The above QiskitRuntimeServiceQward usage needs to be aligned with actual class name and constructor.
-# The example from architecture.md is:
-# runtime_service = QiskitRuntimeService(circuit=circuit, backend="ibmq_qasm_simulator")
-# result = runtime_service.run_and_watch()
-# This implies QiskitRuntimeService in qward.runtime directly takes circuit and backend.
-```
+Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward's Scanner and metrics.
 
 ## Next Steps
 

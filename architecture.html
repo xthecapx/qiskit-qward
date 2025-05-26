@@ -206,7 +206,6 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/runtime.html">Runtime</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
@@ -259,30 +258,26 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components:</p>
 <div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>classDiagram
+    %% Strategy Pattern Implementation for Quantum Circuit Metrics Analysis
+    
     class Scanner {
+        &lt;&lt;Context&gt;&gt;
         +circuit: QuantumCircuit
         +job: Union[AerJob, QiskitJob]
         +result: Result
-        +metrics: List[Metric]
+        +metrics: List[MetricStrategy]
         +__init__(circuit, job, result, metrics)
-        +add_metric(metric)
+        +add_metric(metric_strategy)
         +calculate_metrics()
+        +set_circuit(circuit)
+        +set_job(job)
+        +set_result(result)
     }
 
-    class QiskitRuntimeService {
-        &lt;&lt;extends&gt;&gt;
-        +circuit: QuantumCircuit
-        +backend: Union[Backend, str]
-        +job: Union[AerJob, RuntimeJob]
-        +result: Result
-        +__init__(circuit, backend)
-        +run()
-        +check_status()
-        +get_results()
-        +run_and_watch()
-    }
+
 
     class Result {
+        &lt;&lt;Data&gt;&gt;
         +job: Union[AerJob, QiskitJob]
         +counts: Dict[str, int]
         +metadata: Dict[str, Any]
@@ -292,21 +287,62 @@
         +update_from_job()
     }
 
-    class Metric {
-        &lt;&lt;abstract&gt;&gt;
-        # Attributes are initialized by _get_metric_type() and _get_metric_id() in __init__
-        # _metric_type: MetricsType  (accessed via property)
-        # _id: MetricsId (accessed via property)
-        _circuit: QuantumCircuit # Direct attribute from __init__
+    class MetricStrategy {
+        &lt;&lt;Strategy Interface&gt;&gt;
+        # Attributes initialized in __init__
+        _circuit: QuantumCircuit
+        _metric_type: MetricsType
+        _id: MetricsId
         +__init__(circuit)
         +metric_type: MetricsType
         +id: MetricsId
         +name: str
         +circuit: QuantumCircuit
-        +_get_metric_type() # abstract
-        +_get_metric_id() # abstract
-        +is_ready() # abstract
-        +get_metrics() # abstract
+        +_get_metric_type()* 
+        +_get_metric_id()*
+        +is_ready()*
+        +get_metrics()*
+    }
+
+    class QiskitMetricsStrategy {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        +__init__(circuit)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +get_basic_metrics()
+        +get_instruction_metrics()
+        +get_scheduling_metrics()
+    }
+
+    class ComplexityMetricsStrategy {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        +__init__(circuit)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +get_gate_based_metrics()
+        +get_entanglement_metrics()
+        +get_standardized_metrics()
+        +get_advanced_metrics()
+        +get_derived_metrics()
+        +estimate_quantum_volume()
+    }
+
+    class SuccessRateStrategy {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        _job: Optional[Union[AerJob, QiskitJob]]
+        _jobs: List[Union[AerJob, QiskitJob]]
+        _result: Optional[Dict]
+        success_criteria: Callable
+        +__init__(circuit, job, jobs, result, success_criteria)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +add_job(job)
     }
 
     class MetricsType {
@@ -322,47 +358,29 @@
         SUCCESS_RATE
     }
 
-    class QiskitMetrics {
-        +__init__(circuit)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
-        +get_basic_metrics()
-        +get_instruction_metrics()
-        +get_scheduling_metrics()
-    }
+    %% Strategy Pattern Relationships
+    Scanner --&gt; MetricStrategy : uses strategies
+    Scanner --&gt; Result : manages
+    
+    %% Strategy Interface Implementation
+    MetricStrategy &lt;|.. QiskitMetricsStrategy : implements
+    MetricStrategy &lt;|.. ComplexityMetricsStrategy : implements
+    MetricStrategy &lt;|.. SuccessRateStrategy : implements
+    
+    %% Strategy Interface Dependencies
+    MetricStrategy --&gt; MetricsType : defines type
+    MetricStrategy --&gt; MetricsId : defines identifier
 
-    class ComplexityMetrics {
-        +__init__(circuit)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
-    }
-
-    class SuccessRate {
-        # Attributes from __init__
-        _job: Optional[Union[AerJob, QiskitJob]]
-        _jobs: List[Union[AerJob, QiskitJob]]
-        _result: Optional[Dict] # Note: This is Dict, not qward.Result
-        success_criteria: Callable
-        # Inherits _circuit from Metric
-
-        +__init__(circuit, job, jobs, result, success_criteria)
-        +_get_metric_type() # Implemented from Metric
-        # _get_metric_id() // Implemented from Metric
-        +is_ready() # Implemented from Metric
-        +get_metrics() # Implemented from Metric
-        +add_job(job) # New method
-    }
-
-    Scanner --&gt; Result
-    Scanner --&gt; Metric
-    QiskitRuntimeService --&gt; Result
-    Metric &lt;|-- QiskitMetrics
-    Metric &lt;|-- ComplexityMetrics
-    Metric &lt;|-- SuccessRate
-    Metric --&gt; MetricsType
-    Metric --&gt; MetricsId
+    %% Notes about Strategy Pattern
+    note for Scanner &quot;Context: Maintains references to metric strategies and delegates metric calculation work to them. Can switch strategies at runtime via add_metric().&quot;
+    
+    note for MetricStrategy &quot;Strategy Interface: Defines common interface for all metric calculation algorithms. Each strategy bundles related metrics.&quot;
+    
+    note for QiskitMetricsStrategy &quot;Concrete Strategy: Bundles Qiskit-native metrics (basic, instruction, scheduling)&quot;
+    
+    note for ComplexityMetricsStrategy &quot;Concrete Strategy: Bundles complexity analysis metrics (gate-based, entanglement, standardized, advanced, derived)&quot;
+    
+    note for SuccessRateStrategy &quot;Concrete Strategy: Bundles execution success metrics (success rate, fidelity, error rate)&quot;
 </pre></div>
 </div>
 </section>
@@ -373,8 +391,7 @@
 ├── __init__.py                 # Main package initialization
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
-│   ├── __init__.py
-│   └── qiskit_runtime.py       # QiskitRuntimeService implementation
+│   └── __init__.py
 ├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
@@ -411,10 +428,6 @@
 <h3>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h3>
 <p>The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them.</p>
 </section>
-<section id="qiskitruntimeservice">
-<h3>QiskitRuntimeService<a class="headerlink" href="#qiskitruntimeservice" title="Link to this heading">¶</a></h3>
-<p>The QiskitRuntimeService class extends Qiskit’s <code class="docutils literal notranslate"><span class="pre">QiskitRuntimeService</span></code> class to provide enhanced functionality for quantum circuit execution. It inherits all standard Qiskit runtime capabilities and adds the <code class="docutils literal notranslate"><span class="pre">run_and_watch</span></code> method for improved job monitoring. This class manages the job lifecycle and result collection, providing a streamlined interface for executing circuits on IBM quantum hardware.</p>
-</section>
 <section id="result">
 <h3>Result<a class="headerlink" href="#result" title="Link to this heading">¶</a></h3>
 <p>The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.</p>
@@ -448,34 +461,6 @@
 
 <span class="c1"># Calculate metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<section id="running-circuits-with-qiskitruntimeservice">
-<h3>Running Circuits with QiskitRuntimeService<a class="headerlink" href="#running-circuits-with-qiskitruntimeservice" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitRuntimeService</span>
-
-<span class="c1"># Create a quantum circuit</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="c1"># Create a runtime service instance</span>
-<span class="n">runtime_service</span> <span class="o">=</span> <span class="n">QiskitRuntimeService</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;ibmq_qasm_simulator&quot;</span><span class="p">)</span>
-
-<span class="c1"># Run the circuit with automatic status monitoring</span>
-<span class="c1"># This will:</span>
-<span class="c1"># 1. Generate a preset pass manager for the backend</span>
-<span class="c1"># 2. Create a sampler for the circuit</span>
-<span class="c1"># 3. Run the circuit and monitor its status</span>
-<span class="c1"># 4. Return the results when complete</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">runtime_service</span><span class="o">.</span><span class="n">run_and_watch</span><span class="p">()</span>
-
-<span class="c1"># Or use the standard approach</span>
-<span class="n">runtime_service</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="n">status</span> <span class="o">=</span> <span class="n">runtime_service</span><span class="o">.</span><span class="n">check_status</span><span class="p">()</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">runtime_service</span><span class="o">.</span><span class="n">get_results</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -552,17 +537,8 @@
 </li>
 <li><p><strong>Execution</strong></p>
 <ul class="simple">
-<li><p>Use QiskitRuntimeService for IBM backend execution</p></li>
-<li><p>Use run_and_watch() for simplified job monitoring and execution</p></li>
-<li><p>The run_and_watch() method handles:</p>
-<ul>
-<li><p>Circuit transpilation with preset pass manager</p></li>
-<li><p>Sampler creation and configuration</p></li>
-<li><p>Job submission and monitoring</p></li>
-<li><p>Result collection and processing</p></li>
-</ul>
-</li>
 <li><p>Handle job and result errors appropriately</p></li>
+<li><p>Use appropriate Qiskit runtime services for backend execution</p></li>
 </ul>
 </li>
 <li><p><strong>Result Management</strong></p>
@@ -644,7 +620,6 @@
 <li><a class="reference internal" href="#folder-structure">Folder Structure</a></li>
 <li><a class="reference internal" href="#components">Components</a><ul>
 <li><a class="reference internal" href="#scanner">Scanner</a></li>
-<li><a class="reference internal" href="#qiskitruntimeservice">QiskitRuntimeService</a></li>
 <li><a class="reference internal" href="#result">Result</a></li>
 <li><a class="reference internal" href="#metric">Metric</a></li>
 <li><a class="reference internal" href="#successrate">SuccessRate</a></li>
@@ -652,7 +627,6 @@
 </li>
 <li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
 <li><a class="reference internal" href="#basic-circuit-analysis">Basic Circuit Analysis</a></li>
-<li><a class="reference internal" href="#running-circuits-with-qiskitruntimeservice">Running Circuits with QiskitRuntimeService</a></li>
 <li><a class="reference internal" href="#analyzing-results">Analyzing Results</a></li>
 <li><a class="reference internal" href="#using-custom-metrics">Using Custom Metrics</a></li>
 </ul>

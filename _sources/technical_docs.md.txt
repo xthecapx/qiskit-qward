@@ -70,16 +70,8 @@ A utility class for encapsulating job execution data.
 -   Provides `save()` and `load()` methods for serialization to/from JSON.
 -   `update_from_job()`: If a job is stored, this method (re-)populates counts and basic metadata from `job.result()`.
 
-### 4. `QiskitRuntimeService` (`qward.runtime.qiskit_runtime.QiskitRuntimeService`)
 
-Extends Qiskit's base `QiskitRuntimeService`.
--   Constructor: `QiskitRuntimeService(circuit: QuantumCircuit, backend: Union[Backend, str], **kwargs)`
-    -   Takes a `QuantumCircuit` and a Qiskit `Backend` object or backend name string.
-    -   Passes `**kwargs` to the base `QiskitRuntimeService` constructor (e.g., for channel, token).
--   Key Methods:
-    -   `run()`: Executes the circuit using a `SamplerV2` on the specified backend.
-    -   `run_and_watch()`: Runs the circuit and polls the job status until completion or failure, then returns a `qward.Result` object.
-    -   `get_results()`: Retrieves results from the completed job and returns a `qward.Result`.
+
 
 ## Circuit Complexity Metrics (via `ComplexityMetrics`)
 
@@ -172,26 +164,30 @@ results = scanner.calculate_metrics()
 # print(results["SuccessRate.aggregate"])
 ```
 
-### Pattern 3: Using `QiskitRuntimeService`
+### Pattern 3: Using Standard Qiskit Runtime Services
 ```python
 # from qiskit import QuantumCircuit
-# from qward.runtime import QiskitRuntimeService as QwardRTService # alias for clarity
-# from qward import Scanner
+# from qiskit_ibm_runtime import QiskitRuntimeService
+# from qward import Scanner, Result
 # from qward.metrics import SuccessRate
 
 # qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
-# Note: Ensure IBMQ credentials are set up if not using a simulator backend
-# qward_runtime = QwardRTService(circuit=qc, backend_name='ibmq_qasm_simulator') 
-# result_from_runtime = qward_runtime.run_and_watch() # This is a qward.Result object
+# Note: Ensure IBM Quantum credentials are set up
+# service = QiskitRuntimeService()
+# backend = service.backend('ibmq_qasm_simulator')
+# job = service.run(qc, backend=backend)
+# result = job.result()
+# counts = result.get_counts()
 
-# scanner = Scanner(circuit=qc, job=result_from_runtime.job, result=result_from_runtime)
+# qward_result = Result(job=job, counts=counts)
+# scanner = Scanner(circuit=qc, job=job, result=qward_result)
 # def criteria(s): return s == '00' or s == '11'
-# scanner.add_metric(SuccessRate(circuit=qc, job=result_from_runtime.job, success_criteria=criteria))
+# scanner.add_metric(SuccessRate(circuit=qc, job=job, success_criteria=criteria))
 # metrics = scanner.calculate_metrics()
 # print(metrics["SuccessRate.aggregate"])
 ```
 
 ## Conclusion
 
-Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the `Metric` system, and associated helper classes like `Result` and `QiskitRuntimeService`, developers can gain significant insights into their quantum circuits and execution outcomes.
+Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the `Metric` system, and associated helper classes like `Result`, developers can gain significant insights into their quantum circuits and execution outcomes.
