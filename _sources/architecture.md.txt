@@ -4,7 +4,69 @@ This document outlines the architecture of the QWARD library and provides usage 
 
 ## Overview
 
-QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components:
+QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components and follows the Strategy pattern for extensible metric calculation.
+
+## Simplified Architecture
+
+This simplified view shows the core Strategy pattern implementation in QWARD, focusing on the essential components and their relationships.
+
+```{mermaid}
+classDiagram
+    %% Simplified Strategy Pattern for QWARD
+    
+    class Scanner {
+        <<Context>>
+        +circuit: QuantumCircuit
+        +calculators: List[MetricCalculator]
+        +calculate_metrics() DataFrame
+    }
+
+    class MetricCalculator {
+        <<Strategy Interface>>
+        +get_metrics() Dict
+    }
+
+    class QiskitMetrics {
+        <<Concrete Strategy>>
+        +get_metrics() Dict
+    }
+
+    class ComplexityMetrics {
+        <<Concrete Strategy>>
+        +get_metrics() Dict
+    }
+
+    class SuccessRate {
+        <<Concrete Strategy>>
+        +get_metrics() Dict
+    }
+
+    %% Strategy Pattern Relationships
+    Scanner --> MetricCalculator : uses strategies
+    
+    %% Strategy Interface Implementation
+    MetricCalculator <|.. QiskitMetrics : implements
+    MetricCalculator <|.. ComplexityMetrics : implements
+    MetricCalculator <|.. SuccessRate : implements
+
+    %% Pattern Notes
+    note for Scanner "Context: Orchestrates metric calculation and returns consolidated DataFrame"
+    note for MetricCalculator "Strategy Interface: Common interface for all metric calculation algorithms"
+    note for QiskitMetrics "Returns Dict of Qiskit-native metrics"
+    note for ComplexityMetrics "Returns Dict of complexity analysis metrics"
+    note for SuccessRate "Returns Dict of execution success metrics"
+```
+
+### Key Points
+
+- **Scanner (Context)**: Maintains metric calculators and delegates calculation work
+- **MetricCalculator (Interface)**: Defines common `get_metrics()` method returning Dict
+- **Concrete Strategies**: Each implements different metric calculation algorithms
+- **Strategy Pattern Benefits**: Runtime strategy switching, extensibility, separation of concerns
+
+## Detailed Architecture
+
+The complete architecture with all implementation details:
 
 ```{mermaid}
 classDiagram

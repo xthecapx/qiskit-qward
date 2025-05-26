@@ -256,7 +256,69 @@
 <p>This document outlines the architecture of the QWARD library and provides usage examples.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components:</p>
+<p>QWARD is designed with a clear separation between execution and analysis components. The architecture consists of four main components and follows the Strategy pattern for extensible metric calculation.</p>
+</section>
+<section id="simplified-architecture">
+<h2>Simplified Architecture<a class="headerlink" href="#simplified-architecture" title="Link to this heading">¶</a></h2>
+<p>This simplified view shows the core Strategy pattern implementation in QWARD, focusing on the essential components and their relationships.</p>
+<pre  class="mermaid">
+        classDiagram
+    %% Simplified Strategy Pattern for QWARD
+    
+    class Scanner {
+        &lt;&lt;Context&gt;&gt;
+        +circuit: QuantumCircuit
+        +calculators: List[MetricCalculator]
+        +calculate_metrics() DataFrame
+    }
+
+    class MetricCalculator {
+        &lt;&lt;Strategy Interface&gt;&gt;
+        +get_metrics() Dict
+    }
+
+    class QiskitMetrics {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        +get_metrics() Dict
+    }
+
+    class ComplexityMetrics {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        +get_metrics() Dict
+    }
+
+    class SuccessRate {
+        &lt;&lt;Concrete Strategy&gt;&gt;
+        +get_metrics() Dict
+    }
+
+    %% Strategy Pattern Relationships
+    Scanner --&gt; MetricCalculator : uses strategies
+    
+    %% Strategy Interface Implementation
+    MetricCalculator &lt;|.. QiskitMetrics : implements
+    MetricCalculator &lt;|.. ComplexityMetrics : implements
+    MetricCalculator &lt;|.. SuccessRate : implements
+
+    %% Pattern Notes
+    note for Scanner &quot;Context: Orchestrates metric calculation and returns consolidated DataFrame&quot;
+    note for MetricCalculator &quot;Strategy Interface: Common interface for all metric calculation algorithms&quot;
+    note for QiskitMetrics &quot;Returns Dict of Qiskit-native metrics&quot;
+    note for ComplexityMetrics &quot;Returns Dict of complexity analysis metrics&quot;
+    note for SuccessRate &quot;Returns Dict of execution success metrics&quot;
+    </pre><section id="key-points">
+<h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Scanner (Context)</strong>: Maintains metric calculators and delegates calculation work</p></li>
+<li><p><strong>MetricCalculator (Interface)</strong>: Defines common <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> method returning Dict</p></li>
+<li><p><strong>Concrete Strategies</strong>: Each implements different metric calculation algorithms</p></li>
+<li><p><strong>Strategy Pattern Benefits</strong>: Runtime strategy switching, extensibility, separation of concerns</p></li>
+</ul>
+</section>
+</section>
+<section id="detailed-architecture">
+<h2>Detailed Architecture<a class="headerlink" href="#detailed-architecture" title="Link to this heading">¶</a></h2>
+<p>The complete architecture with all implementation details:</p>
 <pre  class="mermaid">
         classDiagram
     %% Strategy Pattern Implementation for Quantum Circuit Metrics Analysis
@@ -616,6 +678,11 @@
             <ul>
 <li><a class="reference internal" href="#">QWARD Architecture</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#simplified-architecture">Simplified Architecture</a><ul>
+<li><a class="reference internal" href="#key-points">Key Points</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#detailed-architecture">Detailed Architecture</a></li>
 <li><a class="reference internal" href="#folder-structure">Folder Structure</a></li>
 <li><a class="reference internal" href="#components">Components</a><ul>
 <li><a class="reference internal" href="#scanner">Scanner</a></li>
