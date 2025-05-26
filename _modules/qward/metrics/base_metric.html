@@ -247,7 +247,7 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.base_metric</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Base metric class for QWARD.</span>
+<span class="sd">Base metric calculator class for QWARD.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
@@ -259,19 +259,19 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
 
 
-<div class="viewcode-block" id="Metric">
-<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.Metric">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Metric</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="MetricCalculator">
+<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.MetricCalculator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetricCalculator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base class for all metrics in QWARD.</span>
+<span class="sd">    Base class for all metric calculators in QWARD.</span>
 
-<span class="sd">    This class defines the interface that all metrics must implement,</span>
+<span class="sd">    This class defines the interface that all metric calculators must implement,</span>
 <span class="sd">    providing methods for metric calculation and type identification.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a Metric object.</span>
+<span class="sd">        Initialize a MetricCalculator object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit to analyze</span>
@@ -340,8 +340,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="Metric.is_ready">
-<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.Metric.is_ready">[docs]</a>
+<div class="viewcode-block" id="MetricCalculator.is_ready">
+<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.MetricCalculator.is_ready">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -353,8 +353,8 @@
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="Metric.get_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.Metric.get_metrics">[docs]</a>
+<div class="viewcode-block" id="MetricCalculator.get_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_base.html#qward.metrics.base_metric.MetricCalculator.get_metrics">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
