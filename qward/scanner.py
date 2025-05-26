@@ -2,7 +2,7 @@
 Scanner class for QWARD.
 """
 
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 
 from qiskit import QuantumCircuit
@@ -15,9 +15,9 @@ from qward.result import Result
 
 class Scanner:
     """
-    Class for analyzing quantum circuits.
+    Class for analyzing quantum circuits using the Strategy pattern.
 
-    This class provides methods for analyzing quantum circuits using various metrics.
+    This class provides methods for analyzing quantum circuits using various metric strategies.
     """
 
     def __init__(
@@ -26,8 +26,7 @@ class Scanner:
         *,
         job: Optional[Union[AerJob, QiskitJob]] = None,
         result: Optional[Result] = None,
-        calculators: Optional[list] = None,
-        metrics: Optional[list] = None,  # Backward compatibility
+        strategies: Optional[list] = None,
     ):
         """
         Initialize a Scanner object.
@@ -36,35 +35,32 @@ class Scanner:
             circuit: The quantum circuit to analyze
             job: The job that executed the circuit
             result: The result of the job execution
-            calculators: Optional list of metric calculator classes or instances. If a class is provided, it will be instantiated with the circuit. If an instance is provided, its circuit must match the Scanner's circuit if it has one.
-            metrics: Deprecated. Use 'calculators' instead. Maintained for backward compatibility.
+            strategies: Optional list of metric strategy classes or instances.
+                       If a class is provided, it will be instantiated with the circuit.
+                       If an instance is provided, its circuit must match the Scanner's circuit.
         """
         self._circuit = circuit
         self._job = job
         self._result = result
-        self._calculators: List[MetricCalculator] = []
+        self._strategies: List[MetricCalculator] = []
 
-        # Handle backward compatibility
-        metric_list = calculators if calculators is not None else metrics
-
-        if metric_list is not None:
-            for calculator in metric_list:
-                # If calculator is a class (not instance), instantiate with circuit
-                if isinstance(calculator, type):
-                    self._calculators.append(calculator(circuit))
+        if strategies is not None:
+            for strategy in strategies:
+                # If strategy is a class (not instance), instantiate with circuit
+                if isinstance(strategy, type):
+                    self._strategies.append(strategy(circuit))
                 else:
-                    # If calculator is an instance, check for .circuit or ._circuit attribute
-                    calculator_circuit = getattr(calculator, "circuit", None)
-                    if calculator_circuit is None:
+                    # If strategy is an instance, check for .circuit or ._circuit attribute
+                    strategy_circuit = getattr(strategy, "circuit", None)
+                    if strategy_circuit is None:
                         # Try protected attribute (for base class)
-                        calculator_circuit = getattr(calculator, "_circuit", None)
-                    if calculator_circuit is not None:
-                        if calculator_circuit is not circuit:
+                        strategy_circuit = getattr(strategy, "_circuit", None)
+                    if strategy_circuit is not None:
+                        if strategy_circuit is not circuit:
                             raise ValueError(
-                                f"Calculator instance {calculator.__class__.__name__} was initialized with a different circuit than the Scanner."
+                                f"Strategy instance {strategy.__class__.__name__} was initialized with a different circuit than the Scanner."
                             )
-                    self._calculators.append(calculator)
-        # If no calculators provided, user can add them later with add_calculator
+                    self._strategies.append(strategy)
 
     @property
     def circuit(self) -> Optional[QuantumCircuit]:
@@ -97,46 +93,27 @@ class Scanner:
         return self._result
 
     @property
-    def calculators(self) -> List[MetricCalculator]:
+    def strategies(self) -> List[MetricCalculator]:
         """
-        Get the metric calculators.
+        Get the metric strategies.
 
         Returns:
-            List[MetricCalculator]: The metric calculators
+            List[MetricCalculator]: The metric strategies
         """
-        return self._calculators
+        return self._strategies
 
-    @property
-    def metrics(self) -> List[MetricCalculator]:
+    def add_strategy(self, strategy: MetricCalculator) -> None:
         """
-        Get the metrics (backward compatibility alias for calculators).
-
-        Returns:
-            List[MetricCalculator]: The metric calculators
-        """
-        return self._calculators
-
-    def add_calculator(self, calculator: MetricCalculator) -> None:
-        """
-        Add a metric calculator to the scanner.
+        Add a metric strategy to the scanner.
 
         Args:
-            calculator: The metric calculator to add
+            strategy: The metric strategy to add
         """
-        self._calculators.append(calculator)
-
-    def add_metric(self, metric: MetricCalculator) -> None:
-        """
-        Add a metric to the scanner (backward compatibility alias for add_calculator).
-
-        Args:
-            metric: The metric calculator to add
-        """
-        self.add_calculator(metric)
+        self._strategies.append(strategy)
 
     def calculate_metrics(self) -> Dict[str, pd.DataFrame]:
         """
-        Calculate metrics for all jobs.
+        Calculate metrics using all registered strategies.
 
         Returns:
             Dict[str, pd.DataFrame]: Dictionary containing DataFrames for each metric type.
@@ -147,13 +124,13 @@ class Scanner:
         # Initialize a dictionary to store DataFrames for each metric type
         metric_dataframes = {}
 
-        # Calculate metrics for each calculator
-        for _, calculator in enumerate(self.calculators):
-            # Get the metrics from the calculator
-            metric_results = calculator.get_metrics()
+        # Calculate metrics for each strategy
+        for strategy in self.strategies:
+            # Get the metrics from the strategy
+            metric_results = strategy.get_metrics()
 
             # Create a DataFrame for this metric type
-            metric_name = calculator.__class__.__name__
+            metric_name = strategy.__class__.__name__
 
             # Special handling for SuccessRate metrics
             if metric_name == "SuccessRate":
@@ -199,29 +176,6 @@ class Scanner:
                 metric_dataframes[metric_name] = df
 
         return metric_dataframes
-
-    def _flatten_dict(
-        self, d: Dict[str, Any], parent_key: str = "", sep: str = "_"
-    ) -> Dict[str, Any]:
-        """
-        Flatten a nested dictionary.
-
-        Args:
-            d: The dictionary to flatten
-            parent_key: The parent key for the current level
-            sep: The separator to use between keys
-
-        Returns:
-            Dict[str, Any]: The flattened dictionary
-        """
-        items: List[Tuple[str, Any]] = []
-        for k, v in d.items():
-            new_key = f"{parent_key}{sep}{k}" if parent_key else k
-            if isinstance(v, dict):
-                items.extend(self._flatten_dict(v, new_key, sep=sep).items())
-            else:
-                items.append((new_key, v))
-        return dict(items)
 
     def set_circuit(self, circuit: QuantumCircuit) -> None:
         """
