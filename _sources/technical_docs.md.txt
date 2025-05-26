@@ -9,7 +9,7 @@ Qward is designed around a `Scanner` that applies various `Metric` objects to Qi
 ### 1. `Scanner` (`qward.Scanner`)
 
 The `Scanner` is the central class for orchestrating analysis. 
--   **Initialization**: `Scanner(circuit: Optional[QuantumCircuit], job: Optional[Union[AerJob, QiskitJob]], result: Optional[qward.Result], metrics: Optional[list])`
+-   **Initialization**: `Scanner(circuit: Optional[QuantumCircuit], *, job: Optional[Union[AerJob, QiskitJob]], result: Optional[qward.Result], calculators: Optional[list], metrics: Optional[list])`
     -   It takes an optional Qiskit `QuantumCircuit`.
     -   Optionally, a Qiskit `Job` (from Aer or a provider) and/or a `qward.Result` object (which wraps execution counts and metadata).
     -   Optionally, a list of metric *classes* or *instances* can be provided at initialization.
