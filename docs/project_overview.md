@@ -22,10 +22,10 @@ The library revolves around the following key components:
 3.  **`Result` (`qward.Result`)**:
     -   A helper class to encapsulate Qiskit job execution results, particularly counts and metadata, for use with the `Scanner` and certain metrics.
 
-4.  **`QiskitRuntimeService` (`qward.runtime.qiskit_runtime.QiskitRuntimeService`)**:
-    -   Extends Qiskit's own runtime service client, offering a streamlined way to run circuits, particularly with a `run_and_watch` method for easier job monitoring on IBM Quantum hardware (though it can be used with simulators too via Qiskit's backend system).
 
-5.  **Example Implementations (`qward/examples/`)**:
+
+
+4.  **Example Implementations (`qward/examples/`)**:
     -   The `qward/examples/` directory contains scripts and notebooks (e.g., `aer.py`, `run_on_aer.ipynb`) demonstrating how to use the `Scanner` with various metrics and Qiskit's Aer simulator.
 
 ## Getting Started
@@ -60,7 +60,7 @@ Qward helps bridge the gap between theoretical quantum algorithms and their prac
 -   A `Scanner` to orchestrate the application of various analytical `Metric` objects.
 -   Comprehensive metrics for circuit structure (`QiskitMetrics`), advanced complexity and QV estimation (`ComplexityMetrics`), and execution outcome analysis (`SuccessRate`).
 -   An extensible system for users to define their own custom metrics.
--   Utilities like `Result` for easier data handling and `QiskitRuntimeService` for streamlined execution.
+-   Utilities like `Result` for easier data handling.
 
 This framework enables researchers and developers to gain deeper insights into their circuits, identify performance characteristics, understand error sources when results are available, and potentially optimize their quantum algorithms.
 
@@ -71,7 +71,7 @@ The project is under active development. Key implemented features include:
 ### Implemented Features
 -   Core `Scanner` class for metric-based analysis.
 -   `Result` class for handling execution data.
--   `QiskitRuntimeService` for enhanced job execution.
+
 -   Metrics System:
     -   `QiskitMetrics` for circuit basics.
     -   `ComplexityMetrics` including detailed complexity categories and Quantum Volume estimation.

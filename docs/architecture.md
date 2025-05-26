@@ -8,30 +8,26 @@ QWARD is designed with a clear separation between execution and analysis compone
 
 ```mermaid
 classDiagram
+    %% Strategy Pattern Implementation for Quantum Circuit Metrics Analysis
+    
     class Scanner {
+        <<Context>>
         +circuit: QuantumCircuit
         +job: Union[AerJob, QiskitJob]
         +result: Result
-        +metrics: List[Metric]
+        +metrics: List[MetricStrategy]
         +__init__(circuit, job, result, metrics)
-        +add_metric(metric)
+        +add_metric(metric_strategy)
         +calculate_metrics()
+        +set_circuit(circuit)
+        +set_job(job)
+        +set_result(result)
     }
 
-    class QiskitRuntimeService {
-        <<extends>>
-        +circuit: QuantumCircuit
-        +backend: Union[Backend, str]
-        +job: Union[AerJob, RuntimeJob]
-        +result: Result
-        +__init__(circuit, backend)
-        +run()
-        +check_status()
-        +get_results()
-        +run_and_watch()
-    }
+
 
     class Result {
+        <<Data>>
         +job: Union[AerJob, QiskitJob]
         +counts: Dict[str, int]
         +metadata: Dict[str, Any]
@@ -41,21 +37,62 @@ classDiagram
         +update_from_job()
     }
 
-    class Metric {
-        <<abstract>>
-        # Attributes are initialized by _get_metric_type() and _get_metric_id() in __init__
-        # _metric_type: MetricsType  (accessed via property)
-        # _id: MetricsId (accessed via property)
-        _circuit: QuantumCircuit # Direct attribute from __init__
+    class MetricStrategy {
+        <<Strategy Interface>>
+        # Attributes initialized in __init__
+        _circuit: QuantumCircuit
+        _metric_type: MetricsType
+        _id: MetricsId
         +__init__(circuit)
         +metric_type: MetricsType
         +id: MetricsId
         +name: str
         +circuit: QuantumCircuit
-        +_get_metric_type() # abstract
-        +_get_metric_id() # abstract
-        +is_ready() # abstract
-        +get_metrics() # abstract
+        +_get_metric_type()* 
+        +_get_metric_id()*
+        +is_ready()*
+        +get_metrics()*
+    }
+
+    class QiskitMetricsStrategy {
+        <<Concrete Strategy>>
+        +__init__(circuit)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +get_basic_metrics()
+        +get_instruction_metrics()
+        +get_scheduling_metrics()
+    }
+
+    class ComplexityMetricsStrategy {
+        <<Concrete Strategy>>
+        +__init__(circuit)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +get_gate_based_metrics()
+        +get_entanglement_metrics()
+        +get_standardized_metrics()
+        +get_advanced_metrics()
+        +get_derived_metrics()
+        +estimate_quantum_volume()
+    }
+
+    class SuccessRateStrategy {
+        <<Concrete Strategy>>
+        _job: Optional[Union[AerJob, QiskitJob]]
+        _jobs: List[Union[AerJob, QiskitJob]]
+        _result: Optional[Dict]
+        success_criteria: Callable
+        +__init__(circuit, job, jobs, result, success_criteria)
+        +_get_metric_type()
+        +_get_metric_id()
+        +is_ready()
+        +get_metrics()
+        +add_job(job)
     }
 
     class MetricsType {
@@ -71,47 +108,29 @@ classDiagram
         SUCCESS_RATE
     }
 
-    class QiskitMetrics {
-        +__init__(circuit)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
-        +get_basic_metrics()
-        +get_instruction_metrics()
-        +get_scheduling_metrics()
-    }
+    %% Strategy Pattern Relationships
+    Scanner --> MetricStrategy : uses strategies
+    Scanner --> Result : manages
+    
+    %% Strategy Interface Implementation
+    MetricStrategy <|.. QiskitMetricsStrategy : implements
+    MetricStrategy <|.. ComplexityMetricsStrategy : implements
+    MetricStrategy <|.. SuccessRateStrategy : implements
+    
+    %% Strategy Interface Dependencies
+    MetricStrategy --> MetricsType : defines type
+    MetricStrategy --> MetricsId : defines identifier
 
-    class ComplexityMetrics {
-        +__init__(circuit)
-        +_get_metric_type()
-        +is_ready()
-        +get_metrics()
-    }
-
-    class SuccessRate {
-        # Attributes from __init__
-        _job: Optional[Union[AerJob, QiskitJob]]
-        _jobs: List[Union[AerJob, QiskitJob]]
-        _result: Optional[Dict] # Note: This is Dict, not qward.Result
-        success_criteria: Callable
-        # Inherits _circuit from Metric
-
-        +__init__(circuit, job, jobs, result, success_criteria)
-        +_get_metric_type() # Implemented from Metric
-        # _get_metric_id() // Implemented from Metric
-        +is_ready() # Implemented from Metric
-        +get_metrics() # Implemented from Metric
-        +add_job(job) # New method
-    }
-
-    Scanner --> Result
-    Scanner --> Metric
-    QiskitRuntimeService --> Result
-    Metric <|-- QiskitMetrics
-    Metric <|-- ComplexityMetrics
-    Metric <|-- SuccessRate
-    Metric --> MetricsType
-    Metric --> MetricsId
+    %% Notes about Strategy Pattern
+    note for Scanner "Context: Maintains references to metric strategies and delegates metric calculation work to them. Can switch strategies at runtime via add_metric()."
+    
+    note for MetricStrategy "Strategy Interface: Defines common interface for all metric calculation algorithms. Each strategy bundles related metrics."
+    
+    note for QiskitMetricsStrategy "Concrete Strategy: Bundles Qiskit-native metrics (basic, instruction, scheduling)"
+    
+    note for ComplexityMetricsStrategy "Concrete Strategy: Bundles complexity analysis metrics (gate-based, entanglement, standardized, advanced, derived)"
+    
+    note for SuccessRateStrategy "Concrete Strategy: Bundles execution success metrics (success rate, fidelity, error rate)"
 ```
 
 ## Folder Structure
@@ -123,8 +142,7 @@ The QWARD library is organized into the following folder structure:
 ├── __init__.py                 # Main package initialization
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
-│   ├── __init__.py
-│   └── qiskit_runtime.py       # QiskitRuntimeService implementation
+│   └── __init__.py
 ├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
@@ -159,8 +177,7 @@ This structure provides a clean organization for the code, with:
 ### Scanner
 The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them.
 
-### QiskitRuntimeService
-The QiskitRuntimeService class extends Qiskit's `QiskitRuntimeService` class to provide enhanced functionality for quantum circuit execution. It inherits all standard Qiskit runtime capabilities and adds the `run_and_watch` method for improved job monitoring. This class manages the job lifecycle and result collection, providing a streamlined interface for executing circuits on IBM quantum hardware.
+
 
 ### Result
 The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.
@@ -193,32 +210,7 @@ scanner.add_metric(QiskitMetrics(circuit))
 results = scanner.calculate_metrics()
 ```
 
-### Running Circuits with QiskitRuntimeService
-```python
-from qiskit import QuantumCircuit
-from qward import QiskitRuntimeService
 
-# Create a quantum circuit
-circuit = QuantumCircuit(2)
-circuit.h(0)
-circuit.cx(0, 1)
-
-# Create a runtime service instance
-runtime_service = QiskitRuntimeService(circuit=circuit, backend="ibmq_qasm_simulator")
-
-# Run the circuit with automatic status monitoring
-# This will:
-# 1. Generate a preset pass manager for the backend
-# 2. Create a sampler for the circuit
-# 3. Run the circuit and monitor its status
-# 4. Return the results when complete
-result = runtime_service.run_and_watch()
-
-# Or use the standard approach
-runtime_service.run()
-status = runtime_service.check_status()
-result = runtime_service.get_results()
-```
 
 ### Analyzing Results
 ```python
@@ -286,14 +278,8 @@ class MyCustomMetric(Metric):
    - Consider using multiple metrics for comprehensive analysis
 
 2. **Execution**
-   - Use QiskitRuntimeService for IBM backend execution
-   - Use run_and_watch() for simplified job monitoring and execution
-   - The run_and_watch() method handles:
-     - Circuit transpilation with preset pass manager
-     - Sampler creation and configuration
-     - Job submission and monitoring
-     - Result collection and processing
    - Handle job and result errors appropriately
+   - Use appropriate Qiskit runtime services for backend execution
 
 3. **Result Management**
    - Save results for later analysis
