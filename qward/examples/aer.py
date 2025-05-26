@@ -372,7 +372,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     visualizer = SuccessRateVisualizer(metrics_dict=metrics_dict, output_dir="img", config=config)
 
     # Option 1: Create all individual plots
-    figures = visualizer.plot_all(save=True, show=True)
+    visualizer.plot_all(save=True, show=True)
 
     # Option 2: Create a comprehensive dashboard (uncomment to use instead)
     # dashboard = visualizer.create_dashboard(save=True, show=True)
