@@ -23,6 +23,7 @@ class Scanner:
     def __init__(
         self,
         circuit: Optional[QuantumCircuit] = None,
+        *,
         job: Optional[Union[AerJob, QiskitJob]] = None,
         result: Optional[Result] = None,
         calculators: Optional[list] = None,
