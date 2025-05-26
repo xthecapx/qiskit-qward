@@ -52,7 +52,20 @@ source_suffix = {
     ".md": "markdown",
 }
 
+# MyST parser configuration
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "html_admonition",
+    "html_image",
+    "replacements",
+    "smartquotes",
+    "substitution",
+    "tasklist",
+]
+
 templates_path = ["_templates"]
+html_static_path = ["_static"]
 numfig = True
 numfig_format = {"table": "Table %s"}
 language = "en"
@@ -76,25 +89,40 @@ nbsphinx_widgets_path = ""
 exclude_patterns = ["_build", "**.ipynb_checkpoints"]
 
 # Mermaid configuration
-mermaid_version = "latest"  # Use latest version of Mermaid.js
+mermaid_version = "11.6.0"  # Use latest version for best features
+# Note: We use client-side JavaScript rendering instead of server-side mmdc
+mermaid_output_format = "raw"  # Output raw HTML for JavaScript rendering
+
+# Custom HTML to include Mermaid.js
+html_js_files = [
+    "https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js",
+    "mermaid-init.js",
+]
+
+# Custom initialization script
 mermaid_init_js = """
-mermaid.initialize({
-    startOnLoad: true,
-    theme: 'default',
-    themeVariables: {
-        primaryColor: '#ff6b6b',
-        primaryTextColor: '#333',
-        primaryBorderColor: '#ff6b6b',
-        lineColor: '#333',
-        secondaryColor: '#4ecdc4',
-        tertiaryColor: '#ffe66d'
-    },
-    flowchart: {
-        useMaxWidth: true,
-        htmlLabels: true
-    },
-    classDiagram: {
-        useMaxWidth: true
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        themeVariables: {
+            primaryColor: '#ff6b6b',
+            primaryTextColor: '#333',
+            primaryBorderColor: '#ff6b6b',
+            lineColor: '#333',
+            secondaryColor: '#4ecdc4',
+            tertiaryColor: '#ffe66d'
+        },
+        flowchart: {
+            useMaxWidth: true,
+            htmlLabels: true
+        },
+        classDiagram: {
+            useMaxWidth: true
+        }
+    });
+    
+    // Force re-render of mermaid diagrams
+    mermaid.run();
 });
 """
