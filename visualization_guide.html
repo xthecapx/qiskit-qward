@@ -329,7 +329,7 @@
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;11&quot;</span><span class="p">)</span>
 <span class="n">success_rate</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">success_rate</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">success_rate</span><span class="p">)</span>
 
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
@@ -454,13 +454,13 @@
     <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
     <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
-<span class="c1"># Add all jobs to the metric calculator</span>
-<span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">success_rate</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+<span class="c1"># Add all jobs to the metric strategy</span>
+<span class="n">success_rate_strategy</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span> <span class="c1"># Renamed to avoid conflict with a potential &#39;success_rate&#39; variable from other examples</span>
+<span class="n">success_rate_strategy</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
 
 <span class="c1"># Visualize results</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">success_rate</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">success_rate_strategy</span><span class="p">)</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
@@ -484,28 +484,28 @@
 </section>
 <section id="batch-processing">
 <h3>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process multiple circuits</span>
-<span class="n">circuits</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_bell_circuit</span><span class="p">(),</span> <span class="n">create_ghz_circuit</span><span class="p">(),</span> <span class="n">create_qft_circuit</span><span class="p">()]</span>
-<span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
-
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">circuit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">circuits</span><span class="p">):</span>
-    <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-    <span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-    
-    <span class="c1"># Run and add job</span>
-    <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
-    <span class="n">success_rate</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-    <span class="n">scanner</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">success_rate</span><span class="p">)</span>
-    
-    <span class="c1"># Calculate and visualize</span>
-    <span class="n">metrics</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
-    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span>
-        <span class="n">metrics</span><span class="p">,</span> 
-        <span class="n">output_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;img/circuit_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="p">)</span>
-    <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    
-    <span class="n">results</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;circuit_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure create_bell_circuit, create_ghz_circuit, create_qft_circuit are defined</span>
+<span class="c1"># circuits = [create_bell_circuit(), create_ghz_circuit(), create_qft_circuit()]</span>
+<span class="c1"># results = {}</span>
+<span class="c1"># </span>
+<span class="c1"># for i, circuit_item in enumerate(circuits): # Renamed &#39;circuit&#39; to &#39;circuit_item&#39; to avoid conflict with outer scope &#39;circuit&#39;</span>
+<span class="c1">#     scanner = Scanner(circuit=circuit_item)</span>
+<span class="c1">#     success_rate_calc = SuccessRate(circuit=circuit_item)</span>
+<span class="c1">#     </span>
+<span class="c1">#     # Run and add job</span>
+<span class="c1">#     job = simulator.run(circuit_item, shots=1024)</span>
+<span class="c1">#     success_rate_calc.add_job(job)</span>
+<span class="c1">#     scanner.add_strategy(success_rate_calc)</span>
+<span class="c1">#     </span>
+<span class="c1">#     # Calculate and visualize</span>
+<span class="c1">#     metrics = scanner.calculate_metrics()</span>
+<span class="c1">#     visualizer = SuccessRateVisualizer(</span>
+<span class="c1">#         metrics, </span>
+<span class="c1">#         output_dir=f&quot;img/circuit_{i}&quot;</span>
+<span class="c1">#     )</span>
+<span class="c1">#     visualizer.plot_all(save=True, show=False)</span>
+<span class="c1">#     </span>
+<span class="c1">#     results[f&quot;circuit_{i}&quot;] = metrics</span>
 </pre></div>
 </div>
 </section>
@@ -546,7 +546,8 @@
 </section>
 <section id="adding-new-plot-styles">
 <h3>Adding New Plot Styles<a class="headerlink" href="#adding-new-plot-styles" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a custom style</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span> <span class="c1"># Added import for plt</span>
+<span class="c1"># Define a custom style</span>
 <span class="n">custom_style</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;figure.facecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;#f0f0f0&quot;</span><span class="p">,</span>
     <span class="s2">&quot;axes.facecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;#ffffff&quot;</span><span class="p">,</span>
@@ -564,11 +565,14 @@
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
 <ol class="arabic">
-<li><p><strong>Output Organization</strong>: Use descriptive output directories</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span>
-    <span class="n">metrics_dict</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;img/</span><span class="si">{</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="p">)</span>
+<li><p><strong>Output Organization</strong>: Use descriptive output directories. Assume <code class="docutils literal notranslate"><span class="pre">experiment_name</span></code> and <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> are defined.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># experiment_name = &quot;my_experiment&quot;</span>
+<span class="c1"># from datetime import datetime</span>
+<span class="c1"># timestamp = datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span>
+<span class="c1"># visualizer = SuccessRateVisualizer(</span>
+<span class="c1">#     metrics_dict,</span>
+<span class="c1">#     output_dir=f&quot;img/{experiment_name}/{timestamp}&quot;</span>
+<span class="c1"># )</span>
 </pre></div>
 </div>
 </li>
@@ -583,12 +587,13 @@
 </div>
 </li>
 <li><p><strong>Consistent Styling</strong>: Define a project-wide configuration</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># config.py</span>
-<span class="n">PROJECT_PLOT_CONFIG</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
-    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
-    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span>
-<span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In a config.py file, for example:</span>
+<span class="c1"># from qward.visualization import PlotConfig # Added import</span>
+<span class="c1"># PROJECT_PLOT_CONFIG = PlotConfig(</span>
+<span class="c1">#     style=&quot;quantum&quot;,</span>
+<span class="c1">#     figsize=(10, 6),</span>
+<span class="c1">#     dpi=300</span>
+<span class="c1"># )</span>
 </pre></div>
 </div>
 </li>
@@ -605,17 +610,20 @@
 </div>
 </li>
 <li><p><strong>Style Not Found</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check available styles</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span> <span class="c1"># Added import for plt</span>
+<span class="c1"># Check available styles</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">available</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
 <li><p><strong>Memory Issues with Large Datasets</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process in batches</span>
-<span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">data_batches</span><span class="p">:</span>
-    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-    <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>  <span class="c1"># Free memory</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span> <span class="c1"># Added import for plt</span>
+<span class="c1"># Process in batches</span>
+<span class="c1"># Assume data_batches is defined, e.g., a list of metric_dicts</span>
+<span class="c1"># for batch_metrics_dict in data_batches:</span>
+<span class="c1">#     visualizer = SuccessRateVisualizer(batch_metrics_dict)</span>
+<span class="c1">#     visualizer.plot_all(save=True, show=False)</span>
+<span class="c1">#     plt.close(&#39;all&#39;)  # Free memory</span>
 </pre></div>
 </div>
 </li>
@@ -699,7 +707,7 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_plot</span></code></p></td>
 <td><p>-</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Abstract method to create plot</p></td>
 </tr>
 </tbody>
@@ -720,37 +728,37 @@
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_all</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">List[Figure]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">List[plt.Figure]</span></code></p></td>
 <td><p>Create all available plots</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">create_dashboard</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Create comprehensive dashboard</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_success_rate_comparison</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Compare success rates</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_error_rate_comparison</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Compare error rates</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_fidelity_comparison</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Compare fidelity values</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_shot_distribution</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Show measurement distribution</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_aggregate_summary</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">save,</span> <span class="pre">show</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Figure</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></td>
 <td><p>Create summary visualization</p></td>
 </tr>
 </tbody>

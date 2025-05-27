@@ -435,7 +435,7 @@ The visualization system seamlessly integrates with the Scanner output:
 ```python
 # Calculate metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_calculator(SuccessRate(circuit=circuit))
+scanner.add_strategy(SuccessRate(circuit=circuit))
 metrics_dict = scanner.calculate_metrics()
 
 # Create visualizations
