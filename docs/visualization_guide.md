@@ -77,7 +77,7 @@ job = simulator.run(circuit, shots=1024)
 scanner = Scanner(circuit=circuit)
 success_rate = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
 success_rate.add_job(job)
-scanner.add_calculator(success_rate)
+scanner.add_strategy(success_rate)
 
 metrics_dict = scanner.calculate_metrics()
 
@@ -196,13 +196,13 @@ for shots in [512, 1024, 2048]:
     job = simulator.run(circuit, shots=shots)
     jobs.append(job)
 
-# Add all jobs to the metric calculator
-success_rate = SuccessRate(circuit=circuit)
-success_rate.add_job(jobs)
+# Add all jobs to the metric strategy
+success_rate_strategy = SuccessRate(circuit=circuit) # Renamed to avoid conflict with a potential 'success_rate' variable from other examples
+success_rate_strategy.add_job(jobs)
 
 # Visualize results
 scanner = Scanner(circuit=circuit)
-scanner.add_calculator(success_rate)
+scanner.add_strategy(success_rate_strategy)
 metrics_dict = scanner.calculate_metrics()
 
 visualizer = SuccessRateVisualizer(metrics_dict)
@@ -226,28 +226,28 @@ success_rate = SuccessRate(
 ### Batch Processing
 
 ```python
-# Process multiple circuits
-circuits = [create_bell_circuit(), create_ghz_circuit(), create_qft_circuit()]
-results = {}
-
-for i, circuit in enumerate(circuits):
-    scanner = Scanner(circuit=circuit)
-    success_rate = SuccessRate(circuit=circuit)
-    
-    # Run and add job
-    job = simulator.run(circuit, shots=1024)
-    success_rate.add_job(job)
-    scanner.add_calculator(success_rate)
-    
-    # Calculate and visualize
-    metrics = scanner.calculate_metrics()
-    visualizer = SuccessRateVisualizer(
-        metrics, 
-        output_dir=f"img/circuit_{i}"
-    )
-    visualizer.plot_all(save=True, show=False)
-    
-    results[f"circuit_{i}"] = metrics
+# Ensure create_bell_circuit, create_ghz_circuit, create_qft_circuit are defined
+# circuits = [create_bell_circuit(), create_ghz_circuit(), create_qft_circuit()]
+# results = {}
+# 
+# for i, circuit_item in enumerate(circuits): # Renamed 'circuit' to 'circuit_item' to avoid conflict with outer scope 'circuit'
+#     scanner = Scanner(circuit=circuit_item)
+#     success_rate_calc = SuccessRate(circuit=circuit_item)
+#     
+#     # Run and add job
+#     job = simulator.run(circuit_item, shots=1024)
+#     success_rate_calc.add_job(job)
+#     scanner.add_strategy(success_rate_calc)
+#     
+#     # Calculate and visualize
+#     metrics = scanner.calculate_metrics()
+#     visualizer = SuccessRateVisualizer(
+#         metrics, 
+#         output_dir=f"img/circuit_{i}"
+#     )
+#     visualizer.plot_all(save=True, show=False)
+#     
+#     results[f"circuit_{i}"] = metrics
 ```
 
 ## Extending the Visualization System
@@ -288,6 +288,7 @@ class MyCustomVisualizer(MetricVisualizer):
 ### Adding New Plot Styles
 
 ```python
+import matplotlib.pyplot as plt # Added import for plt
 # Define a custom style
 custom_style = {
     "figure.facecolor": "#f0f0f0",
@@ -303,12 +304,15 @@ plt.rcParams.update(custom_style)
 
 ## Best Practices
 
-1. **Output Organization**: Use descriptive output directories
+1. **Output Organization**: Use descriptive output directories. Assume `experiment_name` and `timestamp` are defined.
    ```python
-   visualizer = SuccessRateVisualizer(
-       metrics_dict,
-       output_dir=f"img/{experiment_name}/{timestamp}"
-   )
+   # experiment_name = "my_experiment"
+   # from datetime import datetime
+   # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+   # visualizer = SuccessRateVisualizer(
+   #     metrics_dict,
+   #     output_dir=f"img/{experiment_name}/{timestamp}"
+   # )
    ```
 
 2. **Batch Processing**: When creating many plots, use `show=False`
@@ -323,12 +327,13 @@ plt.rcParams.update(custom_style)
 
 4. **Consistent Styling**: Define a project-wide configuration
    ```python
-   # config.py
-   PROJECT_PLOT_CONFIG = PlotConfig(
-       style="quantum",
-       figsize=(10, 6),
-       dpi=300
-   )
+   # In a config.py file, for example:
+   # from qward.visualization import PlotConfig # Added import
+   # PROJECT_PLOT_CONFIG = PlotConfig(
+   #     style="quantum",
+   #     figsize=(10, 6),
+   #     dpi=300
+   # )
    ```
 
 ## Troubleshooting
@@ -342,17 +347,20 @@ plt.rcParams.update(custom_style)
 
 2. **Style Not Found**
    ```python
+   import matplotlib.pyplot as plt # Added import for plt
    # Check available styles
    print(plt.style.available)
    ```
 
 3. **Memory Issues with Large Datasets**
    ```python
+   import matplotlib.pyplot as plt # Added import for plt
    # Process in batches
-   for batch in data_batches:
-       visualizer = SuccessRateVisualizer(batch)
-       visualizer.plot_all(save=True, show=False)
-       plt.close('all')  # Free memory
+   # Assume data_batches is defined, e.g., a list of metric_dicts
+   # for batch_metrics_dict in data_batches:
+   #     visualizer = SuccessRateVisualizer(batch_metrics_dict)
+   #     visualizer.plot_all(save=True, show=False)
+   #     plt.close('all')  # Free memory
    ```
 
 ## API Reference
@@ -375,22 +383,22 @@ plt.rcParams.update(custom_style)
 |--------|------------|---------|-------------|
 | `save_plot` | `fig, filename, **kwargs` | `str` | Save figure and return filepath |
 | `show_plot` | `fig` | `None` | Display the figure |
-| `create_plot` | - | `Figure` | Abstract method to create plot |
+| `create_plot` | - | `plt.Figure` | Abstract method to create plot |
 
 ### SuccessRateVisualizer Methods
 
 | Method | Parameters | Returns | Description |
 |--------|------------|---------|-------------|
-| `plot_all` | `save, show` | `List[Figure]` | Create all available plots |
-| `create_dashboard` | `save, show` | `Figure` | Create comprehensive dashboard |
-| `plot_success_rate_comparison` | `save, show` | `Figure` | Compare success rates |
-| `plot_error_rate_comparison` | `save, show` | `Figure` | Compare error rates |
-| `plot_fidelity_comparison` | `save, show` | `Figure` | Compare fidelity values |
-| `plot_shot_distribution` | `save, show` | `Figure` | Show measurement distribution |
-| `plot_aggregate_summary` | `save, show` | `Figure` | Create summary visualization |
+| `plot_all` | `save, show` | `List[plt.Figure]` | Create all available plots |
+| `create_dashboard` | `save, show` | `plt.Figure` | Create comprehensive dashboard |
+| `plot_success_rate_comparison` | `save, show` | `plt.Figure` | Compare success rates |
+| `plot_error_rate_comparison` | `save, show` | `plt.Figure` | Compare error rates |
+| `plot_fidelity_comparison` | `save, show` | `plt.Figure` | Compare fidelity values |
+| `plot_shot_distribution` | `save, show` | `plt.Figure` | Show measurement distribution |
+| `plot_aggregate_summary` | `save, show` | `plt.Figure` | Create summary visualization |
 
 ## See Also
 
 - [Architecture Documentation](architecture.md) - Overall QWARD architecture
 - [Technical Documentation](technical_docs.md) - Detailed technical reference
-- [Examples Directory](../qward/examples/) - More example scripts 
+- [Examples Directory](../qward/examples/) - More example scripts
