@@ -37,7 +37,7 @@ def main():
 
     success_rate = SuccessRate(circuit=circuit, success_criteria=bell_state_success)
     success_rate.add_job(job)
-    scanner.add_calculator(success_rate)
+    scanner.add_strategy(success_rate)
 
     metrics_dict = scanner.calculate_metrics()
     print("Metrics calculated")
