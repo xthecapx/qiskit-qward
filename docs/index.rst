@@ -21,6 +21,7 @@ Qward enables users to apply a range of metrics to quantum circuits, gather exec
   technical_docs
   project_overview
   architecture
+  visualization_guide
   Tutorials <tutorials/index>
   User Guide <how_tos/index>
   API References <apidocs/index>
