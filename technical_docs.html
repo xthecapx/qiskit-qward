@@ -203,6 +203,7 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
@@ -500,6 +501,216 @@
 <h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">¶</a></h2>
 <p>Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code>, the metric strategy system, and associated helper classes like <code class="docutils literal notranslate"><span class="pre">Result</span></code>, developers can gain significant insights into their quantum circuits and execution outcomes.</p>
 </section>
+<section id="visualization-system">
+<h2>Visualization System<a class="headerlink" href="#visualization-system" title="Link to this heading">¶</a></h2>
+<p>QWARD includes a comprehensive visualization module (<code class="docutils literal notranslate"><span class="pre">qward.visualization</span></code>) for creating publication-quality plots of quantum circuit metrics.</p>
+<section id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h3>
+<p>The visualization system follows a hierarchical class structure:</p>
+<ol class="arabic simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.base.BaseVisualizer</span></code>)</p>
+<ul class="simple">
+<li><p>Abstract base class for all visualizers</p></li>
+<li><p>Manages output directories and plot configuration</p></li>
+<li><p>Provides <code class="docutils literal notranslate"><span class="pre">save_plot()</span></code> and <code class="docutils literal notranslate"><span class="pre">show_plot()</span></code> methods</p></li>
+<li><p>Requires implementation of <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> method</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">MetricVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.base.MetricVisualizer</span></code>)</p>
+<ul class="simple">
+<li><p>Abstract class for metric-specific visualizers</p></li>
+<li><p>Extends <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code> with metric data handling</p></li>
+<li><p>Constructor: <code class="docutils literal notranslate"><span class="pre">MetricVisualizer(metrics_dict:</span> <span class="pre">Dict[str,</span> <span class="pre">pd.DataFrame],</span> <span class="pre">output_dir:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;img&quot;,</span> <span class="pre">config:</span> <span class="pre">Optional[PlotConfig]</span> <span class="pre">=</span> <span class="pre">None)</span></code></p></li>
+<li><p>Provides helper methods: <code class="docutils literal notranslate"><span class="pre">get_metric_data()</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_columns()</span></code>, <code class="docutils literal notranslate"><span class="pre">add_value_labels()</span></code></p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.base.PlotConfig</span></code>)</p>
+<ul class="simple">
+<li><p>Dataclass for plot configuration</p></li>
+<li><p>Parameters:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">figsize:</span> <span class="pre">Tuple[int,</span> <span class="pre">int]</span> <span class="pre">=</span> <span class="pre">(10,</span> <span class="pre">6)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dpi:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">300</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;default&quot;</span></code> (options: “default”, “quantum”, “minimal”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">color_palette:</span> <span class="pre">List[str]</span> <span class="pre">=</span> <span class="pre">None</span></code> (defaults to ColorBrewer-inspired palette)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_format:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;png&quot;</span></code> (options: “png”, “svg”, “pdf”, “eps”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grid:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.7</span></code></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="built-in-visualizers">
+<h3>Built-in Visualizers<a class="headerlink" href="#built-in-visualizers" title="Link to this heading">¶</a></h3>
+<section id="successratevisualizer-qward-visualization-success-rate-visualizer-successratevisualizer">
+<h4><code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.success_rate_visualizer.SuccessRateVisualizer</span></code>)<a class="headerlink" href="#successratevisualizer-qward-visualization-success-rate-visualizer-successratevisualizer" title="Link to this heading">¶</a></h4>
+<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code> metric outputs.</p>
+<p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer(metrics_dict:</span> <span class="pre">Dict[str,</span> <span class="pre">pd.DataFrame],</span> <span class="pre">output_dir:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;img&quot;,</span> <span class="pre">config:</span> <span class="pre">Optional[PlotConfig]</span> <span class="pre">=</span> <span class="pre">None)</span></code></p>
+<p><strong>Methods</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_all(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">List[Figure]</span></code>: Creates all available plots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Creates a comprehensive dashboard</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_success_rate_comparison(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Bar chart of success rates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_error_rate_comparison(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Bar chart of error rates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_fidelity_comparison(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Bar chart of fidelity values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_shot_distribution(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Stacked bar chart of measurement outcomes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_aggregate_summary(save:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Figure</span></code>: Summary statistics visualization</p></li>
+</ul>
+</section>
+</section>
+<section id="usage-examples">
+<h3>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h3>
+<section id="basic-visualization">
+<h4>Basic Visualization<a class="headerlink" href="#basic-visualization" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRateVisualizer</span>
+
+<span class="c1"># After calculating metrics</span>
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Create visualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/analysis&quot;</span><span class="p">)</span>
+
+<span class="c1"># Generate all plots</span>
+<span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-configuration">
+<h4>Custom Configuration<a class="headerlink" href="#custom-configuration" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRateVisualizer</span><span class="p">,</span> <span class="n">PlotConfig</span>
+
+<span class="c1"># Custom configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">,</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Create visualizer with custom config</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/custom&quot;</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+<span class="p">)</span>
+
+<span class="c1"># Create specific plots</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_success_rate_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_fidelity_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="dashboard-creation">
+<h4>Dashboard Creation<a class="headerlink" href="#dashboard-creation" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create comprehensive dashboard</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="creating-custom-visualizers">
+<h3>Creating Custom Visualizers<a class="headerlink" href="#creating-custom-visualizers" title="Link to this heading">¶</a></h3>
+<p>To create a custom visualizer for your own metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricVisualizer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomVisualizer</span><span class="p">(</span><span class="n">MetricVisualizer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the main plot.&quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        
+        <span class="c1"># Get your metric data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metric_data</span><span class="p">(</span><span class="s2">&quot;MyCustomMetric&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MyCustomMetric data not found&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Create visualization</span>
+        <span class="c1"># ... your plotting code ...</span>
+        
+        <span class="k">return</span> <span class="n">fig</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_custom_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a custom analysis plot.&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_plot</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s2">&quot;custom_analysis&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_plot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-with-scanner">
+<h3>Integration with Scanner<a class="headerlink" href="#integration-with-scanner" title="Link to this heading">¶</a></h3>
+<p>The visualization system is designed to work seamlessly with Scanner output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Complete workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRateVisualizer</span>
+
+<span class="c1"># Create and run circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+
+<span class="c1"># Calculate metrics</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">success_rate</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">success_rate</span><span class="p">)</span>
+
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Visualize results</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h3>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Output Organization</strong>: Use descriptive output directories</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">output_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;img/</span><span class="si">{</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Batch Processing</strong>: For many plots, use <code class="docutils literal notranslate"><span class="pre">show=False</span></code> to avoid display overhead</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Publication Quality</strong>: Use high DPI and vector formats</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Memory Management</strong>: Close figures after batch processing</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>  <span class="c1"># Free memory</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="id1">
+<h2>Conclusion<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code>, the metric strategy system, associated helper classes like <code class="docutils literal notranslate"><span class="pre">Result</span></code>, and the visualization system, developers can gain significant insights into their quantum circuits and execution outcomes while presenting results in a clear, professional manner.</p>
+</section>
 </section>
 
         </article>
@@ -575,6 +786,24 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#conclusion">Conclusion</a></li>
+<li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#built-in-visualizers">Built-in Visualizers</a><ul>
+<li><a class="reference internal" href="#successratevisualizer-qward-visualization-success-rate-visualizer-successratevisualizer"><code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.success_rate_visualizer.SuccessRateVisualizer</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#basic-visualization">Basic Visualization</a></li>
+<li><a class="reference internal" href="#custom-configuration">Custom Configuration</a></li>
+<li><a class="reference internal" href="#dashboard-creation">Dashboard Creation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#creating-custom-visualizers">Creating Custom Visualizers</a></li>
+<li><a class="reference internal" href="#integration-with-scanner">Integration with Scanner</a></li>
+<li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id1">Conclusion</a></li>
 </ul>
 </li>
 </ul>

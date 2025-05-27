@@ -209,9 +209,52 @@ To run on real quantum hardware via IBM Quantum, you need an IBM Quantum account
 
 Use standard Qiskit runtime services to execute circuits on IBM backends, then analyze the results with Qward's Scanner and metric strategies.
 
+## Visualizing Results
+
+QWARD includes a comprehensive visualization system to help you analyze and present your quantum circuit metrics. Here's a quick example:
+
+```python
+from qward.visualization import SuccessRateVisualizer, PlotConfig
+
+# After calculating metrics with Scanner
+all_metric_data = scanner.calculate_metrics()
+
+# Create visualizations for SuccessRate metrics
+visualizer = SuccessRateVisualizer(
+    all_metric_data,
+    output_dir="img/quickstart_plots"
+)
+
+# Generate all available plots
+figures = visualizer.plot_all(save=True, show=False)
+
+# Or create a comprehensive dashboard
+visualizer.create_dashboard(save=True, show=True)
+
+# Custom styling example
+custom_config = PlotConfig(
+    style="quantum",
+    figsize=(12, 8),
+    save_format="svg"
+)
+
+custom_visualizer = SuccessRateVisualizer(
+    all_metric_data,
+    output_dir="img/custom_plots",
+    config=custom_config
+)
+
+# Create specific plots
+custom_visualizer.plot_success_rate_comparison(save=True)
+custom_visualizer.plot_fidelity_comparison(save=True)
+```
+
+For more details on visualization capabilities, see the [Visualization Guide](visualization_guide.md).
+
 ## Next Steps
 
 -   Explore the examples in the `qward/examples/` directory, especially `aer.py` and `run_on_aer.ipynb`.
 -   Refer to the [Beginner's Guide](beginners_guide.md) for a more narrative introduction.
 -   Consult the [API Documentation](apidocs/index.rst) (once generated/updated) for detailed class and method descriptions.
 -   Review `docs/architecture.md` for an overview of the library structure.
+-   Check out the [Visualization Guide](visualization_guide.md) for creating beautiful plots of your metrics.

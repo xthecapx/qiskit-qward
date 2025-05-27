@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Qward API References" href="apidocs/index.html" /><link rel="prev" title="Qiskit Qward Project Overview" href="project_overview.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Visualization Guide" href="visualization_guide.html" /><link rel="prev" title="Qiskit Qward Project Overview" href="project_overview.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>QWARD Architecture - Qward 0.1.0</title>
@@ -203,6 +203,7 @@
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QWARD Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
@@ -619,6 +620,113 @@
 </li>
 </ol>
 </section>
+<section id="visualization-system">
+<h2>Visualization System<a class="headerlink" href="#visualization-system" title="Link to this heading">¶</a></h2>
+<p>QWARD includes a comprehensive visualization system for analyzing and presenting quantum circuit metrics. The visualization module follows a modular architecture that integrates seamlessly with the metric calculation system.</p>
+<section id="architecture-overview">
+<h3>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading">¶</a></h3>
+<p>The visualization system is built on a hierarchical class structure:</p>
+<pre  class="mermaid">
+        classDiagram
+    class BaseVisualizer {
+        &lt;&lt;abstract&gt;&gt;
+        +output_dir: str
+        +config: PlotConfig
+        +save_plot(fig, filename)
+        +show_plot(fig)
+        +create_plot()*
+    }
+    
+    class MetricVisualizer {
+        &lt;&lt;abstract&gt;&gt;
+        +metrics_dict: Dict[str, DataFrame]
+        +get_metric_data(metric_name)
+        +validate_columns(df, required_columns)
+        +add_value_labels(ax, bars)
+    }
+    
+    class SuccessRateVisualizer {
+        +plot_success_rate_comparison()
+        +plot_error_rate_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+    
+    class PlotConfig {
+        +figsize: Tuple[int, int]
+        +dpi: int
+        +style: str
+        +color_palette: List[str]
+        +save_format: str
+        +grid: bool
+        +alpha: float
+    }
+    
+    BaseVisualizer &lt;|-- MetricVisualizer
+    MetricVisualizer &lt;|-- SuccessRateVisualizer
+    MetricVisualizer --&gt; PlotConfig
+    </pre></section>
+<section id="key-components">
+<h3>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>BaseVisualizer</strong>: Abstract base class providing core visualization functionality</p>
+<ul class="simple">
+<li><p>Manages output directories</p></li>
+<li><p>Handles plot styling and configuration</p></li>
+<li><p>Provides save/show functionality</p></li>
+</ul>
+</li>
+<li><p><strong>MetricVisualizer</strong>: Abstract class for metric-specific visualizers</p>
+<ul class="simple">
+<li><p>Manages metric data from Scanner output</p></li>
+<li><p>Provides data validation and helper methods</p></li>
+<li><p>Serves as base for concrete visualizers</p></li>
+</ul>
+</li>
+<li><p><strong>SuccessRateVisualizer</strong>: Concrete implementation for SuccessRate metrics</p>
+<ul class="simple">
+<li><p>Creates multiple plot types for comprehensive analysis</p></li>
+<li><p>Supports dashboard creation for overview</p></li>
+<li><p>Handles both individual and aggregate metrics</p></li>
+</ul>
+</li>
+<li><p><strong>PlotConfig</strong>: Configuration dataclass for plot appearance</p>
+<ul class="simple">
+<li><p>Customizable styles (default, quantum, minimal)</p></li>
+<li><p>ColorBrewer-inspired color palettes</p></li>
+<li><p>Support for multiple output formats</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="integration-with-scanner">
+<h3>Integration with Scanner<a class="headerlink" href="#integration-with-scanner" title="Link to this heading">¶</a></h3>
+<p>The visualization system seamlessly integrates with the Scanner output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate metrics</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_calculator</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Create visualizations</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="extensibility">
+<h3>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading">¶</a></h3>
+<p>The visualization system is designed for easy extension:</p>
+<ol class="arabic simple">
+<li><p><strong>Custom Visualizers</strong>: Create new visualizers by inheriting from <code class="docutils literal notranslate"><span class="pre">MetricVisualizer</span></code></p></li>
+<li><p><strong>Custom Styles</strong>: Define new plot styles and color palettes</p></li>
+<li><p><strong>New Plot Types</strong>: Add new visualization methods to existing visualizers</p></li>
+</ol>
+<p>For detailed usage and examples, see the <a class="reference internal" href="visualization_guide.html"><span class="std std-doc">Visualization Guide</span></a>.</p>
+</section>
+</section>
 </section>
 
         </article>
@@ -626,12 +734,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="apidocs/index.html">
+          <a class="next-page" href="visualization_guide.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Qward API References</div>
+                <div class="title">QWARD Visualization Guide</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -698,6 +806,13 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
+<li><a class="reference internal" href="#architecture-overview">Architecture Overview</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#integration-with-scanner">Integration with Scanner</a></li>
+<li><a class="reference internal" href="#extensibility">Extensibility</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

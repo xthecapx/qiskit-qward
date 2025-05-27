@@ -352,4 +352,103 @@ class MyCustomMetric(Metric):
    - Inherit from the Metric base class
    - Implement the required abstract methods
    - Return results in a consistent format
-   - Document metric calculation methodology 
+   - Document metric calculation methodology
+
+## Visualization System
+
+QWARD includes a comprehensive visualization system for analyzing and presenting quantum circuit metrics. The visualization module follows a modular architecture that integrates seamlessly with the metric calculation system.
+
+### Architecture Overview
+
+The visualization system is built on a hierarchical class structure:
+
+```{mermaid}
+classDiagram
+    class BaseVisualizer {
+        <<abstract>>
+        +output_dir: str
+        +config: PlotConfig
+        +save_plot(fig, filename)
+        +show_plot(fig)
+        +create_plot()*
+    }
+    
+    class MetricVisualizer {
+        <<abstract>>
+        +metrics_dict: Dict[str, DataFrame]
+        +get_metric_data(metric_name)
+        +validate_columns(df, required_columns)
+        +add_value_labels(ax, bars)
+    }
+    
+    class SuccessRateVisualizer {
+        +plot_success_rate_comparison()
+        +plot_error_rate_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+    
+    class PlotConfig {
+        +figsize: Tuple[int, int]
+        +dpi: int
+        +style: str
+        +color_palette: List[str]
+        +save_format: str
+        +grid: bool
+        +alpha: float
+    }
+    
+    BaseVisualizer <|-- MetricVisualizer
+    MetricVisualizer <|-- SuccessRateVisualizer
+    MetricVisualizer --> PlotConfig
+```
+
+### Key Components
+
+1. **BaseVisualizer**: Abstract base class providing core visualization functionality
+   - Manages output directories
+   - Handles plot styling and configuration
+   - Provides save/show functionality
+
+2. **MetricVisualizer**: Abstract class for metric-specific visualizers
+   - Manages metric data from Scanner output
+   - Provides data validation and helper methods
+   - Serves as base for concrete visualizers
+
+3. **SuccessRateVisualizer**: Concrete implementation for SuccessRate metrics
+   - Creates multiple plot types for comprehensive analysis
+   - Supports dashboard creation for overview
+   - Handles both individual and aggregate metrics
+
+4. **PlotConfig**: Configuration dataclass for plot appearance
+   - Customizable styles (default, quantum, minimal)
+   - ColorBrewer-inspired color palettes
+   - Support for multiple output formats
+
+### Integration with Scanner
+
+The visualization system seamlessly integrates with the Scanner output:
+
+```python
+# Calculate metrics
+scanner = Scanner(circuit=circuit)
+scanner.add_calculator(SuccessRate(circuit=circuit))
+metrics_dict = scanner.calculate_metrics()
+
+# Create visualizations
+visualizer = SuccessRateVisualizer(metrics_dict)
+figures = visualizer.plot_all(save=True)
+```
+
+### Extensibility
+
+The visualization system is designed for easy extension:
+
+1. **Custom Visualizers**: Create new visualizers by inheriting from `MetricVisualizer`
+2. **Custom Styles**: Define new plot styles and color palettes
+3. **New Plot Types**: Add new visualization methods to existing visualizers
+
+For detailed usage and examples, see the [Visualization Guide](visualization_guide.md). 
