@@ -366,7 +366,7 @@ job = simulator.run(circuit, shots=1024)
 scanner = Scanner(circuit=circuit)
 success_rate = SuccessRate(circuit=circuit)
 success_rate.add_job(job)
-scanner.add_calculator(success_rate)
+scanner.add_strategy(success_rate)
 
 metrics_dict = scanner.calculate_metrics()
 
