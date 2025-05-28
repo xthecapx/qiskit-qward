@@ -13,13 +13,24 @@ from .base import BaseVisualizer, PlotConfig
 
 # --- Strategy Interface ---
 class PlotStrategy(ABC):
-    def __init__(self, visualizer: "SuccessRateVisualizer"):
+    """
+    Abstract base class for a plot generation strategy.
+    Each concrete strategy encapsulates the algorithm to create a specific plot.
+    """
+    def __init__(self, visualizer: 'SuccessRateVisualizer'):
         self.visualizer = visualizer
         self.config = visualizer.config  # Access config from the visualizer
 
     @abstractmethod
-    def plot(self, ax: plt.Axes) -> None:
-        """Generates the plot on the given axes."""
+    def plot(self, ax: plt.Axes, is_dashboard_context: bool = False) -> None:
+        """
+        Generates the plot on the given axes.
+
+        Args:
+            ax: Matplotlib axes to draw the plot on.
+            is_dashboard_context: True if the plot is part of a larger dashboard,
+                                  which might influence layout choices (e.g., summary text position).
+        """
         pass
 
     def _get_individual_df(self) -> Optional[pd.DataFrame]:
@@ -35,14 +46,12 @@ class PlotStrategy(ABC):
 
 
 class SuccessErrorPlotStrategy(PlotStrategy):
-    def plot(self, ax: plt.Axes) -> None:
+    """Strategy for plotting success vs. error rates."""
+    def plot(self, ax: plt.Axes, is_dashboard_context: bool = False) -> None:
         individual_df = self._get_individual_df()
         required_cols = ["success_rate", "error_rate"]
-        # Basic validation; more robust validation could use a utility
         if individual_df is None or not all(col in individual_df.columns for col in required_cols):
-            raise ValueError(
-                f"Individual jobs data missing required columns for SuccessErrorPlotStrategy: {required_cols}"
-            )
+            raise ValueError(f"Individual jobs data missing required columns for SuccessErrorPlotStrategy: {required_cols}")
 
         plot_df = individual_df.copy()
         plot_df.index = [f"Job {i+1}" for i in range(len(plot_df))]
@@ -62,12 +71,11 @@ class SuccessErrorPlotStrategy(PlotStrategy):
 
 
 class FidelityPlotStrategy(PlotStrategy):
-    def plot(self, ax: plt.Axes) -> None:
+    """Strategy for plotting fidelity comparisons."""
+    def plot(self, ax: plt.Axes, is_dashboard_context: bool = False) -> None:
         individual_df = self._get_individual_df()
         if individual_df is None or "fidelity" not in individual_df.columns:
-            raise ValueError(
-                "Individual jobs data missing 'fidelity' column for FidelityPlotStrategy"
-            )
+            raise ValueError("Individual jobs data missing 'fidelity' column for FidelityPlotStrategy")
 
         plot_df = individual_df.copy()
         plot_df.index = [f"Job {i+1}" for i in range(len(plot_df))]
@@ -86,22 +94,19 @@ class FidelityPlotStrategy(PlotStrategy):
 
 
 class ShotDistributionPlotStrategy(PlotStrategy):
-    def plot(self, ax: plt.Axes) -> None:
+    """Strategy for plotting shot distributions (successful vs. failed)."""
+    def plot(self, ax: plt.Axes, is_dashboard_context: bool = False) -> None:
         individual_df = self._get_individual_df()
         required_cols = ["total_shots", "successful_shots"]
         if individual_df is None or not all(col in individual_df.columns for col in required_cols):
-            raise ValueError(
-                f"Individual jobs data missing required columns for ShotDistributionPlotStrategy: {required_cols}"
-            )
+            raise ValueError(f"Individual jobs data missing required columns for ShotDistributionPlotStrategy: {required_cols}")
 
         plot_df = individual_df.copy()
         plot_df.index = [f"Job {i+1}" for i in range(len(plot_df))]
-        shot_data = pd.DataFrame(
-            {
-                "Successful Shots": plot_df["successful_shots"],
-                "Failed Shots": plot_df["total_shots"] - plot_df["successful_shots"],
-            }
-        )
+        shot_data = pd.DataFrame({
+            "Successful Shots": plot_df["successful_shots"],
+            "Failed Shots": plot_df["total_shots"] - plot_df["successful_shots"],
+        })
         shot_data.plot(
             kind="bar",
             stacked=True,
@@ -116,69 +121,42 @@ class ShotDistributionPlotStrategy(PlotStrategy):
         if self.config.grid:
             ax.grid(True, alpha=0.3)
         ax.tick_params(axis="x", rotation=0)
-
-        # Call helper methods on the visualizer instance
-        self.visualizer._add_stacked_bar_labels(ax, shot_data)
-        summary_pos = "bottom_left" if self.visualizer._is_dashboard_context else "outside"
+        
+        self.visualizer.add_stacked_bar_labels(ax, shot_data) # Use public method
+        summary_pos = "bottom_left" if is_dashboard_context else "outside"
         self.visualizer.add_stacked_bar_summary(ax, shot_data, position=summary_pos)
 
 
 class AggregateSummaryPlotStrategy(PlotStrategy):
-    def plot(self, ax: plt.Axes) -> None:
+    """Strategy for plotting aggregate statistics summary."""
+    def plot(self, ax: plt.Axes, is_dashboard_context: bool = False) -> None:
         aggregate_df = self._get_aggregate_df()
         required_cols = [
-            "mean_success_rate",
-            "std_success_rate",
-            "min_success_rate",
-            "max_success_rate",
-            "fidelity",
-            "error_rate",
+            "mean_success_rate", "std_success_rate", "min_success_rate",
+            "max_success_rate", "fidelity", "error_rate",
         ]
         if aggregate_df is None or not all(col in aggregate_df.columns for col in required_cols):
-            raise ValueError(
-                f"Aggregate data missing required columns for AggregateSummaryPlotStrategy: {required_cols}"
-            )
+            raise ValueError(f"Aggregate data missing required columns for AggregateSummaryPlotStrategy: {required_cols}")
 
-        # Ensure data is scalar before creating Series for plotting
-        mean_success = (
-            aggregate_df["mean_success_rate"].iloc[0]
-            if not aggregate_df["mean_success_rate"].empty
-            else 0
-        )
-        std_success = (
-            aggregate_df["std_success_rate"].iloc[0]
-            if not aggregate_df["std_success_rate"].empty
-            else 0
-        )
-        min_success = (
-            aggregate_df["min_success_rate"].iloc[0]
-            if not aggregate_df["min_success_rate"].empty
-            else 0
-        )
-        max_success = (
-            aggregate_df["max_success_rate"].iloc[0]
-            if not aggregate_df["max_success_rate"].empty
-            else 0
-        )
+        mean_success = aggregate_df["mean_success_rate"].iloc[0] if not aggregate_df["mean_success_rate"].empty else 0
+        std_success = aggregate_df["std_success_rate"].iloc[0] if not aggregate_df["std_success_rate"].empty else 0
+        min_success = aggregate_df["min_success_rate"].iloc[0] if not aggregate_df["min_success_rate"].empty else 0
+        max_success = aggregate_df["max_success_rate"].iloc[0] if not aggregate_df["max_success_rate"].empty else 0
         fidelity = aggregate_df["fidelity"].iloc[0] if not aggregate_df["fidelity"].empty else 0
-        error_rate = (
-            aggregate_df["error_rate"].iloc[0] if not aggregate_df["error_rate"].empty else 0
-        )
-
-        aggregate_stats = pd.Series(
-            {
-                "Mean Success Rate": mean_success,
-                "Std Success Rate": std_success,
-                "Min Success Rate": min_success,
-                "Max Success Rate": max_success,
-                "Mean Fidelity": fidelity,
-                "Mean Error Rate": error_rate,
-            }
-        )
+        error_rate = aggregate_df["error_rate"].iloc[0] if not aggregate_df["error_rate"].empty else 0
+        
+        aggregate_stats = pd.Series({
+            "Mean Success Rate": mean_success,
+            "Std Success Rate": std_success,
+            "Min Success Rate": min_success,
+            "Max Success Rate": max_success,
+            "Mean Fidelity": fidelity,
+            "Mean Error Rate": error_rate,
+        })
         aggregate_stats.plot(
             kind="bar",
             ax=ax,
-            color=self.config.color_palette[: len(aggregate_stats)],
+            color=self.config.color_palette[:len(aggregate_stats)],
             alpha=self.config.alpha,
         )
         ax.set_title("Aggregate Statistics Summary")
@@ -249,13 +227,7 @@ class SuccessRateVisualizer(BaseVisualizer):
             ]
             raise ValueError(f"Aggregate data missing core columns: {missing_cols}")
 
-        self._is_dashboard_context = (
-            False  # Flag for strategies to know if they are part of a dashboard
-        )
-
-    # Helper methods previously in MetricVisualizer or specific to SuccessRateVisualizer
-    # These are called by the strategies via self.visualizer.<method_name>
-    def _add_stacked_bar_labels(self, ax: plt.Axes, data: pd.DataFrame) -> None:
+    def add_stacked_bar_labels(self, ax: plt.Axes, data: pd.DataFrame) -> None:
         """Add value labels on top of and within stacked bars."""
         for i, (_, row) in enumerate(data.iterrows()):
             total_height = row.sum()
@@ -285,9 +257,7 @@ class SuccessRateVisualizer(BaseVisualizer):
                     )
                 cumulative_height += value
 
-    def add_stacked_bar_summary(
-        self, ax: plt.Axes, data: pd.DataFrame, position: str = "outside"
-    ) -> None:
+    def add_stacked_bar_summary(self, ax: plt.Axes, data: pd.DataFrame, position: str = "outside") -> None:
         """Add summary information for stacked bar charts."""
         summary_lines = []
         for item_name, row in data.iterrows():  # Changed from job_name to item_name for generality
@@ -341,20 +311,23 @@ class SuccessRateVisualizer(BaseVisualizer):
         filename: str,
         save: bool,
         show: bool,
-        fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        *,
+        fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None
     ) -> plt.Figure:
         """Helper to execute a plotting strategy."""
+        is_dashboard_ctx = fig_ax_override is not None
+        
         if fig_ax_override:
             fig, ax = fig_ax_override
         else:
             # Adjust figsize for shot distribution if it's a standalone plot and needs more space
             current_figsize = self.config.figsize
-            if strategy_class == ShotDistributionPlotStrategy and not self._is_dashboard_context:
+            if strategy_class == ShotDistributionPlotStrategy and not is_dashboard_ctx:
                 current_figsize = (self.config.figsize[0] + 3, self.config.figsize[1])
             fig, ax = plt.subplots(figsize=current_figsize)
 
         strategy = strategy_class(self)
-        strategy.plot(ax)
+        strategy.plot(ax, is_dashboard_context=is_dashboard_ctx)
 
         if not fig_ax_override:  # Only do tight_layout if we created the fig/ax here
             plt.tight_layout()
@@ -397,20 +370,16 @@ class SuccessRateVisualizer(BaseVisualizer):
 
     def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
         """Creates a comprehensive dashboard with all plots in subplots."""
-        self._is_dashboard_context = True  # Signal to strategies they are in a dashboard context
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
         fig.suptitle("SuccessRate Analysis Dashboard", fontsize=16)
 
         # Instantiate and run each strategy on its designated axes
-        SuccessErrorPlotStrategy(self).plot(ax1)
-        FidelityPlotStrategy(self).plot(ax2)
-        ShotDistributionPlotStrategy(self).plot(
-            ax3
-        )  # Strategy will adjust based on _is_dashboard_context
-        AggregateSummaryPlotStrategy(self).plot(ax4)
+        SuccessErrorPlotStrategy(self).plot(ax1, is_dashboard_context=True)
+        FidelityPlotStrategy(self).plot(ax2, is_dashboard_context=True)
+        ShotDistributionPlotStrategy(self).plot(ax3, is_dashboard_context=True)
+        AggregateSummaryPlotStrategy(self).plot(ax4, is_dashboard_context=True)
 
         plt.tight_layout()
-        self._is_dashboard_context = False  # Reset flag after dashboard creation
 
         if save:
             self.save_plot(fig, "success_rate_dashboard")
