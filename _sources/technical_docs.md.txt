@@ -213,193 +213,110 @@ Qward provides a structured and extensible approach to quantum circuit analysis.
 
 ## Visualization System
 
-QWARD includes a comprehensive visualization module (`qward.visualization`) for creating publication-quality plots of quantum circuit metrics.
+QWARD includes a comprehensive visualization module (`qward.visualization`) for creating publication-quality plots of quantum circuit metrics. The visualization module follows a structured approach that integrates seamlessly with the metric calculation system.
 
 ### Architecture
 
-The visualization system follows a hierarchical class structure:
+The visualization system is built on the following key components:
 
-1. **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`)
-   - Abstract base class for all visualizers
-   - Manages output directories and plot configuration
-   - Provides `save_plot()` and `show_plot()` methods
-   - Requires implementation of `create_plot()` method
+- **`PlotConfig`** (`qward.visualization.base.PlotConfig`):
+    - A dataclass holding all plot appearance and saving configurations.
+    - Parameters include `figsize`, `dpi`, `style` (e.g., "default", "quantum", "minimal"), `color_palette`, `save_format` (e.g., "png", "svg"), `grid`, and `alpha`.
 
-2. **`MetricVisualizer`** (`qward.visualization.base.MetricVisualizer`)
-   - Abstract class for metric-specific visualizers
-   - Extends `BaseVisualizer` with metric data handling
-   - Constructor: `MetricVisualizer(metrics_dict: Dict[str, pd.DataFrame], output_dir: str = "img", config: Optional[PlotConfig] = None)`
-   - Provides helper methods: `get_metric_data()`, `validate_columns()`, `add_value_labels()`
+- **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`):
+    - An abstract base class for all visualizers.
+    - Handles common setup: output directory creation, applying plot styles using `PlotConfig`.
+    - Provides `save_plot()` and `show_plot()` utility methods.
+    - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
-3. **`PlotConfig`** (`qward.visualization.base.PlotConfig`)
-   - Dataclass for plot configuration
-   - Parameters:
-     - `figsize: Tuple[int, int] = (10, 6)`
-     - `dpi: int = 300`
-     - `style: str = "default"` (options: "default", "quantum", "minimal")
-     - `color_palette: List[str] = None` (defaults to ColorBrewer-inspired palette)
-     - `save_format: str = "png"` (options: "png", "svg", "pdf", "eps")
-     - `grid: bool = True`
-     - `alpha: float = 0.7`
+- **`SuccessRateVisualizer`** (`qward.visualization.success_rate_visualizer.SuccessRateVisualizer`):
+    - A concrete visualizer inheriting directly from `BaseVisualizer`.
+    - Responsible for generating various plots related to the metrics produced by the `SuccessRate` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
+    - Internally, it uses the **Strategy pattern** to manage the generation of these different plot types. Each specific plot (e.g., fidelity comparison) is handled by a dedicated strategy class.
+
+- **`PlotStrategy`** (internal to `qward.visualization.success_rate_visualizer`):
+    - An interface (abstract base class) defining a common contract for different plot generation algorithms within `SuccessRateVisualizer`.
+    - Concrete strategies (e.g., `FidelityPlotStrategy`, `ShotDistributionPlotStrategy`) implement this interface to create specific charts.
+    - `SuccessRateVisualizer` delegates plotting tasks to these strategies.
+
+- **(Conceptual) `MetricPlottingUtils`**:
+    - While not a specific class shown in a high-level diagram, it's important to note that a utility class or module would ideally contain static helper methods for common tasks related to plotting metric data (e.g., extracting specific data from `metrics_dict`, validating DataFrame columns, adding standard value labels or summaries to plots). `SuccessRateVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
+
+Visually, the core relationships (focusing on `SuccessRateVisualizer`) can be represented as:
+
+```{mermaid}
+classDiagram
+    class BaseVisualizer {
+        <<abstract>>
+        +output_dir: str
+        +config: PlotConfig
+        +save_plot(fig, filename)
+        +show_plot(fig)
+        +create_plot()*
+    }
+
+    class PlotConfig {
+        +figsize: Tuple[int, int]
+        +dpi: int
+        +style: str
+        +color_palette: List[str]
+        +save_format: str
+        +grid: bool
+        +alpha: float
+    }
+
+    class SuccessRateVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        # +_is_dashboard_context: bool
+        +plot_success_error_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class PlotStrategy {
+        <<Interface>>
+        #visualizer: SuccessRateVisualizer
+        #config: PlotConfig
+        +plot(ax: Axes)*
+    }
+
+    class SuccessErrorPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class FidelityPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class ShotDistributionPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class AggregateSummaryPlotStrategy {
+        +plot(ax: Axes)
+    }
+    
+    note for PlotStrategy "Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity)."
+
+    BaseVisualizer <|-- SuccessRateVisualizer
+    BaseVisualizer --> PlotConfig : uses
+    SuccessRateVisualizer o--> PlotStrategy : uses (delegates to)
+
+    PlotStrategy <|.. SuccessErrorPlotStrategy : implements
+    PlotStrategy <|.. FidelityPlotStrategy : implements
+    PlotStrategy <|.. ShotDistributionPlotStrategy : implements
+    PlotStrategy <|.. AggregateSummaryPlotStrategy : implements
+```
 
 ### Built-in Visualizers
 
 #### `SuccessRateVisualizer` (`qward.visualization.success_rate_visualizer.SuccessRateVisualizer`)
 
-Specialized visualizer for `SuccessRate` metric outputs.
+Specialized visualizer for `SuccessRate` metric outputs. It provides methods like:
+- `plot_all()`: Generates all standard individual plots.
+- `create_dashboard()`: Creates a consolidated dashboard view.
+- Individual plot methods (e.g., `plot_fidelity_comparison()`, `plot_shot_distribution()`).
 
-**Constructor**: `SuccessRateVisualizer(metrics_dict: Dict[str, pd.DataFrame], output_dir: str = "img", config: Optional[PlotConfig] = None)`
+It takes a `metrics_dict` (as produced by the `Scanner`) and an optional `PlotConfig` instance for customization.
 
-**Methods**:
-- `plot_all(save: bool = True, show: bool = True) -> List[Figure]`: Creates all available plots
-- `create_dashboard(save: bool = True, show: bool = True) -> Figure`: Creates a comprehensive dashboard
-- `plot_success_rate_comparison(save: bool = True, show: bool = True) -> Figure`: Bar chart of success rates
-- `plot_error_rate_comparison(save: bool = True, show: bool = True) -> Figure`: Bar chart of error rates
-- `plot_fidelity_comparison(save: bool = True, show: bool = True) -> Figure`: Bar chart of fidelity values
-- `plot_shot_distribution(save: bool = True, show: bool = True) -> Figure`: Stacked bar chart of measurement outcomes
-- `plot_aggregate_summary(save: bool = True, show: bool = True) -> Figure`: Summary statistics visualization
-
-### Usage Examples
-
-#### Basic Visualization
-```python
-from qward.visualization import SuccessRateVisualizer
-
-# After calculating metrics
-metrics_dict = scanner.calculate_metrics()
-
-# Create visualizer
-visualizer = SuccessRateVisualizer(metrics_dict, output_dir="img/analysis")
-
-# Generate all plots
-figures = visualizer.plot_all(save=True, show=False)
-```
-
-#### Custom Configuration
-```python
-from qward.visualization import SuccessRateVisualizer, PlotConfig
-
-# Custom configuration
-config = PlotConfig(
-    figsize=(12, 8),
-    style="quantum",
-    dpi=150,
-    save_format="svg",
-    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c"]
-)
-
-# Create visualizer with custom config
-visualizer = SuccessRateVisualizer(
-    metrics_dict,
-    output_dir="img/custom",
-    config=config
-)
-
-# Create specific plots
-visualizer.plot_success_rate_comparison(save=True)
-visualizer.plot_fidelity_comparison(save=True)
-```
-
-#### Dashboard Creation
-```python
-# Create comprehensive dashboard
-visualizer.create_dashboard(save=True, show=True)
-```
-
-### Creating Custom Visualizers
-
-To create a custom visualizer for your own metrics:
-
-```python
-from qward.visualization.base import MetricVisualizer
-import matplotlib.pyplot as plt
-
-class MyCustomVisualizer(MetricVisualizer):
-    def create_plot(self) -> plt.Figure:
-        """Create the main plot."""
-        fig, ax = plt.subplots(figsize=self.config.figsize)
-        
-        # Get your metric data
-        data = self.get_metric_data("MyCustomMetric")
-        if data is None:
-            raise ValueError("MyCustomMetric data not found")
-        
-        # Create visualization
-        # ... your plotting code ...
-        
-        return fig
-    
-    def plot_custom_analysis(self, save=True, show=True) -> plt.Figure:
-        """Create a custom analysis plot."""
-        fig = self.create_plot()
-        
-        if save:
-            self.save_plot(fig, "custom_analysis")
-        if show:
-            self.show_plot(fig)
-            
-        return fig
-```
-
-### Integration with Scanner
-
-The visualization system is designed to work seamlessly with Scanner output:
-
-```python
-# Complete workflow
-from qiskit import QuantumCircuit
-from qiskit_aer import AerSimulator
-from qward import Scanner
-from qward.metrics import SuccessRate
-from qward.visualization import SuccessRateVisualizer
-
-# Create and run circuit
-circuit = QuantumCircuit(2, 2)
-circuit.h(0)
-circuit.cx(0, 1)
-circuit.measure_all()
-
-simulator = AerSimulator()
-job = simulator.run(circuit, shots=1024)
-
-# Calculate metrics
-scanner = Scanner(circuit=circuit)
-success_rate = SuccessRate(circuit=circuit)
-success_rate.add_job(job)
-scanner.add_strategy(success_rate)
-
-metrics_dict = scanner.calculate_metrics()
-
-# Visualize results
-visualizer = SuccessRateVisualizer(metrics_dict)
-visualizer.plot_all(save=True)
-```
-
-### Best Practices
-
-1. **Output Organization**: Use descriptive output directories
-   ```python
-   output_dir = f"img/{experiment_name}/{timestamp}"
-   visualizer = SuccessRateVisualizer(metrics_dict, output_dir=output_dir)
-   ```
-
-2. **Batch Processing**: For many plots, use `show=False` to avoid display overhead
-   ```python
-   figures = visualizer.plot_all(save=True, show=False)
-   ```
-
-3. **Publication Quality**: Use high DPI and vector formats
-   ```python
-   config = PlotConfig(dpi=300, save_format="svg")
-   ```
-
-4. **Memory Management**: Close figures after batch processing
-   ```python
-   import matplotlib.pyplot as plt
-   figures = visualizer.plot_all(save=True, show=False)
-   plt.close('all')  # Free memory
-   ```
-
-## Conclusion
-
-Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the metric strategy system, associated helper classes like `Result`, and the visualization system, developers can gain significant insights into their quantum circuits and execution outcomes while presenting results in a clear, professional manner.
+For more details on usage, available plot types, and customization, refer to the [Visualization Guide](visualization_guide.md).
