@@ -6,7 +6,13 @@ QWARD provides a comprehensive visualization system for quantum circuit metrics.
 
 ## Architecture
 
-The visualization system follows a hierarchical class structure:
+The visualization system follows a structured approach:
+
+- **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations.
+- **`BaseVisualizer`**: An abstract base class for all visualizers. It handles common setup (output directory, styling via `PlotConfig`) and provides `save_plot`/`show_plot` methods. Subclasses must implement `create_plot()` for their specific visualization logic.
+- **`SuccessRateVisualizer`**: A concrete visualizer inheriting from `BaseVisualizer`. It's responsible for generating various plots related to success rate metrics. Internally, it uses the **Strategy pattern** to manage different types of plots.
+- **`PlotStrategy`**: An interface (abstract base class) defining a contract for different plot generation algorithms. Concrete strategies (e.g., `SuccessErrorPlotStrategy`, `FidelityPlotStrategy`) implement this interface to create specific charts. `SuccessRateVisualizer` delegates plotting tasks to these strategies.
+- **(Conceptual) `MetricPlottingUtils`**: A utility class or module (not shown in the diagram for simplicity but important for implementation) would contain static helper methods for common tasks related to plotting metric data (e.g., extracting data, validating columns, adding standard labels). Both `SuccessRateVisualizer` and its strategies might use these utilities.
 
 ```mermaid
 classDiagram
@@ -18,25 +24,7 @@ classDiagram
         +show_plot(fig)
         +create_plot()*
     }
-    
-    class MetricVisualizer {
-        <<abstract>>
-        +metrics_dict: Dict[str, DataFrame]
-        +get_metric_data(metric_name)
-        +validate_columns(df, required_columns)
-        +add_value_labels(ax, bars)
-    }
-    
-    class SuccessRateVisualizer {
-        +plot_success_rate_comparison()
-        +plot_error_rate_comparison()
-        +plot_fidelity_comparison()
-        +plot_shot_distribution()
-        +plot_aggregate_summary()
-        +create_dashboard()
-        +plot_all()
-    }
-    
+
     class PlotConfig {
         +figsize: Tuple[int, int]
         +dpi: int
@@ -46,10 +34,48 @@ classDiagram
         +grid: bool
         +alpha: float
     }
+
+    class SuccessRateVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        # +_is_dashboard_context: bool
+        +plot_success_error_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class PlotStrategy {
+        <<Interface>>
+        #visualizer: SuccessRateVisualizer
+        #config: PlotConfig
+        +plot(ax: Axes)*
+    }
+
+    class SuccessErrorPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class FidelityPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class ShotDistributionPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class AggregateSummaryPlotStrategy {
+        +plot(ax: Axes)
+    }
     
-    BaseVisualizer <|-- MetricVisualizer
-    MetricVisualizer <|-- SuccessRateVisualizer
-    MetricVisualizer --> PlotConfig
+    note for PlotStrategy "Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity)."
+
+    BaseVisualizer <|-- SuccessRateVisualizer
+    BaseVisualizer --> PlotConfig : uses
+    SuccessRateVisualizer o--> PlotStrategy : uses (delegates to)
+
+    PlotStrategy <|.. SuccessErrorPlotStrategy : implements
+    PlotStrategy <|.. FidelityPlotStrategy : implements
+    PlotStrategy <|.. ShotDistributionPlotStrategy : implements
+    PlotStrategy <|.. AggregateSummaryPlotStrategy : implements
 ```
 
 ## Quick Start

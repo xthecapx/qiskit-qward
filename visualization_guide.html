@@ -260,7 +260,14 @@
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
-<p>The visualization system follows a hierarchical class structure:</p>
+<p>The visualization system follows a structured approach:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class for all visualizers. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code> methods. Subclasses must implement <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> for their specific visualization logic.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code></strong>: A concrete visualizer inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>. It’s responsible for generating various plots related to success rate metrics. Internally, it uses the <strong>Strategy pattern</strong> to manage different types of plots.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotStrategy</span></code></strong>: An interface (abstract base class) defining a contract for different plot generation algorithms. Concrete strategies (e.g., <code class="docutils literal notranslate"><span class="pre">SuccessErrorPlotStrategy</span></code>, <code class="docutils literal notranslate"><span class="pre">FidelityPlotStrategy</span></code>) implement this interface to create specific charts. <code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code> delegates plotting tasks to these strategies.</p></li>
+<li><p><strong>(Conceptual) <code class="docutils literal notranslate"><span class="pre">MetricPlottingUtils</span></code></strong>: A utility class or module (not shown in the diagram for simplicity but important for implementation) would contain static helper methods for common tasks related to plotting metric data (e.g., extracting data, validating columns, adding standard labels). Both <code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code> and its strategies might use these utilities.</p></li>
+</ul>
 <div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>classDiagram
     class BaseVisualizer {
         &lt;&lt;abstract&gt;&gt;
@@ -270,25 +277,7 @@
         +show_plot(fig)
         +create_plot()*
     }
-    
-    class MetricVisualizer {
-        &lt;&lt;abstract&gt;&gt;
-        +metrics_dict: Dict[str, DataFrame]
-        +get_metric_data(metric_name)
-        +validate_columns(df, required_columns)
-        +add_value_labels(ax, bars)
-    }
-    
-    class SuccessRateVisualizer {
-        +plot_success_rate_comparison()
-        +plot_error_rate_comparison()
-        +plot_fidelity_comparison()
-        +plot_shot_distribution()
-        +plot_aggregate_summary()
-        +create_dashboard()
-        +plot_all()
-    }
-    
+
     class PlotConfig {
         +figsize: Tuple[int, int]
         +dpi: int
@@ -298,10 +287,48 @@
         +grid: bool
         +alpha: float
     }
+
+    class SuccessRateVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        # +_is_dashboard_context: bool
+        +plot_success_error_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class PlotStrategy {
+        &lt;&lt;Interface&gt;&gt;
+        #visualizer: SuccessRateVisualizer
+        #config: PlotConfig
+        +plot(ax: Axes)*
+    }
+
+    class SuccessErrorPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class FidelityPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class ShotDistributionPlotStrategy {
+        +plot(ax: Axes)
+    }
+    class AggregateSummaryPlotStrategy {
+        +plot(ax: Axes)
+    }
     
-    BaseVisualizer &lt;|-- MetricVisualizer
-    MetricVisualizer &lt;|-- SuccessRateVisualizer
-    MetricVisualizer --&gt; PlotConfig
+    note for PlotStrategy &quot;Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity).&quot;
+
+    BaseVisualizer &lt;|-- SuccessRateVisualizer
+    BaseVisualizer --&gt; PlotConfig : uses
+    SuccessRateVisualizer o--&gt; PlotStrategy : uses (delegates to)
+
+    PlotStrategy &lt;|.. SuccessErrorPlotStrategy : implements
+    PlotStrategy &lt;|.. FidelityPlotStrategy : implements
+    PlotStrategy &lt;|.. ShotDistributionPlotStrategy : implements
+    PlotStrategy &lt;|.. AggregateSummaryPlotStrategy : implements
 </pre></div>
 </div>
 </section>
