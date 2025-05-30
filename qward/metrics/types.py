@@ -12,7 +12,7 @@ class MetricsId(Enum):
 
     QISKIT = "QISKIT"
     COMPLEXITY = "COMPLEXITY"
-    SUCCESS_RATE = "SUCCESS_RATE"
+    CIRCUIT_PERFORMANCE = "CIRCUIT_PERFORMANCE"
 
 
 class MetricsType(Enum):
