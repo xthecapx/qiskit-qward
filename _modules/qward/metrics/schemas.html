@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -211,7 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -1169,18 +1169,337 @@
 
 
 <span class="c1"># =============================================================================</span>
-<span class="c1"># Success Rate Metrics Schemas</span>
+<span class="c1"># Circuit Performance Metrics Schemas</span>
 <span class="c1"># =============================================================================</span>
 
 
-<div class="viewcode-block" id="SuccessRateJobSchema">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateJobSchema">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SuccessRateJobSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="SuccessMetricsSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessMetricsSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SuccessMetricsSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Schema for individual job success rate metrics.</span>
+<span class="sd">    Schema for success rate metrics.</span>
 
-<span class="sd">    This schema validates success rate metrics from a single</span>
+<span class="sd">    This schema validates success rate metrics including</span>
+<span class="sd">    success rate, error rate, and shot analysis for both</span>
+<span class="sd">    single job and multiple jobs cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Single job fields</span>
+    <span class="n">success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Success rate (0.0 to 1.0)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">error_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Error rate (0.0 to 1.0)&quot;</span><span class="p">)</span>
+    <span class="n">total_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total number of shots&quot;</span><span class="p">)</span>
+    <span class="n">successful_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of successful shots&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Multiple jobs aggregate fields</span>
+    <span class="n">mean_success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean success rate across jobs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">std_success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard deviation of success rates&quot;</span>
+    <span class="p">)</span>
+    <span class="n">min_success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum success rate&quot;</span>
+    <span class="p">)</span>
+    <span class="n">max_success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum success rate&quot;</span>
+    <span class="p">)</span>
+    <span class="n">total_trials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total number of trials across all jobs&quot;</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="SuccessMetricsSchema.validate_successful_shots">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessMetricsSchema.validate_successful_shots">[docs]</a>
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_successful_shots</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that successful_shots &lt;= total_shots.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;total_shots&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span> <span class="ow">and</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Successful shots (</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">) cannot exceed total shots (</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_shots&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="SuccessMetricsSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessMetricsSchema.Config">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
+
+        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">768</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FidelityMetricsSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.FidelityMetricsSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FidelityMetricsSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Schema for fidelity metrics.</span>
+
+<span class="sd">    This schema validates fidelity-related metrics including</span>
+<span class="sd">    quantum fidelity and related measures for both single</span>
+<span class="sd">    job and multiple jobs cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Single job fields</span>
+    <span class="n">fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Quantum fidelity (0.0 to 1.0)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">has_expected_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Whether expected distribution was provided for fidelity calculation&quot;</span>
+    <span class="p">)</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Method used for fidelity calculation (theoretical_comparison or success_based)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Confidence level of the fidelity calculation (high, medium, low)&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Multiple jobs aggregate fields</span>
+    <span class="n">mean_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean fidelity across jobs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">std_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard deviation of fidelities&quot;</span>
+    <span class="p">)</span>
+    <span class="n">min_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum fidelity&quot;</span><span class="p">)</span>
+    <span class="n">max_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum fidelity&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FidelityMetricsSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.FidelityMetricsSchema.Config">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
+
+        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StatisticalMetricsSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.StatisticalMetricsSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatisticalMetricsSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Schema for statistical analysis metrics.</span>
+
+<span class="sd">    This schema validates statistical metrics derived from</span>
+<span class="sd">    measurement outcome distributions for both single job</span>
+<span class="sd">    and multiple jobs cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Single job fields</span>
+    <span class="n">entropy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Shannon entropy of the distribution&quot;</span>
+    <span class="p">)</span>
+    <span class="n">uniformity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Uniformity measure (0.0 to 1.0)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">concentration</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Concentration measure (0.0 to 1.0)&quot;</span>
+    <span class="p">)</span>
+    <span class="n">dominant_outcome_probability</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Probability of the most frequent outcome&quot;</span>
+    <span class="p">)</span>
+    <span class="n">num_unique_outcomes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of unique measurement outcomes&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Multiple jobs aggregate fields</span>
+    <span class="n">mean_entropy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean entropy across jobs&quot;</span><span class="p">)</span>
+    <span class="n">mean_uniformity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean uniformity across jobs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">mean_concentration</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean concentration across jobs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">mean_dominant_probability</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean dominant probability across jobs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">std_entropy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard deviation of entropy&quot;</span><span class="p">)</span>
+    <span class="n">std_uniformity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard deviation of uniformity&quot;</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="StatisticalMetricsSchema.validate_ratio_bounds">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.StatisticalMetricsSchema.validate_ratio_bounds">[docs]</a>
+    <span class="nd">@field_validator</span><span class="p">(</span>
+        <span class="s2">&quot;uniformity&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mean_uniformity&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mean_concentration&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mean_dominant_probability&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_ratio_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that ratios are between 0 and 1.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ratio must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="StatisticalMetricsSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.StatisticalMetricsSchema.Config">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
+
+        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+                <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
+                <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+                <span class="s2">&quot;num_unique_outcomes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CircuitPerformanceSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Complete schema for circuit performance metrics.</span>
+
+<span class="sd">    This schema combines all individual performance metric schemas into</span>
+<span class="sd">    a single comprehensive structure for circuit performance analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">success_metrics</span><span class="p">:</span> <span class="n">SuccessMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Success rate metrics&quot;</span><span class="p">)</span>
+    <span class="n">fidelity_metrics</span><span class="p">:</span> <span class="n">FidelityMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Fidelity metrics&quot;</span><span class="p">)</span>
+    <span class="n">statistical_metrics</span><span class="p">:</span> <span class="n">StatisticalMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Statistical metrics&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CircuitPerformanceSchema.to_flat_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceSchema.to_flat_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_flat_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the schema to a flattened dictionary for DataFrame compatibility.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Flattened dictionary with dot-notation keys</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Flatten success metrics</span>
+        <span class="n">success_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>  <span class="c1"># pylint: disable=no-member</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">success_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;success_metrics.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Flatten fidelity metrics</span>
+        <span class="n">fidelity_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>  <span class="c1"># pylint: disable=no-member</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fidelity_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;fidelity_metrics.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Flatten statistical metrics</span>
+        <span class="n">statistical_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistical_metrics</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>  <span class="c1"># pylint: disable=no-member</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">statistical_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;statistical_metrics.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceSchema.from_flat_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceSchema.from_flat_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_flat_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">flat_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;CircuitPerformanceSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a schema instance from a flattened dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            flat_dict: Flattened dictionary with dot-notation keys</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CircuitPerformanceSchema: Schema instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Reconstruct nested structure</span>
+        <span class="n">success_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">fidelity_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">statistical_metrics</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">flat_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;success_metrics.&quot;</span><span class="p">):</span>
+                <span class="n">metric_name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;success_metrics.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">success_metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;fidelity_metrics.&quot;</span><span class="p">):</span>
+                <span class="n">metric_name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;fidelity_metrics.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">fidelity_metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;statistical_metrics.&quot;</span><span class="p">):</span>
+                <span class="n">metric_name</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;statistical_metrics.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">statistical_metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">success_metrics</span><span class="o">=</span><span class="n">SuccessMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">success_metrics</span><span class="p">),</span>
+            <span class="n">fidelity_metrics</span><span class="o">=</span><span class="n">FidelityMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">fidelity_metrics</span><span class="p">),</span>
+            <span class="n">statistical_metrics</span><span class="o">=</span><span class="n">StatisticalMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">statistical_metrics</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceSchema.Config">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
+
+        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Complete schema for circuit performance metrics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;success_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                    <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                    <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                    <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">768</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;fidelity_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                    <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;statistical_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+                    <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                    <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
+                    <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+                    <span class="s2">&quot;num_unique_outcomes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Legacy Schemas (for backward compatibility)</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="CircuitPerformanceJobSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceJobSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceJobSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Schema for individual job circuit performance metrics.</span>
+
+<span class="sd">    This schema validates circuit performance metrics from a single</span>
 <span class="sd">    quantum job execution.</span>
+
+<span class="sd">    DEPRECATED: Use CircuitPerformanceSchema instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unique identifier for the job&quot;</span><span class="p">)</span>
@@ -1190,8 +1509,8 @@
     <span class="n">total_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total number of shots&quot;</span><span class="p">)</span>
     <span class="n">successful_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of successful shots&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SuccessRateJobSchema.validate_error_rate">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateJobSchema.validate_error_rate">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceJobSchema.validate_error_rate">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_error_rate">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;error_rate&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_error_rate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -1205,8 +1524,8 @@
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-<div class="viewcode-block" id="SuccessRateJobSchema.validate_successful_shots">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateJobSchema.validate_successful_shots">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceJobSchema.validate_successful_shots">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_successful_shots">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_successful_shots</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -1218,8 +1537,8 @@
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-<div class="viewcode-block" id="SuccessRateJobSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateJobSchema.Config">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceJobSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceJobSchema.Config">[docs]</a>
     <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
 
@@ -1237,14 +1556,16 @@
 
 
 
-<div class="viewcode-block" id="SuccessRateAggregateSchema">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateAggregateSchema">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SuccessRateAggregateSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="CircuitPerformanceAggregateSchema">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceAggregateSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Schema for aggregate success rate metrics across multiple jobs.</span>
+<span class="sd">    Schema for aggregate circuit performance metrics across multiple jobs.</span>
 
-<span class="sd">    This schema validates aggregate success rate metrics computed</span>
+<span class="sd">    This schema validates aggregate circuit performance metrics computed</span>
 <span class="sd">    across multiple job executions.</span>
+
+<span class="sd">    DEPRECATED: Use CircuitPerformanceSchema instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">mean_success_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1257,8 +1578,8 @@
     <span class="n">fidelity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Average fidelity across jobs&quot;</span><span class="p">)</span>
     <span class="n">error_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Average error rate across jobs&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SuccessRateAggregateSchema.validate_min_max_order">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateAggregateSchema.validate_min_max_order">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceAggregateSchema.validate_min_max_order">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_min_max_order">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;min_success_rate&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_min_max_order</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -1268,8 +1589,8 @@
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-<div class="viewcode-block" id="SuccessRateAggregateSchema.validate_max_bounds">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateAggregateSchema.validate_max_bounds">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceAggregateSchema.validate_max_bounds">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_max_bounds">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;max_success_rate&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_max_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -1281,8 +1602,8 @@
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-<div class="viewcode-block" id="SuccessRateAggregateSchema.validate_error_rate_consistency">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateAggregateSchema.validate_error_rate_consistency">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceAggregateSchema.validate_error_rate_consistency">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_error_rate_consistency">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;error_rate&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_error_rate_consistency</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -1296,8 +1617,8 @@
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-<div class="viewcode-block" id="SuccessRateAggregateSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessRateAggregateSchema.Config">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceAggregateSchema.Config">
+<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config">[docs]</a>
     <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
 

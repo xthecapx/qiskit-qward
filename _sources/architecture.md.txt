@@ -48,20 +48,20 @@ classDiagram
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class SuccessRate {
+    class CircuitPerformance {
         <<Concrete Strategy>>
         +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[SuccessRateJobSchema, SuccessRateAggregateSchema]
-        +get_structured_single_job_metrics() SuccessRateJobSchema
-        +get_structured_multiple_jobs_metrics() SuccessRateAggregateSchema
+        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
+        +get_structured_single_job_metrics() CircuitPerformanceJobSchema
+        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
     }
 
     class SchemaModule {
         <<Validation Layer>>
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +SuccessRateJobSchema
-        +SuccessRateAggregateSchema
+        +CircuitPerformanceJobSchema
+        +CircuitPerformanceAggregateSchema
         +validate_data()
         +generate_json_schema()
     }
@@ -72,19 +72,19 @@ classDiagram
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
     MetricCalculator <|.. ComplexityMetrics : implements
-    MetricCalculator <|.. SuccessRate : implements
+    MetricCalculator <|.. CircuitPerformance : implements
     
     %% Schema Integration
     QiskitMetrics --> SchemaModule : validates with
     ComplexityMetrics --> SchemaModule : validates with
-    SuccessRate --> SchemaModule : validates with
+    CircuitPerformance --> SchemaModule : validates with
 
     %% Pattern Notes
     note for Scanner "Context: Orchestrates metric calculation and returns consolidated DataFrame"
     note for MetricCalculator "Strategy Interface: Common interface with both Dict and Schema outputs"
     note for QiskitMetrics "Returns validated Qiskit-native metrics with type safety"
     note for ComplexityMetrics "Returns validated complexity analysis metrics with constraints"
-    note for SuccessRate "Returns validated execution success metrics with cross-field validation"
+    note for CircuitPerformance "Returns validated execution performance metrics with cross-field validation"
     note for SchemaModule "Pydantic-based validation with automatic type checking and JSON schema generation"
 ```
 
@@ -131,7 +131,7 @@ classDiagram
         +from_flat_dict() ComplexityMetricsSchema
     }
     
-    class SuccessRateJobSchema {
+    class CircuitPerformanceJobSchema {
         +job_id: str
         +success_rate: float [0.0-1.0]
         +error_rate: float [0.0-1.0]
@@ -142,7 +142,7 @@ classDiagram
         +validate_successful_shots()
     }
     
-    class SuccessRateAggregateSchema {
+    class CircuitPerformanceAggregateSchema {
         +mean_success_rate: float [0.0-1.0]
         +std_success_rate: float [≥0.0]
         +min_success_rate: float [0.0-1.0]
@@ -157,14 +157,14 @@ classDiagram
     %% Inheritance
     BaseModel <|-- QiskitMetricsSchema
     BaseModel <|-- ComplexityMetricsSchema
-    BaseModel <|-- SuccessRateJobSchema
-    BaseModel <|-- SuccessRateAggregateSchema
+    BaseModel <|-- CircuitPerformanceJobSchema
+    BaseModel <|-- CircuitPerformanceAggregateSchema
 
     %% Validation Features
     note for QiskitMetricsSchema "Validates circuit metrics with type checking and constraints"
     note for ComplexityMetricsSchema "Validates complexity metrics with range and cross-field validation"
-    note for SuccessRateJobSchema "Validates single job metrics with rate consistency checks"
-    note for SuccessRateAggregateSchema "Validates aggregate metrics with statistical constraints"
+    note for CircuitPerformanceJobSchema "Validates single job metrics with rate consistency checks"
+    note for CircuitPerformanceAggregateSchema "Validates aggregate metrics with statistical constraints"
 ```
 
 ### Schema Benefits
@@ -264,7 +264,7 @@ classDiagram
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class SuccessRate {
+    class CircuitPerformance {
         <<Concrete Strategy>>
         #_job: Optional[JobType]
         #_jobs: List[JobType]
@@ -275,11 +275,11 @@ classDiagram
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[SuccessRateJobSchema, SuccessRateAggregateSchema]
+        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
         +get_single_job_metrics(job) Dict[str, Any]
         +get_multiple_jobs_metrics() Dict[str, Any]
-        +get_structured_single_job_metrics(job) SuccessRateJobSchema
-        +get_structured_multiple_jobs_metrics() SuccessRateAggregateSchema
+        +get_structured_single_job_metrics(job) CircuitPerformanceJobSchema
+        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
         +add_job(job)
         +_calculate_success_metrics(counts, job_id) Dict[str, Any]
         +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
@@ -297,7 +297,7 @@ classDiagram
         <<enumeration>>
         QISKIT
         COMPLEXITY
-        SUCCESS_RATE
+        CIRCUIT_PERFORMANCE
     }
 
     %% Strategy Pattern Relationships
@@ -307,7 +307,7 @@ classDiagram
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
     MetricCalculator <|.. ComplexityMetrics : implements
-    MetricCalculator <|.. SuccessRate : implements
+    MetricCalculator <|.. CircuitPerformance : implements
     
     %% Strategy Interface Dependencies
     MetricCalculator --> MetricsType : defines type
@@ -322,7 +322,7 @@ classDiagram
     
     note for ComplexityMetrics "Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking"
     
-    note for SuccessRate "Concrete Strategy: Success rate analysis with single/multiple job support and custom criteria"
+    note for CircuitPerformance "Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria"
 ```
 
 ## Folder Structure
@@ -344,7 +344,7 @@ The QWARD library is organized into the following folder structure:
 │   ├── schemas.py              # Pydantic schema definitions
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   └── success_rate.py         # SuccessRate implementation
+│   └── circuit_performance.py  # CircuitPerformance implementation
 ├── utils/
 │   ├── __init__.py
 │   ├── flatten.py              # Utility for flattening nested lists
@@ -353,7 +353,7 @@ The QWARD library is organized into the following folder structure:
     ├── __init__.py
     ├── utils.py                # Utilities for examples
     ├── schema_demo.py          # Schema validation demonstration
-    ├── success_rate_demo.py    # Success rate metrics demonstration
+    ├── circuit_performance_demo.py # Circuit performance metrics demonstration
     ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
     ├── aer.py                  # Example Aer simulator usage
     └── example_metrics_constructor.py # Example for custom metrics constructor
@@ -392,8 +392,8 @@ The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, i
 ### ComplexityMetrics
 The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through schemas with appropriate constraints and cross-field validation.
 
-### SuccessRate
-The SuccessRate class calculates success rate metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.
+### CircuitPerformance
+The CircuitPerformance class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.
 
 ## Usage Examples
 
@@ -430,16 +430,16 @@ print(f"Number of qubits: {structured_metrics.basic_metrics.num_qubits}")
 ### Comprehensive Analysis with Multiple Metrics
 ```python
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 # Create a scanner with multiple metrics
 scanner = Scanner(circuit=circuit)
 scanner.add_metric(QiskitMetrics(circuit))
 scanner.add_metric(ComplexityMetrics(circuit))
 
-# For success rate, you need job execution results
+# For circuit performance, you need job execution results
 if job:  # Assuming you have a job from circuit execution
-    scanner.add_metric(SuccessRate(circuit, job=job))
+    scanner.add_metric(CircuitPerformance(circuit, job=job))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()
@@ -453,29 +453,29 @@ print(f"Gate Density: {complexity_schema.standardized_metrics.gate_density}")
 print(f"Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_efficiency}")
 ```
 
-### Success Rate Analysis with Custom Criteria
+### Circuit Performance Analysis with Custom Criteria
 ```python
-from qward.metrics import SuccessRate
+from qward.metrics import CircuitPerformance
 
 # Define custom success criteria
 def bell_state_success(result: str) -> bool:
     clean_result = result.replace(" ", "")
     return clean_result in ["0000", "1111"]  # |00⟩ or |11⟩ states
 
-# Create success rate metric with custom criteria
-success_rate = SuccessRate(
+# Create circuit performance metric with custom criteria
+circuit_performance = CircuitPerformance(
     circuit=circuit, 
     job=job, 
     success_criteria=bell_state_success
 )
 
 # Get structured metrics with validation
-if len(success_rate.runtime_jobs) == 1:
-    job_schema = success_rate.get_structured_single_job_metrics()
+if len(circuit_performance.runtime_jobs) == 1:
+    job_schema = circuit_performance.get_structured_single_job_metrics()
     print(f"Success Rate: {job_schema.success_rate:.3f}")
     print(f"Fidelity: {job_schema.fidelity:.3f}")
 else:
-    aggregate_schema = success_rate.get_structured_multiple_jobs_metrics()
+    aggregate_schema = circuit_performance.get_structured_multiple_jobs_metrics()
     print(f"Mean Success Rate: {aggregate_schema.mean_success_rate:.3f}")
     print(f"Standard Deviation: {aggregate_schema.std_success_rate:.3f}")
 ```
@@ -557,7 +557,7 @@ results = scanner.calculate_metrics()
 3. **Execution**
    - Handle job and result errors appropriately
    - Use appropriate Qiskit runtime services for backend execution
-   - Validate success criteria for SuccessRate metrics
+   - Validate success criteria for CircuitPerformance metrics
 
 4. **Result Management**
    - Save results for later analysis
@@ -587,7 +587,7 @@ The visualization system is built on the following key components:
 
 - **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations.
 - **`BaseVisualizer`**: An abstract base class for all visualizers. It handles common setup (output directory, styling via `PlotConfig`) and provides `save_plot`/`show_plot` methods. Subclasses must implement `create_plot()` for their specific visualization logic.
-- **`SuccessRateVisualizer`**: A concrete visualizer inheriting from `BaseVisualizer`. It's responsible for generating various plots related to success rate metrics with direct plotting methods (no longer using Strategy pattern for simplicity).
+- **`CircuitPerformanceVisualizer`**: A concrete visualizer inheriting from `BaseVisualizer`. It's responsible for generating various plots related to circuit performance metrics with direct plotting methods (no longer using Strategy pattern for simplicity).
 
 ```{mermaid}
 classDiagram
@@ -610,7 +610,7 @@ classDiagram
         +alpha: float
     }
     
-    class SuccessRateVisualizer {
+    class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
@@ -620,18 +620,18 @@ classDiagram
         +plot_all()
     }
 
-    BaseVisualizer <|-- SuccessRateVisualizer
+    BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
     
     note for BaseVisualizer "Abstract base class providing core visualization functionality"
-    note for SuccessRateVisualizer "Concrete implementation with direct plotting methods for simplicity"
+    note for CircuitPerformanceVisualizer "Concrete implementation with direct plotting methods for simplicity"
     note for PlotConfig "Configuration dataclass for plot appearance and saving options"
 ```
 
 ### Key Components (Summary)
 
 1. **`BaseVisualizer`**: Abstract base class providing core visualization functionality.
-2. **`SuccessRateVisualizer`**: Concrete implementation for `SuccessRate` metrics with simplified direct plotting methods.
+2. **`CircuitPerformanceVisualizer`**: Concrete implementation for `CircuitPerformance` metrics with simplified direct plotting methods.
 3. **`PlotConfig`**: Dataclass for easy plot appearance customization.
 
 ### Integration with Scanner
@@ -641,11 +641,11 @@ The visualization system seamlessly integrates with the Scanner output:
 ```python
 # Calculate metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(SuccessRate(circuit=circuit, job=job))
+scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
 metrics_dict = scanner.calculate_metrics()
 
 # Create visualizations
-visualizer = SuccessRateVisualizer(metrics_dict)
+visualizer = CircuitPerformanceVisualizer(metrics_dict)
 figures = visualizer.plot_all(save=True)
 ```
 

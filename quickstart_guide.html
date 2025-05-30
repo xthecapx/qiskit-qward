@@ -201,7 +201,7 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -211,7 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -300,7 +300,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p><strong>Create/Load a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></strong>: Use Qiskit to define your circuit.</p></li>
 <li><p><strong>(Optional) Execute the Circuit</strong>: Run your circuit on a simulator or quantum hardware to get a Qiskit <code class="docutils literal notranslate"><span class="pre">Job</span></code> and its <code class="docutils literal notranslate"><span class="pre">Result</span></code> (containing counts).</p></li>
 <li><p><strong>Instantiate <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code></strong>: Provide the circuit, and optionally the Qiskit <code class="docutils literal notranslate"><span class="pre">Job</span></code> and <code class="docutils literal notranslate"><span class="pre">qward.Result</span></code> (which wraps Qiskit’s job result/counts).</p></li>
-<li><p><strong>Add Metric Calculators</strong>: Instantiate and add desired metric calculator classes from <code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>) to the scanner.</p></li>
+<li><p><strong>Add Metric Calculators</strong>: Instantiate and add desired metric calculator classes from <code class="docutils literal notranslate"><span class="pre">qward.metrics</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>, <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>) to the scanner.</p></li>
 <li><p><strong>Calculate Metrics</strong>: Call <code class="docutils literal notranslate"><span class="pre">scanner.calculate_metrics()</span></code>.</p></li>
 <li><p><strong>Interpret Results</strong>: The result is a dictionary of pandas DataFrames, one for each metric type.</p></li>
 <li><p><strong>(New) Use Schema Validation</strong>: Access structured, validated metrics through schema objects for enhanced type safety.</p></li>
@@ -311,7 +311,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span> <span class="c1"># QWARD classes</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span> <span class="c1"># QWARD calculators</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span> <span class="c1"># QWARD calculators</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.examples.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_display</span> <span class="c1"># For pretty printing in notebooks</span>
 
 <span class="n">display</span> <span class="o">=</span> <span class="n">get_display</span><span class="p">()</span>
@@ -341,14 +341,14 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">))</span>
 
-<span class="c1"># For SuccessRate, define what a &quot;successful&quot; measurement is</span>
+<span class="c1"># For CircuitPerformance, define what a &quot;successful&quot; measurement is</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">success_if_00</span><span class="p">(</span><span class="n">bitstring</span><span class="p">):</span>
     <span class="c1"># Handle measurement results with spaces</span>
     <span class="n">clean_result</span> <span class="o">=</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">clean_result</span> <span class="o">==</span> <span class="s2">&quot;00&quot;</span>
 
-<span class="c1"># SuccessRate needs a job to get counts from</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">))</span>
+<span class="c1"># CircuitPerformance needs a job to get counts from</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">))</span>
 
 <span class="c1"># 5. Calculate Metrics (Traditional Approach)</span>
 <span class="n">all_metric_data</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -367,9 +367,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Circuit Depth: </span><span class="si">{</span><span class="n">complexity_df</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics.circuit_depth&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Enhanced QV Estimate: </span><span class="si">{</span><span class="n">complexity_df</span><span class="p">[</span><span class="s1">&#39;quantum_volume.enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="c1"># Example: Accessing specific data from SuccessRate output</span>
-<span class="k">if</span> <span class="s2">&quot;SuccessRate.aggregate&quot;</span> <span class="ow">in</span> <span class="n">all_metric_data</span><span class="p">:</span>
-    <span class="n">success_df</span> <span class="o">=</span> <span class="n">all_metric_data</span><span class="p">[</span><span class="s2">&quot;SuccessRate.aggregate&quot;</span><span class="p">]</span>
+<span class="c1"># Example: Accessing specific data from CircuitPerformance output</span>
+<span class="k">if</span> <span class="s2">&quot;CircuitPerformance.aggregate&quot;</span> <span class="ow">in</span> <span class="n">all_metric_data</span><span class="p">:</span>
+    <span class="n">success_df</span> <span class="o">=</span> <span class="n">all_metric_data</span><span class="p">[</span><span class="s2">&quot;CircuitPerformance.aggregate&quot;</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Success Rate Data (for &#39;00&#39;):&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean Success Rate: </span><span class="si">{</span><span class="n">success_df</span><span class="p">[</span><span class="s1">&#39;mean_success_rate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Shots: </span><span class="si">{</span><span class="n">success_df</span><span class="p">[</span><span class="s1">&#39;total_trials&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -422,13 +422,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;❌ Pydantic not available - install pydantic for schema validation&quot;</span><span class="p">)</span>
 
-<span class="c1"># SuccessRate with schema validation</span>
-<span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">)</span>
+<span class="c1"># CircuitPerformance with schema validation</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">success_if_00</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Single job analysis</span>
-    <span class="n">job_schema</span> <span class="o">=</span> <span class="n">success_rate</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">()</span>
+    <span class="n">job_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">()</span>
     
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ SuccessRate Schema Validation:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ CircuitPerformance Schema Validation:&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Job ID: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Success Rate: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Error Rate: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Automatically validated</span>
@@ -440,11 +440,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="c1"># Demonstrate validation in action</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRateJobSchema</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceJobSchema</span>
     
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔍 Schema Validation Demo:&quot;</span><span class="p">)</span>
     <span class="c1"># This will raise ValidationError because success_rate &gt; 1.0</span>
-    <span class="n">invalid_data</span> <span class="o">=</span> <span class="n">SuccessRateJobSchema</span><span class="p">(</span>
+    <span class="n">invalid_data</span> <span class="o">=</span> <span class="n">CircuitPerformanceJobSchema</span><span class="p">(</span>
         <span class="n">job_id</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">success_rate</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>  <span class="c1"># Invalid!</span>
         <span class="n">error_rate</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
@@ -546,8 +546,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p><strong>Schema support</strong>: Nested validation for all QV components</p></li>
 </ul>
 </section>
-<section id="execution-success-successrate">
-<h3>4. Execution Success (<code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>)<a class="headerlink" href="#execution-success-successrate" title="Link to this heading">¶</a></h3>
+<section id="execution-success-circuitperformance">
+<h3>4. Execution Success (<code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>)<a class="headerlink" href="#execution-success-circuitperformance" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><strong>Single job analysis</strong>: Success rate, error rate, fidelity for individual executions</p></li>
 <li><p><strong>Multiple job analysis</strong>: Aggregate statistics across multiple runs</p></li>
@@ -570,12 +570,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="json-schema-generation">
 <h3>JSON Schema Generation<a class="headerlink" href="#json-schema-generation" title="Link to this heading">¶</a></h3>
 <p>Generate API documentation automatically:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexityMetricsSchema</span><span class="p">,</span> <span class="n">SuccessRateJobSchema</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexityMetricsSchema</span><span class="p">,</span> <span class="n">CircuitPerformanceJobSchema</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
 <span class="c1"># Generate JSON schemas for documentation</span>
 <span class="n">complexity_json_schema</span> <span class="o">=</span> <span class="n">ComplexityMetricsSchema</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span>
-<span class="n">success_rate_json_schema</span> <span class="o">=</span> <span class="n">SuccessRateJobSchema</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span>
+<span class="n">circuit_performance_json_schema</span> <span class="o">=</span> <span class="n">CircuitPerformanceJobSchema</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complexity Metrics JSON Schema:&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">complexity_json_schema</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
@@ -616,7 +616,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">run_on_aer.ipynb</span></code> - Interactive circuit analysis</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">schema_demo.py</span></code> - Schema validation demonstration</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">success_rate_demo.py</span></code> - Success rate analysis examples</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_performance_demo.py</span></code> - Circuit performance analysis examples</p></li>
 </ul>
 </section>
 <section id="next-steps">
@@ -703,7 +703,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#circuit-structure-qiskitmetrics">1. Circuit Structure (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>)</a></li>
 <li><a class="reference internal" href="#circuit-complexity-complexitymetrics">2. Circuit Complexity (<code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>)</a></li>
 <li><a class="reference internal" href="#quantum-volume-estimation-within-complexitymetrics">3. Quantum Volume Estimation (within <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>)</a></li>
-<li><a class="reference internal" href="#execution-success-successrate">4. Execution Success (<code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>)</a></li>
+<li><a class="reference internal" href="#execution-success-circuitperformance">4. Execution Success (<code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>)</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#schema-benefits">Schema Benefits</a><ul>

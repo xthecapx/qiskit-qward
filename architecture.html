@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Visualization Guide" href="visualization_guide.html" /><link rel="prev" title="Qiskit Qward Project Overview" href="project_overview.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Visualization Guide" href="visualization_guide.html" /><link rel="prev" title="Project Overview" href="project_overview.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>QWARD Architecture - Qward 0.1.0</title>
@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -211,7 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -301,20 +301,20 @@
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class SuccessRate {
+    class CircuitPerformance {
         &lt;&lt;Concrete Strategy&gt;&gt;
         +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[SuccessRateJobSchema, SuccessRateAggregateSchema]
-        +get_structured_single_job_metrics() SuccessRateJobSchema
-        +get_structured_multiple_jobs_metrics() SuccessRateAggregateSchema
+        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
+        +get_structured_single_job_metrics() CircuitPerformanceJobSchema
+        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
     }
 
     class SchemaModule {
         &lt;&lt;Validation Layer&gt;&gt;
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +SuccessRateJobSchema
-        +SuccessRateAggregateSchema
+        +CircuitPerformanceJobSchema
+        +CircuitPerformanceAggregateSchema
         +validate_data()
         +generate_json_schema()
     }
@@ -325,19 +325,19 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. SuccessRate : implements
+    MetricCalculator &lt;|.. CircuitPerformance : implements
     
     %% Schema Integration
     QiskitMetrics --&gt; SchemaModule : validates with
     ComplexityMetrics --&gt; SchemaModule : validates with
-    SuccessRate --&gt; SchemaModule : validates with
+    CircuitPerformance --&gt; SchemaModule : validates with
 
     %% Pattern Notes
     note for Scanner &quot;Context: Orchestrates metric calculation and returns consolidated DataFrame&quot;
     note for MetricCalculator &quot;Strategy Interface: Common interface with both Dict and Schema outputs&quot;
     note for QiskitMetrics &quot;Returns validated Qiskit-native metrics with type safety&quot;
     note for ComplexityMetrics &quot;Returns validated complexity analysis metrics with constraints&quot;
-    note for SuccessRate &quot;Returns validated execution success metrics with cross-field validation&quot;
+    note for CircuitPerformance &quot;Returns validated execution performance metrics with cross-field validation&quot;
     note for SchemaModule &quot;Pydantic-based validation with automatic type checking and JSON schema generation&quot;
     </pre><section id="key-points">
 <h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
@@ -384,7 +384,7 @@
         +from_flat_dict() ComplexityMetricsSchema
     }
     
-    class SuccessRateJobSchema {
+    class CircuitPerformanceJobSchema {
         +job_id: str
         +success_rate: float [0.0-1.0]
         +error_rate: float [0.0-1.0]
@@ -395,7 +395,7 @@
         +validate_successful_shots()
     }
     
-    class SuccessRateAggregateSchema {
+    class CircuitPerformanceAggregateSchema {
         +mean_success_rate: float [0.0-1.0]
         +std_success_rate: float [≥0.0]
         +min_success_rate: float [0.0-1.0]
@@ -410,14 +410,14 @@
     %% Inheritance
     BaseModel &lt;|-- QiskitMetricsSchema
     BaseModel &lt;|-- ComplexityMetricsSchema
-    BaseModel &lt;|-- SuccessRateJobSchema
-    BaseModel &lt;|-- SuccessRateAggregateSchema
+    BaseModel &lt;|-- CircuitPerformanceJobSchema
+    BaseModel &lt;|-- CircuitPerformanceAggregateSchema
 
     %% Validation Features
     note for QiskitMetricsSchema &quot;Validates circuit metrics with type checking and constraints&quot;
     note for ComplexityMetricsSchema &quot;Validates complexity metrics with range and cross-field validation&quot;
-    note for SuccessRateJobSchema &quot;Validates single job metrics with rate consistency checks&quot;
-    note for SuccessRateAggregateSchema &quot;Validates aggregate metrics with statistical constraints&quot;
+    note for CircuitPerformanceJobSchema &quot;Validates single job metrics with rate consistency checks&quot;
+    note for CircuitPerformanceAggregateSchema &quot;Validates aggregate metrics with statistical constraints&quot;
     </pre><section id="schema-benefits">
 <h3>Schema Benefits<a class="headerlink" href="#schema-benefits" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
@@ -517,7 +517,7 @@
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class SuccessRate {
+    class CircuitPerformance {
         &lt;&lt;Concrete Strategy&gt;&gt;
         #_job: Optional[JobType]
         #_jobs: List[JobType]
@@ -528,11 +528,11 @@
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[SuccessRateJobSchema, SuccessRateAggregateSchema]
+        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
         +get_single_job_metrics(job) Dict[str, Any]
         +get_multiple_jobs_metrics() Dict[str, Any]
-        +get_structured_single_job_metrics(job) SuccessRateJobSchema
-        +get_structured_multiple_jobs_metrics() SuccessRateAggregateSchema
+        +get_structured_single_job_metrics(job) CircuitPerformanceJobSchema
+        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
         +add_job(job)
         +_calculate_success_metrics(counts, job_id) Dict[str, Any]
         +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
@@ -550,7 +550,7 @@
         &lt;&lt;enumeration&gt;&gt;
         QISKIT
         COMPLEXITY
-        SUCCESS_RATE
+        CIRCUIT_PERFORMANCE
     }
 
     %% Strategy Pattern Relationships
@@ -560,7 +560,7 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. SuccessRate : implements
+    MetricCalculator &lt;|.. CircuitPerformance : implements
     
     %% Strategy Interface Dependencies
     MetricCalculator --&gt; MetricsType : defines type
@@ -575,7 +575,7 @@
     
     note for ComplexityMetrics &quot;Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking&quot;
     
-    note for SuccessRate &quot;Concrete Strategy: Success rate analysis with single/multiple job support and custom criteria&quot;
+    note for CircuitPerformance &quot;Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria&quot;
     </pre></section>
 <section id="folder-structure">
 <h2>Folder Structure<a class="headerlink" href="#folder-structure" title="Link to this heading">¶</a></h2>
@@ -594,7 +594,7 @@
 │   ├── schemas.py              # Pydantic schema definitions
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   └── success_rate.py         # SuccessRate implementation
+│   └── circuit_performance.py  # CircuitPerformance implementation
 ├── utils/
 │   ├── __init__.py
 │   ├── flatten.py              # Utility for flattening nested lists
@@ -603,7 +603,7 @@
     ├── __init__.py
     ├── utils.py                # Utilities for examples
     ├── schema_demo.py          # Schema validation demonstration
-    ├── success_rate_demo.py    # Success rate metrics demonstration
+    ├── circuit_performance_demo.py # Circuit performance metrics demonstration
     ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
     ├── aer.py                  # Example Aer simulator usage
     └── example_metrics_constructor.py # Example for custom metrics constructor
@@ -651,9 +651,9 @@
 <h3>ComplexityMetrics<a class="headerlink" href="#complexitymetrics" title="Link to this heading">¶</a></h3>
 <p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through schemas with appropriate constraints and cross-field validation.</p>
 </section>
-<section id="successrate">
-<h3>SuccessRate<a class="headerlink" href="#successrate" title="Link to this heading">¶</a></h3>
-<p>The SuccessRate class calculates success rate metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+<section id="circuitperformance">
+<h3>CircuitPerformance<a class="headerlink" href="#circuitperformance" title="Link to this heading">¶</a></h3>
+<p>The CircuitPerformance class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
 </section>
 </section>
 <section id="usage-examples">
@@ -692,16 +692,16 @@
 <section id="comprehensive-analysis-with-multiple-metrics">
 <h3>Comprehensive Analysis with Multiple Metrics<a class="headerlink" href="#comprehensive-analysis-with-multiple-metrics" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">SuccessRate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
 
 <span class="c1"># Create a scanner with multiple metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 
-<span class="c1"># For success rate, you need job execution results</span>
+<span class="c1"># For circuit performance, you need job execution results</span>
 <span class="k">if</span> <span class="n">job</span><span class="p">:</span>  <span class="c1"># Assuming you have a job from circuit execution</span>
-    <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+    <span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -716,29 +716,29 @@
 </pre></div>
 </div>
 </section>
-<section id="success-rate-analysis-with-custom-criteria">
-<h3>Success Rate Analysis with Custom Criteria<a class="headerlink" href="#success-rate-analysis-with-custom-criteria" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuccessRate</span>
+<section id="circuit-performance-analysis-with-custom-criteria">
+<h3>Circuit Performance Analysis with Custom Criteria<a class="headerlink" href="#circuit-performance-analysis-with-custom-criteria" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformance</span>
 
 <span class="c1"># Define custom success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">bell_state_success</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="n">clean_result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">clean_result</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;0000&quot;</span><span class="p">,</span> <span class="s2">&quot;1111&quot;</span><span class="p">]</span>  <span class="c1"># |00⟩ or |11⟩ states</span>
 
-<span class="c1"># Create success rate metric with custom criteria</span>
-<span class="n">success_rate</span> <span class="o">=</span> <span class="n">SuccessRate</span><span class="p">(</span>
+<span class="c1"># Create circuit performance metric with custom criteria</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> 
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> 
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
 <span class="p">)</span>
 
 <span class="c1"># Get structured metrics with validation</span>
-<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">success_rate</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="n">job_schema</span> <span class="o">=</span> <span class="n">success_rate</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">()</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuit_performance</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">job_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">()</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success Rate: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">aggregate_schema</span> <span class="o">=</span> <span class="n">success_rate</span><span class="o">.</span><span class="n">get_structured_multiple_jobs_metrics</span><span class="p">()</span>
+    <span class="n">aggregate_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_structured_multiple_jobs_metrics</span><span class="p">()</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean Success Rate: </span><span class="si">{</span><span class="n">aggregate_schema</span><span class="o">.</span><span class="n">mean_success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Standard Deviation: </span><span class="si">{</span><span class="n">aggregate_schema</span><span class="o">.</span><span class="n">std_success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -830,7 +830,7 @@
 <ul class="simple">
 <li><p>Handle job and result errors appropriately</p></li>
 <li><p>Use appropriate Qiskit runtime services for backend execution</p></li>
-<li><p>Validate success criteria for SuccessRate metrics</p></li>
+<li><p>Validate success criteria for CircuitPerformance metrics</p></li>
 </ul>
 </li>
 <li><p><strong>Result Management</strong></p>
@@ -868,7 +868,7 @@
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class for all visualizers. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code> methods. Subclasses must implement <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> for their specific visualization logic.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code></strong>: A concrete visualizer inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>. It’s responsible for generating various plots related to success rate metrics with direct plotting methods (no longer using Strategy pattern for simplicity).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: A concrete visualizer inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>. It’s responsible for generating various plots related to circuit performance metrics with direct plotting methods (no longer using Strategy pattern for simplicity).</p></li>
 </ul>
 <pre  class="mermaid">
         classDiagram
@@ -891,7 +891,7 @@
         +alpha: float
     }
     
-    class SuccessRateVisualizer {
+    class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
@@ -901,18 +901,18 @@
         +plot_all()
     }
 
-    BaseVisualizer &lt;|-- SuccessRateVisualizer
+    BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
     BaseVisualizer --&gt; PlotConfig : uses
     
     note for BaseVisualizer &quot;Abstract base class providing core visualization functionality&quot;
-    note for SuccessRateVisualizer &quot;Concrete implementation with direct plotting methods for simplicity&quot;
+    note for CircuitPerformanceVisualizer &quot;Concrete implementation with direct plotting methods for simplicity&quot;
     note for PlotConfig &quot;Configuration dataclass for plot appearance and saving options&quot;
     </pre></section>
 <section id="key-components-summary">
 <h3>Key Components (Summary)<a class="headerlink" href="#key-components-summary" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: Abstract base class providing core visualization functionality.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SuccessRateVisualizer</span></code></strong>: Concrete implementation for <code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code> metrics with simplified direct plotting methods.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Concrete implementation for <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code> metrics with simplified direct plotting methods.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: Dataclass for easy plot appearance customization.</p></li>
 </ol>
 </section>
@@ -921,11 +921,11 @@
 <p>The visualization system seamlessly integrates with the Scanner output:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">SuccessRate</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="c1"># Create visualizations</span>
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">SuccessRateVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
 <span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -964,7 +964,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Qiskit Qward Project Overview</div>
+                <div class="title">Project Overview</div>
                 
               </div>
             </a>
@@ -1017,13 +1017,13 @@
 <li><a class="reference internal" href="#schema-validation">Schema Validation</a></li>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#successrate">SuccessRate</a></li>
+<li><a class="reference internal" href="#circuitperformance">CircuitPerformance</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
 <li><a class="reference internal" href="#basic-circuit-analysis-with-schema-validation">Basic Circuit Analysis with Schema Validation</a></li>
 <li><a class="reference internal" href="#comprehensive-analysis-with-multiple-metrics">Comprehensive Analysis with Multiple Metrics</a></li>
-<li><a class="reference internal" href="#success-rate-analysis-with-custom-criteria">Success Rate Analysis with Custom Criteria</a></li>
+<li><a class="reference internal" href="#circuit-performance-analysis-with-custom-criteria">Circuit Performance Analysis with Custom Criteria</a></li>
 <li><a class="reference internal" href="#schema-validation-and-json-generation">Schema Validation and JSON Generation</a></li>
 <li><a class="reference internal" href="#using-custom-metrics-with-schema-support">Using Custom Metrics with Schema Support</a></li>
 </ul>

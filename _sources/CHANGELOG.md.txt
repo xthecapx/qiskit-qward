@@ -28,9 +28,9 @@
   - `get_structured_quantum_volume()` → `QuantumVolumeSchema`
   - `get_structured_metrics()` → `ComplexityMetricsSchema`
 
-- **SuccessRate**: Enhanced validation for single and multiple job analysis
-  - `get_structured_single_job_metrics()` → `SuccessRateJobSchema`
-  - `get_structured_multiple_jobs_metrics()` → `SuccessRateAggregateSchema`
+- **CircuitPerformance**: Enhanced validation for single and multiple job analysis
+  - `get_structured_single_job_metrics()` → `CircuitPerformanceJobSchema`
+  - `get_structured_multiple_jobs_metrics()` → `CircuitPerformanceAggregateSchema`
   - `get_structured_metrics()` → Union of above schemas
 
 ### 🔧 Code Quality Improvements
@@ -43,7 +43,7 @@
 - **Consistent error handling** with graceful fallbacks
 
 #### Simplified Architecture
-- **SuccessRateVisualizer**: Removed Strategy pattern complexity
+- **CircuitPerformanceVisualizer**: Removed Strategy pattern complexity
   - Direct plotting methods for better maintainability
   - Reduced code from ~450 to ~350 lines
   - Preserved all functionality and dashboard capabilities
@@ -86,7 +86,7 @@
 - **Added `qward/metrics/schemas.py`** with comprehensive schema definitions
 - **Enhanced `qward/examples/`** with new demonstration files:
   - `schema_demo.py` - Schema validation demonstration
-  - `success_rate_demo.py` - Success rate analysis examples
+  - `circuit_performance_demo.py` - Circuit performance analysis examples
 - **Improved folder structure** documentation
 
 #### Backward Compatibility
@@ -119,7 +119,7 @@
 
 #### New Demonstration Files
 - **Schema Demo**: Comprehensive showcase of validation features
-- **Success Rate Demo**: Multi-job analysis with custom criteria
+- **Circuit Performance Demo**: Multi-job analysis with custom criteria
 - **Type Safety Examples**: IDE support and error prevention
 - **JSON Schema Generation**: API documentation automation
 
@@ -142,7 +142,7 @@
 - **Standardized**: Volume and efficiency bounds
 - **Quantum Volume**: Nested validation with factor constraints
 
-#### SuccessRate Validation
+#### CircuitPerformance Validation
 - **Single Job**: Rate consistency, shot count validation
 - **Aggregate**: Statistical constraints, min/max ordering
 - **Cross-Field**: Error rate = 1 - success rate validation

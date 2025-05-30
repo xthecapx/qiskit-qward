@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Architecture" href="architecture.html" /><link rel="prev" title="Technical Documentation" href="technical_docs.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
-        <title>Qiskit Qward Project Overview - Qward 0.1.0</title>
+        <title>Project Overview - Qward 0.1.0</title>
       <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3ee1c6c6" />
     <link rel="stylesheet" type="text/css" href="_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -211,7 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -253,9 +253,146 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="qiskit-qward-project-overview">
-<h1>Qiskit Qward Project Overview<a class="headerlink" href="#qiskit-qward-project-overview" title="Link to this heading">¶</a></h1>
-<p>Qiskit Qward is a Python library designed to assist in the analysis of quantum circuits and their execution quality, particularly when targeting quantum processing units (QPUs) or simulators. It offers a structured way to apply various metric strategies to quantum circuits and their results.</p>
+          <section id="project-overview">
+<h1>Project Overview<a class="headerlink" href="#project-overview" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>QWARD (Quantum Workflow Analysis and Runtime Diagnostics) is a Python library designed to provide comprehensive analysis of quantum circuits and their execution characteristics. Built on top of Qiskit, QWARD offers a systematic approach to understanding quantum algorithm performance through various metrics and visualization tools.</p>
+</section>
+<section id="core-features">
+<h2>Core Features<a class="headerlink" href="#core-features" title="Link to this heading">¶</a></h2>
+<section id="metric-calculation-system">
+<h3>Metric Calculation System<a class="headerlink" href="#metric-calculation-system" title="Link to this heading">¶</a></h3>
+<p>QWARD provides three main categories of metrics:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>: Basic circuit properties extracted directly from QuantumCircuit objects</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>: Advanced complexity analysis based on research literature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>: For calculating success/error rates from execution counts against user-defined criteria.</p></li>
+</ul>
+</section>
+<section id="schema-based-validation">
+<h3>Schema-Based Validation<a class="headerlink" href="#schema-based-validation" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Type Safety</strong>: Automatic validation using Pydantic schemas</p></li>
+<li><p><strong>Cross-field Validation</strong>: Ensures data consistency (e.g., error_rate = 1 - success_rate)</p></li>
+<li><p><strong>IDE Support</strong>: Full autocomplete and type hints</p></li>
+<li><p><strong>API Documentation</strong>: Automatic JSON schema generation</p></li>
+</ul>
+</section>
+<section id="visualization-system">
+<h3>Visualization System<a class="headerlink" href="#visualization-system" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Comprehensive plotting capabilities for metric analysis</p></li>
+<li><p>Dashboard creation for multi-metric visualization</p></li>
+<li><p>Customizable plot configurations and styling</p></li>
+<li><p>Integration with popular plotting libraries</p></li>
+</ul>
+</section>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
+<p>QWARD follows a clean architecture pattern with clear separation of concerns:</p>
+<section id="scanner-context">
+<h3>Scanner (Context)<a class="headerlink" href="#scanner-context" title="Link to this heading">¶</a></h3>
+<p>The central orchestrator that manages metric calculators and coordinates their execution. It provides a unified interface for adding metrics and calculating results.</p>
+</section>
+<section id="metric-calculators-strategies">
+<h3>Metric Calculators (Strategies)<a class="headerlink" href="#metric-calculators-strategies" title="Link to this heading">¶</a></h3>
+<p>Individual calculators that implement specific analysis algorithms:</p>
+<ul class="simple">
+<li><p>Each calculator focuses on a specific aspect of circuit analysis</p></li>
+<li><p>Calculators can be combined for comprehensive analysis</p></li>
+<li><p>Support for both traditional dictionary and modern schema outputs</p></li>
+</ul>
+</section>
+<section id="result-management">
+<h3>Result Management<a class="headerlink" href="#result-management" title="Link to this heading">¶</a></h3>
+<p>Structured handling of quantum circuit execution results with support for:</p>
+<ul class="simple">
+<li><p>Multiple job analysis</p></li>
+<li><p>Metadata preservation</p></li>
+<li><p>Serialization and persistence</p></li>
+</ul>
+</section>
+</section>
+<section id="key-benefits">
+<h2>Key Benefits<a class="headerlink" href="#key-benefits" title="Link to this heading">¶</a></h2>
+<section id="comprehensive-analysis">
+<h3>Comprehensive Analysis<a class="headerlink" href="#comprehensive-analysis" title="Link to this heading">¶</a></h3>
+<p>QWARD enables analysis of quantum circuits from multiple perspectives:</p>
+<ul class="simple">
+<li><p><strong>Static Analysis</strong>: Circuit structure, complexity, and theoretical properties</p></li>
+<li><p><strong>Dynamic Analysis</strong>: Execution performance, success rates, and fidelity metrics (<code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>)</p></li>
+<li><p><strong>Comparative Analysis</strong>: Performance across different backends, noise models, or algorithm variants</p></li>
+</ul>
+</section>
+<section id="extensibility">
+<h3>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading">¶</a></h3>
+<p>The library is designed for easy extension:</p>
+<ul class="simple">
+<li><p>Custom metric calculators can be added by implementing the base interface</p></li>
+<li><p>New visualization types can be integrated into the existing framework</p></li>
+<li><p>Schema validation can be extended for custom metrics</p></li>
+</ul>
+</section>
+<section id="integration">
+<h3>Integration<a class="headerlink" href="#integration" title="Link to this heading">¶</a></h3>
+<p>QWARD integrates seamlessly with the Qiskit ecosystem:</p>
+<ul class="simple">
+<li><p>Works with any QuantumCircuit object</p></li>
+<li><p>Supports results from simulators and real quantum hardware</p></li>
+<li><p>Compatible with Qiskit Runtime and other execution frameworks</p></li>
+</ul>
+</section>
+</section>
+<section id="use-cases">
+<h2>Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h2>
+<section id="algorithm-development">
+<h3>Algorithm Development<a class="headerlink" href="#algorithm-development" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Analyze circuit complexity during algorithm design</p></li>
+<li><p>Compare different implementations of quantum algorithms</p></li>
+<li><p>Optimize circuits based on complexity metrics</p></li>
+</ul>
+</section>
+<section id="performance-evaluation">
+<h3>Performance Evaluation<a class="headerlink" href="#performance-evaluation" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Assess algorithm performance on different backends</p></li>
+<li><p>Analyze the impact of noise on circuit execution</p></li>
+<li><p>Track performance improvements over time</p></li>
+</ul>
+</section>
+<section id="research-and-education">
+<h3>Research and Education<a class="headerlink" href="#research-and-education" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Generate comprehensive reports for research publications</p></li>
+<li><p>Create visualizations for educational materials</p></li>
+<li><p>Benchmark quantum algorithms systematically</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<p>QWARD is designed to be intuitive for both beginners and advanced users:</p>
+<ol class="arabic simple">
+<li><p><strong>Quick Start</strong>: Simple examples get you running in minutes</p></li>
+<li><p><strong>Comprehensive Guides</strong>: Detailed documentation for advanced features</p></li>
+<li><p><strong>Example Gallery</strong>: Real-world examples demonstrating best practices</p></li>
+</ol>
+<p>The library supports both traditional dictionary-based outputs for backward compatibility and modern schema-based validation for enhanced type safety and data integrity.</p>
+</section>
+<section id="future-roadmap">
+<h2>Future Roadmap<a class="headerlink" href="#future-roadmap" title="Link to this heading">¶</a></h2>
+<p>QWARD continues to evolve with the quantum computing landscape:</p>
+<ul class="simple">
+<li><p>Additional metric calculators based on emerging research</p></li>
+<li><p>Enhanced visualization capabilities</p></li>
+<li><p>Integration with new Qiskit features and backends</p></li>
+<li><p>Performance optimizations for large-scale analysis</p></li>
+</ul>
+<p>For detailed usage instructions, see the <a class="reference internal" href="beginners_guide.html"><span class="std std-doc">Beginner’s Guide</span></a> and <a class="reference internal" href="technical_docs.html"><span class="std std-doc">Technical Documentation</span></a>.</p>
+</section>
 <section id="key-components">
 <h2>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">¶</a></h2>
 <p>The library revolves around the following key components:</p>
@@ -274,7 +411,7 @@
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>: For basic circuit properties (depth, width, gate counts).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>: For advanced circuit complexity analysis (based on D. Shami’s work) and Quantum Volume estimation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>: For calculating success/error rates from execution counts against user-defined criteria.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>: For calculating success/error rates from execution counts against user-defined criteria.</p></li>
 </ul>
 </li>
 <li><p>Extensible: Users can create custom metric strategies by inheriting from <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.MetricCalculator</span></code>.</p></li>
@@ -291,10 +428,6 @@
 </ul>
 </li>
 </ol>
-</section>
-<section id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
-<p>To get started with Qiskit Qward, refer to the <a class="reference internal" href="beginners_guide.html"><span class="std std-doc">Beginner’s Guide</span></a> and <a class="reference internal" href="quickstart_guide.html"><span class="std std-doc">Quickstart Guide</span></a> for installation instructions and basic usage patterns.</p>
 </section>
 <section id="documentation-structure">
 <h2>Documentation Structure<a class="headerlink" href="#documentation-structure" title="Link to this heading">¶</a></h2>
@@ -325,7 +458,7 @@
 <p>Qward helps bridge the gap between theoretical quantum algorithms and their practical implementation by providing:</p>
 <ul class="simple">
 <li><p>A <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to orchestrate the application of various analytical metric strategy objects.</p></li>
-<li><p>Comprehensive strategies for circuit structure (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>), advanced complexity and QV estimation (<code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>), and execution outcome analysis (<code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code>).</p></li>
+<li><p>Comprehensive strategies for circuit structure (<code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>), advanced complexity and QV estimation (<code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>), and execution outcome analysis (<code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>).</p></li>
 <li><p>An extensible system for users to define their own custom metric strategies.</p></li>
 <li><p>Utilities like <code class="docutils literal notranslate"><span class="pre">Result</span></code> for easier data handling.</p></li>
 </ul>
@@ -343,7 +476,7 @@
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code> for circuit basics.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> including detailed complexity categories and Quantum Volume estimation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SuccessRate</span></code> strategy for execution outcome analysis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code> strategy for execution outcome analysis.</p></li>
 <li><p>Abstract <code class="docutils literal notranslate"><span class="pre">MetricCalculator</span></code> base class for custom strategy development.</p></li>
 </ul>
 </li>
@@ -419,9 +552,35 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Qiskit Qward Project Overview</a><ul>
-<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#">Project Overview</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#core-features">Core Features</a><ul>
+<li><a class="reference internal" href="#metric-calculation-system">Metric Calculation System</a></li>
+<li><a class="reference internal" href="#schema-based-validation">Schema-Based Validation</a></li>
+<li><a class="reference internal" href="#visualization-system">Visualization System</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#architecture">Architecture</a><ul>
+<li><a class="reference internal" href="#scanner-context">Scanner (Context)</a></li>
+<li><a class="reference internal" href="#metric-calculators-strategies">Metric Calculators (Strategies)</a></li>
+<li><a class="reference internal" href="#result-management">Result Management</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-benefits">Key Benefits</a><ul>
+<li><a class="reference internal" href="#comprehensive-analysis">Comprehensive Analysis</a></li>
+<li><a class="reference internal" href="#extensibility">Extensibility</a></li>
+<li><a class="reference internal" href="#integration">Integration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-cases">Use Cases</a><ul>
+<li><a class="reference internal" href="#algorithm-development">Algorithm Development</a></li>
+<li><a class="reference internal" href="#performance-evaluation">Performance Evaluation</a></li>
+<li><a class="reference internal" href="#research-and-education">Research and Education</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#future-roadmap">Future Roadmap</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
 <li><a class="reference internal" href="#documentation-structure">Documentation Structure</a></li>
 <li><a class="reference internal" href="#project-goals">Project Goals</a></li>
 <li><a class="reference internal" href="#background">Background</a></li>
