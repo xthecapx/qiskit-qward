@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../project_overview.html">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
@@ -211,7 +211,7 @@
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -436,6 +436,284 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 <dt class="sig sig-object py" id="qward.metrics.schemas.BasicMetricsSchema.width">
 <span class="sig-name descname"><span class="pre">width</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.BasicMetricsSchema.width" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceAggregateSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceAggregateSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Schema for aggregate circuit performance metrics across multiple jobs.</p>
+<p>This schema validates aggregate circuit performance metrics computed
+across multiple job executions.</p>
+<p>DEPRECATED: Use CircuitPerformanceSchema instead.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceAggregateSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Pydantic configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.error_rate">
+<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.error_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.fidelity">
+<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.max_success_rate">
+<span class="sig-name descname"><span class="pre">max_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.max_success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.mean_success_rate">
+<span class="sig-name descname"><span class="pre">mean_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.mean_success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.min_success_rate">
+<span class="sig-name descname"><span class="pre">min_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.min_success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">error</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">fidelity</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'max_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Maximum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Mean</span> <span class="pre">success</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'min_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Minimum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'std_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">success</span> <span class="pre">rates',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'total_trials':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">trials</span> <span class="pre">across</span> <span class="pre">all</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.std_success_rate">
+<span class="sig-name descname"><span class="pre">std_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.std_success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.total_trials">
+<span class="sig-name descname"><span class="pre">total_trials</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.total_trials" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_error_rate_consistency">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceAggregateSchema.validate_error_rate_consistency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_error_rate_consistency" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that error_rate = 1 - mean_success_rate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_max_bounds">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_max_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceAggregateSchema.validate_max_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_max_bounds" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that max &gt;= mean &gt;= min.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_min_max_order">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_min_max_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceAggregateSchema.validate_min_max_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_min_max_order" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that min &lt;= mean &lt;= max.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceJobSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceJobSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Schema for individual job circuit performance metrics.</p>
+<p>This schema validates circuit performance metrics from a single
+quantum job execution.</p>
+<p>DEPRECATED: Use CircuitPerformanceSchema instead.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceJobSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.Config" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Pydantic configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.error_rate">
+<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.error_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.fidelity">
+<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.job_id">
+<span class="sig-name descname"><span class="pre">job_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.job_id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Error</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Fidelity</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'job_id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">description='Unique</span> <span class="pre">identifier</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">job'),</span> <span class="pre">'success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Success</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'successful_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Number</span> <span class="pre">of</span> <span class="pre">successful</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'total_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.success_rate">
+<span class="sig-name descname"><span class="pre">success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.successful_shots">
+<span class="sig-name descname"><span class="pre">successful_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.successful_shots" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.total_shots">
+<span class="sig-name descname"><span class="pre">total_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.total_shots" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.validate_error_rate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceJobSchema.validate_error_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_error_rate" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that error_rate = 1 - success_rate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceJobSchema.validate_successful_shots">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_successful_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceJobSchema.validate_successful_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_successful_shots" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that successful_shots &lt;= total_shots.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Complete schema for circuit performance metrics.</p>
+<p>This schema combines all individual performance metric schemas into
+a single comprehensive structure for circuit performance analysis.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.Config" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Pydantic configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'description':</span> <span class="pre">'Complete</span> <span class="pre">schema</span> <span class="pre">for</span> <span class="pre">circuit</span> <span class="pre">performance</span> <span class="pre">metrics',</span> <span class="pre">'example':</span> <span class="pre">{'fidelity_metrics':</span> <span class="pre">{'confidence':</span> <span class="pre">'high',</span> <span class="pre">'fidelity':</span> <span class="pre">0.85,</span> <span class="pre">'has_expected_distribution':</span> <span class="pre">True,</span> <span class="pre">'method':</span> <span class="pre">'theoretical_comparison'},</span> <span class="pre">'statistical_metrics':</span> <span class="pre">{'concentration':</span> <span class="pre">0.6,</span> <span class="pre">'dominant_outcome_probability':</span> <span class="pre">0.4,</span> <span class="pre">'entropy':</span> <span class="pre">1.5,</span> <span class="pre">'num_unique_outcomes':</span> <span class="pre">4,</span> <span class="pre">'uniformity':</span> <span class="pre">0.8},</span> <span class="pre">'success_metrics':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.fidelity_metrics">
+<span class="sig-name descname"><span class="pre">fidelity_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema" title="qward.metrics.schemas.FidelityMetricsSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">FidelityMetricsSchema</span></code></a></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.fidelity_metrics" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.from_flat_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_flat_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flat_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceSchema.from_flat_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.from_flat_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Create a schema instance from a flattened dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>flat_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Flattened dictionary with dot-notation keys</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Schema instance</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema" title="qward.metrics.schemas.CircuitPerformanceSchema">CircuitPerformanceSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'description':</span> <span class="pre">'Complete</span> <span class="pre">schema</span> <span class="pre">for</span> <span class="pre">circuit</span> <span class="pre">performance</span> <span class="pre">metrics',</span> <span class="pre">'example':</span> <span class="pre">{'fidelity_metrics':</span> <span class="pre">{'confidence':</span> <span class="pre">'high',</span> <span class="pre">'fidelity':</span> <span class="pre">0.85,</span> <span class="pre">'has_expected_distribution':</span> <span class="pre">True,</span> <span class="pre">'method':</span> <span class="pre">'theoretical_comparison'},</span> <span class="pre">'statistical_metrics':</span> <span class="pre">{'concentration':</span> <span class="pre">0.6,</span> <span class="pre">'dominant_outcome_probability':</span> <span class="pre">0.4,</span> <span class="pre">'entropy':</span> <span class="pre">1.5,</span> <span class="pre">'num_unique_outcomes':</span> <span class="pre">4,</span> <span class="pre">'uniformity':</span> <span class="pre">0.8},</span> <span class="pre">'success_metrics':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'fidelity_metrics':</span> <span class="pre">FieldInfo(annotation=FidelityMetricsSchema,</span> <span class="pre">required=True,</span> <span class="pre">description='Fidelity</span> <span class="pre">metrics'),</span> <span class="pre">'statistical_metrics':</span> <span class="pre">FieldInfo(annotation=StatisticalMetricsSchema,</span> <span class="pre">required=True,</span> <span class="pre">description='Statistical</span> <span class="pre">metrics'),</span> <span class="pre">'success_metrics':</span> <span class="pre">FieldInfo(annotation=SuccessMetricsSchema,</span> <span class="pre">required=True,</span> <span class="pre">description='Success</span> <span class="pre">rate</span> <span class="pre">metrics')}</span></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.statistical_metrics">
+<span class="sig-name descname"><span class="pre">statistical_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema" title="qward.metrics.schemas.StatisticalMetricsSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatisticalMetricsSchema</span></code></a></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.statistical_metrics" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.success_metrics">
+<span class="sig-name descname"><span class="pre">success_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema" title="qward.metrics.schemas.SuccessMetricsSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">SuccessMetricsSchema</span></code></a></em><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.success_metrics" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.schemas.CircuitPerformanceSchema.to_flat_dict">
+<span class="sig-name descname"><span class="pre">to_flat_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#CircuitPerformanceSchema.to_flat_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.CircuitPerformanceSchema.to_flat_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the schema to a flattened dictionary for DataFrame compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Flattened dictionary with dot-notation keys</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -669,6 +947,92 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_density_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#EntanglementMetricsSchema.validate_density_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.EntanglementMetricsSchema.validate_density_bounds" title="Link to this definition">¶</a></dt>
 <dd><p>Validate that density is between 0 and 1.</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetricsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#FidelityMetricsSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Schema for fidelity metrics.</p>
+<p>This schema validates fidelity-related metrics including
+quantum fidelity and related measures for both single
+job and multiple jobs cases.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#FidelityMetricsSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.Config" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Pydantic configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'confidence':</span> <span class="pre">'high',</span> <span class="pre">'fidelity':</span> <span class="pre">0.85,</span> <span class="pre">'has_expected_distribution':</span> <span class="pre">True,</span> <span class="pre">'method':</span> <span class="pre">'theoretical_comparison'}}</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.confidence">
+<span class="sig-name descname"><span class="pre">confidence</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.confidence" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.fidelity">
+<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.has_expected_distribution">
+<span class="sig-name descname"><span class="pre">has_expected_distribution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.has_expected_distribution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.max_fidelity">
+<span class="sig-name descname"><span class="pre">max_fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.max_fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.mean_fidelity">
+<span class="sig-name descname"><span class="pre">mean_fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.mean_fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.method" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.min_fidelity">
+<span class="sig-name descname"><span class="pre">min_fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.min_fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'confidence':</span> <span class="pre">'high',</span> <span class="pre">'fidelity':</span> <span class="pre">0.85,</span> <span class="pre">'has_expected_distribution':</span> <span class="pre">True,</span> <span class="pre">'method':</span> <span class="pre">'theoretical_comparison'}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'confidence':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">description='Confidence</span> <span class="pre">level</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">fidelity</span> <span class="pre">calculation</span> <span class="pre">(high,</span> <span class="pre">medium,</span> <span class="pre">low)'),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Quantum</span> <span class="pre">fidelity</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'has_expected_distribution':</span> <span class="pre">FieldInfo(annotation=Union[bool,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Whether</span> <span class="pre">expected</span> <span class="pre">distribution</span> <span class="pre">was</span> <span class="pre">provided</span> <span class="pre">for</span> <span class="pre">fidelity</span> <span class="pre">calculation'),</span> <span class="pre">'max_fidelity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Maximum</span> <span class="pre">fidelity',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_fidelity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">fidelity</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'method':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">description='Method</span> <span class="pre">used</span> <span class="pre">for</span> <span class="pre">fidelity</span> <span class="pre">calculation</span> <span class="pre">(theoretical_comparison</span> <span class="pre">or</span> <span class="pre">success_based)'),</span> <span class="pre">'min_fidelity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Minimum</span> <span class="pre">fidelity',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'std_fidelity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">fidelities',</span> <span class="pre">metadata=[Ge(ge=0.0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.FidelityMetricsSchema.std_fidelity">
+<span class="sig-name descname"><span class="pre">std_fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.FidelityMetricsSchema.std_fidelity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -1306,185 +1670,204 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRateAggregateSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">StatisticalMetricsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#StatisticalMetricsSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Schema for aggregate success rate metrics across multiple jobs.</p>
-<p>This schema validates aggregate success rate metrics computed
-across multiple job executions.</p>
+<p>Schema for statistical analysis metrics.</p>
+<p>This schema validates statistical metrics derived from
+measurement outcome distributions for both single job
+and multiple jobs cases.</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
 validated to form a valid model.</p>
 <p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.Config">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.Config" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#StatisticalMetricsSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.Config" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Pydantic configuration.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.Config.json_schema_extra">
-<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'concentration':</span> <span class="pre">0.6,</span> <span class="pre">'dominant_outcome_probability':</span> <span class="pre">0.4,</span> <span class="pre">'entropy':</span> <span class="pre">1.5,</span> <span class="pre">'num_unique_outcomes':</span> <span class="pre">4,</span> <span class="pre">'uniformity':</span> <span class="pre">0.8}}</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.error_rate">
-<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.error_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.concentration">
+<span class="sig-name descname"><span class="pre">concentration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.concentration" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.fidelity">
-<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.fidelity" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.dominant_outcome_probability">
+<span class="sig-name descname"><span class="pre">dominant_outcome_probability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.dominant_outcome_probability" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.max_success_rate">
-<span class="sig-name descname"><span class="pre">max_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.max_success_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.entropy" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.mean_success_rate">
-<span class="sig-name descname"><span class="pre">mean_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.mean_success_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.mean_concentration">
+<span class="sig-name descname"><span class="pre">mean_concentration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_concentration" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.min_success_rate">
-<span class="sig-name descname"><span class="pre">min_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.min_success_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.mean_dominant_probability">
+<span class="sig-name descname"><span class="pre">mean_dominant_probability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_dominant_probability" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.model_computed_fields">
-<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.mean_entropy">
+<span class="sig-name descname"><span class="pre">mean_entropy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_entropy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.mean_uniformity">
+<span class="sig-name descname"><span class="pre">mean_uniformity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_uniformity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
 <dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_config" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'concentration':</span> <span class="pre">0.6,</span> <span class="pre">'dominant_outcome_probability':</span> <span class="pre">0.4,</span> <span class="pre">'entropy':</span> <span class="pre">1.5,</span> <span class="pre">'num_unique_outcomes':</span> <span class="pre">4,</span> <span class="pre">'uniformity':</span> <span class="pre">0.8}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_config" title="Link to this definition">¶</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">error</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">fidelity</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'max_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Maximum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Mean</span> <span class="pre">success</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'min_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Minimum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'std_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">success</span> <span class="pre">rates',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'total_trials':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">trials</span> <span class="pre">across</span> <span class="pre">all</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'concentration':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Concentration</span> <span class="pre">measure</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'dominant_outcome_probability':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Probability</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">most</span> <span class="pre">frequent</span> <span class="pre">outcome',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'entropy':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Shannon</span> <span class="pre">entropy</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">distribution',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'mean_concentration':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">concentration</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_dominant_probability':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">dominant</span> <span class="pre">probability</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_entropy':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">entropy</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'mean_uniformity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">uniformity</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'num_unique_outcomes':</span> <span class="pre">FieldInfo(annotation=Union[int,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Number</span> <span class="pre">of</span> <span class="pre">unique</span> <span class="pre">measurement</span> <span class="pre">outcomes',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'std_entropy':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">entropy',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'std_uniformity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">uniformity',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'uniformity':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Uniformity</span> <span class="pre">measure</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_fields" title="Link to this definition">¶</a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.std_success_rate">
-<span class="sig-name descname"><span class="pre">std_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.std_success_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.num_unique_outcomes">
+<span class="sig-name descname"><span class="pre">num_unique_outcomes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.num_unique_outcomes" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.total_trials">
-<span class="sig-name descname"><span class="pre">total_trials</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.total_trials" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.std_entropy">
+<span class="sig-name descname"><span class="pre">std_entropy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.std_entropy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.std_uniformity">
+<span class="sig-name descname"><span class="pre">std_uniformity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.std_uniformity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.uniformity">
+<span class="sig-name descname"><span class="pre">uniformity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.uniformity" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.validate_error_rate_consistency">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_error_rate_consistency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_error_rate_consistency" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that error_rate = 1 - mean_success_rate.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.validate_max_bounds">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_max_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_max_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_max_bounds" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that max &gt;= mean &gt;= min.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateAggregateSchema.validate_min_max_order">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_min_max_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_min_max_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_min_max_order" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that min &lt;= mean &lt;= max.</p>
+<dt class="sig sig-object py" id="qward.metrics.schemas.StatisticalMetricsSchema.validate_ratio_bounds">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_ratio_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#StatisticalMetricsSchema.validate_ratio_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.StatisticalMetricsSchema.validate_ratio_bounds" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that ratios are between 0 and 1.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRateJobSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessMetricsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessMetricsSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Schema for individual job success rate metrics.</p>
-<p>This schema validates success rate metrics from a single
-quantum job execution.</p>
+<p>Schema for success rate metrics.</p>
+<p>This schema validates success rate metrics including
+success rate, error rate, and shot analysis for both
+single job and multiple jobs cases.</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
 validated to form a valid model.</p>
 <p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.Config">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.Config" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessMetricsSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.Config" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Pydantic configuration.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.Config.json_schema_extra">
-<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.Config.json_schema_extra">
+<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.Config.json_schema_extra" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.error_rate">
-<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.error_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.error_rate">
+<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.error_rate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.fidelity">
-<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.fidelity" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.max_success_rate">
+<span class="sig-name descname"><span class="pre">max_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.max_success_rate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.job_id">
-<span class="sig-name descname"><span class="pre">job_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.job_id" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.mean_success_rate">
+<span class="sig-name descname"><span class="pre">mean_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.mean_success_rate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.model_computed_fields">
-<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.min_success_rate">
+<span class="sig-name descname"><span class="pre">min_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.min_success_rate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.model_computed_fields" title="Link to this definition">¶</a></dt>
 <dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.model_config" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.model_config" title="Link to this definition">¶</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Error</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Fidelity</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'job_id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">description='Unique</span> <span class="pre">identifier</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">job'),</span> <span class="pre">'success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Success</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'successful_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Number</span> <span class="pre">of</span> <span class="pre">successful</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'total_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Error</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'max_success_rate':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Maximum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_success_rate':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Mean</span> <span class="pre">success</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'min_success_rate':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Minimum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'std_success_rate':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">success</span> <span class="pre">rates',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'success_rate':</span> <span class="pre">FieldInfo(annotation=Union[float,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Success</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'successful_shots':</span> <span class="pre">FieldInfo(annotation=Union[int,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Number</span> <span class="pre">of</span> <span class="pre">successful</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'total_shots':</span> <span class="pre">FieldInfo(annotation=Union[int,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'total_trials':</span> <span class="pre">FieldInfo(annotation=Union[int,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=None,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">trials</span> <span class="pre">across</span> <span class="pre">all</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.model_fields" title="Link to this definition">¶</a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.success_rate">
-<span class="sig-name descname"><span class="pre">success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.success_rate" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.std_success_rate">
+<span class="sig-name descname"><span class="pre">std_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.std_success_rate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.successful_shots">
-<span class="sig-name descname"><span class="pre">successful_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.successful_shots" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.success_rate">
+<span class="sig-name descname"><span class="pre">success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.success_rate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.total_shots">
-<span class="sig-name descname"><span class="pre">total_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.total_shots" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.successful_shots">
+<span class="sig-name descname"><span class="pre">successful_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.successful_shots" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.total_shots">
+<span class="sig-name descname"><span class="pre">total_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.total_shots" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.total_trials">
+<span class="sig-name descname"><span class="pre">total_trials</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">]</span></em><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.total_trials" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.validate_error_rate">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.validate_error_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.validate_error_rate" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that error_rate = 1 - success_rate.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessRateJobSchema.validate_successful_shots">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_successful_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.validate_successful_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessRateJobSchema.validate_successful_shots" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.schemas.SuccessMetricsSchema.validate_successful_shots">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_successful_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessMetricsSchema.validate_successful_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.schemas.SuccessMetricsSchema.validate_successful_shots" title="Link to this definition">¶</a></dt>
 <dd><p>Validate that successful_shots &lt;= total_shots.</p>
 </dd></dl>
 
@@ -2537,191 +2920,6 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 </section>
 <section id="success-rate-schemas">
 <h2>Success Rate Schemas<a class="headerlink" href="#success-rate-schemas" title="Link to this heading">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="id158">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRateJobSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id158" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Schema for individual job success rate metrics.</p>
-<p>This schema validates success rate metrics from a single
-quantum job execution.</p>
-<p>Create a new model by parsing and validating input data from keyword arguments.</p>
-<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
-validated to form a valid model.</p>
-<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="id159">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id159" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Pydantic configuration.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id160">
-<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}</span></em><a class="headerlink" href="#id160" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id161">
-<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id161" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id162">
-<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id162" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id163">
-<span class="sig-name descname"><span class="pre">job_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#id163" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id164">
-<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#id164" title="Link to this definition">¶</a></dt>
-<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id165">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.25,</span> <span class="pre">'fidelity':</span> <span class="pre">0.8,</span> <span class="pre">'job_id':</span> <span class="pre">'job_12345',</span> <span class="pre">'success_rate':</span> <span class="pre">0.75,</span> <span class="pre">'successful_shots':</span> <span class="pre">768,</span> <span class="pre">'total_shots':</span> <span class="pre">1024}}}</span></em><a class="headerlink" href="#id165" title="Link to this definition">¶</a></dt>
-<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id166">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Error</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Fidelity</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'job_id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">description='Unique</span> <span class="pre">identifier</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">job'),</span> <span class="pre">'success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Success</span> <span class="pre">rate</span> <span class="pre">(0.0</span> <span class="pre">to</span> <span class="pre">1.0)',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'successful_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Number</span> <span class="pre">of</span> <span class="pre">successful</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)]),</span> <span class="pre">'total_shots':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">shots',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#id166" title="Link to this definition">¶</a></dt>
-<dd><p>Metadata about the fields defined on the model,
-mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
-<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id167">
-<span class="sig-name descname"><span class="pre">success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id167" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id168">
-<span class="sig-name descname"><span class="pre">successful_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#id168" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id169">
-<span class="sig-name descname"><span class="pre">total_shots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#id169" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id170">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.validate_error_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id170" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that error_rate = 1 - success_rate.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id171">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_successful_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateJobSchema.validate_successful_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id171" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that successful_shots &lt;= total_shots.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="id172">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRateAggregateSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id172" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Schema for aggregate success rate metrics across multiple jobs.</p>
-<p>This schema validates aggregate success rate metrics computed
-across multiple job executions.</p>
-<p>Create a new model by parsing and validating input data from keyword arguments.</p>
-<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
-validated to form a valid model.</p>
-<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="id173">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id173" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Pydantic configuration.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id174">
-<span class="sig-name descname"><span class="pre">json_schema_extra</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}</span></em><a class="headerlink" href="#id174" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id175">
-<span class="sig-name descname"><span class="pre">error_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id175" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id176">
-<span class="sig-name descname"><span class="pre">fidelity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id176" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id177">
-<span class="sig-name descname"><span class="pre">max_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id177" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id178">
-<span class="sig-name descname"><span class="pre">mean_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id178" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id179">
-<span class="sig-name descname"><span class="pre">min_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id179" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id180">
-<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">ComputedFieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#id180" title="Link to this definition">¶</a></dt>
-<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id181">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'json_schema_extra':</span> <span class="pre">{'example':</span> <span class="pre">{'error_rate':</span> <span class="pre">0.28,</span> <span class="pre">'fidelity':</span> <span class="pre">0.75,</span> <span class="pre">'max_success_rate':</span> <span class="pre">0.8,</span> <span class="pre">'mean_success_rate':</span> <span class="pre">0.72,</span> <span class="pre">'min_success_rate':</span> <span class="pre">0.65,</span> <span class="pre">'std_success_rate':</span> <span class="pre">0.05,</span> <span class="pre">'total_trials':</span> <span class="pre">3072}}}</span></em><a class="headerlink" href="#id181" title="Link to this definition">¶</a></dt>
-<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id182">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[Dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'error_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">error</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'fidelity':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Average</span> <span class="pre">fidelity</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'max_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Maximum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'mean_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Mean</span> <span class="pre">success</span> <span class="pre">rate</span> <span class="pre">across</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'min_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Minimum</span> <span class="pre">success</span> <span class="pre">rate',</span> <span class="pre">metadata=[Ge(ge=0.0),</span> <span class="pre">Le(le=1.0)]),</span> <span class="pre">'std_success_rate':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True,</span> <span class="pre">description='Standard</span> <span class="pre">deviation</span> <span class="pre">of</span> <span class="pre">success</span> <span class="pre">rates',</span> <span class="pre">metadata=[Ge(ge=0.0)]),</span> <span class="pre">'total_trials':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True,</span> <span class="pre">description='Total</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">trials</span> <span class="pre">across</span> <span class="pre">all</span> <span class="pre">jobs',</span> <span class="pre">metadata=[Ge(ge=0)])}</span></em><a class="headerlink" href="#id182" title="Link to this definition">¶</a></dt>
-<dd><p>Metadata about the fields defined on the model,
-mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
-<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id183">
-<span class="sig-name descname"><span class="pre">std_success_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id183" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id184">
-<span class="sig-name descname"><span class="pre">total_trials</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#id184" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id185">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_error_rate_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_error_rate_consistency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id185" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that error_rate = 1 - mean_success_rate.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id186">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_max_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_max_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id186" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that max &gt;= mean &gt;= min.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id187">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_min_max_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/schemas.html#SuccessRateAggregateSchema.validate_min_max_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id187" title="Link to this definition">¶</a></dt>
-<dd><p>Validate that min &lt;= mean &lt;= max.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 
@@ -2818,6 +3016,59 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 <li><a class="reference internal" href="#qward.metrics.schemas.BasicMetricsSchema.width"><code class="docutils literal notranslate"><span class="pre">BasicMetricsSchema.width</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.Config.json_schema_extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.error_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.error_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.fidelity"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.max_success_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.max_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.mean_success_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.mean_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.min_success_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.min_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.std_success_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.std_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.total_trials"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.total_trials</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_error_rate_consistency"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.validate_error_rate_consistency()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_max_bounds"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.validate_max_bounds()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceAggregateSchema.validate_min_max_order"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema.validate_min_max_order()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.Config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.Config.json_schema_extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.error_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.error_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.fidelity"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.job_id"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.job_id</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.success_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.successful_shots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.successful_shots</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.total_shots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.total_shots</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_error_rate"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.validate_error_rate()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceJobSchema.validate_successful_shots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema.validate_successful_shots()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.Config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.Config.json_schema_extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.fidelity_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.fidelity_metrics</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.from_flat_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.from_flat_dict()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_config"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.statistical_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.statistical_metrics</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.success_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.success_metrics</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.CircuitPerformanceSchema.to_flat_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema.to_flat_dict()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#qward.metrics.schemas.ComplexityMetricsSchema"><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code></a><ul>
 <li><a class="reference internal" href="#qward.metrics.schemas.ComplexityMetricsSchema.Config"><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema.Config</span></code></a><ul>
 <li><a class="reference internal" href="#qward.metrics.schemas.ComplexityMetricsSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema.Config.json_schema_extra</span></code></a></li>
@@ -2861,6 +3112,24 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 <li><a class="reference internal" href="#qward.metrics.schemas.EntanglementMetricsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">EntanglementMetricsSchema.model_config</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.schemas.EntanglementMetricsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">EntanglementMetricsSchema.model_fields</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.schemas.EntanglementMetricsSchema.validate_density_bounds"><code class="docutils literal notranslate"><span class="pre">EntanglementMetricsSchema.validate_density_bounds()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.Config"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.Config.json_schema_extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.confidence"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.confidence</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.fidelity"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.has_expected_distribution"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.has_expected_distribution</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.max_fidelity"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.max_fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.mean_fidelity"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.mean_fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.method"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.method</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.min_fidelity"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.min_fidelity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.FidelityMetricsSchema.std_fidelity"><code class="docutils literal notranslate"><span class="pre">FidelityMetricsSchema.std_fidelity</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#qward.metrics.schemas.GateBasedMetricsSchema"><code class="docutils literal notranslate"><span class="pre">GateBasedMetricsSchema</span></code></a><ul>
@@ -2992,42 +3261,46 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 <li><a class="reference internal" href="#qward.metrics.schemas.StandardizedMetricsSchema.validate_ratio_sum"><code class="docutils literal notranslate"><span class="pre">StandardizedMetricsSchema.validate_ratio_sum()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.Config"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.Config</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.Config.json_schema_extra</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.Config"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.Config.json_schema_extra</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.error_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.error_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.fidelity"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.fidelity</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.max_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.max_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.mean_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.mean_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.min_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.min_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_computed_fields</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_config"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_config</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_fields</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.std_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.std_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.total_trials"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.total_trials</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_error_rate_consistency"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_error_rate_consistency()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_max_bounds"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_max_bounds()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateAggregateSchema.validate_min_max_order"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_min_max_order()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.concentration"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.concentration</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.dominant_outcome_probability"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.dominant_outcome_probability</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.entropy"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.entropy</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_concentration"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.mean_concentration</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_dominant_probability"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.mean_dominant_probability</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_entropy"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.mean_entropy</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.mean_uniformity"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.mean_uniformity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.num_unique_outcomes"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.num_unique_outcomes</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.std_entropy"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.std_entropy</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.std_uniformity"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.std_uniformity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.uniformity"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.uniformity</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.StatisticalMetricsSchema.validate_ratio_bounds"><code class="docutils literal notranslate"><span class="pre">StatisticalMetricsSchema.validate_ratio_bounds()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.Config"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.Config</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.Config.json_schema_extra</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.Config"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.Config</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.Config.json_schema_extra"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.Config.json_schema_extra</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.error_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.error_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.fidelity"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.fidelity</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.job_id"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.job_id</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_computed_fields</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.model_config"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_config</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_fields</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.success_rate</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.successful_shots"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.successful_shots</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.total_shots"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.total_shots</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.validate_error_rate"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.validate_error_rate()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.schemas.SuccessRateJobSchema.validate_successful_shots"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.validate_successful_shots()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.error_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.error_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.max_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.max_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.mean_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.mean_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.min_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.min_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.std_success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.std_success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.success_rate"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.success_rate</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.successful_shots"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.successful_shots</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.total_shots"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.total_shots</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.total_trials"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.total_trials</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.schemas.SuccessMetricsSchema.validate_successful_shots"><code class="docutils literal notranslate"><span class="pre">SuccessMetricsSchema.validate_successful_shots()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -3248,47 +3521,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#success-rate-schemas">Success Rate Schemas</a><ul>
-<li><a class="reference internal" href="#id158"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema</span></code></a><ul>
-<li><a class="reference internal" href="#id159"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.Config</span></code></a><ul>
-<li><a class="reference internal" href="#id160"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.Config.json_schema_extra</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id161"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.error_rate</span></code></a></li>
-<li><a class="reference internal" href="#id162"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.fidelity</span></code></a></li>
-<li><a class="reference internal" href="#id163"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.job_id</span></code></a></li>
-<li><a class="reference internal" href="#id164"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_computed_fields</span></code></a></li>
-<li><a class="reference internal" href="#id165"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_config</span></code></a></li>
-<li><a class="reference internal" href="#id166"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.model_fields</span></code></a></li>
-<li><a class="reference internal" href="#id167"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.success_rate</span></code></a></li>
-<li><a class="reference internal" href="#id168"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.successful_shots</span></code></a></li>
-<li><a class="reference internal" href="#id169"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.total_shots</span></code></a></li>
-<li><a class="reference internal" href="#id170"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.validate_error_rate()</span></code></a></li>
-<li><a class="reference internal" href="#id171"><code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema.validate_successful_shots()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id172"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema</span></code></a><ul>
-<li><a class="reference internal" href="#id173"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.Config</span></code></a><ul>
-<li><a class="reference internal" href="#id174"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.Config.json_schema_extra</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id175"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.error_rate</span></code></a></li>
-<li><a class="reference internal" href="#id176"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.fidelity</span></code></a></li>
-<li><a class="reference internal" href="#id177"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.max_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#id178"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.mean_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#id179"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.min_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#id180"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_computed_fields</span></code></a></li>
-<li><a class="reference internal" href="#id181"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_config</span></code></a></li>
-<li><a class="reference internal" href="#id182"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.model_fields</span></code></a></li>
-<li><a class="reference internal" href="#id183"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.std_success_rate</span></code></a></li>
-<li><a class="reference internal" href="#id184"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.total_trials</span></code></a></li>
-<li><a class="reference internal" href="#id185"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_error_rate_consistency()</span></code></a></li>
-<li><a class="reference internal" href="#id186"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_max_bounds()</span></code></a></li>
-<li><a class="reference internal" href="#id187"><code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema.validate_min_max_order()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#success-rate-schemas">Success Rate Schemas</a></li>
 </ul>
 </li>
 </ul>

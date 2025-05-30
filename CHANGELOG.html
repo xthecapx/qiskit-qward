@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Qiskit Qward Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -211,7 +211,7 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
 </ul>
 </li>
@@ -295,10 +295,10 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>SuccessRate</strong>: Enhanced validation for single and multiple job analysis</p>
+<li><p><strong>CircuitPerformance</strong>: Enhanced validation for single and multiple job analysis</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_single_job_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">SuccessRateJobSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_multiple_jobs_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">SuccessRateAggregateSchema</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_single_job_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_multiple_jobs_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> → Union of above schemas</p></li>
 </ul>
 </li>
@@ -320,7 +320,7 @@
 <section id="simplified-architecture">
 <h4>Simplified Architecture<a class="headerlink" href="#simplified-architecture" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>SuccessRateVisualizer</strong>: Removed Strategy pattern complexity</p>
+<li><p><strong>CircuitPerformanceVisualizer</strong>: Removed Strategy pattern complexity</p>
 <ul>
 <li><p>Direct plotting methods for better maintainability</p></li>
 <li><p>Reduced code from ~450 to ~350 lines</p></li>
@@ -387,7 +387,7 @@
 <li><p><strong>Enhanced <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code></strong> with new demonstration files:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">schema_demo.py</span></code> - Schema validation demonstration</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">success_rate_demo.py</span></code> - Success rate analysis examples</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_performance_demo.py</span></code> - Circuit performance analysis examples</p></li>
 </ul>
 </li>
 <li><p><strong>Improved folder structure</strong> documentation</p></li>
@@ -439,7 +439,7 @@
 <h4>New Demonstration Files<a class="headerlink" href="#new-demonstration-files" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Schema Demo</strong>: Comprehensive showcase of validation features</p></li>
-<li><p><strong>Success Rate Demo</strong>: Multi-job analysis with custom criteria</p></li>
+<li><p><strong>Circuit Performance Demo</strong>: Multi-job analysis with custom criteria</p></li>
 <li><p><strong>Type Safety Examples</strong>: IDE support and error prevention</p></li>
 <li><p><strong>JSON Schema Generation</strong>: API documentation automation</p></li>
 </ul>
@@ -473,8 +473,8 @@
 <li><p><strong>Quantum Volume</strong>: Nested validation with factor constraints</p></li>
 </ul>
 </section>
-<section id="successrate-validation">
-<h4>SuccessRate Validation<a class="headerlink" href="#successrate-validation" title="Link to this heading">¶</a></h4>
+<section id="circuitperformance-validation">
+<h4>CircuitPerformance Validation<a class="headerlink" href="#circuitperformance-validation" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Single Job</strong>: Rate consistency, shot count validation</p></li>
 <li><p><strong>Aggregate</strong>: Statistical constraints, min/max ordering</p></li>
@@ -623,7 +623,7 @@
 <li><a class="reference internal" href="#validation-capabilities">🔍 Validation Capabilities</a><ul>
 <li><a class="reference internal" href="#qiskitmetrics-validation">QiskitMetrics Validation</a></li>
 <li><a class="reference internal" href="#complexitymetrics-validation">ComplexityMetrics Validation</a></li>
-<li><a class="reference internal" href="#successrate-validation">SuccessRate Validation</a></li>
+<li><a class="reference internal" href="#circuitperformance-validation">CircuitPerformance Validation</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#future-ready-architecture">🚀 Future-Ready Architecture</a><ul>
