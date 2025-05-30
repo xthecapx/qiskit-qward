@@ -181,10 +181,10 @@ class QiskitMetricsSchema(BaseModel):
         Returns:
             Dict[str, Any]: Flattened dictionary with dot-notation keys
         """
-        result = {}
+        result: Dict[str, Any] = {}
 
         # Flatten basic metrics
-        basic_dict = self.basic_metrics.dict()
+        basic_dict = self.basic_metrics.model_dump()  # pylint: disable=no-member
         count_ops = basic_dict.pop("count_ops")
         for key, value in basic_dict.items():
             result[f"basic_metrics.{key}"] = value
@@ -192,7 +192,7 @@ class QiskitMetricsSchema(BaseModel):
             result[f"basic_metrics.count_ops.{op_name}"] = count
 
         # Flatten instruction metrics
-        instruction_dict = self.instruction_metrics.dict()
+        instruction_dict = self.instruction_metrics.model_dump()  # pylint: disable=no-member
         instructions = instruction_dict.pop("instructions")
         for key, value in instruction_dict.items():
             result[f"instruction_metrics.{key}"] = value
@@ -200,7 +200,7 @@ class QiskitMetricsSchema(BaseModel):
             result[f"instruction_metrics.instructions.{op_name}"] = instruction_list
 
         # Flatten scheduling metrics
-        scheduling_dict = self.scheduling_metrics.dict()
+        scheduling_dict = self.scheduling_metrics.model_dump()  # pylint: disable=no-member
         for key, value in scheduling_dict.items():
             result[f"scheduling_metrics.{key}"] = value
 
@@ -652,12 +652,12 @@ class ComplexityMetricsSchema(BaseModel):
         ]
 
         for category_name, category_data in categories:
-            category_dict = category_data.dict()
+            category_dict = category_data.model_dump()  # pylint: disable=no-member
             for key, value in category_dict.items():
                 result[f"{category_name}.{key}"] = value
 
         # Flatten quantum volume (more complex structure)
-        qv_dict = self.quantum_volume.dict()
+        qv_dict = self.quantum_volume.model_dump()  # pylint: disable=no-member
         for key, value in qv_dict.items():
             if key in ["factors", "circuit_metrics"]:
                 # Flatten nested objects
@@ -717,7 +717,7 @@ class ComplexityMetricsSchema(BaseModel):
                     qv_base[qv_key] = value
             else:
                 # Handle other categories
-                for category_name in categories.keys():
+                for category_name in categories:  # pylint: disable=consider-using-dict-items
                     if key.startswith(f"{category_name}."):
                         metric_name = key.replace(f"{category_name}.", "")
                         categories[category_name][metric_name] = value
