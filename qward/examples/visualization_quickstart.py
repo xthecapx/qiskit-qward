@@ -1,5 +1,5 @@
 """
-Quick visualization example for QWARD.
+Quick visualization example using QWARD CircuitPerformance metrics.
 
 This script demonstrates the basic visualization capabilities with minimal setup.
 """
@@ -7,56 +7,57 @@ This script demonstrates the basic visualization capabilities with minimal setup
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import SuccessRate
+from qward.metrics import CircuitPerformance
 from qward.visualization import SuccessRateVisualizer
 
 
 def main():
-    """Run a simple visualization example."""
-    # 1. Create a Bell state circuit
+    """Create and visualize CircuitPerformance metrics."""
+    # Create a Bell state circuit
     circuit = QuantumCircuit(2, 2)
     circuit.h(0)
     circuit.cx(0, 1)
     circuit.measure_all()
 
-    print("Created Bell state circuit")
-
-    # 2. Run the circuit on simulator
+    # Run multiple simulations
     simulator = AerSimulator()
-    job = simulator.run(circuit, shots=1024)
-    job.result()  # Wait for completion
+    jobs = []
+    for i in range(3):
+        job = simulator.run(circuit, shots=1024)
+        jobs.append(job)
 
-    print("Circuit executed successfully")
+    # Wait for completion
+    for job in jobs:
+        job.result()
 
-    # 3. Calculate metrics
+    # Create scanner with CircuitPerformance strategy
     scanner = Scanner(circuit=circuit)
 
-    # Define success criteria (we expect |00⟩ or |11⟩ for Bell state)
     def bell_state_success(outcome):
-        return outcome in ["00", "11"]
+        """Success criteria for Bell state: |00⟩ or |11⟩."""
+        clean = outcome.replace(" ", "")
+        return clean in ["00", "11"]
 
-    success_rate = SuccessRate(circuit=circuit, success_criteria=bell_state_success)
-    success_rate.add_job(job)
-    scanner.add_strategy(success_rate)
+    circuit_performance = CircuitPerformance(circuit=circuit, success_criteria=bell_state_success)
+    circuit_performance.add_job(jobs)
+    scanner.add_strategy(circuit_performance)
 
+    # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
-    print("Metrics calculated")
 
-    # 4. Create visualizations
+    metrics_dict["CircuitPerformance.aggregate"].plot()
+
+    # Create visualizations
     visualizer = SuccessRateVisualizer(metrics_dict, output_dir="img/quickstart")
+    visualizer.plot_all(save=True, show=False)
 
-    # Generate all plots
-    print("\nGenerating visualizations...")
-    figures = visualizer.plot_all(save=True, show=False)
-    print(f"✅ Created {len(figures)} plots in img/quickstart/")
+    print("Visualizations saved to img/quickstart/")
 
-    # Show success rate summary
-    aggregate_data = metrics_dict.get("SuccessRate.aggregate")
-    if aggregate_data is not None:
-        success_rate_value = aggregate_data["mean_success_rate"].iloc[0]
-        print(f"\nBell state success rate: {success_rate_value:.2%}")
-
-    print("\nVisualization complete! Check the img/quickstart/ directory for plots.")
+    # Print summary
+    aggregate_data = metrics_dict.get("CircuitPerformance.aggregate")
+    if aggregate_data is not None and not aggregate_data.empty:
+        mean_success = aggregate_data.iloc[0]["mean_success_rate"]
+        print(f"Mean success rate: {mean_success:.3f}")
 
 
 if __name__ == "__main__":

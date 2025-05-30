@@ -357,6 +357,7 @@ The QWARD library is organized into the following folder structure:
     ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
     ├── aer.py                  # Example Aer simulator usage
     └── example_metrics_constructor.py # Example for custom metrics constructor
+└── circuit_performance.py    # CircuitPerformance implementation
 ```
 
 This structure provides a clean organization for the code, with:

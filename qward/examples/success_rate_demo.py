@@ -1,11 +1,12 @@
 """
-Success Rate Metrics Demo for QWARD.
+Demo showing how to use QWARD's CircuitPerformance metrics.
 
-This demo showcases the success rate metrics functionality, including:
-- Traditional dictionary-based metrics
-- Schema-based structured metrics with validation
-- Single job and multiple job analysis
-- Custom success criteria
+This example demonstrates:
+1. Traditional approach using CircuitPerformance directly
+2. Schema-based approach with validation
+3. Custom success criteria
+4. Validation features and error handling
+5. JSON schema generation
 """
 
 from typing import TYPE_CHECKING, Dict, Any, List
@@ -13,7 +14,20 @@ import json
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
-from qward.metrics.success_rate import SuccessRate
+from qward.metrics.circuit_performance import CircuitPerformance
+
+# Import schemas for structured data validation
+try:
+    from qward.metrics.schemas import (
+        CircuitPerformanceSchema,
+        SuccessMetricsSchema,
+        FidelityMetricsSchema,
+        StatisticalMetricsSchema,
+    )
+
+    SCHEMAS_AVAILABLE = True
+except ImportError:
+    SCHEMAS_AVAILABLE = False
 
 if TYPE_CHECKING:
     from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
@@ -54,7 +68,7 @@ def demo_traditional_approach() -> None:
     job = run_circuit_simulation(circuit, shots=1024)
 
     # Calculate success rate metrics
-    success_rate = SuccessRate(circuit, job=job)
+    success_rate = CircuitPerformance(circuit, job=job)
     metrics = success_rate.get_metrics()
 
     print("Single Job Metrics (Dictionary):")
@@ -68,7 +82,7 @@ def demo_traditional_approach() -> None:
         run_circuit_simulation(circuit, shots=512),
     ]
 
-    success_rate_multi = SuccessRate(circuit, jobs=jobs)
+    success_rate_multi = CircuitPerformance(circuit, jobs=jobs)
     multi_metrics = success_rate_multi.get_metrics()
 
     print("Multiple Jobs Metrics (Dictionary):")
@@ -77,57 +91,56 @@ def demo_traditional_approach() -> None:
 
 
 def demo_schema_approach() -> None:
-    """Demonstrate schema-based success rate metrics with validation."""
-    print("=" * 60)
-    print("SCHEMA-BASED APPROACH WITH VALIDATION")
-    print("=" * 60)
+    """
+    Demonstrate schema-based metrics with validation.
+    """
+    print("\n" + "=" * 50)
+    print("SCHEMA-BASED APPROACH DEMO")
+    print("=" * 50)
+
+    if not SCHEMAS_AVAILABLE:
+        print("Pydantic schemas not available. Install pydantic to run this demo.")
+        return
+
+    # Create a circuit and run it
+    circuit = create_bell_circuit()
+    job = run_circuit_simulation(circuit)
 
     try:
-        from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
-
-        # Create and run a Bell state circuit
-        circuit = create_bell_circuit()
-        job = run_circuit_simulation(circuit, shots=1024)
-
         # Calculate structured metrics for single job
-        success_rate = SuccessRate(circuit, job=job)
-        structured_metrics = success_rate.get_structured_single_job_metrics()
+        circuit_performance = CircuitPerformance(circuit, job=job)
+        structured_metrics = circuit_performance.get_structured_metrics()
 
-        print("Single Job Structured Metrics:")
-        print(f"Type: {type(structured_metrics).__name__}")
-        print(f"Job ID: {structured_metrics.job_id}")
-        print(f"Success Rate: {structured_metrics.success_rate:.3f}")
-        print(f"Error Rate: {structured_metrics.error_rate:.3f}")
-        print(f"Fidelity: {structured_metrics.fidelity:.3f}")
-        print(f"Total Shots: {structured_metrics.total_shots}")
-        print(f"Successful Shots: {structured_metrics.successful_shots}")
-        print()
+        print("✓ Schema-based metrics (structured object):")
+        print(f"   Type: {type(structured_metrics)}")
+        print(f"   Success Rate: {structured_metrics.success_metrics.success_rate}")
+        print(f"   Fidelity: {structured_metrics.fidelity_metrics.fidelity}")
+        print(f"   Entropy: {structured_metrics.statistical_metrics.entropy}")
 
-        # Multiple jobs with schema validation
+        print("\n✓ Benefits of schema approach:")
+        print("   - Full type hints and IDE autocomplete")
+        print("   - Automatic validation of data types and constraints")
+        print("   - Clear documentation of all available fields")
+        print("   - Compile-time error detection")
+
+        # Multiple jobs example
         jobs = [
-            run_circuit_simulation(circuit, shots=256),
-            run_circuit_simulation(circuit, shots=256),
-            run_circuit_simulation(circuit, shots=256),
-            run_circuit_simulation(circuit, shots=256),
+            run_circuit_simulation(circuit),
+            run_circuit_simulation(circuit),
+            run_circuit_simulation(circuit),
         ]
 
-        success_rate_multi = SuccessRate(circuit, jobs=jobs)
-        aggregate_metrics = success_rate_multi.get_structured_multiple_jobs_metrics()
+        circuit_performance_multi = CircuitPerformance(circuit, jobs=jobs)
+        aggregate_metrics = circuit_performance_multi.get_structured_metrics()
 
-        print("Multiple Jobs Aggregate Structured Metrics:")
-        print(f"Type: {type(aggregate_metrics).__name__}")
-        print(f"Mean Success Rate: {aggregate_metrics.mean_success_rate:.3f}")
-        print(f"Std Success Rate: {aggregate_metrics.std_success_rate:.3f}")
-        print(f"Min Success Rate: {aggregate_metrics.min_success_rate:.3f}")
-        print(f"Max Success Rate: {aggregate_metrics.max_success_rate:.3f}")
-        print(f"Total Trials: {aggregate_metrics.total_trials}")
-        print(f"Average Fidelity: {aggregate_metrics.fidelity:.3f}")
-        print(f"Error Rate: {aggregate_metrics.error_rate:.3f}")
-        print()
+        print(f"\n✓ Multiple jobs aggregate metrics:")
+        print(f"   Mean Success Rate: {aggregate_metrics.success_metrics.mean_success_rate}")
+        print(f"   Mean Fidelity: {aggregate_metrics.fidelity_metrics.mean_fidelity}")
+        print(f"   Individual Jobs: {len(aggregate_metrics.success_metrics.individual_jobs)}")
 
-    except ImportError:
-        print("❌ Pydantic schemas not available. Install pydantic to use structured metrics.")
-        print()
+    except Exception as e:
+        print(f"❌ Error in schema approach: {e}")
+        return
 
 
 def demo_custom_success_criteria() -> None:
@@ -141,11 +154,11 @@ def demo_custom_success_criteria() -> None:
     job = run_circuit_simulation(circuit, shots=1024)
 
     # Default success criteria (all zeros)
-    default_success = SuccessRate(circuit, job=job)
+    default_success = CircuitPerformance(circuit, job=job)
     default_metrics = default_success.get_metrics()
 
     print("Default Success Criteria (|00⟩ only):")
-    print(f"Success Rate: {default_metrics['success_rate']:.3f}")
+    print(f"Success Rate: {default_metrics['success_metrics']['success_rate']:.3f}")
     print()
 
     # Custom success criteria (Bell state outcomes: |00⟩ or |11⟩)
@@ -155,126 +168,184 @@ def demo_custom_success_criteria() -> None:
         # For Bell states, we expect either all 0s or all 1s
         return clean_result in ["0000", "1111"]  # 00 00 or 11 11 for 2-qubit + 2-classical
 
-    bell_success = SuccessRate(circuit, job=job, success_criteria=bell_success_criteria)
+    bell_success = CircuitPerformance(circuit, job=job, success_criteria=bell_success_criteria)
     bell_metrics = bell_success.get_metrics()
 
     print("Custom Success Criteria (|00⟩ or |11⟩):")
-    print(f"Success Rate: {bell_metrics['success_rate']:.3f}")
+    print(f"Success Rate: {bell_metrics['success_metrics']['success_rate']:.3f}")
     print()
 
 
 def demo_validation_features() -> None:
-    """Demonstrate schema validation features."""
-    print("=" * 60)
-    print("SCHEMA VALIDATION FEATURES")
-    print("=" * 60)
+    """
+    Demonstrate validation features and error handling.
+    """
+    print("\n" + "=" * 50)
+    print("VALIDATION FEATURES DEMO")
+    print("=" * 50)
 
-    try:
-        from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
+    if not SCHEMAS_AVAILABLE:
+        print("Pydantic schemas not available. Install pydantic to run this demo.")
+        return
 
-        # Valid data
-        print("✅ Valid Success Rate Job Schema:")
-        job_schema = SuccessRateJobSchema(
+    # Import schemas for validation
+    from qward.metrics.schemas import CircuitPerformanceSchema, SuccessMetricsSchema, FidelityMetricsSchema, StatisticalMetricsSchema
+
+    # Create a circuit and run it
+    circuit = create_bell_circuit()
+    job = run_circuit_simulation(circuit)
+
+    print("1. Valid schema creation:")
+    job_schema = CircuitPerformanceSchema(
+        success_metrics=SuccessMetricsSchema(
             job_id="test_job_123",
-            success_rate=0.75,
-            error_rate=0.25,
-            fidelity=0.80,
+            success_rate=0.85,
+            error_rate=0.15,
             total_shots=1024,
-            successful_shots=768,
-        )
-        print(f"Success Rate: {job_schema.success_rate}")
-        print(f"Error Rate: {job_schema.error_rate}")
-        print("Validation: ✅ Passed")
-        print()
+            successful_shots=870,
+        ),
+        fidelity_metrics=FidelityMetricsSchema(
+            job_id="test_job_123",
+            fidelity=0.92,
+            method="theoretical_comparison",
+            confidence="high",
+            has_expected_distribution=True,
+        ),
+        statistical_metrics=StatisticalMetricsSchema(
+            job_id="test_job_123",
+            entropy=0.85,
+            uniformity=0.75,
+            concentration=0.25,
+            dominant_outcome_probability=0.45,
+            num_unique_outcomes=4,
+        ),
+    )
+    print(f"✓ Valid schema created: {job_schema.success_metrics.job_id}")
 
-        # Test validation - this should work
-        print("✅ Valid Aggregate Schema:")
-        aggregate_schema = SuccessRateAggregateSchema(
-            mean_success_rate=0.72,
+    print("\n2. Multiple job aggregate schema:")
+    aggregate_schema = CircuitPerformanceSchema(
+        success_metrics=SuccessMetricsSchema(
+            mean_success_rate=0.82,
             std_success_rate=0.05,
-            min_success_rate=0.65,
-            max_success_rate=0.80,
+            min_success_rate=0.75,
+            max_success_rate=0.90,
             total_trials=3072,
-            fidelity=0.75,
-            error_rate=0.28,
-        )
-        print(f"Mean Success Rate: {aggregate_schema.mean_success_rate}")
-        print(f"Standard Deviation: {aggregate_schema.std_success_rate}")
-        print("Validation: ✅ Passed")
-        print()
-
-        # Test validation errors
-        print("❌ Testing Validation Errors:")
-
-        try:
-            # Invalid: success_rate > 1.0
-            SuccessRateJobSchema(
-                job_id="test_job_123",
-                success_rate=1.5,  # Invalid
-                error_rate=0.25,
-                fidelity=0.80,
-                total_shots=1024,
-                successful_shots=768,
-            )
-        except Exception as e:
-            print(f"Success rate > 1.0: {type(e).__name__}")
-
-        try:
-            # Invalid: successful_shots > total_shots
-            SuccessRateJobSchema(
-                job_id="test_job_123",
-                success_rate=0.75,
-                error_rate=0.25,
-                fidelity=0.80,
-                total_shots=1024,
-                successful_shots=2000,  # Invalid
-            )
-        except Exception as e:
-            print(f"Successful shots > total shots: {type(e).__name__}")
-
-        try:
-            # Invalid: min > max in aggregate
-            SuccessRateAggregateSchema(
-                mean_success_rate=0.72,
-                std_success_rate=0.05,
-                min_success_rate=0.90,  # Invalid - greater than mean
-                max_success_rate=0.80,
-                total_trials=3072,
-                fidelity=0.75,
-                error_rate=0.28,
-            )
-        except Exception as e:
-            print(f"Min > max success rate: {type(e).__name__}")
-
-        print()
-
-    except ImportError:
-        print("❌ Pydantic schemas not available. Install pydantic to test validation.")
-        print()
+            error_rate=0.18,
+            individual_jobs=[
+                SuccessMetricsSchema(
+                    job_id="job_1",
+                    success_rate=0.85,
+                    error_rate=0.15,
+                    total_shots=1024,
+                    successful_shots=870,
+                ),
+                SuccessMetricsSchema(
+                    job_id="job_2", 
+                    success_rate=0.80,
+                    error_rate=0.20,
+                    total_shots=1024,
+                    successful_shots=819,
+                ),
+                SuccessMetricsSchema(
+                    job_id="job_3",
+                    success_rate=0.82,
+                    error_rate=0.18,
+                    total_shots=1024,
+                    successful_shots=840,
+                ),
+            ],
+        ),
+        fidelity_metrics=FidelityMetricsSchema(
+            mean_fidelity=0.89,
+            std_fidelity=0.03,
+            min_fidelity=0.85,
+            max_fidelity=0.92,
+            method="theoretical_comparison",
+            confidence="high",
+            individual_jobs=[
+                FidelityMetricsSchema(
+                    job_id="job_1",
+                    fidelity=0.92,
+                    method="theoretical_comparison",
+                    confidence="high",
+                    has_expected_distribution=True,
+                ),
+                FidelityMetricsSchema(
+                    job_id="job_2",
+                    fidelity=0.85,
+                    method="theoretical_comparison", 
+                    confidence="high",
+                    has_expected_distribution=True,
+                ),
+                FidelityMetricsSchema(
+                    job_id="job_3",
+                    fidelity=0.90,
+                    method="theoretical_comparison",
+                    confidence="high", 
+                    has_expected_distribution=True,
+                ),
+            ],
+        ),
+        statistical_metrics=StatisticalMetricsSchema(
+            mean_entropy=0.83,
+            mean_uniformity=0.72,
+            mean_concentration=0.28,
+            mean_dominant_probability=0.47,
+            std_entropy=0.02,
+            std_uniformity=0.03,
+            individual_jobs=[
+                StatisticalMetricsSchema(
+                    job_id="job_1",
+                    entropy=0.85,
+                    uniformity=0.75,
+                    concentration=0.25,
+                    dominant_outcome_probability=0.45,
+                    num_unique_outcomes=4,
+                ),
+                StatisticalMetricsSchema(
+                    job_id="job_2",
+                    entropy=0.80,
+                    uniformity=0.68,
+                    concentration=0.32,
+                    dominant_outcome_probability=0.50,
+                    num_unique_outcomes=4,
+                ),
+                StatisticalMetricsSchema(
+                    job_id="job_3",
+                    entropy=0.84,
+                    uniformity=0.73,
+                    concentration=0.27,
+                    dominant_outcome_probability=0.46,
+                    num_unique_outcomes=4,
+                ),
+            ],
+        ),
+    )
+    print(f"✓ Aggregate schema created with {len(aggregate_schema.success_metrics.individual_jobs)} jobs")
 
 
 def demo_json_schema_generation() -> None:
-    """Demonstrate JSON schema generation for API documentation."""
-    print("=" * 60)
-    print("JSON SCHEMA GENERATION")
-    print("=" * 60)
+    """
+    Demonstrate JSON schema generation capabilities.
+    """
+    print("\n" + "=" * 50)
+    print("JSON SCHEMA GENERATION DEMO")
+    print("=" * 50)
 
-    try:
-        from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
+    if not SCHEMAS_AVAILABLE:
+        print("Pydantic schemas not available. Install pydantic to run this demo.")
+        return
 
-        print("Success Rate Job Schema (JSON Schema):")
-        job_schema = SuccessRateJobSchema.model_json_schema()
-        print(json.dumps(job_schema, indent=2))
-        print()
+    # Import schemas for JSON generation
+    from qward.metrics.schemas import CircuitPerformanceSchema, SuccessMetricsSchema, FidelityMetricsSchema, StatisticalMetricsSchema
 
-        print("Success Rate Aggregate Schema (JSON Schema):")
-        aggregate_schema = SuccessRateAggregateSchema.model_json_schema()
-        print(json.dumps(aggregate_schema, indent=2))
-        print()
+    job_schema = CircuitPerformanceSchema.model_json_schema()
+    print("CircuitPerformance JSON Schema keys:")
+    print(list(job_schema.keys()))
 
-    except ImportError:
-        print("❌ Pydantic schemas not available. Install pydantic for JSON schema generation.")
-        print()
+    success_schema = SuccessMetricsSchema.model_json_schema()
+    print("\nSuccessMetrics JSON Schema properties:")
+    print(list(success_schema.get("properties", {}).keys()))
 
 
 def main() -> None:

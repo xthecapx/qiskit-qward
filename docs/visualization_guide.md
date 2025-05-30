@@ -2,17 +2,15 @@
 
 ## Overview
 
-QWARD provides a comprehensive visualization system for quantum circuit metrics. The visualization module follows a modular architecture that makes it easy to create beautiful, informative plots for your quantum computing analysis.
+QWARD provides a comprehensive visualization system for quantum circuit metrics. The visualization module follows a clean, object-oriented architecture that makes it easy to create beautiful, informative plots for your quantum computing analysis.
 
 ## Architecture
 
-The visualization system follows a structured approach:
+The visualization system is built around a simple but powerful architecture:
 
-- **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations.
-- **`BaseVisualizer`**: An abstract base class for all visualizers. It handles common setup (output directory, styling via `PlotConfig`) and provides `save_plot`/`show_plot` methods. Subclasses must implement `create_plot()` for their specific visualization logic.
-- **`SuccessRateVisualizer`**: A concrete visualizer inheriting from `BaseVisualizer`. It's responsible for generating various plots related to success rate metrics. Internally, it uses the **Strategy pattern** to manage different types of plots.
-- **`PlotStrategy`**: An interface (abstract base class) defining a contract for different plot generation algorithms. Concrete strategies (e.g., `SuccessErrorPlotStrategy`, `FidelityPlotStrategy`) implement this interface to create specific charts. `SuccessRateVisualizer` delegates plotting tasks to these strategies.
-- **(Conceptual) `MetricPlottingUtils`**: A utility class or module (not shown in the diagram for simplicity but important for implementation) would contain static helper methods for common tasks related to plotting metric data (e.g., extracting data, validating columns, adding standard labels). Both `SuccessRateVisualizer` and its strategies might use these utilities.
+- **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations
+- **`BaseVisualizer`**: An abstract base class that handles common functionality like output directory management, styling, and plot saving/showing. Subclasses implement `create_plot()` for their specific visualization logic
+- **`SuccessRateVisualizer`**: A concrete visualizer that creates various plots for success rate metrics analysis, including individual plots and comprehensive dashboards
 
 ```mermaid
 classDiagram
@@ -23,6 +21,8 @@ classDiagram
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
+        -_setup_output_dir()
+        -_apply_style()
     }
     
     class PlotConfig {
@@ -33,49 +33,27 @@ classDiagram
         +save_format: str
         +grid: bool
         +alpha: float
+        +__post_init__()
     }
     
     class SuccessRateVisualizer {
         +metrics_dict: Dict[str, DataFrame]
-        # +_is_dashboard_context: bool
+        +individual_df: DataFrame
+        +aggregate_df: DataFrame
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
         +plot_all()
+        -_add_stacked_bar_labels()
+        -_add_stacked_bar_summary()
     }
-
-    class PlotStrategy {
-        <<Interface>>
-        #visualizer: SuccessRateVisualizer
-        #config: PlotConfig
-        +plot(ax: Axes)*
-    }
-
-    class SuccessErrorPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class FidelityPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class ShotDistributionPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class AggregateSummaryPlotStrategy {
-        +plot(ax: Axes)
-    }
-    
-    note for PlotStrategy "Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity)."
 
     BaseVisualizer <|-- SuccessRateVisualizer
     BaseVisualizer --> PlotConfig : uses
-    SuccessRateVisualizer o--> PlotStrategy : uses (delegates to)
-
-    PlotStrategy <|.. SuccessErrorPlotStrategy : implements
-    PlotStrategy <|.. FidelityPlotStrategy : implements
-    PlotStrategy <|.. ShotDistributionPlotStrategy : implements
-    PlotStrategy <|.. AggregateSummaryPlotStrategy : implements
+    
+    note for SuccessRateVisualizer "Handles SuccessRate metrics visualization with multiple plot types and dashboard creation"
 ```
 
 ## Quick Start
@@ -138,46 +116,50 @@ visualizer = SuccessRateVisualizer(
 
 ### SuccessRateVisualizer
 
-The `SuccessRateVisualizer` creates comprehensive visualizations for success rate metrics:
+The `SuccessRateVisualizer` creates comprehensive visualizations for success rate metrics. It expects metrics data with specific keys:
+- `"SuccessRate.individual_jobs"`: DataFrame with individual job metrics
+- `"SuccessRate.aggregate"`: DataFrame with aggregate statistics
 
 #### Individual Plots
 
-1. **Success Rate Comparison**
+1. **Success vs Error Rate Comparison**
    ```python
-   visualizer.plot_success_rate_comparison(save=True)
+   visualizer.plot_success_error_comparison(save=True, show=True)
    ```
-   Shows success rates across different jobs with confidence intervals.
+   Shows success and error rates across different jobs as a bar chart.
 
-2. **Error Rate Comparison**
+2. **Fidelity Comparison**
    ```python
-   visualizer.plot_error_rate_comparison(save=True)
+   visualizer.plot_fidelity_comparison(save=True, show=True)
    ```
-   Displays error rates for each job with visual indicators.
+   Displays fidelity values for each job.
 
-3. **Fidelity Comparison**
+3. **Shot Distribution**
    ```python
-   visualizer.plot_fidelity_comparison(save=True)
+   visualizer.plot_shot_distribution(save=True, show=True)
    ```
-   Compares fidelity values across jobs.
+   Shows the distribution of successful vs failed shots as stacked bars with detailed labels.
 
-4. **Shot Distribution**
+4. **Aggregate Summary**
    ```python
-   visualizer.plot_shot_distribution(save=True)
+   visualizer.plot_aggregate_summary(save=True, show=True)
    ```
-   Shows the distribution of measurement outcomes.
-
-5. **Aggregate Summary**
-   ```python
-   visualizer.plot_aggregate_summary(save=True)
-   ```
-   Provides a comprehensive summary of all metrics.
+   Provides a comprehensive summary of aggregate statistics.
 
 #### Dashboard View
 
-Create a comprehensive dashboard with all visualizations:
+Create a comprehensive dashboard with all visualizations in a 2x2 subplot layout:
 
 ```python
-visualizer.create_dashboard(save=True, show=False)
+dashboard_fig = visualizer.create_dashboard(save=True, show=False)
+```
+
+#### Plot All
+
+Generate all individual plots at once:
+
+```python
+all_figures = visualizer.plot_all(save=True, show=False)
 ```
 
 ## Plot Configuration
@@ -185,7 +167,7 @@ visualizer.create_dashboard(save=True, show=False)
 ### Available Styles
 
 - `"default"`: Standard matplotlib style
-- `"quantum"`: Custom quantum-themed style with clean backgrounds
+- `"quantum"`: Custom quantum-themed style with clean backgrounds and seaborn-inspired appearance
 - `"minimal"`: Minimalist style with white grid
 
 ### Color Palettes
@@ -223,8 +205,9 @@ for shots in [512, 1024, 2048]:
     jobs.append(job)
 
 # Add all jobs to the metric strategy
-success_rate_strategy = SuccessRate(circuit=circuit) # Renamed to avoid conflict with a potential 'success_rate' variable from other examples
-success_rate_strategy.add_job(jobs)
+success_rate_strategy = SuccessRate(circuit=circuit)
+for job in jobs:
+    success_rate_strategy.add_job(job)
 
 # Visualize results
 scanner = Scanner(circuit=circuit)
@@ -249,31 +232,27 @@ success_rate = SuccessRate(
 )
 ```
 
-### Batch Processing
+### Dashboard with Custom Configuration
 
 ```python
-# Ensure create_bell_circuit, create_ghz_circuit, create_qft_circuit are defined
-# circuits = [create_bell_circuit(), create_ghz_circuit(), create_qft_circuit()]
-# results = {}
-# 
-# for i, circuit_item in enumerate(circuits): # Renamed 'circuit' to 'circuit_item' to avoid conflict with outer scope 'circuit'
-#     scanner = Scanner(circuit=circuit_item)
-#     success_rate_calc = SuccessRate(circuit=circuit_item)
-#     
-#     # Run and add job
-#     job = simulator.run(circuit_item, shots=1024)
-#     success_rate_calc.add_job(job)
-#     scanner.add_strategy(success_rate_calc)
-#     
-#     # Calculate and visualize
-#     metrics = scanner.calculate_metrics()
-#     visualizer = SuccessRateVisualizer(
-#         metrics, 
-#         output_dir=f"img/circuit_{i}"
-#     )
-#     visualizer.plot_all(save=True, show=False)
-#     
-#     results[f"circuit_{i}"] = metrics
+# Create a high-quality dashboard for publication
+publication_config = PlotConfig(
+    figsize=(16, 12),
+    dpi=300,
+    style="quantum",
+    save_format="svg",
+    grid=True,
+    alpha=0.8
+)
+
+visualizer = SuccessRateVisualizer(
+    metrics_dict,
+    output_dir="img/publication",
+    config=publication_config
+)
+
+# Create dashboard
+dashboard = visualizer.create_dashboard(save=True, show=False)
 ```
 
 ## Extending the Visualization System
@@ -283,20 +262,38 @@ success_rate = SuccessRate(
 To create your own visualizer for a custom metric:
 
 ```python
-from qward.visualization.base import MetricVisualizer
+from qward.visualization.base import BaseVisualizer
 import matplotlib.pyplot as plt
+import pandas as pd
 
-class MyCustomVisualizer(MetricVisualizer):
+class MyCustomVisualizer(BaseVisualizer):
+    def __init__(self, metrics_dict, output_dir="img", config=None):
+        super().__init__(output_dir, config)
+        self.metrics_dict = metrics_dict
+        
+        # Validate required data
+        if "MyCustomMetric.data" not in metrics_dict:
+            raise ValueError("Required metric data not found")
+        
+        self.data_df = metrics_dict["MyCustomMetric.data"]
+    
     def create_plot(self):
         """Create the main plot for your metric."""
         fig, ax = plt.subplots(figsize=self.config.figsize)
         
-        # Get your metric data
-        data = self.get_metric_data("MyCustomMetric")
-        
         # Create your visualization
-        # ... plotting code ...
+        self.data_df.plot(kind='bar', ax=ax, 
+                         color=self.config.color_palette[0],
+                         alpha=self.config.alpha)
         
+        ax.set_title("My Custom Metric Analysis")
+        ax.set_xlabel("Categories")
+        ax.set_ylabel("Values")
+        
+        if self.config.grid:
+            ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
         return fig
     
     def plot_custom_analysis(self, save=True, show=True):
@@ -314,7 +311,8 @@ class MyCustomVisualizer(MetricVisualizer):
 ### Adding New Plot Styles
 
 ```python
-import matplotlib.pyplot as plt # Added import for plt
+import matplotlib.pyplot as plt
+
 # Define a custom style
 custom_style = {
     "figure.facecolor": "#f0f0f0",
@@ -328,17 +326,39 @@ custom_style = {
 plt.rcParams.update(custom_style)
 ```
 
+## Data Requirements
+
+### SuccessRateVisualizer Data Format
+
+The `SuccessRateVisualizer` expects specific DataFrame structures:
+
+#### Individual Jobs DataFrame (`"SuccessRate.individual_jobs"`)
+Required columns:
+- `success_rate`: Success rate (0.0 to 1.0)
+- `error_rate`: Error rate (0.0 to 1.0)
+- `fidelity`: Fidelity (0.0 to 1.0)
+- `total_shots`: Total number of shots
+- `successful_shots`: Number of successful shots
+
+#### Aggregate DataFrame (`"SuccessRate.aggregate"`)
+Required columns:
+- `mean_success_rate`: Mean success rate across jobs
+- `std_success_rate`: Standard deviation of success rate
+- `min_success_rate`: Minimum success rate
+- `max_success_rate`: Maximum success rate
+- `fidelity`: Average fidelity
+- `error_rate`: Average error rate
+
 ## Best Practices
 
-1. **Output Organization**: Use descriptive output directories. Assume `experiment_name` and `timestamp` are defined.
+1. **Output Organization**: Use descriptive output directories
    ```python
-   # experiment_name = "my_experiment"
-   # from datetime import datetime
-   # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-   # visualizer = SuccessRateVisualizer(
-   #     metrics_dict,
-   #     output_dir=f"img/{experiment_name}/{timestamp}"
-   # )
+   from datetime import datetime
+   timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+   visualizer = SuccessRateVisualizer(
+       metrics_dict,
+       output_dir=f"img/experiment_{timestamp}"
+   )
    ```
 
 2. **Batch Processing**: When creating many plots, use `show=False`
@@ -353,13 +373,21 @@ plt.rcParams.update(custom_style)
 
 4. **Consistent Styling**: Define a project-wide configuration
    ```python
-   # In a config.py file, for example:
-   # from qward.visualization import PlotConfig # Added import
-   # PROJECT_PLOT_CONFIG = PlotConfig(
-   #     style="quantum",
-   #     figsize=(10, 6),
-   #     dpi=300
-   # )
+   PROJECT_PLOT_CONFIG = PlotConfig(
+       style="quantum",
+       figsize=(10, 6),
+       dpi=300,
+       save_format="png"
+   )
+   ```
+
+5. **Memory Management**: For large datasets, close figures explicitly
+   ```python
+   import matplotlib.pyplot as plt
+   
+   figures = visualizer.plot_all(save=True, show=False)
+   for fig in figures:
+       plt.close(fig)  # Free memory immediately
    ```
 
 ## Troubleshooting
@@ -373,20 +401,27 @@ plt.rcParams.update(custom_style)
 
 2. **Style Not Found**
    ```python
-   import matplotlib.pyplot as plt # Added import for plt
+   import matplotlib.pyplot as plt
    # Check available styles
    print(plt.style.available)
    ```
 
-3. **Memory Issues with Large Datasets**
+3. **Data Validation Errors**
    ```python
-   import matplotlib.pyplot as plt # Added import for plt
-   # Process in batches
-   # Assume data_batches is defined, e.g., a list of metric_dicts
-   # for batch_metrics_dict in data_batches:
-   #     visualizer = SuccessRateVisualizer(batch_metrics_dict)
-   #     visualizer.plot_all(save=True, show=False)
-   #     plt.close('all')  # Free memory
+   # Check your data structure
+   print("Available keys:", list(metrics_dict.keys()))
+   print("Individual jobs columns:", metrics_dict["SuccessRate.individual_jobs"].columns.tolist())
+   print("Aggregate columns:", metrics_dict["SuccessRate.aggregate"].columns.tolist())
+   ```
+
+4. **Memory Issues with Large Datasets**
+   ```python
+   import matplotlib.pyplot as plt
+   
+   # Process in smaller batches and close figures
+   visualizer = SuccessRateVisualizer(metrics_dict)
+   fig = visualizer.plot_success_error_comparison(save=True, show=False)
+   plt.close(fig)  # Free memory immediately
    ```
 
 ## API Reference
@@ -417,11 +452,10 @@ plt.rcParams.update(custom_style)
 |--------|------------|---------|-------------|
 | `plot_all` | `save, show` | `List[plt.Figure]` | Create all available plots |
 | `create_dashboard` | `save, show` | `plt.Figure` | Create comprehensive dashboard |
-| `plot_success_rate_comparison` | `save, show` | `plt.Figure` | Compare success rates |
-| `plot_error_rate_comparison` | `save, show` | `plt.Figure` | Compare error rates |
-| `plot_fidelity_comparison` | `save, show` | `plt.Figure` | Compare fidelity values |
-| `plot_shot_distribution` | `save, show` | `plt.Figure` | Show measurement distribution |
-| `plot_aggregate_summary` | `save, show` | `plt.Figure` | Create summary visualization |
+| `plot_success_error_comparison` | `save, show, fig_ax_override` | `plt.Figure` | Compare success vs error rates |
+| `plot_fidelity_comparison` | `save, show, fig_ax_override` | `plt.Figure` | Compare fidelity values |
+| `plot_shot_distribution` | `save, show, fig_ax_override` | `plt.Figure` | Show shot distribution |
+| `plot_aggregate_summary` | `save, show, fig_ax_override` | `plt.Figure` | Create summary visualization |
 
 ## See Also
 

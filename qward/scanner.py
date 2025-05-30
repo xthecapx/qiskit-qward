@@ -117,9 +117,9 @@ class Scanner:
 
         Returns:
             Dict[str, pd.DataFrame]: Dictionary containing DataFrames for each metric type.
-            For SuccessRate metrics, returns two DataFrames:
-            - "SuccessRate.individual_jobs": DataFrame containing metrics for each job
-            - "SuccessRate.aggregate": DataFrame containing aggregate metrics across all jobs
+            For CircuitPerformance metrics, returns two DataFrames:
+            - "CircuitPerformance.individual_jobs": DataFrame containing metrics for each job
+            - "CircuitPerformance.aggregate": DataFrame containing aggregate metrics across all jobs
         """
         # Initialize a dictionary to store DataFrames for each metric type
         metric_dataframes = {}
@@ -132,35 +132,43 @@ class Scanner:
             # Create a DataFrame for this metric type
             metric_name = strategy.__class__.__name__
 
-            # Special handling for SuccessRate metrics
-            if metric_name == "SuccessRate":
-                if "individual_jobs" in metric_results:
-                    # Multiple jobs case - already formatted correctly
+            # Special handling for CircuitPerformance metrics
+            if metric_name == "CircuitPerformance":
+                # Check if this is the new API structure or legacy structure
+                if hasattr(strategy, 'get_single_job_metrics') and hasattr(strategy, 'get_multiple_jobs_metrics'):
+                    # Use legacy methods for backward compatibility with visualization
+                    if len(getattr(strategy, '_jobs', [])) > 1:
+                        # Multiple jobs case
+                        legacy_metrics = strategy.get_multiple_jobs_metrics()
+                        individual_jobs_df = pd.DataFrame(legacy_metrics["individual_jobs"])
+                        aggregate_df = pd.DataFrame([legacy_metrics["aggregate"]])
+                        
+                        metric_dataframes[f"{metric_name}.individual_jobs"] = individual_jobs_df
+                        metric_dataframes[f"{metric_name}.aggregate"] = aggregate_df
+                    else:
+                        # Single job case
+                        single_metrics = strategy.get_single_job_metrics()
+                        single_job_df = pd.DataFrame([single_metrics])
+                        metric_dataframes[f"{metric_name}.individual_jobs"] = single_job_df
+                elif "individual_jobs" in metric_results:
+                    # Legacy structure - multiple jobs case
                     individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
+                    aggregate_df = pd.DataFrame([metric_results["aggregate"]])
+                    
                     metric_dataframes[f"{metric_name}.individual_jobs"] = individual_jobs_df
-
-                    # Create DataFrame for aggregate metrics
-                    aggregate_metrics = metric_results["aggregate"]
-                    aggregate_df = pd.DataFrame([aggregate_metrics])
                     metric_dataframes[f"{metric_name}.aggregate"] = aggregate_df
                 else:
-                    # Single job case - format it like multiple jobs case
-                    # Create individual jobs DataFrame
-                    individual_jobs_df = pd.DataFrame([metric_results])
-                    metric_dataframes[f"{metric_name}.individual_jobs"] = individual_jobs_df
-
-                    # Create aggregate metrics
-                    aggregate_metrics = {
-                        "mean_success_rate": metric_results["success_rate"],
-                        "std_success_rate": 0.0,  # No std dev for single job
-                        "min_success_rate": metric_results["success_rate"],
-                        "max_success_rate": metric_results["success_rate"],
-                        "total_trials": metric_results["total_shots"],
-                        "fidelity": metric_results["fidelity"],
-                        "error_rate": metric_results["error_rate"],
-                    }
-                    aggregate_df = pd.DataFrame([aggregate_metrics])
-                    metric_dataframes[f"{metric_name}.aggregate"] = aggregate_df
+                    # New API structure - flatten it for DataFrame compatibility
+                    flattened_metrics = {}
+                    for category, category_metrics in metric_results.items():
+                        if isinstance(category_metrics, dict):
+                            for key, value in category_metrics.items():
+                                flattened_metrics[f"{category}.{key}"] = value
+                        else:
+                            flattened_metrics[category] = category_metrics
+                    
+                    single_job_df = pd.DataFrame([flattened_metrics])
+                    metric_dataframes[f"{metric_name}.individual_jobs"] = single_job_df
             else:
                 # Handle other metrics normally
                 flattened_metrics = {}

@@ -1,19 +1,19 @@
 """
-Demo showing how to use QWARD's SuccessRate visualization capabilities.
+Demo showing how to use QWARD's CircuitPerformance visualization capabilities.
 """
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import SuccessRate
+from qward.metrics import CircuitPerformance
 from qward.visualization import SuccessRateVisualizer, PlotConfig
 
 
-def demo_success_rate_visualization():
+def demo_circuit_performance_visualization():
     """
-    Demonstrate SuccessRate visualization with different configurations.
+    Demonstrate CircuitPerformance visualization with different configurations.
     """
-    print("QWARD SuccessRate Visualization Demo")
+    print("QWARD CircuitPerformance Visualization Demo")
     print("=" * 40)
 
     # Create a simple quantum circuit
@@ -44,21 +44,21 @@ def demo_success_rate_visualization():
     for job in jobs:
         job.result()
 
-    # Create scanner and add SuccessRate strategy
+    # Create scanner and add CircuitPerformance strategy
     scanner = Scanner(circuit=circuit)
-    success_rate_strategy = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
+    circuit_performance_strategy = CircuitPerformance(circuit=circuit)
 
     # Add all jobs
-    success_rate_strategy.add_job(jobs)
-    scanner.add_strategy(success_rate_strategy)
+    circuit_performance_strategy.add_job(jobs)
+    scanner.add_strategy(circuit_performance_strategy)
 
     # Calculate metrics
-    print("\nCalculating SuccessRate metrics...")
+    print("\nCalculating CircuitPerformance metrics...")
     metrics_dict = scanner.calculate_metrics()
 
-    print("\nSuccessRate metrics calculated successfully!")
-    print(f"Individual jobs: {len(metrics_dict['SuccessRate.individual_jobs'])} jobs")
-    print(f"Aggregate data: {metrics_dict['SuccessRate.aggregate'].shape}")
+    print("\nCircuitPerformance metrics calculated successfully!")
+    print(f"Individual jobs: {len(metrics_dict['CircuitPerformance.individual_jobs'])} jobs")
+    print(f"Aggregate data: {metrics_dict['CircuitPerformance.aggregate'].shape}")
 
     # Demo 1: Default visualization
     print("\n" + "=" * 40)
@@ -130,4 +130,4 @@ def demo_success_rate_visualization():
 
 
 if __name__ == "__main__":
-    demo_success_rate_visualization()
+    demo_circuit_performance_visualization()

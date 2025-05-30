@@ -31,14 +31,20 @@ class SuccessRateVisualizer(BaseVisualizer):
         super().__init__(output_dir, config)
         self.metrics_dict = metrics_dict
 
-        # Fetch data once
-        self.individual_df = self.metrics_dict.get("SuccessRate.individual_jobs")
-        self.aggregate_df = self.metrics_dict.get("SuccessRate.aggregate")
+        # Fetch data once - support both old and new key names
+        self.individual_df = self.metrics_dict.get("CircuitPerformance.individual_jobs")
+        if self.individual_df is None:
+            self.individual_df = self.metrics_dict.get("SuccessRate.individual_jobs")
+            
+        self.aggregate_df = self.metrics_dict.get("CircuitPerformance.aggregate")
+        if self.aggregate_df is None:
+            self.aggregate_df = self.metrics_dict.get("SuccessRate.aggregate")
 
         if self.individual_df is None:
-            raise ValueError("'SuccessRate.individual_jobs' data not found in metrics_dict.")
+            raise ValueError("'CircuitPerformance.individual_jobs' or 'SuccessRate.individual_jobs' data not found in metrics_dict.")
         if self.aggregate_df is None:
-            raise ValueError("'SuccessRate.aggregate' data not found in metrics_dict.")
+            # For single job cases, aggregate_df might not exist
+            print("Note: Aggregate data not found. Some visualizations may be limited to individual job data only.")
 
         # Validate core columns early for individual_df
         core_individual_cols = [
@@ -54,20 +60,21 @@ class SuccessRateVisualizer(BaseVisualizer):
             ]
             raise ValueError(f"Individual jobs data missing core columns: {missing_cols}")
 
-        # Validate core columns early for aggregate_df
-        core_aggregate_cols = [
-            "mean_success_rate",
-            "std_success_rate",
-            "min_success_rate",
-            "max_success_rate",
-            "fidelity",
-            "error_rate",
-        ]
-        if not all(col in self.aggregate_df.columns for col in core_aggregate_cols):
-            missing_cols = [
-                col for col in core_aggregate_cols if col not in self.aggregate_df.columns
+        # Validate core columns early for aggregate_df (if it exists)
+        if self.aggregate_df is not None:
+            core_aggregate_cols = [
+                "mean_success_rate",
+                "std_success_rate",
+                "min_success_rate",
+                "max_success_rate",
+                "mean_fidelity",
+                "error_rate",
             ]
-            raise ValueError(f"Aggregate data missing core columns: {missing_cols}")
+            if not all(col in self.aggregate_df.columns for col in core_aggregate_cols):
+                missing_cols = [
+                    col for col in core_aggregate_cols if col not in self.aggregate_df.columns
+                ]
+                raise ValueError(f"Aggregate data missing core columns: {missing_cols}")
 
     def create_plot(self) -> plt.Figure:
         """
@@ -224,52 +231,73 @@ class SuccessRateVisualizer(BaseVisualizer):
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plots aggregate statistics summary."""
-        required_cols = [
-            "mean_success_rate",
-            "std_success_rate",
-            "min_success_rate",
-            "max_success_rate",
-            "fidelity",
-            "error_rate",
-        ]
-        if not all(col in self.aggregate_df.columns for col in required_cols):
-            raise ValueError(
-                f"Aggregate data missing required columns for aggregate summary plot: {required_cols}"
+        if self.aggregate_df is None:
+            # Create aggregate summary from individual jobs data
+            if "success_rate" in self.individual_df.columns:
+                mean_success = self.individual_df["success_rate"].mean()
+                std_success = self.individual_df["success_rate"].std() if len(self.individual_df) > 1 else 0
+                min_success = self.individual_df["success_rate"].min()
+                max_success = self.individual_df["success_rate"].max()
+            else:
+                mean_success = std_success = min_success = max_success = 0
+                
+            if "fidelity" in self.individual_df.columns:
+                fidelity = self.individual_df["fidelity"].mean()
+            else:
+                fidelity = 0
+                
+            if "error_rate" in self.individual_df.columns:
+                error_rate = self.individual_df["error_rate"].mean()
+            else:
+                error_rate = 1.0 - mean_success
+        else:
+            # Use existing aggregate data
+            required_cols = [
+                "mean_success_rate",
+                "std_success_rate",
+                "min_success_rate",
+                "max_success_rate",
+                "mean_fidelity",
+                "error_rate",
+            ]
+            if not all(col in self.aggregate_df.columns for col in required_cols):
+                raise ValueError(
+                    f"Aggregate data missing required columns for aggregate summary plot: {required_cols}"
+                )
+
+            mean_success = (
+                self.aggregate_df["mean_success_rate"].iloc[0]
+                if not self.aggregate_df["mean_success_rate"].empty
+                else 0
+            )
+            std_success = (
+                self.aggregate_df["std_success_rate"].iloc[0]
+                if not self.aggregate_df["std_success_rate"].empty
+                else 0
+            )
+            min_success = (
+                self.aggregate_df["min_success_rate"].iloc[0]
+                if not self.aggregate_df["min_success_rate"].empty
+                else 0
+            )
+            max_success = (
+                self.aggregate_df["max_success_rate"].iloc[0]
+                if not self.aggregate_df["max_success_rate"].empty
+                else 0
+            )
+            fidelity = (
+                self.aggregate_df["mean_fidelity"].iloc[0] if not self.aggregate_df["mean_fidelity"].empty else 0
+            )
+            error_rate = (
+                self.aggregate_df["error_rate"].iloc[0]
+                if not self.aggregate_df["error_rate"].empty
+                else 0
             )
 
         if fig_ax_override:
             fig, ax = fig_ax_override
         else:
             fig, ax = plt.subplots(figsize=self.config.figsize)
-
-        mean_success = (
-            self.aggregate_df["mean_success_rate"].iloc[0]
-            if not self.aggregate_df["mean_success_rate"].empty
-            else 0
-        )
-        std_success = (
-            self.aggregate_df["std_success_rate"].iloc[0]
-            if not self.aggregate_df["std_success_rate"].empty
-            else 0
-        )
-        min_success = (
-            self.aggregate_df["min_success_rate"].iloc[0]
-            if not self.aggregate_df["min_success_rate"].empty
-            else 0
-        )
-        max_success = (
-            self.aggregate_df["max_success_rate"].iloc[0]
-            if not self.aggregate_df["max_success_rate"].empty
-            else 0
-        )
-        fidelity = (
-            self.aggregate_df["fidelity"].iloc[0] if not self.aggregate_df["fidelity"].empty else 0
-        )
-        error_rate = (
-            self.aggregate_df["error_rate"].iloc[0]
-            if not self.aggregate_df["error_rate"].empty
-            else 0
-        )
 
         aggregate_stats = pd.Series(
             {
@@ -307,19 +335,30 @@ class SuccessRateVisualizer(BaseVisualizer):
 
     def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
         """Creates a comprehensive dashboard with all plots in subplots."""
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-        fig.suptitle("SuccessRate Analysis Dashboard", fontsize=16)
+        if self.aggregate_df is not None:
+            # Full dashboard with 4 plots
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+            fig.suptitle("CircuitPerformance Analysis Dashboard", fontsize=16)
 
-        # Create each plot on its designated axes
-        self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
-        self.plot_fidelity_comparison(save=False, show=False, fig_ax_override=(fig, ax2))
-        self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax3))
-        self.plot_aggregate_summary(save=False, show=False, fig_ax_override=(fig, ax4))
+            # Create each plot on its designated axes
+            self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
+            self.plot_fidelity_comparison(save=False, show=False, fig_ax_override=(fig, ax2))
+            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax3))
+            self.plot_aggregate_summary(save=False, show=False, fig_ax_override=(fig, ax4))
+        else:
+            # Limited dashboard with 3 plots (no separate aggregate plot needed)
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+            fig.suptitle("CircuitPerformance Analysis Dashboard (Single Job)", fontsize=16)
+
+            # Create each plot on its designated axes
+            self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
+            self.plot_fidelity_comparison(save=False, show=False, fig_ax_override=(fig, ax2))
+            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax3))
 
         plt.tight_layout()
 
         if save:
-            self.save_plot(fig, "success_rate_dashboard")
+            self.save_plot(fig, "circuit_performance_dashboard")
         if show:
             self.show_plot(fig)
         return fig

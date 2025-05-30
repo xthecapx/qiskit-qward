@@ -7,7 +7,7 @@ from qward.examples.utils import get_display, create_example_circuit
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator, AerJob
 from qward import Scanner, Result
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 display = get_display()
 
@@ -153,16 +153,16 @@ def example_multiple_strategies(circuit: QuantumCircuit):
     return scanner
 
 
-def example_success_rate_metrics(circuit: QuantumCircuit):
+def example_circuit_performance_metrics(circuit: QuantumCircuit):
     """
-    Example 5: Using SuccessRate with Aer simulator
+    Example 5: Using CircuitPerformance with Aer simulator
 
-    This example demonstrates how to use SuccessRate with the Aer simulator.
+    This example demonstrates how to use CircuitPerformance with the Aer simulator.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 5: Using SuccessRate with Aer simulator")
+    print("\nExample 5: Using CircuitPerformance with Aer simulator")
 
     # Create an Aer simulator
     simulator = AerSimulator()
@@ -188,20 +188,22 @@ def example_success_rate_metrics(circuit: QuantumCircuit):
     # Create a scanner with the circuit and result
     scanner = Scanner(circuit=circuit, result=qward_result)
 
-    # Add SuccessRate strategy
-    scanner.add_strategy(
-        SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
-    )
+    # Add CircuitPerformance strategy
+    circuit_performance_strategy = CircuitPerformance(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+    scanner.add_strategy(circuit_performance_strategy)
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
 
     # Display both individual and aggregate metrics
-    print("\nSuccess rate individual jobs DataFrame:")
-    display(metrics_dict["SuccessRate.individual_jobs"])
+    print("\nCircuitPerformance individual jobs DataFrame:")
+    display(metrics_dict["CircuitPerformance.individual_jobs"])
 
-    print("\nSuccess rate aggregate metrics DataFrame:")
-    display(metrics_dict["SuccessRate.aggregate"])
+    print("\nCircuitPerformance aggregate metrics DataFrame:")
+    if "CircuitPerformance.aggregate" in metrics_dict:
+        display(metrics_dict["CircuitPerformance.aggregate"])
+    else:
+        print("Note: Aggregate metrics only available for multiple jobs.")
 
     return scanner, job
 
@@ -211,7 +213,7 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
     Example 6: Using all strategies together
 
     This example demonstrates how to use all strategies together by creating QiskitMetrics,
-    ComplexityMetrics, and SuccessRate instances and adding them to the Scanner.
+    ComplexityMetrics, and CircuitPerformance instances and adding them to the Scanner.
 
     Args:
         circuit: The quantum circuit to analyze
@@ -233,7 +235,7 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
     scanner.add_strategy(QiskitMetrics(circuit))
     scanner.add_strategy(ComplexityMetrics(circuit))
     scanner.add_strategy(
-        SuccessRate(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+        CircuitPerformance(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
     )
 
     # Calculate metrics
@@ -241,28 +243,28 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
 
     # Display each metric DataFrame
     for metric_name, df in metrics_dict.items():
-        # Skip SuccessRate metrics as we'll handle them separately
-        if not metric_name.startswith("SuccessRate"):
+        # Skip CircuitPerformance metrics as we'll handle them separately
+        if not metric_name.startswith("CircuitPerformance"):
             print(f"\n{metric_name} DataFrame:")
             display(df)
 
-    # Display SuccessRate metrics separately
-    if "SuccessRate.individual_jobs" in metrics_dict:
-        print("\nSuccessRate Individual Jobs DataFrame:")
-        display(metrics_dict["SuccessRate.individual_jobs"])
+    # Display CircuitPerformance metrics separately
+    if "CircuitPerformance.individual_jobs" in metrics_dict:
+        print("\nCircuitPerformance Individual Jobs DataFrame:")
+        display(metrics_dict["CircuitPerformance.individual_jobs"])
 
-    if "SuccessRate.aggregate" in metrics_dict:
-        print("\nSuccessRate Aggregate Metrics DataFrame:")
-        display(metrics_dict["SuccessRate.aggregate"])
+    if "CircuitPerformance.aggregate" in metrics_dict:
+        print("\nCircuitPerformance Aggregate Metrics DataFrame:")
+        display(metrics_dict["CircuitPerformance.aggregate"])
 
     return scanner
 
 
 def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     """
-    Example 7: Using SuccessRate with multiple Aer simulator jobs
+    Example 7: Using CircuitPerformance with multiple Aer simulator jobs
 
-    This example demonstrates how to use SuccessRate with multiple Aer simulator jobs
+    This example demonstrates how to use CircuitPerformance with multiple Aer simulator jobs
     to analyze the success rate across different runs. It includes comprehensive
     visualizations showing:
     - Individual job success vs error rates
@@ -273,7 +275,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 7: Using SuccessRate with multiple Aer simulator jobs")
+    print("\nExample 7: Using CircuitPerformance with multiple Aer simulator jobs")
 
     # Import noise model components
     from qiskit_aer.noise import (
@@ -340,25 +342,25 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add SuccessRate strategy with multiple jobs
-    success_rate_strategy = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
+    # Add CircuitPerformance strategy with multiple jobs
+    circuit_performance_strategy = CircuitPerformance(circuit=circuit, success_criteria=lambda x: x == "11")
 
     # Add jobs one by one to demonstrate the new functionality
-    success_rate_strategy.add_job(jobs[0])  # Add first job
-    success_rate_strategy.add_job(jobs[1:])  # Add remaining jobs as a list
+    circuit_performance_strategy.add_job(jobs[0])  # Add first job
+    circuit_performance_strategy.add_job(jobs[1:])  # Add remaining jobs as a list
 
-    scanner.add_strategy(success_rate_strategy)
+    scanner.add_strategy(circuit_performance_strategy)
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
 
     # Display the individual jobs metrics
-    print("\nSuccess rate individual jobs DataFrame:")
-    display(metrics_dict["SuccessRate.individual_jobs"])
+    print("\nCircuitPerformance individual jobs DataFrame:")
+    display(metrics_dict["CircuitPerformance.individual_jobs"])
 
     # Display the aggregate metrics
-    print("\nSuccess rate aggregate metrics DataFrame:")
-    display(metrics_dict["SuccessRate.aggregate"])
+    print("\nCircuitPerformance aggregate metrics DataFrame:")
+    display(metrics_dict["CircuitPerformance.aggregate"])
 
     # Create visualizations using QWARD's visualization module
     from qward.visualization import SuccessRateVisualizer, PlotConfig
@@ -407,7 +409,7 @@ def main():
     example_multiple_strategies(circuit)
 
     # Run success rate examples
-    _, job = example_success_rate_metrics(circuit)
+    _, job = example_circuit_performance_metrics(circuit)
     example_all_strategies(circuit, job)
 
     # Run multiple jobs success rate example
