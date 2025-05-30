@@ -10,7 +10,7 @@ The visualization system is built around a simple but powerful architecture:
 
 - **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations
 - **`BaseVisualizer`**: An abstract base class that handles common functionality like output directory management, styling, and plot saving/showing. Subclasses implement `create_plot()` for their specific visualization logic
-- **`SuccessRateVisualizer`**: A concrete visualizer that creates various plots for success rate metrics analysis, including individual plots and comprehensive dashboards
+- **`CircuitPerformanceVisualizer`**: A concrete visualizer that creates various plots for circuit performance metrics analysis, including individual plots and comprehensive dashboards
 
 ```mermaid
 classDiagram
@@ -36,7 +36,7 @@ classDiagram
         +__post_init__()
     }
     
-    class SuccessRateVisualizer {
+    class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +individual_df: DataFrame
         +aggregate_df: DataFrame
@@ -50,10 +50,10 @@ classDiagram
         -_add_stacked_bar_summary()
     }
 
-    BaseVisualizer <|-- SuccessRateVisualizer
+    BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
     
-    note for SuccessRateVisualizer "Handles SuccessRate metrics visualization with multiple plot types and dashboard creation"
+    note for CircuitPerformanceVisualizer "Handles CircuitPerformance metrics visualization with multiple plot types and dashboard creation"
 ```
 
 ## Quick Start
@@ -64,8 +64,8 @@ classDiagram
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import SuccessRate
-from qward.visualization import SuccessRateVisualizer
+from qward.metrics import CircuitPerformance
+from qward.visualization import CircuitPerformanceVisualizer
 
 # Create a quantum circuit
 circuit = QuantumCircuit(2, 2)
@@ -79,14 +79,14 @@ job = simulator.run(circuit, shots=1024)
 
 # Calculate metrics
 scanner = Scanner(circuit=circuit)
-success_rate = SuccessRate(circuit=circuit, success_criteria=lambda x: x == "11")
-success_rate.add_job(job)
-scanner.add_strategy(success_rate)
+circuit_performance = CircuitPerformance(circuit=circuit, success_criteria=lambda x: x == "11")
+circuit_performance.add_job(job)
+scanner.add_strategy(circuit_performance)
 
 metrics_dict = scanner.calculate_metrics()
 
 # Create visualizations
-visualizer = SuccessRateVisualizer(metrics_dict, output_dir="img/my_plots")
+visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/my_plots")
 figures = visualizer.plot_all(save=True, show=False)
 ```
 
@@ -105,7 +105,7 @@ custom_config = PlotConfig(
 )
 
 # Use custom configuration
-visualizer = SuccessRateVisualizer(
+visualizer = CircuitPerformanceVisualizer(
     metrics_dict, 
     output_dir="img/custom_plots",
     config=custom_config
@@ -114,11 +114,11 @@ visualizer = SuccessRateVisualizer(
 
 ## Available Visualizers
 
-### SuccessRateVisualizer
+### CircuitPerformanceVisualizer
 
-The `SuccessRateVisualizer` creates comprehensive visualizations for success rate metrics. It expects metrics data with specific keys:
-- `"SuccessRate.individual_jobs"`: DataFrame with individual job metrics
-- `"SuccessRate.aggregate"`: DataFrame with aggregate statistics
+The `CircuitPerformanceVisualizer` creates comprehensive visualizations for circuit performance metrics. It expects metrics data with specific keys:
+- `"CircuitPerformance.individual_jobs"`: DataFrame with individual job metrics
+- `"CircuitPerformance.aggregate"`: DataFrame with aggregate statistics
 
 #### Individual Plots
 
@@ -198,267 +198,220 @@ Supported formats: `"png"`, `"svg"`, `"pdf"`, `"eps"`
 ### Multiple Jobs Visualization
 
 ```python
-# Create multiple jobs with different configurations
+from qiskit_aer.noise import NoiseModel, depolarizing_error
+
+# Create multiple jobs with different noise levels
 jobs = []
-for shots in [512, 1024, 2048]:
-    job = simulator.run(circuit, shots=shots)
+noise_levels = [0.0, 0.01, 0.05, 0.1]
+
+for noise_level in noise_levels:
+    if noise_level == 0.0:
+        # No noise
+        job = simulator.run(circuit, shots=1024)
+    else:
+        # Add noise
+        noise_model = NoiseModel()
+        error = depolarizing_error(noise_level, 1)
+        noise_model.add_all_qubit_quantum_error(error, ['u1', 'u2', 'u3'])
+        
+        noisy_simulator = AerSimulator(noise_model=noise_model)
+        job = noisy_simulator.run(circuit, shots=1024)
+    
     jobs.append(job)
 
-# Add all jobs to the metric strategy
-success_rate_strategy = SuccessRate(circuit=circuit)
+# Wait for completion
 for job in jobs:
-    success_rate_strategy.add_job(job)
+    job.result()
 
-# Visualize results
+# Analyze with CircuitPerformance
 scanner = Scanner(circuit=circuit)
-scanner.add_strategy(success_rate_strategy)
+circuit_performance_strategy = CircuitPerformance(circuit=circuit)
+circuit_performance_strategy.add_job(jobs)
+
+scanner.add_strategy(circuit_performance_strategy)
 metrics_dict = scanner.calculate_metrics()
 
-visualizer = SuccessRateVisualizer(metrics_dict)
-visualizer.plot_all(save=True)
+# Create comprehensive visualizations
+visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/noise_analysis")
+dashboard = visualizer.create_dashboard(save=True, show=True)
 ```
 
 ### Custom Success Criteria
 
 ```python
-# Define custom success criteria
-def custom_criteria(outcome):
-    # Success if we measure |00⟩ or |11⟩ (Bell states)
-    return outcome in ["00", "11"]
+# Define custom success criteria for different quantum algorithms
+def bell_state_success(outcome):
+    """Success for Bell state: |00⟩ or |11⟩"""
+    clean = outcome.replace(" ", "")
+    return clean in ["00", "11"]
 
-success_rate = SuccessRate(
+circuit_performance = CircuitPerformance(
     circuit=circuit,
-    success_criteria=custom_criteria
+    success_criteria=bell_state_success
 )
-```
+circuit_performance.add_job(job)
 
-### Dashboard with Custom Configuration
+scanner = Scanner(circuit=circuit)
+scanner.add_strategy(circuit_performance)
+metrics_dict = scanner.calculate_metrics()
 
-```python
-# Create a high-quality dashboard for publication
-publication_config = PlotConfig(
-    figsize=(16, 12),
-    dpi=300,
+# Visualize with custom styling
+config = PlotConfig(
+    figsize=(14, 10),
     style="quantum",
-    save_format="svg",
-    grid=True,
-    alpha=0.8
+    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],
+    save_format="png",
+    dpi=150
 )
 
-visualizer = SuccessRateVisualizer(
-    metrics_dict,
-    output_dir="img/publication",
-    config=publication_config
+visualizer = CircuitPerformanceVisualizer(
+    metrics_dict, 
+    output_dir="img/bell_state_analysis",
+    config=config
 )
 
-# Create dashboard
-dashboard = visualizer.create_dashboard(save=True, show=False)
+# Create all plots
+visualizer.plot_all(save=True, show=False)
 ```
 
-## Extending the Visualization System
+## Data Format Requirements
 
-### Creating Custom Visualizers
+### CircuitPerformanceVisualizer Data Format
 
-To create your own visualizer for a custom metric:
+The `CircuitPerformanceVisualizer` expects specific DataFrame structures:
 
-```python
-from qward.visualization.base import BaseVisualizer
-import matplotlib.pyplot as plt
-import pandas as pd
+#### Individual Jobs DataFrame (`"CircuitPerformance.individual_jobs"`)
 
-class MyCustomVisualizer(BaseVisualizer):
-    def __init__(self, metrics_dict, output_dir="img", config=None):
-        super().__init__(output_dir, config)
-        self.metrics_dict = metrics_dict
-        
-        # Validate required data
-        if "MyCustomMetric.data" not in metrics_dict:
-            raise ValueError("Required metric data not found")
-        
-        self.data_df = metrics_dict["MyCustomMetric.data"]
-    
-    def create_plot(self):
-        """Create the main plot for your metric."""
-        fig, ax = plt.subplots(figsize=self.config.figsize)
-        
-        # Create your visualization
-        self.data_df.plot(kind='bar', ax=ax, 
-                         color=self.config.color_palette[0],
-                         alpha=self.config.alpha)
-        
-        ax.set_title("My Custom Metric Analysis")
-        ax.set_xlabel("Categories")
-        ax.set_ylabel("Values")
-        
-        if self.config.grid:
-            ax.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        return fig
-    
-    def plot_custom_analysis(self, save=True, show=True):
-        """Create a custom analysis plot."""
-        fig = self.create_plot()
-        
-        if save:
-            self.save_plot(fig, "custom_analysis")
-        if show:
-            self.show_plot(fig)
-            
-        return fig
-```
-
-### Adding New Plot Styles
-
-```python
-import matplotlib.pyplot as plt
-
-# Define a custom style
-custom_style = {
-    "figure.facecolor": "#f0f0f0",
-    "axes.facecolor": "#ffffff",
-    "axes.edgecolor": "#333333",
-    "grid.color": "#cccccc",
-    "text.color": "#000000",
-}
-
-# Apply custom style
-plt.rcParams.update(custom_style)
-```
-
-## Data Requirements
-
-### SuccessRateVisualizer Data Format
-
-The `SuccessRateVisualizer` expects specific DataFrame structures:
-
-#### Individual Jobs DataFrame (`"SuccessRate.individual_jobs"`)
 Required columns:
+- `job_id`: Unique identifier for each job
 - `success_rate`: Success rate (0.0 to 1.0)
 - `error_rate`: Error rate (0.0 to 1.0)
-- `fidelity`: Fidelity (0.0 to 1.0)
+- `fidelity`: Quantum fidelity (0.0 to 1.0)
 - `total_shots`: Total number of shots
 - `successful_shots`: Number of successful shots
 
-#### Aggregate DataFrame (`"SuccessRate.aggregate"`)
+#### Aggregate DataFrame (`"CircuitPerformance.aggregate"`)
+
 Required columns:
 - `mean_success_rate`: Mean success rate across jobs
 - `std_success_rate`: Standard deviation of success rate
 - `min_success_rate`: Minimum success rate
 - `max_success_rate`: Maximum success rate
-- `fidelity`: Average fidelity
-- `error_rate`: Average error rate
+- `total_trials`: Total number of trials across all jobs
+- `fidelity`: Overall fidelity
+- `error_rate`: Overall error rate
 
-## Best Practices
+## Creating Custom Visualizers
 
-1. **Output Organization**: Use descriptive output directories
-   ```python
-   from datetime import datetime
-   timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-   visualizer = SuccessRateVisualizer(
-       metrics_dict,
-       output_dir=f"img/experiment_{timestamp}"
-   )
-   ```
+You can extend the visualization system by creating custom visualizers:
 
-2. **Batch Processing**: When creating many plots, use `show=False`
-   ```python
-   figures = visualizer.plot_all(save=True, show=False)
-   ```
+```python
+from qward.visualization.base import BaseVisualizer
+import matplotlib.pyplot as plt
 
-3. **High-Quality Exports**: For publications, use SVG or PDF
-   ```python
-   config = PlotConfig(dpi=300, save_format="svg")
-   ```
+class MyCustomVisualizer(BaseVisualizer):
+    def __init__(self, metrics_dict, output_dir="img", config=None):
+        super().__init__(output_dir, config)
+        self.metrics_dict = metrics_dict
+    
+    def create_custom_plot(self, save=False, show=True):
+        """Create a custom plot for your specific needs."""
+        fig, ax = plt.subplots(figsize=self.config.figsize)
+        
+        # Your custom plotting logic here
+        # Access your data via self.metrics_dict
+        
+        ax.set_title("My Custom Analysis")
+        ax.grid(self.config.grid)
+        
+        if save:
+            self.save_plot(fig, "custom_analysis")
+        if show:
+            self.show_plot(fig)
+        
+        return fig
 
-4. **Consistent Styling**: Define a project-wide configuration
-   ```python
-   PROJECT_PLOT_CONFIG = PlotConfig(
-       style="quantum",
-       figsize=(10, 6),
-       dpi=300,
-       save_format="png"
-   )
-   ```
+# Usage
+custom_visualizer = MyCustomVisualizer(metrics_dict)
+custom_visualizer.create_custom_plot(save=True)
+```
 
-5. **Memory Management**: For large datasets, close figures explicitly
-   ```python
-   import matplotlib.pyplot as plt
-   
-   figures = visualizer.plot_all(save=True, show=False)
-   for fig in figures:
-       plt.close(fig)  # Free memory immediately
-   ```
+## Integration with Jupyter Notebooks
+
+QWARD visualizations work seamlessly in Jupyter notebooks:
+
+```python
+# In a Jupyter cell
+%matplotlib inline
+
+visualizer = CircuitPerformanceVisualizer(metrics_dict)
+
+# Show plots inline
+visualizer.plot_success_error_comparison(show=True, save=False)
+visualizer.plot_fidelity_comparison(show=True, save=False)
+
+# Create dashboard inline
+dashboard = visualizer.create_dashboard(show=True, save=False)
+```
+
+## Styling and Themes
+
+### Available Styles
+- `"default"`: Matplotlib default
+- `"seaborn"`: Seaborn style
+- `"quantum"`: Custom quantum computing theme
+- `"publication"`: Publication-ready plots
+
+### Custom Color Palettes
+```python
+# Quantum-inspired colors
+quantum_colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
+
+# Monochrome for publications
+mono_colors = ["#000000", "#404040", "#808080", "#c0c0c0"]
+
+config = PlotConfig(color_palette=quantum_colors)
+```
+
+## Performance Tips
+
+1. **Batch Operations**: Use `plot_all()` for multiple plots to avoid repeated setup
+2. **Output Formats**: Use PNG for quick previews, SVG for publications
+3. **DPI Settings**: Use lower DPI (150) for quick analysis, higher (300+) for publications
+4. **Memory Management**: Close figures explicitly in loops to prevent memory leaks
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Missing Dependencies**
-   ```bash
-   pip install matplotlib pandas seaborn
-   ```
+1. **Missing Data Keys**: Ensure your metrics dictionary contains the expected keys (`"CircuitPerformance.individual_jobs"` and `"CircuitPerformance.aggregate"`)
+2. **Empty DataFrames**: Check that your metric calculations completed successfully
+3. **Plot Not Showing**: Verify your matplotlib backend settings
+4. **File Permissions**: Ensure write permissions for the output directory
 
-2. **Style Not Found**
-   ```python
-   import matplotlib.pyplot as plt
-   # Check available styles
-   print(plt.style.available)
-   ```
+### Debug Mode
+```python
+# Enable debug information
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-3. **Data Validation Errors**
-   ```python
-   # Check your data structure
-   print("Available keys:", list(metrics_dict.keys()))
-   print("Individual jobs columns:", metrics_dict["SuccessRate.individual_jobs"].columns.tolist())
-   print("Aggregate columns:", metrics_dict["SuccessRate.aggregate"].columns.tolist())
-   ```
+visualizer = CircuitPerformanceVisualizer(metrics_dict)
+```
 
-4. **Memory Issues with Large Datasets**
-   ```python
-   import matplotlib.pyplot as plt
-   
-   # Process in smaller batches and close figures
-   visualizer = SuccessRateVisualizer(metrics_dict)
-   fig = visualizer.plot_success_error_comparison(save=True, show=False)
-   plt.close(fig)  # Free memory immediately
-   ```
+## CircuitPerformanceVisualizer Methods
 
-## API Reference
+### Core Methods
 
-### PlotConfig
+- `plot_success_error_comparison(save=False, show=True)`: Creates bar charts comparing success vs error rates
+- `plot_fidelity_comparison(save=False, show=True)`: Shows fidelity values across jobs
+- `plot_shot_distribution(save=False, show=True)`: Displays shot distribution with detailed labels
+- `plot_aggregate_summary(save=False, show=True)`: Summary of aggregate statistics
+- `create_dashboard(save=False, show=True)`: Comprehensive 2x2 dashboard
+- `plot_all(save=False, show=True)`: Generate all individual plots
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `figsize` | `Tuple[int, int]` | `(10, 6)` | Figure size in inches |
-| `dpi` | `int` | `300` | Dots per inch for saved figures |
-| `style` | `str` | `"default"` | Plot style ("default", "quantum", "minimal") |
-| `color_palette` | `List[str]` | ColorBrewer | List of hex color codes |
-| `save_format` | `str` | `"png"` | File format for saving |
-| `grid` | `bool` | `True` | Whether to show grid |
-| `alpha` | `float` | `0.7` | Transparency level |
+### Utility Methods
 
-### BaseVisualizer Methods
+- `save_plot(fig, filename)`: Save figure with configured format and DPI
+- `show_plot(fig)`: Display figure with proper backend handling
 
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `save_plot` | `fig, filename, **kwargs` | `str` | Save figure and return filepath |
-| `show_plot` | `fig` | `None` | Display the figure |
-| `create_plot` | - | `plt.Figure` | Abstract method to create plot |
-
-### SuccessRateVisualizer Methods
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `plot_all` | `save, show` | `List[plt.Figure]` | Create all available plots |
-| `create_dashboard` | `save, show` | `plt.Figure` | Create comprehensive dashboard |
-| `plot_success_error_comparison` | `save, show, fig_ax_override` | `plt.Figure` | Compare success vs error rates |
-| `plot_fidelity_comparison` | `save, show, fig_ax_override` | `plt.Figure` | Compare fidelity values |
-| `plot_shot_distribution` | `save, show, fig_ax_override` | `plt.Figure` | Show shot distribution |
-| `plot_aggregate_summary` | `save, show, fig_ax_override` | `plt.Figure` | Create summary visualization |
-
-## See Also
-
-- [Architecture Documentation](architecture.md) - Overall QWARD architecture
-- [Technical Documentation](technical_docs.md) - Detailed technical reference
-- [Examples Directory](../qward/examples/) - More example scripts
+For more examples and advanced usage, see the `qward/examples/visualization_demo.py` file.

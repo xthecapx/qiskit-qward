@@ -25,5 +25,5 @@ Qward API Reference
    metrics_schemas
    metrics_qiskit
    metrics_complexity
-   metrics_success_rate
+   metrics_circuit_performance
    metrics_utils

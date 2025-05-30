@@ -1,77 +1,323 @@
 # Technical Documentation
 
-This document provides detailed technical information about the Qward library's architecture, components, and advanced usage patterns. For a structural overview and class diagrams, please refer to `docs/architecture.md`.
+This document provides detailed technical information about QWARD's components and their implementation.
 
-## Core Architecture
+## Scanner
 
-Qward is designed around a `Scanner` that applies various metric strategy objects to Qiskit `QuantumCircuit`s and their execution results.
+The `Scanner` class is the main orchestrator for metric calculation. It maintains a collection of metric calculators and coordinates their execution.
 
-### 1. `Scanner` (`qward.Scanner`)
+### Key Features
+- Manages quantum circuit and execution results
+- Coordinates multiple metric calculators
+- Returns consolidated results as DataFrames
+- Supports both class-based and instance-based metric addition
 
-The `Scanner` is the central class for orchestrating analysis. 
--   **Initialization**: `Scanner(circuit: Optional[QuantumCircuit], *, job: Optional[Union[AerJob, QiskitJob]], result: Optional[qward.Result], strategies: Optional[list])`
-    -   It takes an optional Qiskit `QuantumCircuit`.
-    -   Optionally, a Qiskit `Job` (from Aer or a provider) and/or a `qward.Result` object (which wraps execution counts and metadata).
-    -   Optionally, a list of metric strategy *classes* or *instances* can be provided at initialization.
--   **Adding Strategies**: Strategies are added using `scanner.add_strategy(strategy_instance: MetricCalculator)`.
--   **Calculating Metrics**: `scanner.calculate_metrics() -> Dict[str, pd.DataFrame]`
-    -   This method iterates through all added strategies, calls their `get_metrics()` method, and compiles the results into a dictionary. The keys are typically the strategy class names (or a modified name for `SuccessRate` with multiple jobs), and values are pandas DataFrames containing the metric data.
-    -   For `SuccessRate` with multiple jobs, two DataFrames are produced: `SuccessRate.individual_jobs` and `SuccessRate.aggregate`.
+### Output Format
+The `calculate_metrics()` method returns a dictionary where keys are metric calculator class names (or a modified name for `CircuitPerformance` with multiple jobs), and values are pandas DataFrames containing the metric data.
+-   For `CircuitPerformance` with multiple jobs, two DataFrames are produced: `CircuitPerformance.individual_jobs` and `CircuitPerformance.aggregate`.
 
-### 2. Metric Strategy System (`qward.metrics`)
+## Metric Calculators
 
-Metric strategies are classes responsible for specific calculations or data extraction.
+QWARD provides several built-in metric calculators:
 
--   **Base Class**: `qward.metrics.base_metric.MetricCalculator`
-    -   All metric strategies inherit from this abstract base class.
-    -   Requires implementation of:
-        -   `_get_metric_type() -> MetricsType`: Returns `MetricsType.PRE_RUNTIME` (if only circuit is needed) or `MetricsType.POST_RUNTIME` (if job/result data is needed).
-        -   `_get_metric_id() -> MetricsId`: Returns a unique `MetricsId` enum value.
-        -   `is_ready() -> bool`: Checks if the strategy has sufficient data to be calculated.
-        -   `get_metrics() -> Dict[str, Any]`: Performs the calculation and returns a dictionary of results.
-    -   The constructor `MetricCalculator(circuit: QuantumCircuit)` stores the circuit and initializes `_metric_type` and `_id` by calling the abstract getter methods.
+### QiskitMetrics
+-   **Purpose**: Extracts metrics directly from QuantumCircuit objects
+-   **Type**: `MetricsType.PRE_RUNTIME`
+-   **ID**: `MetricsId.QISKIT`
+-   **Constructor**: `QiskitMetrics(circuit: QuantumCircuit)`
 
--   **Built-in Strategies**:
-    -   **`QiskitMetrics` (`qward.metrics.qiskit_metrics.QiskitMetrics`)**
-        -   Type: `PRE_RUNTIME`
-        -   ID: `MetricsId.QISKIT`
-        -   Extracts data directly from the `QuantumCircuit` object (e.g., depth, width, operations count, instruction details, basic scheduling info if available).
-        -   `get_metrics()` returns a flattened dictionary of these properties.
+### ComplexityMetrics
+-   **Purpose**: Calculates circuit complexity metrics based on research literature
+-   **Type**: `MetricsType.PRE_RUNTIME`
+-   **ID**: `MetricsId.COMPLEXITY`
+-   **Constructor**: `ComplexityMetrics(circuit: QuantumCircuit)`
 
-    -   **`ComplexityMetrics` (`qward.metrics.complexity_metrics.ComplexityMetrics`)**
-        -   Type: `PRE_RUNTIME`
-        -   ID: `MetricsId.COMPLEXITY`
-        -   Calculates a comprehensive set of complexity metrics based on D. Shami's "Character Complexity" paper, including gate-based, entanglement, standardized, advanced, and derived metrics.
-        -   Also includes Quantum Volume estimation (`standard_quantum_volume`, `enhanced_quantum_volume`, and contributing factors).
-        -   `get_metrics()` returns a dictionary where top-level keys correspond to these categories (e.g., "gate_based_metrics", "quantum_volume"), and values are sub-dictionaries of specific metrics.
+### CircuitPerformance
+-   **Purpose**: Calculates performance metrics from execution results
+-   **Type**: `MetricsType.POST_RUNTIME`
+-   **ID**: `MetricsId.CIRCUIT_PERFORMANCE`
+-   **Constructor**: `CircuitPerformance(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
 
-    -   **`SuccessRate` (`qward.metrics.success_rate.SuccessRate`)**
-        -   Type: `POST_RUNTIME`
-        -   ID: `MetricsId.SUCCESS_RATE`
-        -   Constructor: `SuccessRate(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
-            -   Requires a `QuantumCircuit`.
-            -   Needs execution data, provided via a single `job`, a list of `jobs`, or a `result` dictionary (though `job`/`jobs` are preferred for direct access to Qiskit's result objects).
-            -   `success_criteria` is a callable `(bitstring: str) -> bool` that defines a successful outcome. Defaults to `bitstring == "0"`.
-        -   `add_job(job_or_jobs)`: Allows adding more jobs after instantiation.
-        -   `get_metrics()`: Calculates success rate, error rate, fidelity, total shots, successful shots. If multiple jobs are provided, it returns individual job stats and aggregate stats.
+### Metric Types and IDs
+-   `MetricsType(Enum)`: Defines when metrics can be calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
+-   `MetricsId(Enum)`: Defines unique IDs for strategy types (e.g., `QISKIT`, `COMPLEXITY`, `CIRCUIT_PERFORMANCE`).
 
--   **Strategy Types (`qward.metrics.types`)**
-    -   `MetricsId(Enum)`: Defines unique IDs for strategy types (e.g., `QISKIT`, `COMPLEXITY`, `SUCCESS_RATE`).
-    -   `MetricsType(Enum)`: Defines when a strategy is calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
+## Usage Examples
 
--   **Default Strategies (`qward.metrics.defaults`)**
-    -   `get_default_strategies() -> List[Type[MetricCalculator]]`: Returns a list of default metric strategy classes (`[QiskitMetrics, ComplexityMetrics, SuccessRate]`).
+### Basic Usage
+```python
+from qiskit import QuantumCircuit
+from qward import Scanner
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
-### 3. `Result` (`qward.Result`)
+# Create circuit
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
 
-A utility class for encapsulating job execution data.
--   Constructor: `Result(job: Optional[Job]=None, counts: Optional[Dict]=None, metadata: Optional[Dict]=None)`.
--   Primarily stores Qiskit `Job` object, `counts` (measurement outcomes), and `metadata`.
--   Provides `save()` and `load()` methods for serialization to/from JSON.
--   `update_from_job()`: If a job is stored, this method (re-)populates counts and basic metadata from `job.result()`.
+# Method 1: Add metrics individually
+scanner = Scanner(circuit=qc)
+scanner.add_metric(QiskitMetrics(qc))
+scanner.add_metric(ComplexityMetrics(qc))
 
+# Method 2: Add metrics via constructor (using classes)
+scanner = Scanner(circuit=qc, metrics=[QiskitMetrics, ComplexityMetrics, CircuitPerformance])
 
+# Calculate metrics
+results = scanner.calculate_metrics()
+```
 
+### Working with Execution Results
+```python
+from qiskit_aer import AerSimulator
+
+# Execute circuit
+sim = AerSimulator()
+job = sim.run(qc, shots=1024)
+
+# For CircuitPerformance, we need the Qiskit Job object (not just its result)
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
+
+# Define success criteria
+def criteria(outcome):
+    return outcome == "00"  # Success if both qubits measure 0
+
+# Add CircuitPerformance with job
+scanner.add_metric(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+
+# Calculate all metrics
+# print(results["CircuitPerformance.aggregate"])
+```
+
+### Alternative Approach with Result Object
+```python
+from qward import Result
+
+# Create QWARD Result object
+# from qward.metrics import CircuitPerformance
+
+# qward_result = Result(job=job, counts=job.result().get_counts())
+
+# # Create scanner with result
+# scanner = Scanner(circuit=qc, result=qward_result)
+
+# # Add metrics
+# scanner.add_metric(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
+
+# metrics = scanner.calculate_metrics()
+# print(metrics["CircuitPerformance.aggregate"])
+```
+
+## Schema Validation
+
+QWARD includes comprehensive schema-based validation using Pydantic for enhanced data integrity and type safety.
+
+### Key Benefits
+- **Type Safety**: Automatic validation of data types and constraints
+- **Business Rules**: Cross-field validation (e.g., error_rate = 1 - success_rate)
+- **IDE Support**: Full autocomplete and type hints
+- **API Documentation**: Automatic JSON schema generation
+
+### Usage
+Each metric calculator provides both traditional dictionary outputs and structured schema outputs:
+
+```python
+# Traditional approach
+metrics_dict = calculator.get_metrics()
+
+# Schema-based approach
+structured_metrics = calculator.get_structured_metrics()
+```
+
+## Visualization System
+
+QWARD includes a comprehensive visualization system for analyzing quantum circuit metrics.
+
+### Architecture
+
+The visualization system follows a clean architecture with the following components:
+
+- **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`):
+  - Abstract base class for all visualizers
+  - Handles common functionality like output directory management, plot styling, and saving/showing plots
+  - Provides a consistent interface through the `create_plot()` abstract method
+
+- **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`):
+  - Concrete visualizer for circuit performance metrics
+  - Responsible for generating various plots related to the metrics produced by the `CircuitPerformance` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
+
+- **`PlotConfig`** (`qward.visualization.base.PlotConfig`):
+  - Configuration dataclass for plot appearance and saving options
+  - Allows customization of figure size, DPI, color palettes, styles, etc.
+
+- **`PlotStrategy`** (internal to `qward.visualization.circuit_performance_visualizer`):
+  - An interface (abstract base class) defining a common contract for different plot generation algorithms within `CircuitPerformanceVisualizer`.
+  - Concrete implementations handle specific plot types (e.g., success vs. error comparison, fidelity analysis, etc.)
+  - `CircuitPerformanceVisualizer` delegates plotting tasks to these strategies.
+
+- **Utility Functions** (within `qward.visualization.utils` if it exists):
+  - Helper functions for common plotting tasks (e.g., applying consistent styling, adding value labels or summaries to plots). `CircuitPerformanceVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
+
+Visually, the core relationships (focusing on `CircuitPerformanceVisualizer`) can be represented as:
+
+```mermaid
+classDiagram
+    class BaseVisualizer {
+        <<abstract>>
+        +output_dir: str
+        +config: PlotConfig
+        +save_plot(fig, filename)
+        +show_plot(fig)
+        +create_plot()*
+    }
+    
+    class PlotConfig {
+        +figsize: Tuple[int, int]
+        +dpi: int
+        +style: str
+        +color_palette: List[str]
+        +save_format: str
+        +grid: bool
+        +alpha: float
+    }
+    
+    class CircuitPerformanceVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_success_error_comparison()
+        +plot_fidelity_comparison()
+        +plot_shot_distribution()
+        +plot_aggregate_summary()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class PlotStrategy {
+        <<interface>>
+        +create_plot()*
+    }
+
+    BaseVisualizer <|-- CircuitPerformanceVisualizer
+    BaseVisualizer --> PlotConfig : uses
+    CircuitPerformanceVisualizer o--> PlotStrategy : uses (delegates to)
+    
+    note for BaseVisualizer "Abstract base class providing core visualization functionality"
+    note for CircuitPerformanceVisualizer "Concrete implementation with direct plotting methods for simplicity"
+    note for PlotConfig "Configuration dataclass for plot appearance and saving options"
+```
+
+### Key Components
+
+#### `BaseVisualizer` (`qward.visualization.base.BaseVisualizer`)
+
+Abstract base class that provides common functionality for all visualizers:
+
+- **Output Management**: Handles output directory creation and file path management
+- **Plot Configuration**: Integrates with `PlotConfig` for consistent styling
+- **Save/Show Operations**: Provides `save_plot()` and `show_plot()` methods
+- **Abstract Interface**: Defines `create_plot()` method that subclasses must implement
+
+#### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
+
+Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
+
+- `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
+- `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
+- `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
+- `plot_aggregate_summary()`: Creates summary plots of aggregate statistics
+- `create_dashboard()`: Generates a comprehensive dashboard with multiple plot types
+- `plot_all()`: Convenience method to generate all available plots
+
+#### `PlotConfig` (`qward.visualization.base.PlotConfig`)
+
+Configuration dataclass that allows customization of plot appearance:
+
+```python
+@dataclass
+class PlotConfig:
+    figsize: Tuple[int, int] = (10, 6)
+    dpi: int = 300
+    style: str = "default"
+    color_palette: List[str] = field(default_factory=lambda: ["#1f77b4", "#ff7f0e", "#2ca02c"])
+    save_format: str = "png"
+    grid: bool = True
+    alpha: float = 0.8
+```
+
+### Usage Examples
+
+#### Basic Visualization
+```python
+from qward.visualization import CircuitPerformanceVisualizer
+
+# Assuming you have metrics_dict from scanner.calculate_metrics()
+visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="plots")
+
+# Generate all plots
+figures = visualizer.plot_all(save=True, show=False)
+```
+
+#### Custom Configuration
+```python
+from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
+
+# Custom plot configuration
+config = PlotConfig(
+    figsize=(12, 8),
+    dpi=150,
+    style="seaborn",
+    color_palette=["#ff6b6b", "#4ecdc4", "#45b7d1"],
+    save_format="svg"
+)
+
+visualizer = CircuitPerformanceVisualizer(
+    metrics_dict, 
+    output_dir="custom_plots", 
+    config=config
+)
+
+# Create specific plots
+visualizer.plot_success_error_comparison(save=True)
+visualizer.plot_fidelity_comparison(save=True)
+```
+
+#### Dashboard Creation
+```python
+# Create comprehensive dashboard
+dashboard_fig = visualizer.create_dashboard(save=True, show=True)
+```
+
+### Integration with Scanner
+
+The visualization system seamlessly integrates with the Scanner workflow:
+
+```python
+from qward import Scanner
+from qward.metrics import CircuitPerformance
+from qward.visualization import CircuitPerformanceVisualizer
+
+# Calculate metrics
+scanner = Scanner(circuit=circuit)
+scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+metrics_dict = scanner.calculate_metrics()
+
+# Create visualizations
+visualizer = CircuitPerformanceVisualizer(metrics_dict)
+visualizer.plot_all(save=True)
+```
+
+### Extensibility
+
+The visualization system is designed for easy extension:
+
+1. **Custom Visualizers**: Create new visualizers by inheriting from `BaseVisualizer`
+2. **Custom Plot Types**: Add new methods to existing visualizers
+3. **Custom Styling**: Define new `PlotConfig` presets for different use cases
+
+For detailed usage examples and advanced features, see the [Visualization Guide](visualization_guide.md).
+
+## Conclusion
+
+QWARD provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the metric strategy system, and associated helper classes like `Result`, developers can gain significant insights into their quantum circuits and execution outcomes.
 
 ## Circuit Complexity Metrics (via `ComplexityMetrics`)
 
@@ -159,7 +405,7 @@ results = scanner.calculate_metrics()
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner, Result
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
@@ -167,8 +413,8 @@ sim = AerSimulator()
 job = sim.run(qc).result()
 counts = job.get_counts()
 
-# For SuccessRate, we need the Qiskit Job object (not just its result)
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to SuccessRate
+# For CircuitPerformance, we need the Qiskit Job object (not just its result)
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
 
 qward_res = Result(job=qiskit_job_obj, counts=counts)
 
@@ -177,10 +423,10 @@ scanner.add_strategy(QiskitMetrics(qc))
 scanner.add_strategy(ComplexityMetrics(qc))
 
 def criteria(s): return s == '00' or s == '11' # GHZ state
-scanner.add_strategy(SuccessRate(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+scanner.add_strategy(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 results = scanner.calculate_metrics()
-# print(results["SuccessRate.aggregate"])
+# print(results["CircuitPerformance.aggregate"])
 ```
 
 ### Pattern 4: Using Standard Qiskit Runtime Services
@@ -188,7 +434,7 @@ results = scanner.calculate_metrics()
 # from qiskit import QuantumCircuit
 # from qiskit_ibm_runtime import QiskitRuntimeService
 # from qward import Scanner, Result
-# from qward.metrics import SuccessRate
+# from qward.metrics import CircuitPerformance
 
 # qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
@@ -202,14 +448,14 @@ results = scanner.calculate_metrics()
 # qward_result = Result(job=job, counts=counts)
 # scanner = Scanner(circuit=qc, job=job, result=qward_result)
 # def criteria(s): return s == '00' or s == '11'
-# scanner.add_strategy(SuccessRate(circuit=qc, job=job, success_criteria=criteria))
+# scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
 # metrics = scanner.calculate_metrics()
-# print(metrics["SuccessRate.aggregate"])
+# print(metrics["CircuitPerformance.aggregate"])
 ```
 
 ## Conclusion
 
-Qward provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the metric strategy system, and associated helper classes like `Result`, developers can gain significant insights into their quantum circuits and execution outcomes.
+QWARD provides a structured and extensible approach to quantum circuit analysis. By understanding the `Scanner`, the metric strategy system, and associated helper classes like `Result`, developers can gain significant insights into their quantum circuits and execution outcomes.
 
 ## Visualization System
 
@@ -229,20 +475,20 @@ The visualization system is built on the following key components:
     - Provides `save_plot()` and `show_plot()` utility methods.
     - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
-- **`SuccessRateVisualizer`** (`qward.visualization.success_rate_visualizer.SuccessRateVisualizer`):
+- **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`):
     - A concrete visualizer inheriting directly from `BaseVisualizer`.
-    - Responsible for generating various plots related to the metrics produced by the `SuccessRate` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
+    - Responsible for generating various plots related to the metrics produced by the `CircuitPerformance` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
     - Internally, it uses the **Strategy pattern** to manage the generation of these different plot types. Each specific plot (e.g., fidelity comparison) is handled by a dedicated strategy class.
 
-- **`PlotStrategy`** (internal to `qward.visualization.success_rate_visualizer`):
-    - An interface (abstract base class) defining a common contract for different plot generation algorithms within `SuccessRateVisualizer`.
+- **`PlotStrategy`** (internal to `qward.visualization.circuit_performance_visualizer`):
+    - An interface (abstract base class) defining a common contract for different plot generation algorithms within `CircuitPerformanceVisualizer`.
     - Concrete strategies (e.g., `FidelityPlotStrategy`, `ShotDistributionPlotStrategy`) implement this interface to create specific charts.
-    - `SuccessRateVisualizer` delegates plotting tasks to these strategies.
+    - `CircuitPerformanceVisualizer` delegates plotting tasks to these strategies.
 
 - **(Conceptual) `MetricPlottingUtils`**:
-    - While not a specific class shown in a high-level diagram, it's important to note that a utility class or module would ideally contain static helper methods for common tasks related to plotting metric data (e.g., extracting specific data from `metrics_dict`, validating DataFrame columns, adding standard value labels or summaries to plots). `SuccessRateVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
+    - While not a specific class shown in a high-level diagram, it's important to note that a utility class or module would ideally contain static helper methods for common tasks related to plotting metric data (e.g., extracting specific data from `metrics_dict`, validating DataFrame columns, adding standard value labels or summaries to plots). `CircuitPerformanceVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
 
-Visually, the core relationships (focusing on `SuccessRateVisualizer`) can be represented as:
+Visually, the core relationships (focusing on `CircuitPerformanceVisualizer`) can be represented as:
 
 ```{mermaid}
 classDiagram
@@ -265,7 +511,7 @@ classDiagram
         +alpha: float
     }
 
-    class SuccessRateVisualizer {
+    class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         # +_is_dashboard_context: bool
         +plot_success_error_comparison()
@@ -278,7 +524,7 @@ classDiagram
 
     class PlotStrategy {
         <<Interface>>
-        #visualizer: SuccessRateVisualizer
+        #visualizer: CircuitPerformanceVisualizer
         #config: PlotConfig
         +plot(ax: Axes)*
     }
@@ -298,9 +544,9 @@ classDiagram
     
     note for PlotStrategy "Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity)."
 
-    BaseVisualizer <|-- SuccessRateVisualizer
+    BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
-    SuccessRateVisualizer o--> PlotStrategy : uses (delegates to)
+    CircuitPerformanceVisualizer o--> PlotStrategy : uses (delegates to)
 
     PlotStrategy <|.. SuccessErrorPlotStrategy : implements
     PlotStrategy <|.. FidelityPlotStrategy : implements
@@ -310,9 +556,9 @@ classDiagram
 
 ### Built-in Visualizers
 
-#### `SuccessRateVisualizer` (`qward.visualization.success_rate_visualizer.SuccessRateVisualizer`)
+#### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
-Specialized visualizer for `SuccessRate` metric outputs. It provides methods like:
+Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
 - `plot_all()`: Generates all standard individual plots.
 - `create_dashboard()`: Creates a consolidated dashboard view.
 - Individual plot methods (e.g., `plot_fidelity_comparison()`, `plot_shot_distribution()`).
