@@ -80,8 +80,8 @@ def demo_schema_approach() -> "QiskitMetricsSchema":
         print(f"   Depth: {schema_metrics.basic_metrics.depth}")  # pylint: disable=no-member
         print(f"   Qubits: {schema_metrics.basic_metrics.num_qubits}")  # pylint: disable=no-member
         print(
-            f"   Operations: {schema_metrics.basic_metrics.count_ops}"
-        )  # pylint: disable=no-member
+            f"   Operations: {schema_metrics.basic_metrics.count_ops}"  # pylint: disable=no-member
+        )
 
         print("\n✅ Benefits of schema approach:")
         print("   - Full type hints and IDE autocomplete")
