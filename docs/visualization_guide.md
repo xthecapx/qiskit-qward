@@ -24,7 +24,7 @@ classDiagram
         +show_plot(fig)
         +create_plot()*
     }
-
+    
     class PlotConfig {
         +figsize: Tuple[int, int]
         +dpi: int
@@ -34,7 +34,7 @@ classDiagram
         +grid: bool
         +alpha: float
     }
-
+    
     class SuccessRateVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         # +_is_dashboard_context: bool
