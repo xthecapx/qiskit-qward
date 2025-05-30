@@ -1,5 +1,5 @@
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-informational)
-[![Python](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10-informational)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-informational)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-%E2%89%A5%201.0.0-6133BD)](https://github.com/Qiskit/qiskit)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
 
@@ -109,7 +109,7 @@ tox -e lint
 tox -e coverage
 
 # Run tests for specific Python version
-tox -e py39  # or py38, py310
+tox -e py310  # or py311, py312
 ```
 
 ### 7. Optional: Notebook Linting (if nbqa is installed)
