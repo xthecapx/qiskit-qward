@@ -1,0 +1,913 @@
+"""
+Metric schemas for QWARD using Pydantic for structured data validation.
+
+This module provides schema classes that define the structure and validation
+rules for different types of metrics in QWARD, inspired by dataframely's
+approach to data validation.
+
+The schemas provide:
+- Type validation for all fields
+- Automatic constraint checking (e.g., non-negative values)
+- Clear documentation of expected data types
+- JSON schema generation for API documentation
+- Better IDE support with autocomplete
+"""
+
+from typing import Dict, List, Optional, Any
+
+from pydantic import BaseModel, Field, field_validator
+from qiskit.circuit import CircuitInstruction
+from qiskit.transpiler import Layout
+
+
+# =============================================================================
+# Basic Circuit Metrics Schema
+# =============================================================================
+
+
+class BasicMetricsSchema(BaseModel):
+    """
+    Schema for basic quantum circuit metrics.
+
+    This schema validates basic metrics that can be extracted directly
+    from a QuantumCircuit object, such as depth, width, and gate counts.
+    """
+
+    depth: int = Field(..., ge=0, description="Circuit depth (number of time steps)")
+    width: int = Field(..., ge=0, description="Circuit width (total qubits and classical bits)")
+    size: int = Field(..., ge=0, description="Total number of operations in the circuit")
+    num_qubits: int = Field(..., ge=0, description="Number of quantum bits")
+    num_clbits: int = Field(..., ge=0, description="Number of classical bits")
+    num_ancillas: int = Field(..., ge=0, description="Number of ancilla qubits")
+    num_parameters: int = Field(..., ge=0, description="Number of parameters in the circuit")
+    has_calibrations: bool = Field(..., description="Whether the circuit has calibration data")
+    has_layout: bool = Field(..., description="Whether the circuit has layout information")
+    count_ops: Dict[str, int] = Field(..., description="Count of each operation type")
+
+    @field_validator("count_ops")
+    @classmethod
+    def validate_count_ops(cls, v):
+        """Validate that all operation counts are non-negative."""
+        for op_name, count in v.items():
+            if count < 0:
+                raise ValueError(
+                    f"Operation count for '{op_name}' must be non-negative, got {count}"
+                )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "depth": 3,
+                "width": 6,
+                "size": 4,
+                "num_qubits": 2,
+                "num_clbits": 4,
+                "num_ancillas": 0,
+                "num_parameters": 0,
+                "has_calibrations": False,
+                "has_layout": False,
+                "count_ops": {"h": 1, "cx": 1, "measure": 2, "barrier": 1},
+            }
+        }
+
+
+# =============================================================================
+# Instruction Metrics Schema
+# =============================================================================
+
+
+class InstructionMetricsSchema(BaseModel):
+    """
+    Schema for quantum circuit instruction metrics.
+
+    This schema validates metrics related to the instructions and
+    connectivity of a quantum circuit.
+    """
+
+    num_connected_components: int = Field(..., ge=1, description="Number of connected components")
+    num_nonlocal_gates: int = Field(..., ge=0, description="Number of non-local gates")
+    num_tensor_factors: int = Field(..., ge=1, description="Number of tensor factors")
+    num_unitary_factors: int = Field(..., ge=1, description="Number of unitary factors")
+    instructions: Dict[str, List[CircuitInstruction]] = Field(
+        ..., description="Instructions grouped by operation name"
+    )
+
+    @field_validator("instructions")
+    @classmethod
+    def validate_instructions(cls, v):
+        """Validate that instruction lists are not empty."""
+        for op_name, instructions in v.items():
+            if not instructions:
+                raise ValueError(f"Instruction list for '{op_name}' cannot be empty")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True  # Allow CircuitInstruction objects
+
+
+# =============================================================================
+# Scheduling Metrics Schema
+# =============================================================================
+
+
+class SchedulingMetricsSchema(BaseModel):
+    """
+    Schema for quantum circuit scheduling metrics.
+
+    This schema validates metrics related to circuit scheduling and
+    timing information.
+    """
+
+    is_scheduled: bool = Field(..., description="Whether the circuit is scheduled")
+    layout: Optional[Layout] = Field(None, description="Circuit layout (if scheduled)")
+    op_start_times: Optional[List[int]] = Field(
+        None, description="Operation start times (if scheduled)"
+    )
+    qubit_duration: Optional[int] = Field(None, ge=0, description="Qubit duration (if scheduled)")
+    qubit_start_time: Optional[int] = Field(
+        None, ge=0, description="Qubit start time (if scheduled)"
+    )
+    qubit_stop_time: Optional[int] = Field(None, ge=0, description="Qubit stop time (if scheduled)")
+
+    @field_validator("qubit_stop_time")
+    @classmethod
+    def validate_stop_after_start(cls, v, info):
+        """Validate that stop time is after start time."""
+        if (
+            v is not None
+            and "qubit_start_time" in info.data
+            and info.data["qubit_start_time"] is not None
+        ):
+            if v < info.data["qubit_start_time"]:
+                raise ValueError("Qubit stop time must be >= start time")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True  # Allow Layout objects
+
+
+# =============================================================================
+# Complete Qiskit Metrics Schema
+# =============================================================================
+
+
+class QiskitMetricsSchema(BaseModel):
+    """
+    Complete schema for all Qiskit-derived metrics.
+
+    This schema combines all individual metric schemas into a single
+    comprehensive structure for Qiskit metrics.
+    """
+
+    basic_metrics: BasicMetricsSchema = Field(..., description="Basic circuit metrics")
+    instruction_metrics: InstructionMetricsSchema = Field(
+        ..., description="Instruction-related metrics"
+    )
+    scheduling_metrics: SchedulingMetricsSchema = Field(
+        ..., description="Scheduling-related metrics"
+    )
+
+    def to_flat_dict(self) -> Dict[str, Any]:
+        """
+        Convert the schema to a flattened dictionary for DataFrame compatibility.
+
+        Returns:
+            Dict[str, Any]: Flattened dictionary with dot-notation keys
+        """
+        result = {}
+
+        # Flatten basic metrics
+        basic_dict = self.basic_metrics.dict()
+        count_ops = basic_dict.pop("count_ops")
+        for key, value in basic_dict.items():
+            result[f"basic_metrics.{key}"] = value
+        for op_name, count in count_ops.items():
+            result[f"basic_metrics.count_ops.{op_name}"] = count
+
+        # Flatten instruction metrics
+        instruction_dict = self.instruction_metrics.dict()
+        instructions = instruction_dict.pop("instructions")
+        for key, value in instruction_dict.items():
+            result[f"instruction_metrics.{key}"] = value
+        for op_name, instruction_list in instructions.items():
+            result[f"instruction_metrics.instructions.{op_name}"] = instruction_list
+
+        # Flatten scheduling metrics
+        scheduling_dict = self.scheduling_metrics.dict()
+        for key, value in scheduling_dict.items():
+            result[f"scheduling_metrics.{key}"] = value
+
+        return result
+
+    @classmethod
+    def from_flat_dict(cls, flat_dict: Dict[str, Any]) -> "QiskitMetricsSchema":
+        """
+        Create a schema instance from a flattened dictionary.
+
+        Args:
+            flat_dict: Flattened dictionary with dot-notation keys
+
+        Returns:
+            QiskitMetricsSchema: Schema instance
+        """
+        # Reconstruct nested structure
+        basic_metrics = {}
+        instruction_metrics = {}
+        scheduling_metrics = {}
+        count_ops = {}
+        instructions = {}
+
+        for key, value in flat_dict.items():
+            if key.startswith("basic_metrics."):
+                if key.startswith("basic_metrics.count_ops."):
+                    op_name = key.replace("basic_metrics.count_ops.", "")
+                    count_ops[op_name] = value
+                else:
+                    metric_name = key.replace("basic_metrics.", "")
+                    basic_metrics[metric_name] = value
+            elif key.startswith("instruction_metrics."):
+                if key.startswith("instruction_metrics.instructions."):
+                    op_name = key.replace("instruction_metrics.instructions.", "")
+                    instructions[op_name] = value
+                else:
+                    metric_name = key.replace("instruction_metrics.", "")
+                    instruction_metrics[metric_name] = value
+            elif key.startswith("scheduling_metrics."):
+                metric_name = key.replace("scheduling_metrics.", "")
+                scheduling_metrics[metric_name] = value
+
+        # Add count_ops and instructions back
+        basic_metrics["count_ops"] = count_ops
+        instruction_metrics["instructions"] = instructions
+
+        return cls(
+            basic_metrics=BasicMetricsSchema(**basic_metrics),
+            instruction_metrics=InstructionMetricsSchema(**instruction_metrics),
+            scheduling_metrics=SchedulingMetricsSchema(**scheduling_metrics),
+        )
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "description": "Complete schema for Qiskit-derived quantum circuit metrics",
+            "example": {
+                "basic_metrics": {
+                    "depth": 3,
+                    "width": 6,
+                    "size": 4,
+                    "num_qubits": 2,
+                    "num_clbits": 4,
+                    "num_ancillas": 0,
+                    "num_parameters": 0,
+                    "has_calibrations": False,
+                    "has_layout": False,
+                    "count_ops": {"h": 1, "cx": 1, "measure": 2, "barrier": 1},
+                },
+                "instruction_metrics": {
+                    "num_connected_components": 3,
+                    "num_nonlocal_gates": 1,
+                    "num_tensor_factors": 1,
+                    "num_unitary_factors": 1,
+                    "instructions": {},
+                },
+                "scheduling_metrics": {
+                    "is_scheduled": False,
+                    "layout": None,
+                    "op_start_times": None,
+                    "qubit_duration": None,
+                    "qubit_start_time": None,
+                    "qubit_stop_time": None,
+                },
+            },
+        }
+
+
+# =============================================================================
+# Complexity Metrics Schemas
+# =============================================================================
+
+
+class GateBasedMetricsSchema(BaseModel):
+    """
+    Schema for gate-based complexity metrics.
+
+    This schema validates metrics related to gate counts and types
+    in quantum circuits.
+    """
+
+    gate_count: int = Field(..., ge=0, description="Total number of gates in the circuit")
+    circuit_depth: int = Field(..., ge=0, description="Circuit depth (number of time steps)")
+    t_count: int = Field(..., ge=0, description="Number of T gates (important for fault tolerance)")
+    cnot_count: int = Field(..., ge=0, description="Number of CNOT gates")
+    two_qubit_count: int = Field(..., ge=0, description="Total number of two-qubit gates")
+    multi_qubit_ratio: float = Field(
+        ..., ge=0.0, le=1.0, description="Ratio of multi-qubit to total gates"
+    )
+
+    @field_validator("multi_qubit_ratio")
+    @classmethod
+    def validate_ratio_bounds(cls, v):
+        """Validate that ratio is between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Multi-qubit ratio must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "gate_count": 10,
+                "circuit_depth": 5,
+                "t_count": 2,
+                "cnot_count": 3,
+                "two_qubit_count": 4,
+                "multi_qubit_ratio": 0.4,
+            }
+        }
+
+
+class EntanglementMetricsSchema(BaseModel):
+    """
+    Schema for entanglement-based complexity metrics.
+
+    This schema validates metrics related to entanglement generation
+    and quantum correlations in circuits.
+    """
+
+    entangling_gate_density: float = Field(
+        ..., ge=0.0, le=1.0, description="Density of entangling gates"
+    )
+    entangling_width: int = Field(..., ge=1, description="Estimated width of entanglement")
+
+    @field_validator("entangling_gate_density")
+    @classmethod
+    def validate_density_bounds(cls, v):
+        """Validate that density is between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Entangling gate density must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {"example": {"entangling_gate_density": 0.3, "entangling_width": 4}}
+
+
+class StandardizedMetricsSchema(BaseModel):
+    """
+    Schema for standardized complexity metrics.
+
+    This schema validates standardized metrics for comparing
+    circuits of different sizes and structures.
+    """
+
+    circuit_volume: int = Field(..., ge=0, description="Circuit volume (depth × width)")
+    gate_density: float = Field(..., ge=0.0, description="Gate density (gates per qubit-time-step)")
+    clifford_ratio: float = Field(..., ge=0.0, le=1.0, description="Ratio of Clifford gates")
+    non_clifford_ratio: float = Field(
+        ..., ge=0.0, le=1.0, description="Ratio of non-Clifford gates"
+    )
+
+    @field_validator("clifford_ratio", "non_clifford_ratio")
+    @classmethod
+    def validate_ratio_bounds(cls, v):
+        """Validate that ratios are between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Ratio must be between 0.0 and 1.0, got {v}")
+        return v
+
+    @field_validator("non_clifford_ratio")
+    @classmethod
+    def validate_ratio_sum(cls, v, info):
+        """Validate that Clifford + non-Clifford ratios don't exceed 1."""
+        if "clifford_ratio" in info.data:
+            total_ratio = v + info.data["clifford_ratio"]
+            if total_ratio > 1.01:  # Allow small floating point errors
+                raise ValueError(
+                    f"Sum of Clifford and non-Clifford ratios cannot exceed 1.0, got {total_ratio}"
+                )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "circuit_volume": 20,
+                "gate_density": 0.5,
+                "clifford_ratio": 0.7,
+                "non_clifford_ratio": 0.3,
+            }
+        }
+
+
+class AdvancedMetricsSchema(BaseModel):
+    """
+    Schema for advanced complexity metrics.
+
+    This schema validates advanced metrics for circuit analysis
+    including parallelism and resource utilization.
+    """
+
+    parallelism_factor: float = Field(..., ge=0.0, description="Average gates per time step")
+    parallelism_efficiency: float = Field(
+        ..., ge=0.0, le=1.0, description="Efficiency of parallelism"
+    )
+    circuit_efficiency: float = Field(
+        ..., ge=0.0, le=1.0, description="Circuit resource efficiency"
+    )
+    quantum_resource_utilization: float = Field(
+        ..., ge=0.0, description="Quantum resource utilization metric"
+    )
+
+    @field_validator("parallelism_efficiency", "circuit_efficiency")
+    @classmethod
+    def validate_efficiency_bounds(cls, v):
+        """Validate that efficiency metrics are between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Efficiency metric must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "parallelism_factor": 2.5,
+                "parallelism_efficiency": 0.625,
+                "circuit_efficiency": 0.4,
+                "quantum_resource_utilization": 0.3,
+            }
+        }
+
+
+class DerivedMetricsSchema(BaseModel):
+    """
+    Schema for derived complexity metrics.
+
+    This schema validates derived metrics that combine multiple
+    circuit characteristics into composite measures.
+    """
+
+    square_ratio: float = Field(
+        ..., ge=0.0, le=1.0, description="How close the circuit is to square"
+    )
+    weighted_complexity: int = Field(..., ge=0, description="Weighted gate complexity score")
+    normalized_weighted_complexity: float = Field(
+        ..., ge=0.0, description="Weighted complexity per qubit"
+    )
+
+    @field_validator("square_ratio")
+    @classmethod
+    def validate_square_ratio(cls, v):
+        """Validate that square ratio is between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Square ratio must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "square_ratio": 0.8,
+                "weighted_complexity": 150,
+                "normalized_weighted_complexity": 37.5,
+            }
+        }
+
+
+class QuantumVolumeFactorsSchema(BaseModel):
+    """
+    Schema for quantum volume calculation factors.
+
+    This schema validates the factors used in quantum volume estimation.
+    """
+
+    square_ratio: float = Field(..., ge=0.0, le=1.0, description="Square circuit factor")
+    circuit_density: float = Field(..., ge=0.0, description="Circuit density factor")
+    multi_qubit_ratio: float = Field(..., ge=0.0, le=1.0, description="Multi-qubit gate ratio")
+    connectivity_factor: float = Field(..., ge=0.0, le=1.0, description="Connectivity factor")
+    enhancement_factor: float = Field(..., ge=0.0, description="Overall enhancement factor")
+
+    @field_validator("square_ratio", "multi_qubit_ratio", "connectivity_factor")
+    @classmethod
+    def validate_ratio_bounds(cls, v):
+        """Validate that ratio factors are between 0 and 1."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"Ratio factor must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "square_ratio": 0.75,
+                "circuit_density": 0.5,
+                "multi_qubit_ratio": 0.4,
+                "connectivity_factor": 0.7,
+                "enhancement_factor": 0.55,
+            }
+        }
+
+
+class QuantumVolumeCircuitMetricsSchema(BaseModel):
+    """
+    Schema for circuit metrics used in quantum volume calculation.
+
+    This schema validates the basic circuit metrics used as input
+    for quantum volume estimation.
+    """
+
+    depth: int = Field(..., ge=0, description="Circuit depth")
+    width: int = Field(..., ge=0, description="Circuit width")
+    size: int = Field(..., ge=0, description="Circuit size (number of operations)")
+    num_qubits: int = Field(..., ge=0, description="Number of qubits")
+    operation_counts: Dict[str, int] = Field(..., description="Count of each operation type")
+
+    @field_validator("operation_counts")
+    @classmethod
+    def validate_operation_counts(cls, v):
+        """Validate that all operation counts are non-negative."""
+        for op_name, count in v.items():
+            if count < 0:
+                raise ValueError(
+                    f"Operation count for '{op_name}' must be non-negative, got {count}"
+                )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "depth": 5,
+                "width": 4,
+                "size": 12,
+                "num_qubits": 4,
+                "operation_counts": {"h": 2, "cx": 3, "measure": 4},
+            }
+        }
+
+
+class QuantumVolumeSchema(BaseModel):
+    """
+    Schema for quantum volume estimation metrics.
+
+    This schema validates quantum volume estimates and related
+    calculation factors.
+    """
+
+    standard_quantum_volume: int = Field(..., ge=1, description="Standard quantum volume (2^n)")
+    enhanced_quantum_volume: float = Field(
+        ..., ge=1.0, description="Enhanced quantum volume estimate"
+    )
+    effective_depth: int = Field(..., ge=0, description="Effective depth for QV calculation")
+    factors: QuantumVolumeFactorsSchema = Field(..., description="QV calculation factors")
+    circuit_metrics: QuantumVolumeCircuitMetricsSchema = Field(
+        ..., description="Input circuit metrics"
+    )
+
+    @field_validator("enhanced_quantum_volume")
+    @classmethod
+    def validate_enhanced_qv(cls, v, info):
+        """Validate that enhanced QV is at least as large as standard QV."""
+        if "standard_quantum_volume" in info.data and v < info.data["standard_quantum_volume"]:
+            raise ValueError("Enhanced quantum volume cannot be less than standard quantum volume")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "standard_quantum_volume": 16,
+                "enhanced_quantum_volume": 24.8,
+                "effective_depth": 4,
+                "factors": {
+                    "square_ratio": 0.75,
+                    "circuit_density": 0.5,
+                    "multi_qubit_ratio": 0.4,
+                    "connectivity_factor": 0.7,
+                    "enhancement_factor": 0.55,
+                },
+                "circuit_metrics": {
+                    "depth": 5,
+                    "width": 4,
+                    "size": 12,
+                    "num_qubits": 4,
+                    "operation_counts": {"h": 2, "cx": 3, "measure": 4},
+                },
+            }
+        }
+
+
+class ComplexityMetricsSchema(BaseModel):
+    """
+    Complete schema for all complexity metrics.
+
+    This schema combines all individual complexity metric schemas into
+    a single comprehensive structure for circuit complexity analysis.
+    """
+
+    gate_based_metrics: GateBasedMetricsSchema = Field(
+        ..., description="Gate-based complexity metrics"
+    )
+    entanglement_metrics: EntanglementMetricsSchema = Field(
+        ..., description="Entanglement-related metrics"
+    )
+    standardized_metrics: StandardizedMetricsSchema = Field(
+        ..., description="Standardized comparison metrics"
+    )
+    advanced_metrics: AdvancedMetricsSchema = Field(..., description="Advanced analysis metrics")
+    derived_metrics: DerivedMetricsSchema = Field(..., description="Derived composite metrics")
+    quantum_volume: QuantumVolumeSchema = Field(..., description="Quantum volume estimation")
+
+    def to_flat_dict(self) -> Dict[str, Any]:
+        """
+        Convert the schema to a flattened dictionary for DataFrame compatibility.
+
+        Returns:
+            Dict[str, Any]: Flattened dictionary with dot-notation keys
+        """
+        result = {}
+
+        # Flatten each metric category
+        categories = [
+            ("gate_based_metrics", self.gate_based_metrics),
+            ("entanglement_metrics", self.entanglement_metrics),
+            ("standardized_metrics", self.standardized_metrics),
+            ("advanced_metrics", self.advanced_metrics),
+            ("derived_metrics", self.derived_metrics),
+        ]
+
+        for category_name, category_data in categories:
+            category_dict = category_data.dict()
+            for key, value in category_dict.items():
+                result[f"{category_name}.{key}"] = value
+
+        # Flatten quantum volume (more complex structure)
+        qv_dict = self.quantum_volume.dict()
+        for key, value in qv_dict.items():
+            if key in ["factors", "circuit_metrics"]:
+                # Flatten nested objects
+                for nested_key, nested_value in value.items():
+                    if key == "circuit_metrics" and nested_key == "operation_counts":
+                        # Flatten operation counts
+                        for op_name, count in nested_value.items():
+                            result[f"quantum_volume.{key}.{nested_key}.{op_name}"] = count
+                    else:
+                        result[f"quantum_volume.{key}.{nested_key}"] = nested_value
+            else:
+                result[f"quantum_volume.{key}"] = value
+
+        return result
+
+    @classmethod
+    def from_flat_dict(cls, flat_dict: Dict[str, Any]) -> "ComplexityMetricsSchema":
+        """
+        Create a schema instance from a flattened dictionary.
+
+        Args:
+            flat_dict: Flattened dictionary with dot-notation keys
+
+        Returns:
+            ComplexityMetricsSchema: Schema instance
+        """
+        # Initialize category dictionaries
+        categories: Dict[str, Dict[str, Any]] = {
+            "gate_based_metrics": {},
+            "entanglement_metrics": {},
+            "standardized_metrics": {},
+            "advanced_metrics": {},
+            "derived_metrics": {},
+        }
+
+        # Initialize quantum volume components
+        qv_base: Dict[str, Any] = {}
+        qv_factors: Dict[str, Any] = {}
+        qv_circuit_metrics: Dict[str, Any] = {}
+        operation_counts: Dict[str, int] = {}
+
+        # Parse flattened keys
+        for key, value in flat_dict.items():
+            if key.startswith("quantum_volume."):
+                qv_key = key.replace("quantum_volume.", "")
+                if qv_key.startswith("factors."):
+                    factor_key = qv_key.replace("factors.", "")
+                    qv_factors[factor_key] = value
+                elif qv_key.startswith("circuit_metrics."):
+                    cm_key = qv_key.replace("circuit_metrics.", "")
+                    if cm_key.startswith("operation_counts."):
+                        op_name = cm_key.replace("operation_counts.", "")
+                        operation_counts[op_name] = value
+                    else:
+                        qv_circuit_metrics[cm_key] = value
+                else:
+                    qv_base[qv_key] = value
+            else:
+                # Handle other categories
+                for category_name in categories.keys():
+                    if key.startswith(f"{category_name}."):
+                        metric_name = key.replace(f"{category_name}.", "")
+                        categories[category_name][metric_name] = value
+                        break
+
+        # Reconstruct quantum volume structure
+        qv_circuit_metrics["operation_counts"] = operation_counts
+        qv_base["factors"] = QuantumVolumeFactorsSchema(**qv_factors)
+        qv_base["circuit_metrics"] = QuantumVolumeCircuitMetricsSchema(**qv_circuit_metrics)
+
+        return cls(
+            gate_based_metrics=GateBasedMetricsSchema(**categories["gate_based_metrics"]),
+            entanglement_metrics=EntanglementMetricsSchema(**categories["entanglement_metrics"]),
+            standardized_metrics=StandardizedMetricsSchema(**categories["standardized_metrics"]),
+            advanced_metrics=AdvancedMetricsSchema(**categories["advanced_metrics"]),
+            derived_metrics=DerivedMetricsSchema(**categories["derived_metrics"]),
+            quantum_volume=QuantumVolumeSchema(**qv_base),
+        )
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "description": "Complete schema for quantum circuit complexity metrics",
+            "example": {
+                "gate_based_metrics": {
+                    "gate_count": 10,
+                    "circuit_depth": 5,
+                    "t_count": 2,
+                    "cnot_count": 3,
+                    "two_qubit_count": 4,
+                    "multi_qubit_ratio": 0.4,
+                },
+                "entanglement_metrics": {"entangling_gate_density": 0.3, "entangling_width": 4},
+                "standardized_metrics": {
+                    "circuit_volume": 20,
+                    "gate_density": 0.5,
+                    "clifford_ratio": 0.7,
+                    "non_clifford_ratio": 0.3,
+                },
+                "advanced_metrics": {
+                    "parallelism_factor": 2.5,
+                    "parallelism_efficiency": 0.625,
+                    "circuit_efficiency": 0.4,
+                    "quantum_resource_utilization": 0.3,
+                },
+                "derived_metrics": {
+                    "square_ratio": 0.8,
+                    "weighted_complexity": 150,
+                    "normalized_weighted_complexity": 37.5,
+                },
+                "quantum_volume": {
+                    "standard_quantum_volume": 16,
+                    "enhanced_quantum_volume": 24.8,
+                    "effective_depth": 4,
+                    "factors": {
+                        "square_ratio": 0.75,
+                        "circuit_density": 0.5,
+                        "multi_qubit_ratio": 0.4,
+                        "connectivity_factor": 0.7,
+                        "enhancement_factor": 0.55,
+                    },
+                    "circuit_metrics": {
+                        "depth": 5,
+                        "width": 4,
+                        "size": 12,
+                        "num_qubits": 4,
+                        "operation_counts": {"h": 2, "cx": 3, "measure": 4},
+                    },
+                },
+            },
+        }
+
+
+# =============================================================================
+# Success Rate Metrics Schemas
+# =============================================================================
+
+
+class SuccessRateJobSchema(BaseModel):
+    """
+    Schema for individual job success rate metrics.
+
+    This schema validates success rate metrics from a single
+    quantum job execution.
+    """
+
+    job_id: str = Field(..., description="Unique identifier for the job")
+    success_rate: float = Field(..., ge=0.0, le=1.0, description="Success rate (0.0 to 1.0)")
+    error_rate: float = Field(..., ge=0.0, le=1.0, description="Error rate (0.0 to 1.0)")
+    fidelity: float = Field(..., ge=0.0, le=1.0, description="Fidelity (0.0 to 1.0)")
+    total_shots: int = Field(..., ge=0, description="Total number of shots")
+    successful_shots: int = Field(..., ge=0, description="Number of successful shots")
+
+    @field_validator("error_rate")
+    @classmethod
+    def validate_error_rate(cls, v, info):
+        """Validate that error_rate = 1 - success_rate."""
+        if "success_rate" in info.data:
+            expected_error_rate = 1.0 - info.data["success_rate"]
+            if abs(v - expected_error_rate) > 1e-10:  # Allow for floating point precision
+                raise ValueError(
+                    f"Error rate {v} should equal 1 - success_rate ({expected_error_rate})"
+                )
+        return v
+
+    @field_validator("successful_shots")
+    @classmethod
+    def validate_successful_shots(cls, v, info):
+        """Validate that successful_shots <= total_shots."""
+        if "total_shots" in info.data and v > info.data["total_shots"]:
+            raise ValueError(
+                f"Successful shots ({v}) cannot exceed total shots ({info.data['total_shots']})"
+            )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "job_id": "job_12345",
+                "success_rate": 0.75,
+                "error_rate": 0.25,
+                "fidelity": 0.80,
+                "total_shots": 1024,
+                "successful_shots": 768,
+            }
+        }
+
+
+class SuccessRateAggregateSchema(BaseModel):
+    """
+    Schema for aggregate success rate metrics across multiple jobs.
+
+    This schema validates aggregate success rate metrics computed
+    across multiple job executions.
+    """
+
+    mean_success_rate: float = Field(
+        ..., ge=0.0, le=1.0, description="Mean success rate across jobs"
+    )
+    std_success_rate: float = Field(..., ge=0.0, description="Standard deviation of success rates")
+    min_success_rate: float = Field(..., ge=0.0, le=1.0, description="Minimum success rate")
+    max_success_rate: float = Field(..., ge=0.0, le=1.0, description="Maximum success rate")
+    total_trials: int = Field(..., ge=0, description="Total number of trials across all jobs")
+    fidelity: float = Field(..., ge=0.0, le=1.0, description="Average fidelity across jobs")
+    error_rate: float = Field(..., ge=0.0, le=1.0, description="Average error rate across jobs")
+
+    @field_validator("min_success_rate")
+    @classmethod
+    def validate_min_max_order(cls, v, info):
+        """Validate that min <= mean <= max."""
+        if "mean_success_rate" in info.data and v > info.data["mean_success_rate"]:
+            raise ValueError("Minimum success rate cannot be greater than mean")
+        return v
+
+    @field_validator("max_success_rate")
+    @classmethod
+    def validate_max_bounds(cls, v, info):
+        """Validate that max >= mean >= min."""
+        if "mean_success_rate" in info.data and v < info.data["mean_success_rate"]:
+            raise ValueError("Maximum success rate cannot be less than mean")
+        if "min_success_rate" in info.data and v < info.data["min_success_rate"]:
+            raise ValueError("Maximum success rate cannot be less than minimum")
+        return v
+
+    @field_validator("error_rate")
+    @classmethod
+    def validate_error_rate_consistency(cls, v, info):
+        """Validate that error_rate = 1 - mean_success_rate."""
+        if "mean_success_rate" in info.data:
+            expected_error_rate = 1.0 - info.data["mean_success_rate"]
+            if abs(v - expected_error_rate) > 1e-10:  # Allow for floating point precision
+                raise ValueError(
+                    f"Error rate {v} should equal 1 - mean_success_rate ({expected_error_rate})"
+                )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "mean_success_rate": 0.72,
+                "std_success_rate": 0.05,
+                "min_success_rate": 0.65,
+                "max_success_rate": 0.80,
+                "total_trials": 3072,
+                "fidelity": 0.75,
+                "error_rate": 0.28,
+            }
+        }
