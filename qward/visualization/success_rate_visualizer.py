@@ -11,7 +11,6 @@ import pandas as pd
 from .base import BaseVisualizer, PlotConfig
 
 
-# --- Strategy Interface ---
 class PlotStrategy(ABC):
     """
     Abstract base class for a plot generation strategy.
@@ -41,9 +40,6 @@ class PlotStrategy(ABC):
     def _get_aggregate_df(self) -> Optional[pd.DataFrame]:
         # Helper to access data via the visualizer instance
         return self.visualizer.aggregate_df
-
-
-# --- Concrete Strategies ---
 
 
 class SuccessErrorPlotStrategy(PlotStrategy):
@@ -208,7 +204,6 @@ class AggregateSummaryPlotStrategy(PlotStrategy):
             label.set_horizontalalignment("right")
 
 
-# --- SuccessRateVisualizer (Context) ---
 class SuccessRateVisualizer(BaseVisualizer):
     """Visualizer for SuccessRate metrics using the Strategy pattern for different plots."""
 
