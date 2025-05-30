@@ -208,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
@@ -249,9 +250,15 @@
           <h1>Source code for qward.metrics.success_rate</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Success rate metrics implementation for QWARD.</span>
+
+<span class="sd">This module provides the SuccessRate class for analyzing the success rate of</span>
+<span class="sd">quantum circuits based on job execution results. It supports both single job</span>
+<span class="sd">and multiple job analysis with customizable success criteria.</span>
+
+<span class="sd">The success rate metrics help evaluate the performance and reliability of</span>
+<span class="sd">quantum circuit executions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -262,23 +269,41 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
 
+<span class="c1"># Import schemas for structured data validation</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">SuccessRateJobSchema</span><span class="p">,</span>
+        <span class="n">SuccessRateAggregateSchema</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">SCHEMAS_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">SCHEMAS_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Type alias for job types</span>
+<span class="n">JobType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]</span>
+
 
 <div class="viewcode-block" id="SuccessRate">
 <a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SuccessRate</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class for calculating success rate metrics for quantum circuits.</span>
+<span class="sd">    Calculate success rate metrics for quantum circuits.</span>
 
-<span class="sd">    This class provides methods for analyzing the success rate of quantum circuits,</span>
-<span class="sd">    including metrics such as the probability of success, fidelity, and more.</span>
+<span class="sd">    This class provides methods for analyzing the success rate of quantum circuits</span>
+<span class="sd">    based on job execution results. It supports both single job and multiple job</span>
+<span class="sd">    analysis with customizable success criteria.</span>
+
+<span class="sd">    The success rate metrics include probability of success, fidelity, error rates,</span>
+<span class="sd">    and statistical analysis across multiple runs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">jobs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">jobs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">success_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -289,7 +314,7 @@
 <span class="sd">            circuit: The quantum circuit to analyze</span>
 <span class="sd">            job: A single job that executed the circuit</span>
 <span class="sd">            jobs: A list of jobs that executed the circuit (for multiple runs)</span>
-<span class="sd">            result: The result of the job execution</span>
+<span class="sd">            result: The result of the job execution (deprecated, use job instead)</span>
 <span class="sd">            success_criteria: Function that determines if a measurement result is successful</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
@@ -297,96 +322,73 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="n">jobs</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">job</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span>  <span class="c1"># Keep for backward compatibility</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span> <span class="o">=</span> <span class="n">success_criteria</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_success_criteria</span><span class="p">()</span>
+
+        <span class="c1"># Maintain backward compatibility with runtime_job/runtime_jobs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_default_success_criteria</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Define the default success criteria for the circuit.</span>
-<span class="sd">        By default, considers all zeros as success.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Callable[[str], bool]: Function that takes a measurement result and returns True if successful</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="k">lambda</span> <span class="n">result</span><span class="p">:</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the type of this metric.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            MetricsType: The type of this metric</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the type of this metric.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">POST_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the ID of this metric.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            MetricsId: The ID of this metric</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the ID of this metric.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">SUCCESS_RATE</span>
 
 <div class="viewcode-block" id="SuccessRate.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if the metric is ready to be calculated.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: True if the metric is ready to be calculated, False otherwise</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the metric is ready to be calculated.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SuccessRate.get_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure Pydantic schemas are available, raise ImportError if not.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">&quot;Pydantic schemas are not available. Install pydantic to use structured metrics.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_default_success_criteria</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the metrics.</span>
+<span class="sd">        Define the default success criteria for the circuit.</span>
+
+<span class="sd">        By default, considers the ground state (all zeros) as success.</span>
+<span class="sd">        Handles measurement results with spaces and classical bit information.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Dictionary containing the metrics</span>
+<span class="sd">            Callable[[str], bool]: Function that takes a measurement result and returns True if successful</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># If we have multiple jobs, use the multiple job metrics</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_multiple_jobs_metrics</span><span class="p">()</span>
-        <span class="c1"># Otherwise, use the single job metrics</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate metrics&quot;</span><span class="p">)</span></div>
 
+        <span class="k">def</span><span class="w"> </span><span class="nf">is_ground_state</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="c1"># Remove all spaces to get clean bit string</span>
+            <span class="n">clean_result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SuccessRate.get_single_job_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_single_job_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QiskitJob</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+            <span class="c1"># Check if all bits are zero</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">bit</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span> <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="n">clean_result</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">is_ground_state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_job_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">JobType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract job ID from a job object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">job</span><span class="o">.</span><span class="n">job_id</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;job_id&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate success rate metrics from a single job result.</span>
+<span class="sd">        Calculate success metrics from measurement counts.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            job: Optional job to use for metrics calculation. If None, uses self.runtime_job.</span>
+<span class="sd">            counts: Dictionary of measurement outcomes and their counts</span>
+<span class="sd">            job_id: Identifier for the job</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dict: Success rate metrics for a single job</span>
+<span class="sd">            Dict[str, Any]: Success rate metrics</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">job</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We need a runtime job to calculate success rate&quot;</span><span class="p">)</span>
-
-        <span class="n">job_to_use</span> <span class="o">=</span> <span class="n">job</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">job_to_use</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-
-        <span class="c1"># Get counts from the result</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
-            <span class="c1"># Use job_id from job object if available</span>
-            <span class="n">job_id</span> <span class="o">=</span> <span class="n">job_to_use</span><span class="o">.</span><span class="n">job_id</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">,</span> <span class="s2">&quot;job_id&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;0&quot;</span>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
                 <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
@@ -397,27 +399,21 @@
                 <span class="s2">&quot;average_counts&quot;</span><span class="p">:</span> <span class="n">counts</span><span class="p">,</span>
             <span class="p">}</span>
 
-        <span class="c1"># Calculate success rate using the custom success criteria</span>
+        <span class="c1"># Calculate basic statistics</span>
         <span class="n">total_shots</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">successful_shots</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">successful_shots</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">count</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
-                <span class="n">successful_shots</span> <span class="o">+=</span> <span class="n">count</span>
-
+        <span class="c1"># Calculate rates</span>
         <span class="n">success_rate</span> <span class="o">=</span> <span class="n">successful_shots</span> <span class="o">/</span> <span class="n">total_shots</span> <span class="k">if</span> <span class="n">total_shots</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">success_rate</span>
 
         <span class="c1"># Calculate fidelity as the maximum probability</span>
         <span class="n">max_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="n">fidelity</span> <span class="o">=</span> <span class="n">max_count</span> <span class="o">/</span> <span class="n">total_shots</span> <span class="k">if</span> <span class="n">total_shots</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
 
-        <span class="c1"># Calculate error rate as 1 - success_rate</span>
-        <span class="n">error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">success_rate</span>
-
-        <span class="c1"># Extract job_id from the job object if available</span>
-        <span class="n">job_id</span> <span class="o">=</span> <span class="n">job_to_use</span><span class="o">.</span><span class="n">job_id</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">,</span> <span class="s2">&quot;job_id&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;0&quot;</span>
-
-        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
             <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">success_rate</span><span class="p">),</span>
             <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">error_rate</span><span class="p">),</span>
@@ -427,8 +423,102 @@
             <span class="s2">&quot;average_counts&quot;</span><span class="p">:</span> <span class="n">counts</span><span class="p">,</span>
         <span class="p">}</span>
 
-        <span class="k">return</span> <span class="n">metrics</span></div>
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Main API Methods</span>
+    <span class="c1"># =============================================================================</span>
 
+<div class="viewcode-block" id="SuccessRate.get_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get success rate metrics based on available jobs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Dictionary containing success rate metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_multiple_jobs_metrics</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate metrics&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SuccessRate.get_structured_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_structured_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;SuccessRateJobSchema&quot;</span><span class="p">,</span> <span class="s2">&quot;SuccessRateAggregateSchema&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get success rate metrics as structured, validated schema objects.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[SuccessRateJobSchema, SuccessRateAggregateSchema]: Validated metrics schema</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Pydantic schemas are not available</span>
+<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structured_multiple_jobs_metrics</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate metrics&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Single Job Metrics</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="SuccessRate.get_single_job_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_single_job_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate success rate metrics from a single job result.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            job: Optional job to use for metrics calculation. If None, uses self.runtime_job.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Success rate metrics for a single job</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">job</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A runtime job is required to calculate success rate&quot;</span><span class="p">)</span>
+
+        <span class="n">job_to_use</span> <span class="o">=</span> <span class="n">job</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">job_to_use</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_job_id</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_success_metrics</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">job_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SuccessRate.get_structured_single_job_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_structured_single_job_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_single_job_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SuccessRateJobSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get single job metrics as a validated schema object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            job: Optional job to use for metrics calculation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SuccessRateJobSchema: Validated single job metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+
+        <span class="c1"># Remove fields not in schema</span>
+        <span class="n">schema_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;average_counts&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">SuccessRateJobSchema</span><span class="p">(</span><span class="o">**</span><span class="n">schema_data</span><span class="p">)</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Multiple Jobs Metrics</span>
+    <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="SuccessRate.get_multiple_jobs_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_multiple_jobs_metrics">[docs]</a>
@@ -437,64 +527,84 @@
 <span class="sd">        Calculate success rate metrics from multiple job results.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dict: Success rate metrics for multiple jobs, including individual job metrics</span>
-<span class="sd">                  and aggregate metrics across all jobs</span>
+<span class="sd">            Dict[str, Any]: Success rate metrics for multiple jobs with individual and aggregate data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;We need multiple runtime jobs to calculate multiple job metrics&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple runtime jobs are required to calculate multiple job metrics&quot;</span><span class="p">)</span>
 
         <span class="c1"># Calculate metrics for each job</span>
-        <span class="n">success_rates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">fidelities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">total_shots_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">successful_shots_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">job_metrics</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">job_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">success_rates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fidelities</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">total_shots_list</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">):</span>
-            <span class="c1"># Temporarily set the current job to calculate single job metrics</span>
-            <span class="n">original_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="o">=</span> <span class="n">job</span>
+            <span class="n">single_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
-            <span class="c1"># Reuse single job metrics calculation</span>
-            <span class="n">single_job_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">()</span>
+            <span class="c1"># Extract data for aggregation</span>
+            <span class="n">success_rates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">])</span>
+            <span class="n">fidelities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">])</span>
+            <span class="n">total_shots_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">])</span>
 
-            <span class="c1"># Restore the original job</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runtime_job</span> <span class="o">=</span> <span class="n">original_job</span>
-
-            <span class="c1"># Extract metrics we need for aggregation</span>
-            <span class="n">success_rates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">])</span>
-            <span class="n">fidelities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">])</span>
-            <span class="n">total_shots_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">])</span>
-            <span class="n">successful_shots_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">])</span>
-
-            <span class="c1"># Add to job metrics list with actual job_id from the job object</span>
-            <span class="n">job_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job</span><span class="o">.</span><span class="n">job_id</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;job_id&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
-                    <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;error_rate&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="n">single_job_metrics</span><span class="p">[</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">],</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">success_rates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span>
-                <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;aggregate&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">}</span>
+            <span class="c1"># Add to individual job metrics (exclude average_counts for cleaner output)</span>
+            <span class="n">job_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">single_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;average_counts&quot;</span><span class="p">}</span>
+            <span class="n">job_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_data</span><span class="p">)</span>
 
         <span class="c1"># Calculate aggregate metrics</span>
+        <span class="n">aggregate_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_aggregate_metrics</span><span class="p">(</span>
+            <span class="n">success_rates</span><span class="p">,</span> <span class="n">fidelities</span><span class="p">,</span> <span class="n">total_shots_list</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
+            <span class="s2">&quot;aggregate&quot;</span><span class="p">:</span> <span class="n">aggregate_metrics</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SuccessRate.get_structured_multiple_jobs_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.get_structured_multiple_jobs_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_multiple_jobs_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SuccessRateAggregateSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get multiple jobs metrics as a validated schema object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SuccessRateAggregateSchema: Validated aggregate metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_multiple_jobs_metrics</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">SuccessRateAggregateSchema</span><span class="p">(</span><span class="o">**</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_aggregate_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">success_rates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">fidelities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">total_shots_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate aggregate statistics from multiple job results.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            success_rates: List of success rates from individual jobs</span>
+<span class="sd">            fidelities: List of fidelities from individual jobs</span>
+<span class="sd">            total_shots_list: List of total shots from individual jobs</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Aggregate metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success_rates</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Convert to numpy arrays for efficient calculation</span>
         <span class="n">success_rates_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">success_rates</span><span class="p">)</span>
+        <span class="n">fidelities_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fidelities</span><span class="p">)</span>
+
+        <span class="c1"># Calculate statistics</span>
         <span class="n">mean_success_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span>
         <span class="n">std_success_rate</span> <span class="o">=</span> <span class="p">(</span>
             <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
@@ -502,33 +612,26 @@
         <span class="n">min_success_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span>
         <span class="n">max_success_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span>
         <span class="n">total_trials</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">total_shots_list</span><span class="p">)</span>
-
-        <span class="c1"># Calculate average fidelity</span>
-        <span class="n">avg_fidelity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fidelities</span><span class="p">))</span>
-
-        <span class="c1"># Calculate error rate as 1 - mean_success_rate</span>
+        <span class="n">avg_fidelity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">))</span>
         <span class="n">error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">mean_success_rate</span>
 
-        <span class="c1"># Return both individual job metrics and aggregate metrics</span>
-        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
-            <span class="s2">&quot;aggregate&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="n">mean_success_rate</span><span class="p">,</span>
-                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="n">std_success_rate</span><span class="p">,</span>
-                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="n">min_success_rate</span><span class="p">,</span>
-                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="n">max_success_rate</span><span class="p">,</span>
-                <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="n">total_trials</span><span class="p">,</span>
-                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="n">avg_fidelity</span><span class="p">,</span>
-                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="n">error_rate</span><span class="p">,</span>
-            <span class="p">},</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="n">mean_success_rate</span><span class="p">,</span>
+            <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="n">std_success_rate</span><span class="p">,</span>
+            <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="n">min_success_rate</span><span class="p">,</span>
+            <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="n">max_success_rate</span><span class="p">,</span>
+            <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="n">total_trials</span><span class="p">,</span>
+            <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="n">avg_fidelity</span><span class="p">,</span>
+            <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="n">error_rate</span><span class="p">,</span>
         <span class="p">}</span>
 
-        <span class="k">return</span> <span class="n">metrics</span></div>
-
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Job Management Methods</span>
+    <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="SuccessRate.add_job">
 <a class="viewcode-back" href="../../../apidocs/metrics_success_rate.html#qward.metrics.success_rate.SuccessRate.add_job">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">JobType</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add one or more jobs to the list of jobs for multiple job metrics.</span>
 
