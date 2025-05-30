@@ -53,18 +53,18 @@ class CircuitPerformance(MetricCalculator):
     - If expected_distribution is provided: Classical fidelity F = Σᵢ √(pᵢ × qᵢ)
       where pᵢ is measured probability and qᵢ is expected probability
     - If no expected distribution: Probability of most frequent successful outcome
-    
+
     Example:
         # Basic usage with default success criteria (ground state)
         performance = CircuitPerformance(circuit, job=job)
         metrics = performance.get_metrics()
-        
+
         # With custom success criteria and expected distribution
         def custom_success(state): return state == "101"
         expected = {"000": 0.5, "101": 0.5}  # Bell state expectation
-        
+
         performance = CircuitPerformance(
-            circuit, 
+            circuit,
             job=job,
             success_criteria=custom_success,
             expected_distribution=expected
@@ -110,9 +110,7 @@ class CircuitPerformance(MetricCalculator):
 
     def is_ready(self) -> bool:
         """Check if the metric is ready to be calculated."""
-        return self.circuit is not None and (
-            self._job is not None or len(self._jobs) > 0
-        )
+        return self.circuit is not None and (self._job is not None or len(self._jobs) > 0)
 
     def _ensure_schemas_available(self) -> None:
         """Ensure Pydantic schemas are available, raise ImportError if not."""
@@ -148,43 +146,43 @@ class CircuitPerformance(MetricCalculator):
     def _calculate_fidelity(self, counts: Dict[str, int]) -> float:
         """
         Calculate quantum fidelity between measured and expected distributions.
-        
+
         If no expected distribution is provided, returns the probability of the most
         successful outcome according to success_criteria.
-        
+
         Args:
             counts: Dictionary of measurement outcomes and their counts
-            
+
         Returns:
             float: Fidelity value between 0.0 and 1.0
         """
         if not counts:
             return 0.0
-            
+
         total_shots = sum(counts.values())
         if total_shots == 0:
             return 0.0
-            
+
         # Convert counts to probabilities
         measured_probs = {state: count / total_shots for state, count in counts.items()}
-        
+
         if self.expected_distribution is not None:
             # Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)
             fidelity = 0.0
             all_states = set(measured_probs.keys()) | set(self.expected_distribution.keys())
-            
+
             for state in all_states:
                 p_measured = measured_probs.get(state, 0.0)
                 p_expected = self.expected_distribution.get(state, 0.0)
                 fidelity += np.sqrt(p_measured * p_expected)
-                
+
             return float(fidelity)
         else:
             # Fallback: return probability of most successful state
             successful_states = [state for state in counts.keys() if self.success_criteria(state)]
             if not successful_states:
                 return 0.0
-                
+
             # Find the most frequent successful state
             max_successful_count = max(counts[state] for state in successful_states)
             return float(max_successful_count / total_shots)
@@ -192,7 +190,7 @@ class CircuitPerformance(MetricCalculator):
     def set_expected_distribution(self, distribution: Dict[str, float]) -> None:
         """
         Set the expected probability distribution for fidelity calculation.
-        
+
         Args:
             distribution: Dictionary mapping measurement outcomes to expected probabilities
                          (should sum to 1.0)
@@ -200,8 +198,10 @@ class CircuitPerformance(MetricCalculator):
         # Validate that probabilities sum to approximately 1.0
         total_prob = sum(distribution.values())
         if not np.isclose(total_prob, 1.0, atol=1e-6):
-            raise ValueError(f"Expected distribution probabilities must sum to 1.0, got {total_prob}")
-            
+            raise ValueError(
+                f"Expected distribution probabilities must sum to 1.0, got {total_prob}"
+            )
+
         self.expected_distribution = distribution.copy()
 
     # =============================================================================
@@ -331,7 +331,7 @@ class CircuitPerformance(MetricCalculator):
     def get_single_job_metrics(self, job: Optional[JobType] = None) -> Dict[str, Any]:
         """
         Calculate circuit performance metrics from a single job result.
-        
+
         DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.
 
         Args:
@@ -344,15 +344,15 @@ class CircuitPerformance(MetricCalculator):
             raise ValueError("A runtime job is required to calculate circuit performance metrics")
 
         job_to_use = job or self._job
-        
+
         # Combine all metrics for backward compatibility
         success_metrics = self._get_single_job_success_metrics(job_to_use)
         fidelity_metrics = self._get_single_job_fidelity_metrics(job_to_use)
         statistical_metrics = self._get_single_job_statistical_metrics(job_to_use)
-        
+
         # Merge all metrics into a single dictionary
         combined_metrics = {**success_metrics, **fidelity_metrics, **statistical_metrics}
-        
+
         return combined_metrics
 
     def get_structured_single_job_metrics(
@@ -360,7 +360,7 @@ class CircuitPerformance(MetricCalculator):
     ) -> "CircuitPerformanceSchema":
         """
         Get single job metrics as a validated schema object.
-        
+
         DEPRECATED: Use get_structured_metrics() instead.
 
         Returns:
@@ -368,7 +368,7 @@ class CircuitPerformance(MetricCalculator):
         """
         self._ensure_schemas_available()
         metrics = self.get_single_job_metrics(job)
-        
+
         # Remove fields not in schema
         schema_data = {k: v for k, v in metrics.items() if k != "average_counts"}
         return CircuitPerformanceSchema(**schema_data)
@@ -380,7 +380,7 @@ class CircuitPerformance(MetricCalculator):
     def get_multiple_jobs_metrics(self) -> Dict[str, Any]:
         """
         Calculate circuit performance metrics from multiple job results.
-        
+
         DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.
 
         Returns:
@@ -398,25 +398,29 @@ class CircuitPerformance(MetricCalculator):
         combined_individual_jobs = []
         for i in range(len(self._jobs)):
             combined_job_metrics = {}
-            
+
             # Add success metrics for this job
             if i < len(success_metrics.get("individual_jobs", [])):
                 combined_job_metrics.update(success_metrics["individual_jobs"][i])
-            
+
             # Add fidelity metrics for this job
             if i < len(fidelity_metrics.get("individual_jobs", [])):
                 fidelity_job_metrics = fidelity_metrics["individual_jobs"][i]
                 # Remove duplicate job_id to avoid conflicts
-                fidelity_job_metrics = {k: v for k, v in fidelity_job_metrics.items() if k != "job_id"}
+                fidelity_job_metrics = {
+                    k: v for k, v in fidelity_job_metrics.items() if k != "job_id"
+                }
                 combined_job_metrics.update(fidelity_job_metrics)
-            
+
             # Add statistical metrics for this job
             if i < len(statistical_metrics.get("individual_jobs", [])):
                 statistical_job_metrics = statistical_metrics["individual_jobs"][i]
                 # Remove duplicate job_id to avoid conflicts
-                statistical_job_metrics = {k: v for k, v in statistical_job_metrics.items() if k != "job_id"}
+                statistical_job_metrics = {
+                    k: v for k, v in statistical_job_metrics.items() if k != "job_id"
+                }
                 combined_job_metrics.update(statistical_job_metrics)
-            
+
             combined_individual_jobs.append(combined_job_metrics)
 
         # Combine aggregate metrics
@@ -434,7 +438,7 @@ class CircuitPerformance(MetricCalculator):
     def get_structured_multiple_jobs_metrics(self) -> "CircuitPerformanceSchema":
         """
         Get multiple jobs metrics as a validated schema object.
-        
+
         DEPRECATED: Use get_structured_metrics() instead.
 
         Returns:
@@ -473,36 +477,36 @@ class CircuitPerformance(MetricCalculator):
     def create_uniform_distribution(num_qubits: int) -> Dict[str, float]:
         """
         Create a uniform distribution over all possible measurement outcomes.
-        
+
         Args:
             num_qubits: Number of qubits in the circuit
-            
+
         Returns:
             Dict[str, float]: Uniform probability distribution
         """
-        num_states = 2 ** num_qubits
+        num_states = 2**num_qubits
         prob = 1.0 / num_states
-        return {format(i, f'0{num_qubits}b'): prob for i in range(num_states)}
-    
+        return {format(i, f"0{num_qubits}b"): prob for i in range(num_states)}
+
     @staticmethod
     def create_ground_state_distribution(num_qubits: int) -> Dict[str, float]:
         """
         Create a distribution where only the ground state (|000...⟩) has probability 1.
-        
+
         Args:
             num_qubits: Number of qubits in the circuit
-            
+
         Returns:
             Dict[str, float]: Ground state distribution
         """
-        ground_state = '0' * num_qubits
+        ground_state = "0" * num_qubits
         return {ground_state: 1.0}
-    
+
     @staticmethod
     def create_bell_state_distribution() -> Dict[str, float]:
         """
         Create the expected distribution for a Bell state (|00⟩ + |11⟩)/√2.
-        
+
         Returns:
             Dict[str, float]: Bell state distribution
         """
@@ -575,7 +579,9 @@ class CircuitPerformance(MetricCalculator):
 
         success_rates_array = np.array(success_rates)
         mean_success_rate = float(np.mean(success_rates_array))
-        std_success_rate = float(np.std(success_rates_array)) if len(success_rates_array) > 1 else 0.0
+        std_success_rate = (
+            float(np.std(success_rates_array)) if len(success_rates_array) > 1 else 0.0
+        )
         min_success_rate = float(np.min(success_rates_array))
         max_success_rate = float(np.max(success_rates_array))
         total_trials = sum(total_shots_list)

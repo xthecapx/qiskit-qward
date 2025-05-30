@@ -22,7 +22,7 @@ def main():
     # Run multiple simulations
     simulator = AerSimulator()
     jobs = []
-    for i in range(3):
+    for _ in range(3):
         job = simulator.run(circuit, shots=1024)
         jobs.append(job)
 
