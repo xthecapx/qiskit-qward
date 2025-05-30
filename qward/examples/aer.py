@@ -363,15 +363,15 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     display(metrics_dict["CircuitPerformance.aggregate"])
 
     # Create visualizations using QWARD's visualization module
-    from qward.visualization import SuccessRateVisualizer, PlotConfig
+    from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
 
-    print("\nCreating visualizations using QWARD SuccessRateVisualizer...")
+    print("\nCreating visualizations using QWARD CircuitPerformanceVisualizer...")
 
     # Create a custom configuration for the plots
     config = PlotConfig(figsize=(10, 6), style="quantum", dpi=300, save_format="png")
 
     # Initialize the visualizer
-    visualizer = SuccessRateVisualizer(metrics_dict=metrics_dict, output_dir="img", config=config)
+    visualizer = CircuitPerformanceVisualizer(metrics_dict=metrics_dict, output_dir="img", config=config)
 
     # Option 1: Create all individual plots
     visualizer.plot_all(save=True, show=True)

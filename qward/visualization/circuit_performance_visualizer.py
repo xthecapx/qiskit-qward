@@ -1,5 +1,5 @@
 """
-SuccessRate visualization module for QWARD.
+CircuitPerformance visualization module for QWARD.
 """
 
 from typing import Dict, List, Optional
@@ -10,8 +10,8 @@ import pandas as pd
 from .base import BaseVisualizer, PlotConfig
 
 
-class SuccessRateVisualizer(BaseVisualizer):
-    """Visualizer for SuccessRate metrics with simplified implementation."""
+class CircuitPerformanceVisualizer(BaseVisualizer):
+    """Visualizer for CircuitPerformance metrics with simplified implementation."""
 
     def __init__(
         self,
@@ -20,11 +20,11 @@ class SuccessRateVisualizer(BaseVisualizer):
         config: Optional[PlotConfig] = None,
     ):
         """
-        Initialize the SuccessRate visualizer.
+        Initialize the CircuitPerformance visualizer.
 
         Args:
-            metrics_dict: Dictionary containing SuccessRate metrics.
-                          Expected keys: "SuccessRate.individual_jobs", "SuccessRate.aggregate".
+            metrics_dict: Dictionary containing CircuitPerformance metrics.
+                          Expected keys: "CircuitPerformance.individual_jobs", "CircuitPerformance.aggregate".
             output_dir: Directory to save plots.
             config: Plot configuration settings.
         """
@@ -375,7 +375,7 @@ class SuccessRateVisualizer(BaseVisualizer):
             List of matplotlib figures.
         """
         figures = []
-        print("Creating SuccessRate visualizations...")
+        print("Creating CircuitPerformance visualizations...")
 
         figures.append(self.plot_success_error_comparison(save=save, show=show))
         figures.append(self.plot_fidelity_comparison(save=save, show=show))
@@ -383,7 +383,7 @@ class SuccessRateVisualizer(BaseVisualizer):
         figures.append(self.plot_aggregate_summary(save=save, show=show))
 
         if save:
-            print(f"✅ All SuccessRate plots saved to '{self.output_dir}/' directory.")
+            print(f"✅ All CircuitPerformance plots saved to '{self.output_dir}/' directory.")
 
         return figures
 

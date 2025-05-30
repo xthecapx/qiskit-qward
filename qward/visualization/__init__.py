@@ -5,10 +5,11 @@ This module provides visualization tools for QWARD metrics, focusing on
 dynamic metrics that benefit from graphical representation.
 """
 
-from .success_rate_visualizer import SuccessRateVisualizer
-from .base import PlotConfig
+from .base import BaseVisualizer, PlotConfig
+from .circuit_performance_visualizer import CircuitPerformanceVisualizer
 
 __all__ = [
-    "SuccessRateVisualizer",
+    "BaseVisualizer",
     "PlotConfig",
+    "CircuitPerformanceVisualizer",
 ]
