@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
 from qward.metrics import CircuitPerformance
-from qward.visualization import SuccessRateVisualizer
+from qward.visualization import CircuitPerformanceVisualizer
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
     metrics_dict["CircuitPerformance.aggregate"].plot()
 
     # Create visualizations
-    visualizer = SuccessRateVisualizer(metrics_dict, output_dir="img/quickstart")
+    visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/quickstart")
     visualizer.plot_all(save=True, show=False)
 
     print("Visualizations saved to img/quickstart/")

@@ -6,7 +6,7 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
 from qward.metrics import CircuitPerformance
-from qward.visualization import SuccessRateVisualizer, PlotConfig
+from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
 
 
 def demo_circuit_performance_visualization():
@@ -65,7 +65,7 @@ def demo_circuit_performance_visualization():
     print("Demo 1: Default Visualization")
     print("=" * 40)
 
-    visualizer1 = SuccessRateVisualizer(metrics_dict, output_dir="img/demo_plots_default")
+    visualizer1 = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/demo_plots_default")
     figures1 = visualizer1.plot_all(save=True, show=False)
     print(f"✅ Created {len(figures1)} plots with default settings")
 
@@ -82,7 +82,7 @@ def demo_circuit_performance_visualization():
         color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"],
     )
 
-    visualizer2 = SuccessRateVisualizer(
+    visualizer2 = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="img/demo_plots_custom", config=custom_config
     )
     figures2 = visualizer2.plot_all(save=True, show=False)
@@ -93,7 +93,7 @@ def demo_circuit_performance_visualization():
     print("Demo 3: Individual Plot Methods")
     print("=" * 40)
 
-    visualizer3 = SuccessRateVisualizer(metrics_dict, output_dir="img/demo_plots_individual")
+    visualizer3 = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/demo_plots_individual")
 
     # Create specific plots
     print("Creating success vs error comparison...")
@@ -115,7 +115,7 @@ def demo_circuit_performance_visualization():
     print("Demo 4: Dashboard View")
     print("=" * 40)
 
-    visualizer4 = SuccessRateVisualizer(metrics_dict, output_dir="img/demo_plots_dashboard")
+    visualizer4 = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/demo_plots_dashboard")
     visualizer4.create_dashboard(save=True, show=False)
     print("✅ Created comprehensive dashboard")
 
