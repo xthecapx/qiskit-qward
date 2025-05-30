@@ -1,52 +1,53 @@
 """
-Demo showing QWARD's schema-based metrics with validation.
+Schema-Based Metrics Demo for QWARD.
 
-This example demonstrates how to use structured schema objects instead of
-plain dictionaries for better type safety, validation, and documentation.
-Inspired by dataframely's approach to data validation.
+This demo showcases the schema-based validation functionality inspired by
+dataframely's approach to data validation and documentation.
+
+Key features demonstrated:
+- Traditional dictionary vs schema-based approaches
+- Automatic validation and type checking
+- JSON schema generation for documentation
+- IDE support and developer experience improvements
 """
 
-from typing import Any, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any
+import json
 
 from qiskit import QuantumCircuit
-from qward.metrics import QiskitMetrics
+from qward.metrics.qiskit_metrics import QiskitMetrics
 
-# Import schemas with proper type checking
 if TYPE_CHECKING:
-    from qward.metrics.schemas import QiskitMetricsSchema, BasicMetricsSchema
-
-try:
-    from qward.metrics.schemas import QiskitMetricsSchema, BasicMetricsSchema
-
-    SCHEMAS_AVAILABLE = True
-except ImportError:
-    SCHEMAS_AVAILABLE = False
+    from qward.metrics.schemas import QiskitMetricsSchema
 
 
 def create_example_circuit() -> QuantumCircuit:
-    """Create a simple example quantum circuit for demonstration."""
+    """Create a simple quantum circuit for demonstration."""
     circuit = QuantumCircuit(2, 2)
     circuit.h(0)
     circuit.cx(0, 1)
+    circuit.barrier()
     circuit.measure_all()
     return circuit
 
 
-def demo_traditional_approach() -> None:
-    """Demonstrate the traditional dictionary-based approach."""
+def demo_traditional_approach() -> Dict[str, Any]:
+    """Demonstrate traditional dictionary-based metrics."""
     print("=" * 60)
     print("Traditional Dictionary-Based Approach")
     print("=" * 60)
 
     circuit = create_example_circuit()
-    qm = QiskitMetrics(circuit)
-    metrics_dict = qm.get_metrics()
+    qiskit_metrics = QiskitMetrics(circuit)
+
+    # Traditional approach - returns flattened dictionary
+    traditional_metrics = qiskit_metrics.get_metrics()
 
     print("✅ Traditional metrics (flattened dictionary):")
-    print(f"   Type: {type(metrics_dict)}")
-    print(f"   Keys: {list(metrics_dict.keys())[:5]}...")
-    print(f"   Depth: {metrics_dict['basic_metrics.depth']}")
-    print(f"   Qubits: {metrics_dict['basic_metrics.num_qubits']}")
+    print(f"   Type: {type(traditional_metrics)}")
+    print(f"   Keys: {list(traditional_metrics.keys())[:5]}...")
+    print(f"   Depth: {traditional_metrics['basic_metrics.depth']}")
+    print(f"   Qubits: {traditional_metrics['basic_metrics.num_qubits']}")
 
     print("\n❌ Issues with traditional approach:")
     print("   - No type hints for IDE support")
@@ -54,136 +55,152 @@ def demo_traditional_approach() -> None:
     print("   - Unclear what fields are available")
     print("   - Easy to make typos in key names")
 
-    # Example of potential issues
-    wrong_key = metrics_dict.get("basic_metrics.depht")  # typo: 'depht' instead of 'depth'
-    print(f"   - Typo example: {wrong_key} (should be None due to typo)")
+    # Demonstrate potential issues
+    typo_result = traditional_metrics.get("basic_metrics.depht")  # Typo!
+    print(f"   - Typo example: {typo_result} (should be None due to typo)")
+
+    return traditional_metrics
 
 
-def demo_schema_approach() -> None:
-    """Demonstrate the new schema-based approach."""
-    if not SCHEMAS_AVAILABLE:
-        print("\n⚠️  Skipping schema demo - Pydantic not available")
-        print("   Install pydantic to see structured metrics in action")
-        return
-
+def demo_schema_approach() -> "QiskitMetricsSchema":
+    """Demonstrate schema-based metrics with validation."""
     print("\n" + "=" * 60)
     print("New Schema-Based Approach")
     print("=" * 60)
 
     circuit = create_example_circuit()
-    qm = QiskitMetrics(circuit)
-    metrics_schema = qm.get_structured_metrics()
-
-    print("✅ Schema-based metrics (structured object):")
-    print(f"   Type: {type(metrics_schema)}")
-    print(f"   Depth: {metrics_schema.basic_metrics.depth}")
-    print(f"   Qubits: {metrics_schema.basic_metrics.num_qubits}")
-    print(f"   Operations: {dict(metrics_schema.basic_metrics.count_ops)}")
-
-    print("\n✅ Benefits of schema approach:")
-    print("   - Full type hints and IDE autocomplete")
-    print("   - Automatic validation of data types and constraints")
-    print("   - Clear documentation of all available fields")
-    print("   - Compile-time error detection")
-
-    _demo_field_documentation(metrics_schema)
-    _demo_validation()
-    _demo_conversion_capabilities(metrics_schema)
-
-
-def _demo_field_documentation(metrics_schema: "QiskitMetricsSchema") -> None:
-    """Demonstrate field documentation capabilities."""
-    print("\n🔍 Schema validation in action:")
-
-    basic_schema = metrics_schema.basic_metrics
-    print(f"   - Depth field: {basic_schema.model_fields['depth'].description}")
-    print(f"   - Width field: {basic_schema.model_fields['width'].description}")
-
-
-def _demo_validation() -> None:
-    """Demonstrate automatic validation with invalid data."""
-    if not SCHEMAS_AVAILABLE:
-        return
-
-    # Import here to ensure it's available when we need it
-    from qward.metrics.schemas import BasicMetricsSchema
+    qiskit_metrics = QiskitMetrics(circuit)
 
     try:
+        # Schema-based approach - returns structured, validated object
+        schema_metrics = qiskit_metrics.get_structured_metrics()
+
+        print("✅ Schema-based metrics (structured object):")
+        print(f"   Type: {type(schema_metrics)}")
+        print(f"   Depth: {schema_metrics.basic_metrics.depth}")  # pylint: disable=no-member
+        print(f"   Qubits: {schema_metrics.basic_metrics.num_qubits}")  # pylint: disable=no-member
+        print(f"   Operations: {schema_metrics.basic_metrics.count_ops}")  # pylint: disable=no-member
+
+        print("\n✅ Benefits of schema approach:")
+        print("   - Full type hints and IDE autocomplete")
+        print("   - Automatic validation of data types and constraints")
+        print("   - Clear documentation of all available fields")
+        print("   - Compile-time error detection")
+
+        return schema_metrics
+
+    except ImportError:
+        print("❌ Pydantic not available - install pydantic for schema validation")
+        return None
+
+
+def demo_validation_features() -> None:
+    """Demonstrate schema validation capabilities."""
+    print("\n🔍 Schema validation in action:")
+
+    try:
+        from qward.metrics.schemas import BasicMetricsSchema
+
+        print("   - Schema provides automatic validation for:")
+        print("   - Depth field: Circuit depth (number of time steps)")
+        print("   - Width field: Circuit width (total qubits and classical bits)")
         print("   - Testing validation with invalid data...")
-        invalid_data: Dict[str, Any] = {
-            "depth": -1,  # Invalid: negative depth
-            "width": 6,
-            "size": 4,
-            "num_qubits": 2,
-            "num_clbits": 4,
-            "num_ancillas": 0,
-            "num_parameters": 0,
-            "has_calibrations": False,
-            "has_layout": False,
-            "count_ops": {"h": 1, "cx": 1},
-        }
-        # This will fail validation due to negative depth
-        BasicMetricsSchema(**invalid_data)
-        print("   ❌ Validation should have failed!")
-    except Exception as e:
-        print(f"   ✅ Validation caught invalid data: {e}")
+
+        # Test validation with invalid data
+        try:
+            BasicMetricsSchema(
+                depth=-1,  # Invalid - should be >= 0
+                width=2,
+                size=5,
+                num_qubits=2,
+                num_clbits=2,
+                num_ancillas=0,
+                num_parameters=0,
+                has_calibrations=False,
+                has_layout=False,
+                count_ops={},
+            )
+        except Exception as e:
+            print(f"   ✅ Validation caught invalid data: {e}")
+
+    except ImportError:
+        print("   ❌ Pydantic not available for validation demo")
 
 
-def _demo_conversion_capabilities(metrics_schema: "QiskitMetricsSchema") -> None:
-    """Demonstrate conversion capabilities between formats."""
-    if not SCHEMAS_AVAILABLE:
-        return
-
-    # Import here to ensure it's available when we need it
-    from qward.metrics.schemas import QiskitMetricsSchema
-
+def demo_conversion_capabilities() -> None:
+    """Demonstrate conversion between schema and dictionary formats."""
     print("\n🔄 Conversion capabilities:")
 
-    # Convert to flat dictionary
-    flat_dict = metrics_schema.to_flat_dict()
-    print(f"   - Can convert to flat dict: {len(flat_dict)} keys")
-    print(f"   - Sample keys: {list(flat_dict.keys())[:3]}...")
+    circuit = create_example_circuit()
+    qiskit_metrics = QiskitMetrics(circuit)
 
-    # Show round-trip conversion
-    reconstructed = QiskitMetricsSchema.from_flat_dict(flat_dict)
-    depth_matches = reconstructed.basic_metrics.depth == metrics_schema.basic_metrics.depth
-    print(f"   - Round-trip conversion works: {depth_matches}")
+    try:
+        schema_metrics = qiskit_metrics.get_structured_metrics()
+
+        # Convert to flat dictionary (for DataFrame compatibility)
+        flat_dict = schema_metrics.to_flat_dict()
+        print(f"   - Can convert to flat dict: {len(flat_dict)} keys")
+        print(f"   - Sample keys: {list(flat_dict.keys())[:3]}...")
+
+        # Test round-trip conversion
+        from qward.metrics.schemas import QiskitMetricsSchema
+
+        reconstructed = QiskitMetricsSchema.from_flat_dict(flat_dict)
+
+        # Compare original and reconstructed
+        original_depth = schema_metrics.basic_metrics.depth  # pylint: disable=no-member
+        reconstructed_depth = reconstructed.basic_metrics.depth  # pylint: disable=no-member
+        round_trip_works = original_depth == reconstructed_depth
+
+        print(f"   - Round-trip conversion works: {round_trip_works}")
+
+    except ImportError:
+        print("   ❌ Pydantic not available for conversion demo")
 
 
 def demo_json_schema_generation() -> None:
-    """Demonstrate JSON schema generation for documentation."""
-    if not SCHEMAS_AVAILABLE:
-        return
-
-    # Import here to ensure it's available when we need it
-    from qward.metrics.schemas import BasicMetricsSchema
-
+    """Demonstrate JSON schema generation for API documentation."""
     print("\n" + "=" * 60)
     print("JSON Schema Generation for Documentation")
     print("=" * 60)
 
     try:
-        schema = BasicMetricsSchema.model_json_schema()
+        from qward.metrics.schemas import BasicMetricsSchema
+
+        # Generate JSON schema
+        json_schema = BasicMetricsSchema.model_json_schema()
 
         print("✅ Generated JSON schema for basic metrics:")
-        print(f"   - Title: {schema.get('title', 'N/A')}")
-        print(f"   - Properties: {list(schema.get('properties', {}).keys())}")
+        print(f"   - Title: {json_schema.get('title', 'N/A')}")
+        print(f"   - Properties: {list(json_schema.get('properties', {}).keys())}")
 
-        # Show field constraints
-        depth_field = schema.get("properties", {}).get("depth", {})
-        print(f"   - Depth field minimum: {depth_field.get('minimum', 'N/A')}")
-        print(f"   - Depth field type: {depth_field.get('type', 'N/A')}")
+        # Show specific field constraints
+        properties = json_schema.get("properties", {})
+        depth_schema = properties.get("depth", {})
+        print(f"   - Depth field minimum: {depth_schema.get('minimum', 'N/A')}")
+        print(f"   - Depth field type: {depth_schema.get('type', 'N/A')}")
 
         print("   - Note: Full schema generation works for schemas without complex objects")
         print("   - Complex objects like CircuitInstruction require custom serialization")
 
-    except Exception as e:
-        print(f"   ❌ Schema generation failed: {e}")
-        print("   - This can happen with complex objects that don't have JSON representations")
+    except ImportError:
+        print("❌ Pydantic not available for JSON schema generation")
 
 
-def print_summary() -> None:
-    """Print the demo summary."""
+def main() -> None:
+    """Run the complete schema demo."""
+    print("QWARD Schema-Based Metrics Demo")
+    print("Inspired by dataframely's approach to data validation")
+    print("=" * 60)
+
+    # Run all demonstrations
+    demo_traditional_approach()
+    demo_schema_approach()
+    demo_validation_features()
+    demo_conversion_capabilities()
+    demo_json_schema_generation()
+
+    # Summary
     print("\n" + "=" * 60)
     print("Summary")
     print("=" * 60)
@@ -194,24 +211,6 @@ def print_summary() -> None:
     print("✅ JSON schema generation for API docs")
     print("✅ Backward compatibility with existing code")
     print("\nThis makes QWARD more robust and user-friendly!")
-
-
-def main() -> None:
-    """Run all schema demos."""
-    print("QWARD Schema-Based Metrics Demo")
-    print("Inspired by dataframely's approach to data validation")
-
-    if not SCHEMAS_AVAILABLE:
-        print("\n⚠️  Pydantic schemas not available.")
-        print("   Install pydantic to see full structured metrics capabilities:")
-        print("   pip install pydantic")
-        print("\n   Running traditional approach demo only...\n")
-
-    # Run demos
-    demo_traditional_approach()
-    demo_schema_approach()
-    demo_json_schema_generation()
-    print_summary()
 
 
 if __name__ == "__main__":

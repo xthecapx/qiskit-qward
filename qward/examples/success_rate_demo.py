@@ -13,11 +13,10 @@ import json
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
+from qward.metrics.success_rate import SuccessRate
 
 if TYPE_CHECKING:
     from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
-
-from qward.metrics.success_rate import SuccessRate
 
 
 def create_bell_circuit() -> QuantumCircuit:
@@ -185,7 +184,7 @@ def demo_validation_features() -> None:
         )
         print(f"Success Rate: {job_schema.success_rate}")
         print(f"Error Rate: {job_schema.error_rate}")
-        print(f"Validation: ✅ Passed")
+        print("Validation: ✅ Passed")
         print()
 
         # Test validation - this should work
@@ -201,7 +200,7 @@ def demo_validation_features() -> None:
         )
         print(f"Mean Success Rate: {aggregate_schema.mean_success_rate}")
         print(f"Standard Deviation: {aggregate_schema.std_success_rate}")
-        print(f"Validation: ✅ Passed")
+        print("Validation: ✅ Passed")
         print()
 
         # Test validation errors

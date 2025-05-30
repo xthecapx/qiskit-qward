@@ -269,7 +269,7 @@ class SuccessRate(MetricCalculator):
         fidelities = []
         total_shots_list = []
 
-        for i, job in enumerate(self.runtime_jobs):
+        for job in self.runtime_jobs:
             single_metrics = self.get_single_job_metrics(job)
 
             # Extract data for aggregation
