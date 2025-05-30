@@ -807,17 +807,29 @@ class SuccessMetricsSchema(BaseModel):
     """
 
     # Single job fields
-    success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Success rate (0.0 to 1.0)")
+    success_rate: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Success rate (0.0 to 1.0)"
+    )
     error_rate: float = Field(..., ge=0.0, le=1.0, description="Error rate (0.0 to 1.0)")
     total_shots: Optional[int] = Field(None, ge=0, description="Total number of shots")
     successful_shots: Optional[int] = Field(None, ge=0, description="Number of successful shots")
-    
+
     # Multiple jobs aggregate fields
-    mean_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean success rate across jobs")
-    std_success_rate: Optional[float] = Field(None, ge=0.0, description="Standard deviation of success rates")
-    min_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum success rate")
-    max_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Maximum success rate")
-    total_trials: Optional[int] = Field(None, ge=0, description="Total number of trials across all jobs")
+    mean_success_rate: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Mean success rate across jobs"
+    )
+    std_success_rate: Optional[float] = Field(
+        None, ge=0.0, description="Standard deviation of success rates"
+    )
+    min_success_rate: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Minimum success rate"
+    )
+    max_success_rate: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Maximum success rate"
+    )
+    total_trials: Optional[int] = Field(
+        None, ge=0, description="Total number of trials across all jobs"
+    )
 
     @field_validator("successful_shots")
     @classmethod
@@ -853,20 +865,27 @@ class FidelityMetricsSchema(BaseModel):
     """
 
     # Single job fields
-    fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Quantum fidelity (0.0 to 1.0)")
+    fidelity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Quantum fidelity (0.0 to 1.0)"
+    )
     has_expected_distribution: Optional[bool] = Field(
         None, description="Whether expected distribution was provided for fidelity calculation"
     )
     method: str = Field(
-        ..., description="Method used for fidelity calculation (theoretical_comparison or success_based)"
+        ...,
+        description="Method used for fidelity calculation (theoretical_comparison or success_based)",
     )
     confidence: str = Field(
         ..., description="Confidence level of the fidelity calculation (high, medium, low)"
     )
-    
+
     # Multiple jobs aggregate fields
-    mean_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean fidelity across jobs")
-    std_fidelity: Optional[float] = Field(None, ge=0.0, description="Standard deviation of fidelities")
+    mean_fidelity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Mean fidelity across jobs"
+    )
+    std_fidelity: Optional[float] = Field(
+        None, ge=0.0, description="Standard deviation of fidelities"
+    )
     min_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum fidelity")
     max_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Maximum fidelity")
 
@@ -893,25 +912,46 @@ class StatisticalMetricsSchema(BaseModel):
     """
 
     # Single job fields
-    entropy: Optional[float] = Field(None, ge=0.0, description="Shannon entropy of the distribution")
-    uniformity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Uniformity measure (0.0 to 1.0)")
+    entropy: Optional[float] = Field(
+        None, ge=0.0, description="Shannon entropy of the distribution"
+    )
+    uniformity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Uniformity measure (0.0 to 1.0)"
+    )
     concentration: Optional[float] = Field(
         None, ge=0.0, le=1.0, description="Concentration measure (0.0 to 1.0)"
     )
     dominant_outcome_probability: Optional[float] = Field(
         None, ge=0.0, le=1.0, description="Probability of the most frequent outcome"
     )
-    num_unique_outcomes: Optional[int] = Field(None, ge=0, description="Number of unique measurement outcomes")
-    
+    num_unique_outcomes: Optional[int] = Field(
+        None, ge=0, description="Number of unique measurement outcomes"
+    )
+
     # Multiple jobs aggregate fields
     mean_entropy: Optional[float] = Field(None, ge=0.0, description="Mean entropy across jobs")
-    mean_uniformity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean uniformity across jobs")
-    mean_concentration: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean concentration across jobs")
-    mean_dominant_probability: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean dominant probability across jobs")
+    mean_uniformity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Mean uniformity across jobs"
+    )
+    mean_concentration: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Mean concentration across jobs"
+    )
+    mean_dominant_probability: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Mean dominant probability across jobs"
+    )
     std_entropy: Optional[float] = Field(None, ge=0.0, description="Standard deviation of entropy")
-    std_uniformity: Optional[float] = Field(None, ge=0.0, description="Standard deviation of uniformity")
+    std_uniformity: Optional[float] = Field(
+        None, ge=0.0, description="Standard deviation of uniformity"
+    )
 
-    @field_validator("uniformity", "concentration", "dominant_outcome_probability", "mean_uniformity", "mean_concentration", "mean_dominant_probability")
+    @field_validator(
+        "uniformity",
+        "concentration",
+        "dominant_outcome_probability",
+        "mean_uniformity",
+        "mean_concentration",
+        "mean_dominant_probability",
+    )
     @classmethod
     def validate_ratio_bounds(cls, v):
         """Validate that ratios are between 0 and 1."""
@@ -1044,7 +1084,7 @@ class CircuitPerformanceJobSchema(BaseModel):
 
     This schema validates circuit performance metrics from a single
     quantum job execution.
-    
+
     DEPRECATED: Use CircuitPerformanceSchema instead.
     """
 
@@ -1098,7 +1138,7 @@ class CircuitPerformanceAggregateSchema(BaseModel):
 
     This schema validates aggregate circuit performance metrics computed
     across multiple job executions.
-    
+
     DEPRECATED: Use CircuitPerformanceSchema instead.
     """
 

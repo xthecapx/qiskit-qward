@@ -189,7 +189,9 @@ def example_circuit_performance_metrics(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit, result=qward_result)
 
     # Add CircuitPerformance strategy
-    circuit_performance_strategy = CircuitPerformance(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+    circuit_performance_strategy = CircuitPerformance(
+        circuit=circuit, job=job, success_criteria=lambda x: x == "11"
+    )
     scanner.add_strategy(circuit_performance_strategy)
 
     # Calculate metrics
@@ -343,7 +345,9 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit)
 
     # Add CircuitPerformance strategy with multiple jobs
-    circuit_performance_strategy = CircuitPerformance(circuit=circuit, success_criteria=lambda x: x == "11")
+    circuit_performance_strategy = CircuitPerformance(
+        circuit=circuit, success_criteria=lambda x: x == "11"
+    )
 
     # Add jobs one by one to demonstrate the new functionality
     circuit_performance_strategy.add_job(jobs[0])  # Add first job
@@ -371,7 +375,9 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     config = PlotConfig(figsize=(10, 6), style="quantum", dpi=300, save_format="png")
 
     # Initialize the visualizer
-    visualizer = CircuitPerformanceVisualizer(metrics_dict=metrics_dict, output_dir="img", config=config)
+    visualizer = CircuitPerformanceVisualizer(
+        metrics_dict=metrics_dict, output_dir="img", config=config
+    )
 
     # Option 1: Create all individual plots
     visualizer.plot_all(save=True, show=True)

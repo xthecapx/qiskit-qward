@@ -130,10 +130,12 @@ def demo_schema_approach() -> None:
         circuit_performance_multi = CircuitPerformance(circuit, jobs=jobs)
         aggregate_metrics = circuit_performance_multi.get_structured_metrics()
 
-        print(f"\n✓ Multiple jobs aggregate metrics:")
+        print("\n✓ Multiple jobs aggregate metrics:")
         print(f"   Mean Success Rate: {aggregate_metrics.success_metrics.mean_success_rate}")
         print(f"   Mean Fidelity: {aggregate_metrics.fidelity_metrics.mean_fidelity}")
-        print(f"   Standard Deviation (Success): {aggregate_metrics.success_metrics.std_success_rate}")
+        print(
+            f"   Standard Deviation (Success): {aggregate_metrics.success_metrics.std_success_rate}"
+        )
 
     except Exception as e:
         print(f"❌ Error in schema approach: {e}")
@@ -186,7 +188,12 @@ def demo_validation_features() -> None:
         return
 
     # Import schemas for validation
-    from qward.metrics.schemas import CircuitPerformanceSchema, SuccessMetricsSchema, FidelityMetricsSchema, StatisticalMetricsSchema
+    from qward.metrics.schemas import (
+        CircuitPerformanceSchema,
+        SuccessMetricsSchema,
+        FidelityMetricsSchema,
+        StatisticalMetricsSchema,
+    )
 
     print("1. Valid single job schema creation:")
     single_job_schema = CircuitPerformanceSchema(
@@ -210,7 +217,9 @@ def demo_validation_features() -> None:
             num_unique_outcomes=4,
         ),
     )
-    print(f"✓ Valid single job schema created: Success Rate = {single_job_schema.success_metrics.success_rate}")
+    print(
+        f"✓ Valid single job schema created: Success Rate = {single_job_schema.success_metrics.success_rate}"
+    )
 
     print("\n2. Valid multiple jobs aggregate schema:")
     aggregate_schema = CircuitPerformanceSchema(
@@ -239,12 +248,14 @@ def demo_validation_features() -> None:
             std_uniformity=0.03,
         ),
     )
-    print(f"✓ Valid aggregate schema created: Mean Success Rate = {aggregate_schema.success_metrics.mean_success_rate}")
+    print(
+        f"✓ Valid aggregate schema created: Mean Success Rate = {aggregate_schema.success_metrics.mean_success_rate}"
+    )
 
     print("\n3. Schema validation error handling:")
     try:
         # This should fail because success_rate > 1.0
-        invalid_schema = SuccessMetricsSchema(
+        SuccessMetricsSchema(
             success_rate=1.5,  # Invalid: > 1.0
             error_rate=0.15,
             total_shots=1024,
@@ -258,12 +269,12 @@ def demo_validation_features() -> None:
     # Create a circuit and run it
     circuit = create_bell_circuit()
     job = run_circuit_simulation(circuit)
-    
+
     # Get real metrics and validate them
     circuit_performance = CircuitPerformance(circuit, job=job)
     real_metrics = circuit_performance.get_structured_metrics()
-    
-    print(f"✓ Real metrics validated successfully:")
+
+    print("✓ Real metrics validated successfully:")
     print(f"   Success Rate: {real_metrics.success_metrics.success_rate:.3f}")
     print(f"   Fidelity: {real_metrics.fidelity_metrics.fidelity:.3f}")
     print(f"   Method: {real_metrics.fidelity_metrics.method}")
@@ -283,7 +294,12 @@ def demo_json_schema_generation() -> None:
         return
 
     # Import schemas for JSON generation
-    from qward.metrics.schemas import CircuitPerformanceSchema, SuccessMetricsSchema, FidelityMetricsSchema, StatisticalMetricsSchema
+    from qward.metrics.schemas import (
+        CircuitPerformanceSchema,
+        SuccessMetricsSchema,
+        FidelityMetricsSchema,
+        StatisticalMetricsSchema,
+    )
 
     job_schema = CircuitPerformanceSchema.model_json_schema()
     print("CircuitPerformance JSON Schema keys:")

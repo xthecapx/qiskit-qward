@@ -35,16 +35,20 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
         self.individual_df = self.metrics_dict.get("CircuitPerformance.individual_jobs")
         if self.individual_df is None:
             self.individual_df = self.metrics_dict.get("SuccessRate.individual_jobs")
-            
+
         self.aggregate_df = self.metrics_dict.get("CircuitPerformance.aggregate")
         if self.aggregate_df is None:
             self.aggregate_df = self.metrics_dict.get("SuccessRate.aggregate")
 
         if self.individual_df is None:
-            raise ValueError("'CircuitPerformance.individual_jobs' or 'SuccessRate.individual_jobs' data not found in metrics_dict.")
+            raise ValueError(
+                "'CircuitPerformance.individual_jobs' or 'SuccessRate.individual_jobs' data not found in metrics_dict."
+            )
         if self.aggregate_df is None:
             # For single job cases, aggregate_df might not exist
-            print("Note: Aggregate data not found. Some visualizations may be limited to individual job data only.")
+            print(
+                "Note: Aggregate data not found. Some visualizations may be limited to individual job data only."
+            )
 
         # Validate core columns early for individual_df
         core_individual_cols = [
@@ -235,17 +239,19 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
             # Create aggregate summary from individual jobs data
             if "success_rate" in self.individual_df.columns:
                 mean_success = self.individual_df["success_rate"].mean()
-                std_success = self.individual_df["success_rate"].std() if len(self.individual_df) > 1 else 0
+                std_success = (
+                    self.individual_df["success_rate"].std() if len(self.individual_df) > 1 else 0
+                )
                 min_success = self.individual_df["success_rate"].min()
                 max_success = self.individual_df["success_rate"].max()
             else:
                 mean_success = std_success = min_success = max_success = 0
-                
+
             if "fidelity" in self.individual_df.columns:
                 fidelity = self.individual_df["fidelity"].mean()
             else:
                 fidelity = 0
-                
+
             if "error_rate" in self.individual_df.columns:
                 error_rate = self.individual_df["error_rate"].mean()
             else:
@@ -286,7 +292,9 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
                 else 0
             )
             fidelity = (
-                self.aggregate_df["mean_fidelity"].iloc[0] if not self.aggregate_df["mean_fidelity"].empty else 0
+                self.aggregate_df["mean_fidelity"].iloc[0]
+                if not self.aggregate_df["mean_fidelity"].empty
+                else 0
             )
             error_rate = (
                 self.aggregate_df["error_rate"].iloc[0]

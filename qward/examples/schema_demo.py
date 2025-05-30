@@ -75,13 +75,11 @@ def demo_schema_approach() -> "QiskitMetricsSchema":
         # Schema-based approach - returns structured, validated object
         schema_metrics = qiskit_metrics.get_structured_metrics()
 
-        print("✅ Schema-based metrics (structured object):")
+        print("✓ Schema-based metrics (structured object):")
         print(f"   Type: {type(schema_metrics)}")
-        print(f"   Depth: {schema_metrics.basic_metrics.depth}")  # pylint: disable=no-member
-        print(f"   Qubits: {schema_metrics.basic_metrics.num_qubits}")  # pylint: disable=no-member
-        print(
-            f"   Operations: {schema_metrics.basic_metrics.count_ops}"  # pylint: disable=no-member
-        )
+        print(f"   Depth: {schema_metrics.basic_metrics.depth}")
+        print(f"   Qubits: {schema_metrics.basic_metrics.num_qubits}")
+        print(f"   Operations: {schema_metrics.basic_metrics.count_ops}")
 
         print("\n✅ Benefits of schema approach:")
         print("   - Full type hints and IDE autocomplete")
@@ -150,8 +148,8 @@ def demo_conversion_capabilities() -> None:
         reconstructed = QiskitMetricsSchema.from_flat_dict(flat_dict)
 
         # Compare original and reconstructed
-        original_depth = schema_metrics.basic_metrics.depth  # pylint: disable=no-member
-        reconstructed_depth = reconstructed.basic_metrics.depth  # pylint: disable=no-member
+        original_depth = schema_metrics.basic_metrics.depth
+        reconstructed_depth = reconstructed.basic_metrics.depth
         round_trip_works = original_depth == reconstructed_depth
 
         print(f"   - Round-trip conversion works: {round_trip_works}")
