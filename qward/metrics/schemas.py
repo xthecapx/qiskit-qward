@@ -793,16 +793,259 @@ class ComplexityMetricsSchema(BaseModel):
 
 
 # =============================================================================
-# Success Rate Metrics Schemas
+# Circuit Performance Metrics Schemas
 # =============================================================================
 
 
-class SuccessRateJobSchema(BaseModel):
+class SuccessMetricsSchema(BaseModel):
     """
-    Schema for individual job success rate metrics.
+    Schema for success rate metrics.
 
-    This schema validates success rate metrics from a single
+    This schema validates success rate metrics including
+    success rate, error rate, and shot analysis for both
+    single job and multiple jobs cases.
+    """
+
+    # Single job fields
+    success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Success rate (0.0 to 1.0)")
+    error_rate: float = Field(..., ge=0.0, le=1.0, description="Error rate (0.0 to 1.0)")
+    total_shots: Optional[int] = Field(None, ge=0, description="Total number of shots")
+    successful_shots: Optional[int] = Field(None, ge=0, description="Number of successful shots")
+    
+    # Multiple jobs aggregate fields
+    mean_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean success rate across jobs")
+    std_success_rate: Optional[float] = Field(None, ge=0.0, description="Standard deviation of success rates")
+    min_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum success rate")
+    max_success_rate: Optional[float] = Field(None, ge=0.0, le=1.0, description="Maximum success rate")
+    total_trials: Optional[int] = Field(None, ge=0, description="Total number of trials across all jobs")
+
+    @field_validator("successful_shots")
+    @classmethod
+    def validate_successful_shots(cls, v, info):
+        """Validate that successful_shots <= total_shots."""
+        if v is not None and "total_shots" in info.data and info.data["total_shots"] is not None:
+            if v > info.data["total_shots"]:
+                raise ValueError(
+                    f"Successful shots ({v}) cannot exceed total shots ({info.data['total_shots']})"
+                )
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "success_rate": 0.75,
+                "error_rate": 0.25,
+                "total_shots": 1024,
+                "successful_shots": 768,
+            }
+        }
+
+
+class FidelityMetricsSchema(BaseModel):
+    """
+    Schema for fidelity metrics.
+
+    This schema validates fidelity-related metrics including
+    quantum fidelity and related measures for both single
+    job and multiple jobs cases.
+    """
+
+    # Single job fields
+    fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Quantum fidelity (0.0 to 1.0)")
+    has_expected_distribution: Optional[bool] = Field(
+        None, description="Whether expected distribution was provided for fidelity calculation"
+    )
+    method: str = Field(
+        ..., description="Method used for fidelity calculation (theoretical_comparison or success_based)"
+    )
+    confidence: str = Field(
+        ..., description="Confidence level of the fidelity calculation (high, medium, low)"
+    )
+    
+    # Multiple jobs aggregate fields
+    mean_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean fidelity across jobs")
+    std_fidelity: Optional[float] = Field(None, ge=0.0, description="Standard deviation of fidelities")
+    min_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum fidelity")
+    max_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Maximum fidelity")
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "fidelity": 0.85,
+                "has_expected_distribution": True,
+                "method": "theoretical_comparison",
+                "confidence": "high",
+            }
+        }
+
+
+class StatisticalMetricsSchema(BaseModel):
+    """
+    Schema for statistical analysis metrics.
+
+    This schema validates statistical metrics derived from
+    measurement outcome distributions for both single job
+    and multiple jobs cases.
+    """
+
+    # Single job fields
+    entropy: Optional[float] = Field(None, ge=0.0, description="Shannon entropy of the distribution")
+    uniformity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Uniformity measure (0.0 to 1.0)")
+    concentration: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Concentration measure (0.0 to 1.0)"
+    )
+    dominant_outcome_probability: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Probability of the most frequent outcome"
+    )
+    num_unique_outcomes: Optional[int] = Field(None, ge=0, description="Number of unique measurement outcomes")
+    
+    # Multiple jobs aggregate fields
+    mean_entropy: Optional[float] = Field(None, ge=0.0, description="Mean entropy across jobs")
+    mean_uniformity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean uniformity across jobs")
+    mean_concentration: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean concentration across jobs")
+    mean_dominant_probability: Optional[float] = Field(None, ge=0.0, le=1.0, description="Mean dominant probability across jobs")
+    std_entropy: Optional[float] = Field(None, ge=0.0, description="Standard deviation of entropy")
+    std_uniformity: Optional[float] = Field(None, ge=0.0, description="Standard deviation of uniformity")
+
+    @field_validator("uniformity", "concentration", "dominant_outcome_probability", "mean_uniformity", "mean_concentration", "mean_dominant_probability")
+    @classmethod
+    def validate_ratio_bounds(cls, v):
+        """Validate that ratios are between 0 and 1."""
+        if v is not None and not 0.0 <= v <= 1.0:
+            raise ValueError(f"Ratio must be between 0.0 and 1.0, got {v}")
+        return v
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "example": {
+                "entropy": 1.5,
+                "uniformity": 0.8,
+                "concentration": 0.6,
+                "dominant_outcome_probability": 0.4,
+                "num_unique_outcomes": 4,
+            }
+        }
+
+
+class CircuitPerformanceSchema(BaseModel):
+    """
+    Complete schema for circuit performance metrics.
+
+    This schema combines all individual performance metric schemas into
+    a single comprehensive structure for circuit performance analysis.
+    """
+
+    success_metrics: SuccessMetricsSchema = Field(..., description="Success rate metrics")
+    fidelity_metrics: FidelityMetricsSchema = Field(..., description="Fidelity metrics")
+    statistical_metrics: StatisticalMetricsSchema = Field(..., description="Statistical metrics")
+
+    def to_flat_dict(self) -> Dict[str, Any]:
+        """
+        Convert the schema to a flattened dictionary for DataFrame compatibility.
+
+        Returns:
+            Dict[str, Any]: Flattened dictionary with dot-notation keys
+        """
+        result: Dict[str, Any] = {}
+
+        # Flatten success metrics
+        success_dict = self.success_metrics.model_dump()  # pylint: disable=no-member
+        for key, value in success_dict.items():
+            result[f"success_metrics.{key}"] = value
+
+        # Flatten fidelity metrics
+        fidelity_dict = self.fidelity_metrics.model_dump()  # pylint: disable=no-member
+        for key, value in fidelity_dict.items():
+            result[f"fidelity_metrics.{key}"] = value
+
+        # Flatten statistical metrics
+        statistical_dict = self.statistical_metrics.model_dump()  # pylint: disable=no-member
+        for key, value in statistical_dict.items():
+            result[f"statistical_metrics.{key}"] = value
+
+        return result
+
+    @classmethod
+    def from_flat_dict(cls, flat_dict: Dict[str, Any]) -> "CircuitPerformanceSchema":
+        """
+        Create a schema instance from a flattened dictionary.
+
+        Args:
+            flat_dict: Flattened dictionary with dot-notation keys
+
+        Returns:
+            CircuitPerformanceSchema: Schema instance
+        """
+        # Reconstruct nested structure
+        success_metrics = {}
+        fidelity_metrics = {}
+        statistical_metrics = {}
+
+        for key, value in flat_dict.items():
+            if key.startswith("success_metrics."):
+                metric_name = key.replace("success_metrics.", "")
+                success_metrics[metric_name] = value
+            elif key.startswith("fidelity_metrics."):
+                metric_name = key.replace("fidelity_metrics.", "")
+                fidelity_metrics[metric_name] = value
+            elif key.startswith("statistical_metrics."):
+                metric_name = key.replace("statistical_metrics.", "")
+                statistical_metrics[metric_name] = value
+
+        return cls(
+            success_metrics=SuccessMetricsSchema(**success_metrics),
+            fidelity_metrics=FidelityMetricsSchema(**fidelity_metrics),
+            statistical_metrics=StatisticalMetricsSchema(**statistical_metrics),
+        )
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_schema_extra = {
+            "description": "Complete schema for circuit performance metrics",
+            "example": {
+                "success_metrics": {
+                    "success_rate": 0.75,
+                    "error_rate": 0.25,
+                    "total_shots": 1024,
+                    "successful_shots": 768,
+                },
+                "fidelity_metrics": {
+                    "fidelity": 0.85,
+                    "has_expected_distribution": True,
+                    "method": "theoretical_comparison",
+                    "confidence": "high",
+                },
+                "statistical_metrics": {
+                    "entropy": 1.5,
+                    "uniformity": 0.8,
+                    "concentration": 0.6,
+                    "dominant_outcome_probability": 0.4,
+                    "num_unique_outcomes": 4,
+                },
+            },
+        }
+
+
+# =============================================================================
+# Legacy Schemas (for backward compatibility)
+# =============================================================================
+
+
+class CircuitPerformanceJobSchema(BaseModel):
+    """
+    Schema for individual job circuit performance metrics.
+
+    This schema validates circuit performance metrics from a single
     quantum job execution.
+    
+    DEPRECATED: Use CircuitPerformanceSchema instead.
     """
 
     job_id: str = Field(..., description="Unique identifier for the job")
@@ -849,12 +1092,14 @@ class SuccessRateJobSchema(BaseModel):
         }
 
 
-class SuccessRateAggregateSchema(BaseModel):
+class CircuitPerformanceAggregateSchema(BaseModel):
     """
-    Schema for aggregate success rate metrics across multiple jobs.
+    Schema for aggregate circuit performance metrics across multiple jobs.
 
-    This schema validates aggregate success rate metrics computed
+    This schema validates aggregate circuit performance metrics computed
     across multiple job executions.
+    
+    DEPRECATED: Use CircuitPerformanceSchema instead.
     """
 
     mean_success_rate: float = Field(

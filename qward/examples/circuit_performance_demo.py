@@ -4,12 +4,12 @@ Demo showing how to use QWARD's CircuitPerformance metrics.
 This example demonstrates:
 1. Traditional approach using CircuitPerformance directly
 2. Schema-based approach with validation
-3. Custom success criteria
+3. Custom success criteria and fidelity calculation
 4. Validation features and error handling
 5. JSON schema generation
 """
 
-from typing import TYPE_CHECKING, Dict, Any, List
+from typing import Dict, Any, List
 import json
 
 from qiskit import QuantumCircuit, transpile
@@ -28,9 +28,6 @@ try:
     SCHEMAS_AVAILABLE = True
 except ImportError:
     SCHEMAS_AVAILABLE = False
-
-if TYPE_CHECKING:
-    from qward.metrics.schemas import SuccessRateJobSchema, SuccessRateAggregateSchema
 
 
 def create_bell_circuit() -> QuantumCircuit:
@@ -136,7 +133,7 @@ def demo_schema_approach() -> None:
         print(f"\n✓ Multiple jobs aggregate metrics:")
         print(f"   Mean Success Rate: {aggregate_metrics.success_metrics.mean_success_rate}")
         print(f"   Mean Fidelity: {aggregate_metrics.fidelity_metrics.mean_fidelity}")
-        print(f"   Individual Jobs: {len(aggregate_metrics.success_metrics.individual_jobs)}")
+        print(f"   Standard Deviation (Success): {aggregate_metrics.success_metrics.std_success_rate}")
 
     except Exception as e:
         print(f"❌ Error in schema approach: {e}")
@@ -191,28 +188,21 @@ def demo_validation_features() -> None:
     # Import schemas for validation
     from qward.metrics.schemas import CircuitPerformanceSchema, SuccessMetricsSchema, FidelityMetricsSchema, StatisticalMetricsSchema
 
-    # Create a circuit and run it
-    circuit = create_bell_circuit()
-    job = run_circuit_simulation(circuit)
-
-    print("1. Valid schema creation:")
-    job_schema = CircuitPerformanceSchema(
+    print("1. Valid single job schema creation:")
+    single_job_schema = CircuitPerformanceSchema(
         success_metrics=SuccessMetricsSchema(
-            job_id="test_job_123",
             success_rate=0.85,
             error_rate=0.15,
             total_shots=1024,
             successful_shots=870,
         ),
         fidelity_metrics=FidelityMetricsSchema(
-            job_id="test_job_123",
             fidelity=0.92,
             method="theoretical_comparison",
             confidence="high",
             has_expected_distribution=True,
         ),
         statistical_metrics=StatisticalMetricsSchema(
-            job_id="test_job_123",
             entropy=0.85,
             uniformity=0.75,
             concentration=0.25,
@@ -220,9 +210,9 @@ def demo_validation_features() -> None:
             num_unique_outcomes=4,
         ),
     )
-    print(f"✓ Valid schema created: {job_schema.success_metrics.job_id}")
+    print(f"✓ Valid single job schema created: Success Rate = {single_job_schema.success_metrics.success_rate}")
 
-    print("\n2. Multiple job aggregate schema:")
+    print("\n2. Valid multiple jobs aggregate schema:")
     aggregate_schema = CircuitPerformanceSchema(
         success_metrics=SuccessMetricsSchema(
             mean_success_rate=0.82,
@@ -231,29 +221,6 @@ def demo_validation_features() -> None:
             max_success_rate=0.90,
             total_trials=3072,
             error_rate=0.18,
-            individual_jobs=[
-                SuccessMetricsSchema(
-                    job_id="job_1",
-                    success_rate=0.85,
-                    error_rate=0.15,
-                    total_shots=1024,
-                    successful_shots=870,
-                ),
-                SuccessMetricsSchema(
-                    job_id="job_2", 
-                    success_rate=0.80,
-                    error_rate=0.20,
-                    total_shots=1024,
-                    successful_shots=819,
-                ),
-                SuccessMetricsSchema(
-                    job_id="job_3",
-                    success_rate=0.82,
-                    error_rate=0.18,
-                    total_shots=1024,
-                    successful_shots=840,
-                ),
-            ],
         ),
         fidelity_metrics=FidelityMetricsSchema(
             mean_fidelity=0.89,
@@ -262,29 +229,6 @@ def demo_validation_features() -> None:
             max_fidelity=0.92,
             method="theoretical_comparison",
             confidence="high",
-            individual_jobs=[
-                FidelityMetricsSchema(
-                    job_id="job_1",
-                    fidelity=0.92,
-                    method="theoretical_comparison",
-                    confidence="high",
-                    has_expected_distribution=True,
-                ),
-                FidelityMetricsSchema(
-                    job_id="job_2",
-                    fidelity=0.85,
-                    method="theoretical_comparison", 
-                    confidence="high",
-                    has_expected_distribution=True,
-                ),
-                FidelityMetricsSchema(
-                    job_id="job_3",
-                    fidelity=0.90,
-                    method="theoretical_comparison",
-                    confidence="high", 
-                    has_expected_distribution=True,
-                ),
-            ],
         ),
         statistical_metrics=StatisticalMetricsSchema(
             mean_entropy=0.83,
@@ -293,35 +237,37 @@ def demo_validation_features() -> None:
             mean_dominant_probability=0.47,
             std_entropy=0.02,
             std_uniformity=0.03,
-            individual_jobs=[
-                StatisticalMetricsSchema(
-                    job_id="job_1",
-                    entropy=0.85,
-                    uniformity=0.75,
-                    concentration=0.25,
-                    dominant_outcome_probability=0.45,
-                    num_unique_outcomes=4,
-                ),
-                StatisticalMetricsSchema(
-                    job_id="job_2",
-                    entropy=0.80,
-                    uniformity=0.68,
-                    concentration=0.32,
-                    dominant_outcome_probability=0.50,
-                    num_unique_outcomes=4,
-                ),
-                StatisticalMetricsSchema(
-                    job_id="job_3",
-                    entropy=0.84,
-                    uniformity=0.73,
-                    concentration=0.27,
-                    dominant_outcome_probability=0.46,
-                    num_unique_outcomes=4,
-                ),
-            ],
         ),
     )
-    print(f"✓ Aggregate schema created with {len(aggregate_schema.success_metrics.individual_jobs)} jobs")
+    print(f"✓ Valid aggregate schema created: Mean Success Rate = {aggregate_schema.success_metrics.mean_success_rate}")
+
+    print("\n3. Schema validation error handling:")
+    try:
+        # This should fail because success_rate > 1.0
+        invalid_schema = SuccessMetricsSchema(
+            success_rate=1.5,  # Invalid: > 1.0
+            error_rate=0.15,
+            total_shots=1024,
+            successful_shots=870,
+        )
+        print("❌ Validation should have failed!")
+    except Exception as e:
+        print(f"✓ Validation correctly caught error: {type(e).__name__}")
+
+    print("\n4. Real circuit metrics validation:")
+    # Create a circuit and run it
+    circuit = create_bell_circuit()
+    job = run_circuit_simulation(circuit)
+    
+    # Get real metrics and validate them
+    circuit_performance = CircuitPerformance(circuit, job=job)
+    real_metrics = circuit_performance.get_structured_metrics()
+    
+    print(f"✓ Real metrics validated successfully:")
+    print(f"   Success Rate: {real_metrics.success_metrics.success_rate:.3f}")
+    print(f"   Fidelity: {real_metrics.fidelity_metrics.fidelity:.3f}")
+    print(f"   Method: {real_metrics.fidelity_metrics.method}")
+    print(f"   Entropy: {real_metrics.statistical_metrics.entropy:.3f}")
 
 
 def demo_json_schema_generation() -> None:
@@ -349,8 +295,8 @@ def demo_json_schema_generation() -> None:
 
 
 def main() -> None:
-    """Run all success rate demos."""
-    print("🚀 QWARD Success Rate Metrics Demo")
+    """Run all circuit performance demos."""
+    print("🚀 QWARD CircuitPerformance Metrics Demo")
     print("=" * 60)
     print()
 

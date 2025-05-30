@@ -45,7 +45,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 1.  **Create/Load a `QuantumCircuit`**: Use Qiskit to define your circuit.
 2.  **(Optional) Execute the Circuit**: Run your circuit on a simulator or quantum hardware to get a Qiskit `Job` and its `Result` (containing counts).
 3.  **Instantiate `qward.Scanner`**: Provide the circuit, and optionally the Qiskit `Job` and `qward.Result` (which wraps Qiskit's job result/counts).
-4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `SuccessRate`) to the scanner.
+4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformance`) to the scanner.
 5.  **Calculate Metrics**: Call `scanner.calculate_metrics()`.
 6.  **Interpret Results**: The result is a dictionary of pandas DataFrames, one for each metric type.
 7.  **(New) Use Schema Validation**: Access structured, validated metrics through schema objects for enhanced type safety.
@@ -56,7 +56,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner, Result # QWARD classes
-from qward.metrics import QiskitMetrics, ComplexityMetrics, SuccessRate # QWARD calculators
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance # QWARD calculators
 from qward.examples.utils import get_display # For pretty printing in notebooks
 
 display = get_display()
@@ -86,14 +86,14 @@ scanner = Scanner(circuit=qc, job=job, result=qward_result)
 scanner.add_metric(QiskitMetrics(circuit=qc))
 scanner.add_metric(ComplexityMetrics(circuit=qc))
 
-# For SuccessRate, define what a "successful" measurement is
+# For CircuitPerformance, define what a "successful" measurement is
 def success_if_00(bitstring):
     # Handle measurement results with spaces
     clean_result = bitstring.replace(" ", "")
     return clean_result == "00"
 
-# SuccessRate needs a job to get counts from
-scanner.add_metric(SuccessRate(circuit=qc, job=job, success_criteria=success_if_00))
+# CircuitPerformance needs a job to get counts from
+scanner.add_metric(CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00))
 
 # 5. Calculate Metrics (Traditional Approach)
 all_metric_data = scanner.calculate_metrics()
@@ -112,9 +112,9 @@ if "ComplexityMetrics" in all_metric_data:
     print(f"  Circuit Depth: {complexity_df['gate_based_metrics.circuit_depth'].iloc[0]}")
     print(f"  Enhanced QV Estimate: {complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]}")
 
-# Example: Accessing specific data from SuccessRate output
-if "SuccessRate.aggregate" in all_metric_data:
-    success_df = all_metric_data["SuccessRate.aggregate"]
+# Example: Accessing specific data from CircuitPerformance output
+if "CircuitPerformance.aggregate" in all_metric_data:
+    success_df = all_metric_data["CircuitPerformance.aggregate"]
     print("\nSuccess Rate Data (for '00'):")
     print(f"  Mean Success Rate: {success_df['mean_success_rate'].iloc[0]:.2%}")
     print(f"  Total Shots: {success_df['total_trials'].iloc[0]}")
@@ -168,13 +168,13 @@ try:
 except ImportError:
     print("❌ Pydantic not available - install pydantic for schema validation")
 
-# SuccessRate with schema validation
-success_rate = SuccessRate(circuit=qc, job=job, success_criteria=success_if_00)
+# CircuitPerformance with schema validation
+circuit_performance = CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00)
 try:
     # Single job analysis
-    job_schema = success_rate.get_structured_single_job_metrics()
+    job_schema = circuit_performance.get_structured_single_job_metrics()
     
-    print("\n✅ SuccessRate Schema Validation:")
+    print("\n✅ CircuitPerformance Schema Validation:")
     print(f"  Job ID: {job_schema.job_id}")
     print(f"  Success Rate: {job_schema.success_rate:.3f}")
     print(f"  Error Rate: {job_schema.error_rate:.3f}")  # Automatically validated
@@ -186,11 +186,11 @@ except ImportError:
 
 # Demonstrate validation in action
 try:
-    from qward.metrics.schemas import SuccessRateJobSchema
+    from qward.metrics.schemas import CircuitPerformanceJobSchema
     
     print("\n🔍 Schema Validation Demo:")
     # This will raise ValidationError because success_rate > 1.0
-    invalid_data = SuccessRateJobSchema(
+    invalid_data = CircuitPerformanceJobSchema(
         job_id="test",
         success_rate=1.5,  # Invalid!
         error_rate=0.25,
@@ -284,7 +284,7 @@ Qward, through its built-in metric calculator classes, offers insights into:
    - **Contributing factors**: Detailed breakdown of enhancement calculations
    - **Schema support**: Nested validation for all QV components
 
-### 4. Execution Success (`SuccessRate`)
+### 4. Execution Success (`CircuitPerformance`)
    - **Single job analysis**: Success rate, error rate, fidelity for individual executions
    - **Multiple job analysis**: Aggregate statistics across multiple runs
    - **Custom criteria**: User-defined success conditions
@@ -306,12 +306,12 @@ The new schema-based validation system provides:
 Generate API documentation automatically:
 
 ```python
-from qward.metrics.schemas import ComplexityMetricsSchema, SuccessRateJobSchema
+from qward.metrics.schemas import ComplexityMetricsSchema, CircuitPerformanceJobSchema
 import json
 
 # Generate JSON schemas for documentation
 complexity_json_schema = ComplexityMetricsSchema.model_json_schema()
-success_rate_json_schema = SuccessRateJobSchema.model_json_schema()
+circuit_performance_json_schema = CircuitPerformanceJobSchema.model_json_schema()
 
 print("Complexity Metrics JSON Schema:")
 print(json.dumps(complexity_json_schema, indent=2))
@@ -346,7 +346,7 @@ The easiest way to work with Qward is often using Jupyter notebooks. If you use 
 
 - `run_on_aer.ipynb` - Interactive circuit analysis
 - `schema_demo.py` - Schema validation demonstration
-- `success_rate_demo.py` - Success rate analysis examples
+- `circuit_performance_demo.py` - Circuit performance analysis examples
 
 ## Next Steps
 
