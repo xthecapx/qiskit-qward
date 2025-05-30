@@ -208,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Success Rate Metric</a></li>
@@ -255,13 +256,21 @@
           <section id="module-qward.metrics.success_rate">
 <span id="success-rate-metric"></span><h1>Success Rate Metric<a class="headerlink" href="#module-qward.metrics.success_rate" title="Link to this heading">¶</a></h1>
 <p>Success rate metrics implementation for QWARD.</p>
+<p>This module provides the SuccessRate class for analyzing the success rate of
+quantum circuits based on job execution results. It supports both single job
+and multiple job analysis with customizable success criteria.</p>
+<p>The success rate metrics help evaluate the performance and reliability of
+quantum circuit executions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for calculating success rate metrics for quantum circuits.</p>
-<p>This class provides methods for analyzing the success rate of quantum circuits,
-including metrics such as the probability of success, fidelity, and more.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Calculate success rate metrics for quantum circuits.</p>
+<p>This class provides methods for analyzing the success rate of quantum circuits
+based on job execution results. It supports both single job and multiple job
+analysis with customizable success criteria.</p>
+<p>The success rate metrics include probability of success, fidelity, error rates,
+and statistical analysis across multiple runs.</p>
 <p>Initialize a SuccessRate object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -269,7 +278,7 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
 <li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
 <li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
-<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span>) – The result of the job execution</p></li>
+<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span>) – The result of the job execution (deprecated, use job instead)</p></li>
 <li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
 </ul>
 </dd>
@@ -291,10 +300,10 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.get_metrics">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.get_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<dd><p>Get success rate metrics based on available jobs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics</p>
+<dd class="field-odd"><p>Dictionary containing success rate metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -308,14 +317,10 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dd><p>Calculate success rate metrics from multiple job results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>Success rate metrics for multiple jobs, including individual job metrics</dt><dd><p>and aggregate metrics across all jobs</p>
-</dd>
-</dl>
-</p>
+<dd class="field-odd"><p>Success rate metrics for multiple jobs with individual and aggregate data</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
+<dd class="field-even"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -326,13 +331,64 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dd><p>Calculate success rate metrics from a single job result.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self.runtime_job.</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self.runtime_job.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Success rate metrics for a single job</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.get_structured_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.get_structured_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get success rate metrics as structured, validated schema objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated metrics schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[<a class="reference internal" href="metrics_schemas.html#id158" title="qward.metrics.schemas.SuccessRateJobSchema">SuccessRateJobSchema</a>, <a class="reference internal" href="metrics_schemas.html#id172" title="qward.metrics.schemas.SuccessRateAggregateSchema">SuccessRateAggregateSchema</a>]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.get_structured_multiple_jobs_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.get_structured_multiple_jobs_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get multiple jobs metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated aggregate metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id172" title="qward.metrics.schemas.SuccessRateAggregateSchema">SuccessRateAggregateSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.get_structured_single_job_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.get_structured_single_job_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get single job metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validated single job metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="metrics_schemas.html#id158" title="qward.metrics.schemas.SuccessRateJobSchema">SuccessRateJobSchema</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -342,11 +398,8 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.is_ready" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -356,10 +409,13 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SuccessRate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for calculating success rate metrics for quantum circuits.</p>
-<p>This class provides methods for analyzing the success rate of quantum circuits,
-including metrics such as the probability of success, fidelity, and more.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Calculate success rate metrics for quantum circuits.</p>
+<p>This class provides methods for analyzing the success rate of quantum circuits
+based on job execution results. It supports both single job and multiple job
+analysis with customizable success criteria.</p>
+<p>The success rate metrics include probability of success, fidelity, error rates,
+and statistical analysis across multiple runs.</p>
 <p>Initialize a SuccessRate object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -367,7 +423,7 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
 <li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
 <li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
-<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span>) – The result of the job execution</p></li>
+<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span>) – The result of the job execution (deprecated, use job instead)</p></li>
 <li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
 </ul>
 </dd>
@@ -403,10 +459,10 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id2">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<dd><p>Get success rate metrics based on available jobs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics</p>
+<dd class="field-odd"><p>Dictionary containing success rate metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -420,14 +476,10 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dd><p>Calculate success rate metrics from multiple job results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>Success rate metrics for multiple jobs, including individual job metrics</dt><dd><p>and aggregate metrics across all jobs</p>
-</dd>
-</dl>
-</p>
+<dd class="field-odd"><p>Success rate metrics for multiple jobs with individual and aggregate data</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
+<dd class="field-even"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -438,55 +490,103 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <dd><p>Calculate success rate metrics from a single job result.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self.runtime_job.</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self.runtime_job.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Success rate metrics for a single job</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.id">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.id" title="Link to this definition">¶</a></dt>
-<dd><p>Get the ID of the metric.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The ID of this metric</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId">MetricsId</a></p>
+<dd class="field-odd"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="id5">
-<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
-<dd><p>Check if the metric is ready to be calculated.</p>
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd><p>Get success rate metrics as structured, validated schema objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
+<dd class="field-odd"><p>Validated metrics schema</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dd class="field-even"><p>Union[<a class="reference internal" href="metrics_schemas.html#id158" title="qward.metrics.schemas.SuccessRateJobSchema">SuccessRateJobSchema</a>, <a class="reference internal" href="metrics_schemas.html#id172" title="qward.metrics.schemas.SuccessRateAggregateSchema">SuccessRateAggregateSchema</a>]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">get_structured_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
+<dd><p>Get multiple jobs metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated aggregate metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id172" title="qward.metrics.schemas.SuccessRateAggregateSchema">SuccessRateAggregateSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">get_structured_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.get_structured_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dd><p>Get single job metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validated single job metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="metrics_schemas.html#id158" title="qward.metrics.schemas.SuccessRateJobSchema">SuccessRateJobSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.id" title="Link to this definition">¶</a></dt>
+<dd><p>Get the ID of the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of this metric</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId">MetricsId</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/success_rate.html#SuccessRate.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dd><p>Check if the metric is ready to be calculated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.success_rate.SuccessRate.metric_type">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.metric_type" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.success_rate.SuccessRate.metric_type" title="Link to this definition">¶</a></dt>
 <dd><p>Get the type of this metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The type of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType">MetricsType</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType">MetricsType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -570,6 +670,9 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_multiple_jobs_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_multiple_jobs_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_single_job_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_single_job_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_structured_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_structured_multiple_jobs_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_multiple_jobs_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.get_structured_single_job_metrics"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_single_job_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.is_ready"><code class="docutils literal notranslate"><span class="pre">SuccessRate.is_ready()</span></code></a></li>
 </ul>
 </li>
@@ -579,8 +682,11 @@ including metrics such as the probability of success, fidelity, and more.</p>
 <li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_multiple_jobs_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_single_job_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_multiple_jobs_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">SuccessRate.get_structured_single_job_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.id"><code class="docutils literal notranslate"><span class="pre">SuccessRate.id</span></code></a></li>
-<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">SuccessRate.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">SuccessRate.is_ready()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.metric_type"><code class="docutils literal notranslate"><span class="pre">SuccessRate.metric_type</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.success_rate.SuccessRate.name"><code class="docutils literal notranslate"><span class="pre">SuccessRate.name</span></code></a></li>
 </ul>

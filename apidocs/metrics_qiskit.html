@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Complexity Metrics" href="metrics_complexity.html" /><link rel="prev" title="Metrics Base &amp; Types" href="metrics_base.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Complexity Metrics" href="metrics_complexity.html" /><link rel="prev" title="Metrics Schemas" href="metrics_schemas.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Qiskit Metrics - Qward 0.1.0</title>
@@ -208,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_success_rate.html">Success Rate Metric</a></li>
@@ -255,13 +256,23 @@
           <section id="module-qward.metrics.qiskit_metrics">
 <span id="qiskit-metrics"></span><h1>Qiskit Metrics<a class="headerlink" href="#module-qward.metrics.qiskit_metrics" title="Link to this heading">¶</a></h1>
 <p>Qiskit metrics implementation for QWARD.</p>
+<p>This module provides the QiskitMetrics class for extracting various metrics
+from QuantumCircuit objects, supporting both traditional dictionary output
+and structured schema-based output with validation.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">QiskitMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for extracting metrics from QuantumCircuit objects.</p>
-<p>This class provides methods for analyzing quantum circuits and extracting
-various metrics that are directly available from the QuantumCircuit class.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Extract metrics from QuantumCircuit objects.</p>
+<p>This class analyzes quantum circuits and extracts various metrics that are
+directly available from the QuantumCircuit class. It supports both traditional
+dictionary-based output and structured schema-based output with validation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.circuit">
+<span class="sig-name descname"><span class="pre">circuit</span></span><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.circuit" title="Link to this definition">¶</a></dt>
+<dd><p>The quantum circuit to analyze (inherited from MetricCalculator)</p>
+</dd></dl>
+
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -271,10 +282,10 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics">
 <span class="sig-name descname"><span class="pre">get_basic_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_basic_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get basic metrics about the circuit.</p>
+<dd><p>Get basic circuit metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing basic metrics</p>
+<dd class="field-odd"><p>Basic metrics including depth, width, size, counts, etc.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -285,10 +296,10 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_instruction_metrics">
 <span class="sig-name descname"><span class="pre">get_instruction_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_instruction_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_instruction_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get metrics about the instructions in the circuit.</p>
+<dd><p>Get instruction-related circuit metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing instruction metrics</p>
+<dd class="field-odd"><p>Instruction metrics including connectivity and factors</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -299,10 +310,10 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_metrics">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics, flattening nested dictionaries for DataFrame compatibility.</p>
+<dd><p>Get metrics as a flattened dictionary for DataFrame compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics (flattened)</p>
+<dd class="field-odd"><p>Flattened dictionary containing all metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -313,14 +324,75 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_scheduling_metrics">
 <span class="sig-name descname"><span class="pre">get_scheduling_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_scheduling_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_scheduling_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get metrics about the scheduling of the circuit.
-If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</p>
+<dd><p>Get scheduling-related circuit metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing scheduling metrics</p>
+<dd class="field-odd"><p>Scheduling metrics (empty if circuit not scheduled)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_basic_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_basic_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_basic_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_basic_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get basic metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated basic metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id0" title="qward.metrics.schemas.BasicMetricsSchema">BasicMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_instruction_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_instruction_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_instruction_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_instruction_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get instruction metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated instruction metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id17" title="qward.metrics.schemas.InstructionMetricsSchema">InstructionMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get metrics as a structured, validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complete validated metrics schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id42" title="qward.metrics.schemas.QiskitMetricsSchema">QiskitMetricsSchema</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_scheduling_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_scheduling_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_scheduling_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_scheduling_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get scheduling metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated scheduling metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id29" title="qward.metrics.schemas.SchedulingMetricsSchema">SchedulingMetricsSchema</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -330,11 +402,8 @@ If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</
 <span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.is_ready" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -344,10 +413,17 @@ If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">QiskitMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for extracting metrics from QuantumCircuit objects.</p>
-<p>This class provides methods for analyzing quantum circuits and extracting
-various metrics that are directly available from the QuantumCircuit class.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Extract metrics from QuantumCircuit objects.</p>
+<p>This class analyzes quantum circuits and extracts various metrics that are
+directly available from the QuantumCircuit class. It supports both traditional
+dictionary-based output and structured schema-based output with validation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">circuit</span></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>The quantum circuit to analyze (inherited from MetricCalculator)</p>
+</dd></dl>
+
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -355,8 +431,8 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 </dd>
 </dl>
 <dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.circuit">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span></em><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.circuit" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id2">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span></em><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
 <dd><p>Get the quantum circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -369,40 +445,12 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">get_basic_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_basic_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd><p>Get basic metrics about the circuit.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing basic metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">get_instruction_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_instruction_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd><p>Get metrics about the instructions in the circuit.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing instruction metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics, flattening nested dictionaries for DataFrame compatibility.</p>
+<span class="sig-name descname"><span class="pre">get_basic_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_basic_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd><p>Get basic circuit metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics (flattened)</p>
+<dd class="field-odd"><p>Basic metrics including depth, width, size, counts, etc.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -412,12 +460,11 @@ various metrics that are directly available from the QuantumCircuit class.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="id4">
-<span class="sig-name descname"><span class="pre">get_scheduling_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_scheduling_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
-<dd><p>Get metrics about the scheduling of the circuit.
-If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</p>
+<span class="sig-name descname"><span class="pre">get_instruction_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_instruction_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dd><p>Get instruction-related circuit metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing scheduling metrics</p>
+<dd class="field-odd"><p>Instruction metrics including connectivity and factors</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -425,44 +472,131 @@ If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd><p>Get metrics as a flattened dictionary for DataFrame compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Flattened dictionary containing all metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">get_scheduling_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_scheduling_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
+<dd><p>Get scheduling-related circuit metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Scheduling metrics (empty if circuit not scheduled)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">get_structured_basic_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_basic_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dd><p>Get basic metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated basic metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id0" title="qward.metrics.schemas.BasicMetricsSchema">BasicMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">get_structured_instruction_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_instruction_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dd><p>Get instruction metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated instruction metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id17" title="qward.metrics.schemas.InstructionMetricsSchema">InstructionMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
+<dd><p>Get metrics as a structured, validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complete validated metrics schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id42" title="qward.metrics.schemas.QiskitMetricsSchema">QiskitMetricsSchema</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">get_structured_scheduling_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.get_structured_scheduling_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id10" title="Link to this definition">¶</a></dt>
+<dd><p>Get scheduling metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated scheduling metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id29" title="qward.metrics.schemas.SchedulingMetricsSchema">SchedulingMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.id">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.id" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.id" title="Link to this definition">¶</a></dt>
 <dd><p>Get the ID of the metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The ID of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId">MetricsId</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId">MetricsId</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id5">
-<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/qiskit_metrics.html#QiskitMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.qiskit_metrics.QiskitMetrics.metric_type">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.metric_type" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.qiskit_metrics.QiskitMetrics.metric_type" title="Link to this definition">¶</a></dt>
 <dd><p>Get the type of this metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The type of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType">MetricsType</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType">MetricsType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -499,14 +633,14 @@ If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="metrics_base.html">
+          <a class="prev-page" href="metrics_schemas.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Metrics Base &amp; Types</div>
+                <div class="title">Metrics Schemas</div>
                 
               </div>
             </a>
@@ -542,21 +676,31 @@ If the circuit is not scheduled, returns a dictionary with is_scheduled=False.</
             <ul>
 <li><a class="reference internal" href="#">Qiskit Metrics</a><ul>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.circuit"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.circuit</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_basic_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_instruction_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_instruction_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_scheduling_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_scheduling_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_basic_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_basic_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_instruction_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_instruction_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_scheduling_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_scheduling_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.is_ready"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.is_ready()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.circuit"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.circuit</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_basic_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_instruction_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_scheduling_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.circuit</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.circuit</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_basic_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_instruction_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_scheduling_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_basic_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_instruction_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_structured_scheduling_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.id"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.id</span></code></a></li>
-<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.is_ready()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.metric_type</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.name"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.name</span></code></a></li>
 </ul>

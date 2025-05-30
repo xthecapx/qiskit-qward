@@ -208,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_success_rate.html">Success Rate Metric</a></li>
@@ -255,17 +256,27 @@
           <section id="module-qward.metrics.complexity_metrics">
 <span id="complexity-metrics"></span><h1>Complexity Metrics<a class="headerlink" href="#module-qward.metrics.complexity_metrics" title="Link to this heading">¶</a></h1>
 <p>Complexity metrics implementation for QWARD.</p>
+<p>This module provides the ComplexityMetrics class for analyzing quantum circuits
+and extracting various complexity metrics as described in research literature.
+The metrics include gate-based metrics, entanglement metrics, standardized metrics,
+advanced metrics, and derived metrics.</p>
+<dl class="simple">
+<dt>Reference:</dt><dd><dl class="simple">
+<dt>[1] D. Shami, “Character Complexity: A Novel Measure for Quantum Circuit Analysis,”</dt><dd><p>Sep. 18, 2024, arXiv: arXiv:2408.09641. doi: 10.48550/arXiv.2408.09641.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ComplexityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for calculating complexity metrics from QuantumCircuit objects.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Calculate complexity metrics from QuantumCircuit objects.</p>
 <p>This class provides methods for analyzing quantum circuits and extracting
-various complexity metrics as described in the research paper:</p>
-<p>[1] D. Shami, “Character Complexity: A Novel Measure for Quantum Circuit Analysis,”
-Sep. 18, 2024, arXiv: arXiv:2408.09641. doi: 10.48550/arXiv.2408.09641.</p>
-<p>The metrics include gate-based metrics, entanglement metrics, standardized metrics,
-advanced metrics, and derived metrics.</p>
+various complexity metrics including gate-based metrics, entanglement metrics,
+standardized metrics, advanced metrics, and derived metrics.</p>
+<p>The complexity metrics help characterize the computational difficulty and
+resource requirements of quantum circuits.</p>
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -275,12 +286,12 @@ advanced metrics, and derived metrics.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.estimate_quantum_volume">
 <span class="sig-name descname"><span class="pre">estimate_quantum_volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.estimate_quantum_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.estimate_quantum_volume" title="Link to this definition">¶</a></dt>
-<dd><p>Estimate the quantum volume of the current circuit.</p>
-<p>This is a circuit complexity metric based on the existing circuit’s
+<dd><p>Estimate the quantum volume of the circuit.</p>
+<p>This provides a circuit complexity metric based on the circuit’s
 characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing quantum volume estimates</p>
+<dd class="field-odd"><p>Dictionary containing quantum volume estimates and factors</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -291,10 +302,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_advanced_metrics">
 <span class="sig-name descname"><span class="pre">get_advanced_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_advanced_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_advanced_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get advanced metrics about the circuit.</p>
+<dd><p>Get advanced complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing advanced metrics</p>
+<dd class="field-odd"><p>Dictionary containing advanced circuit analysis metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -305,10 +316,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_derived_metrics">
 <span class="sig-name descname"><span class="pre">get_derived_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_derived_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_derived_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get derived metrics about the circuit.</p>
+<dd><p>Get derived complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing derived metrics</p>
+<dd class="field-odd"><p>Dictionary containing derived circuit metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -319,10 +330,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_entanglement_metrics">
 <span class="sig-name descname"><span class="pre">get_entanglement_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_entanglement_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_entanglement_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get entanglement-based metrics about the circuit.</p>
+<dd><p>Get entanglement-based complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing entanglement metrics</p>
+<dd class="field-odd"><p>Dictionary containing entanglement-related metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -333,10 +344,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_gate_based_metrics">
 <span class="sig-name descname"><span class="pre">get_gate_based_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_gate_based_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_gate_based_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get gate-based metrics about the circuit.</p>
+<dd><p>Get gate-based complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing gate-based metrics</p>
+<dd class="field-odd"><p>Dictionary containing gate counts and ratios</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -347,10 +358,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_metrics">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<dd><p>Get all complexity metrics for the circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics</p>
+<dd class="field-odd"><p>Dictionary containing all complexity metrics organized by category</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -361,13 +372,117 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_standardized_metrics">
 <span class="sig-name descname"><span class="pre">get_standardized_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_standardized_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_standardized_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get standardized metrics about the circuit.</p>
+<dd><p>Get standardized complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing standardized metrics</p>
+<dd class="field-odd"><p>Dictionary containing standardized circuit metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_advanced_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_advanced_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_advanced_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_advanced_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get advanced metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated advanced metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id87" title="qward.metrics.schemas.AdvancedMetricsSchema">AdvancedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_derived_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_derived_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_derived_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_derived_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get derived metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated derived metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id98" title="qward.metrics.schemas.DerivedMetricsSchema">DerivedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_entanglement_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_entanglement_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_entanglement_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_entanglement_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get entanglement metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated entanglement metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id66" title="qward.metrics.schemas.EntanglementMetricsSchema">EntanglementMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_gate_based_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_gate_based_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_gate_based_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_gate_based_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get gate-based metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated gate-based metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id53" title="qward.metrics.schemas.GateBasedMetricsSchema">GateBasedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get all complexity metrics as a structured, validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complete validated complexity metrics schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id144" title="qward.metrics.schemas.ComplexityMetricsSchema">ComplexityMetricsSchema</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_quantum_volume">
+<span class="sig-name descname"><span class="pre">get_structured_quantum_volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_quantum_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_quantum_volume" title="Link to this definition">¶</a></dt>
+<dd><p>Get quantum volume estimation as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated quantum volume metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id132" title="qward.metrics.schemas.QuantumVolumeSchema">QuantumVolumeSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_standardized_metrics">
+<span class="sig-name descname"><span class="pre">get_structured_standardized_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_standardized_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_standardized_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Get standardized metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated standardized metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id75" title="qward.metrics.schemas.StandardizedMetricsSchema">StandardizedMetricsSchema</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -377,11 +492,8 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.is_ready" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -391,14 +503,13 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ComplexityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="metrics_base.html#qward.metrics.base_metric.MetricCalculator" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Class for calculating complexity metrics from QuantumCircuit objects.</p>
+<dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
+<p>Calculate complexity metrics from QuantumCircuit objects.</p>
 <p>This class provides methods for analyzing quantum circuits and extracting
-various complexity metrics as described in the research paper:</p>
-<p>[1] D. Shami, “Character Complexity: A Novel Measure for Quantum Circuit Analysis,”
-Sep. 18, 2024, arXiv: arXiv:2408.09641. doi: 10.48550/arXiv.2408.09641.</p>
-<p>The metrics include gate-based metrics, entanglement metrics, standardized metrics,
-advanced metrics, and derived metrics.</p>
+various complexity metrics including gate-based metrics, entanglement metrics,
+standardized metrics, advanced metrics, and derived metrics.</p>
+<p>The complexity metrics help characterize the computational difficulty and
+resource requirements of quantum circuits.</p>
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -422,12 +533,12 @@ advanced metrics, and derived metrics.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id1">
 <span class="sig-name descname"><span class="pre">estimate_quantum_volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.estimate_quantum_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
-<dd><p>Estimate the quantum volume of the current circuit.</p>
-<p>This is a circuit complexity metric based on the existing circuit’s
+<dd><p>Estimate the quantum volume of the circuit.</p>
+<p>This provides a circuit complexity metric based on the circuit’s
 characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing quantum volume estimates</p>
+<dd class="field-odd"><p>Dictionary containing quantum volume estimates and factors</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -438,10 +549,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id2">
 <span class="sig-name descname"><span class="pre">get_advanced_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_advanced_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd><p>Get advanced metrics about the circuit.</p>
+<dd><p>Get advanced complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing advanced metrics</p>
+<dd class="field-odd"><p>Dictionary containing advanced circuit analysis metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -452,10 +563,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id3">
 <span class="sig-name descname"><span class="pre">get_derived_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_derived_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
-<dd><p>Get derived metrics about the circuit.</p>
+<dd><p>Get derived complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing derived metrics</p>
+<dd class="field-odd"><p>Dictionary containing derived circuit metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -466,10 +577,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id4">
 <span class="sig-name descname"><span class="pre">get_entanglement_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_entanglement_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
-<dd><p>Get entanglement-based metrics about the circuit.</p>
+<dd><p>Get entanglement-based complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing entanglement metrics</p>
+<dd class="field-odd"><p>Dictionary containing entanglement-related metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -480,10 +591,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id5">
 <span class="sig-name descname"><span class="pre">get_gate_based_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_gate_based_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
-<dd><p>Get gate-based metrics about the circuit.</p>
+<dd><p>Get gate-based complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing gate-based metrics</p>
+<dd class="field-odd"><p>Dictionary containing gate counts and ratios</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -494,10 +605,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id6">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
-<dd><p>Get the metrics.</p>
+<dd><p>Get all complexity metrics for the circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing the metrics</p>
+<dd class="field-odd"><p>Dictionary containing all complexity metrics organized by category</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -508,10 +619,10 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id7">
 <span class="sig-name descname"><span class="pre">get_standardized_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_standardized_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
-<dd><p>Get standardized metrics about the circuit.</p>
+<dd><p>Get standardized complexity metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing standardized metrics</p>
+<dd class="field-odd"><p>Dictionary containing standardized circuit metrics</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Dict[str, Any]</p>
@@ -519,44 +630,145 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">get_structured_advanced_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_advanced_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dd><p>Get advanced metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated advanced metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id87" title="qward.metrics.schemas.AdvancedMetricsSchema">AdvancedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">get_structured_derived_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_derived_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
+<dd><p>Get derived metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated derived metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id98" title="qward.metrics.schemas.DerivedMetricsSchema">DerivedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">get_structured_entanglement_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_entanglement_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id10" title="Link to this definition">¶</a></dt>
+<dd><p>Get entanglement metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated entanglement metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id66" title="qward.metrics.schemas.EntanglementMetricsSchema">EntanglementMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">get_structured_gate_based_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_gate_based_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition">¶</a></dt>
+<dd><p>Get gate-based metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated gate-based metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id53" title="qward.metrics.schemas.GateBasedMetricsSchema">GateBasedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">get_structured_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id12" title="Link to this definition">¶</a></dt>
+<dd><p>Get all complexity metrics as a structured, validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complete validated complexity metrics schema</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id144" title="qward.metrics.schemas.ComplexityMetricsSchema">ComplexityMetricsSchema</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
+<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">get_structured_quantum_volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_quantum_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition">¶</a></dt>
+<dd><p>Get quantum volume estimation as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated quantum volume metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id132" title="qward.metrics.schemas.QuantumVolumeSchema">QuantumVolumeSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">get_structured_standardized_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.get_structured_standardized_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id14" title="Link to this definition">¶</a></dt>
+<dd><p>Get standardized metrics as a validated schema object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Validated standardized metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="metrics_schemas.html#id75" title="qward.metrics.schemas.StandardizedMetricsSchema">StandardizedMetricsSchema</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.id">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.id" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.id" title="Link to this definition">¶</a></dt>
 <dd><p>Get the ID of the metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The ID of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.types.MetricsId">MetricsId</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId">MetricsId</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id8">
-<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/complexity_metrics.html#ComplexityMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.complexity_metrics.ComplexityMetrics.metric_type">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.metric_type" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.complexity_metrics.ComplexityMetrics.metric_type" title="Link to this definition">¶</a></dt>
 <dd><p>Get the type of this metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The type of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id4" title="qward.metrics.types.MetricsType">MetricsType</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id11" title="qward.metrics.types.MetricsType">MetricsType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -643,6 +855,13 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_gate_based_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_gate_based_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_standardized_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_standardized_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_advanced_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_advanced_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_derived_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_derived_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_entanglement_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_entanglement_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_gate_based_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_gate_based_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_quantum_volume"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_quantum_volume()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_standardized_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_standardized_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.is_ready"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.is_ready()</span></code></a></li>
 </ul>
 </li>
@@ -655,8 +874,15 @@ characteristics rather than the formal IBM Quantum Volume protocol.</p>
 <li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_gate_based_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_standardized_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_advanced_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_derived_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_entanglement_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_gate_based_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_quantum_volume()</span></code></a></li>
+<li><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.get_structured_standardized_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.id"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.id</span></code></a></li>
-<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.is_ready()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.metric_type</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.complexity_metrics.ComplexityMetrics.name"><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics.name</span></code></a></li>
 </ul>

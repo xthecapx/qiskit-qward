@@ -208,6 +208,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_success_rate.html">Success Rate Metric</a></li>
@@ -247,15 +248,27 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.utils.flatten</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
 
 
 <div class="viewcode-block" id="flatten_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_utils.html#qward.utils.flatten.flatten_dict">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">flatten_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">parent_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">flatten_dict</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">parent_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Recursively flattens a nested dictionary using dot notation for keys.</span>
-<span class="sd">    Example: {&#39;a&#39;: {&#39;b&#39;: 1}} -&gt; {&#39;a.b&#39;: 1}</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        d: Dictionary to flatten</span>
+<span class="sd">        parent_key: Parent key for nested flattening</span>
+<span class="sd">        sep: Separator to use between keys</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Flattened dictionary with dot-notation keys</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        {&#39;a&#39;: {&#39;b&#39;: 1}} -&gt; {&#39;a.b&#39;: 1}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">items</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>

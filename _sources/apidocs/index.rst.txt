@@ -22,6 +22,7 @@ Qward API Reference
    :caption: Metrics System:
 
    metrics_base
+   metrics_schemas
    metrics_qiskit
    metrics_complexity
    metrics_success_rate
