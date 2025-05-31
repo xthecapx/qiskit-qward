@@ -131,36 +131,34 @@ structured_metrics = calculator.get_structured_metrics()
 
 ## Visualization System
 
-QWARD includes a comprehensive visualization system for analyzing quantum circuit metrics.
+QWARD includes a comprehensive visualization module (`qward.visualization`) for creating publication-quality plots of quantum circuit metrics. The visualization module follows a structured approach that integrates seamlessly with the metric calculation system.
 
 ### Architecture
 
-The visualization system follows a clean architecture with the following components:
-
-- **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`):
-  - Abstract base class for all visualizers
-  - Handles common functionality like output directory management, plot styling, and saving/showing plots
-  - Provides a consistent interface through the `create_plot()` abstract method
-
-- **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`):
-  - Concrete visualizer for circuit performance metrics
-  - Responsible for generating various plots related to the metrics produced by the `CircuitPerformance` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
+The visualization system is built on the following key components:
 
 - **`PlotConfig`** (`qward.visualization.base.PlotConfig`):
-  - Configuration dataclass for plot appearance and saving options
-  - Allows customization of figure size, DPI, color palettes, styles, etc.
+    - A dataclass holding all plot appearance and saving configurations.
+    - Parameters include `figsize`, `dpi`, `style` (e.g., "default", "quantum", "minimal"), `color_palette`, `save_format` (e.g., "png", "svg"), `grid`, and `alpha`.
 
-- **`PlotStrategy`** (internal to `qward.visualization.circuit_performance_visualizer`):
-  - An interface (abstract base class) defining a common contract for different plot generation algorithms within `CircuitPerformanceVisualizer`.
-  - Concrete implementations handle specific plot types (e.g., success vs. error comparison, fidelity analysis, etc.)
-  - `CircuitPerformanceVisualizer` delegates plotting tasks to these strategies.
+- **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`):
+    - An abstract base class for all visualizers.
+    - Handles common setup: output directory creation, applying plot styles using `PlotConfig`.
+    - Provides utility methods for data validation, plot creation, and formatting.
+    - Provides `save_plot()` and `show_plot()` utility methods.
+    - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
-- **Utility Functions** (within `qward.visualization.utils` if it exists):
-  - Helper functions for common plotting tasks (e.g., applying consistent styling, adding value labels or summaries to plots). `CircuitPerformanceVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
+- **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
+    - **`QiskitMetricsVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
+    - **`ComplexityMetricsVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
+    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
 
-Visually, the core relationships (focusing on `CircuitPerformanceVisualizer`) can be represented as:
+- **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
+    - A unified entry point that automatically detects available metrics and provides appropriate visualizations.
+    - Can work with Scanner instances or custom metrics data.
+    - Provides methods for creating individual plots, dashboards, or complete visualization suites.
 
-```mermaid
+```{mermaid}
 classDiagram
     class BaseVisualizer {
         <<abstract>>
@@ -169,8 +167,15 @@ classDiagram
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
+        +_validate_required_columns()
+        +_extract_metrics_from_columns()
+        +_create_bar_plot_with_labels()
+        +_add_value_labels_to_bars()
+        +_show_no_data_message()
+        +_setup_plot_axes()
+        +_finalize_plot()
     }
-    
+
     class PlotConfig {
         +figsize: Tuple[int, int]
         +dpi: int
@@ -180,7 +185,26 @@ classDiagram
         +grid: bool
         +alpha: float
     }
-    
+
+    class QiskitMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_circuit_structure()
+        +plot_instruction_breakdown()
+        +plot_scheduling_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class ComplexityMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_gate_based_metrics()
+        +plot_complexity_radar()
+        +plot_quantum_volume_analysis()
+        +plot_efficiency_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+
     class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_success_error_comparison()
@@ -191,35 +215,54 @@ classDiagram
         +plot_all()
     }
 
-    class PlotStrategy {
-        <<interface>>
-        +create_plot()*
+    class Visualizer {
+        +scanner: Optional[Scanner]
+        +metrics_data: Dict[str, DataFrame]
+        +registered_visualizers: Dict[str, Type[BaseVisualizer]]
+        +register_visualizer()
+        +get_available_metrics()
+        +visualize_metric()
+        +create_dashboard()
+        +visualize_all()
     }
+    
+    note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
+    note for QiskitMetricsVisualizer "Visualizes circuit structure and instruction analysis"
+    note for ComplexityMetricsVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
+    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
+    note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
+    BaseVisualizer <|-- QiskitMetricsVisualizer
+    BaseVisualizer <|-- ComplexityMetricsVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
-    CircuitPerformanceVisualizer o--> PlotStrategy : uses (delegates to)
-    
-    note for BaseVisualizer "Abstract base class providing core visualization functionality"
-    note for CircuitPerformanceVisualizer "Concrete implementation with direct plotting methods for simplicity"
-    note for PlotConfig "Configuration dataclass for plot appearance and saving options"
+    Visualizer --> BaseVisualizer : manages
 ```
 
-### Key Components
+### Built-in Visualizers
 
-#### `BaseVisualizer` (`qward.visualization.base.BaseVisualizer`)
+#### `QiskitMetricsVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`)
 
-Abstract base class that provides common functionality for all visualizers:
+Specialized visualizer for `QiskitMetrics` outputs. It provides methods like:
+- `plot_circuit_structure()`: Visualizes basic circuit structure (depth, width, size, qubits)
+- `plot_instruction_breakdown()`: Shows instruction and gate type analysis
+- `plot_scheduling_metrics()`: Displays scheduling and timing information
+- `create_dashboard()`: Creates a comprehensive dashboard with all QiskitMetrics plots
+- `plot_all()`: Generates all individual plots
 
-- **Output Management**: Handles output directory creation and file path management
-- **Plot Configuration**: Integrates with `PlotConfig` for consistent styling
-- **Save/Show Operations**: Provides `save_plot()` and `show_plot()` methods
-- **Abstract Interface**: Defines `create_plot()` method that subclasses must implement
+#### `ComplexityMetricsVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`)
+
+Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like:
+- `plot_gate_based_metrics()`: Visualizes gate counts and circuit depth metrics
+- `plot_complexity_radar()`: Creates radar chart for normalized complexity indicators
+- `plot_quantum_volume_analysis()`: Shows Quantum Volume estimation and factors
+- `plot_efficiency_metrics()`: Displays parallelism and circuit efficiency analysis
+- `create_dashboard()`: Creates a comprehensive dashboard with all ComplexityMetrics plots
+- `plot_all()`: Generates all individual plots
 
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
 Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
-
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
 - `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
@@ -227,93 +270,17 @@ Specialized visualizer for `CircuitPerformance` metric outputs. It provides meth
 - `create_dashboard()`: Generates a comprehensive dashboard with multiple plot types
 - `plot_all()`: Convenience method to generate all available plots
 
-#### `PlotConfig` (`qward.visualization.base.PlotConfig`)
+#### `Visualizer` (`qward.visualization.visualizer.Visualizer`)
 
-Configuration dataclass that allows customization of plot appearance:
+Unified entry point for all visualizations. It provides methods like:
+- `register_visualizer()`: Register custom visualizers for specific metrics
+- `get_available_metrics()`: Get list of metrics available for visualization
+- `visualize_metric()`: Create visualizations for a specific metric type
+- `create_dashboard()`: Create dashboards for all available metrics
+- `visualize_all()`: Generate all individual plots for all available metrics
+- `get_metric_summary()`: Get summary information about available metrics
 
-```python
-@dataclass
-class PlotConfig:
-    figsize: Tuple[int, int] = (10, 6)
-    dpi: int = 300
-    style: str = "default"
-    color_palette: List[str] = field(default_factory=lambda: ["#1f77b4", "#ff7f0e", "#2ca02c"])
-    save_format: str = "png"
-    grid: bool = True
-    alpha: float = 0.8
-```
-
-### Usage Examples
-
-#### Basic Visualization
-```python
-from qward.visualization import CircuitPerformanceVisualizer
-
-# Assuming you have metrics_dict from scanner.calculate_metrics()
-visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="plots")
-
-# Generate all plots
-figures = visualizer.plot_all(save=True, show=False)
-```
-
-#### Custom Configuration
-```python
-from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
-
-# Custom plot configuration
-config = PlotConfig(
-    figsize=(12, 8),
-    dpi=150,
-    style="seaborn",
-    color_palette=["#ff6b6b", "#4ecdc4", "#45b7d1"],
-    save_format="svg"
-)
-
-visualizer = CircuitPerformanceVisualizer(
-    metrics_dict, 
-    output_dir="custom_plots", 
-    config=config
-)
-
-# Create specific plots
-visualizer.plot_success_error_comparison(save=True)
-visualizer.plot_fidelity_comparison(save=True)
-```
-
-#### Dashboard Creation
-```python
-# Create comprehensive dashboard
-dashboard_fig = visualizer.create_dashboard(save=True, show=True)
-```
-
-### Integration with Scanner
-
-The visualization system seamlessly integrates with the Scanner workflow:
-
-```python
-from qward import Scanner
-from qward.metrics import CircuitPerformance
-from qward.visualization import CircuitPerformanceVisualizer
-
-# Calculate metrics
-scanner = Scanner(circuit=circuit)
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
-metrics_dict = scanner.calculate_metrics()
-
-# Create visualizations
-visualizer = CircuitPerformanceVisualizer(metrics_dict)
-visualizer.plot_all(save=True)
-```
-
-### Extensibility
-
-The visualization system is designed for easy extension:
-
-1. **Custom Visualizers**: Create new visualizers by inheriting from `BaseVisualizer`
-2. **Custom Plot Types**: Add new methods to existing visualizers
-3. **Custom Styling**: Define new `PlotConfig` presets for different use cases
-
-For detailed usage examples and advanced features, see the [Visualization Guide](visualization_guide.md).
+For more details on usage, available plot types, and customization, refer to the [Visualization Guide](visualization_guide.md).
 
 ## Conclusion
 
@@ -472,23 +439,19 @@ The visualization system is built on the following key components:
 - **`BaseVisualizer`** (`qward.visualization.base.BaseVisualizer`):
     - An abstract base class for all visualizers.
     - Handles common setup: output directory creation, applying plot styles using `PlotConfig`.
+    - Provides utility methods for data validation, plot creation, and formatting.
     - Provides `save_plot()` and `show_plot()` utility methods.
     - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
-- **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`):
-    - A concrete visualizer inheriting directly from `BaseVisualizer`.
-    - Responsible for generating various plots related to the metrics produced by the `CircuitPerformance` strategy (e.g., success vs. error rates, fidelity, shot distributions, aggregate summaries).
-    - Internally, it uses the **Strategy pattern** to manage the generation of these different plot types. Each specific plot (e.g., fidelity comparison) is handled by a dedicated strategy class.
+- **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
+    - **`QiskitMetricsVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
+    - **`ComplexityMetricsVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
+    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
 
-- **`PlotStrategy`** (internal to `qward.visualization.circuit_performance_visualizer`):
-    - An interface (abstract base class) defining a common contract for different plot generation algorithms within `CircuitPerformanceVisualizer`.
-    - Concrete strategies (e.g., `FidelityPlotStrategy`, `ShotDistributionPlotStrategy`) implement this interface to create specific charts.
-    - `CircuitPerformanceVisualizer` delegates plotting tasks to these strategies.
-
-- **(Conceptual) `MetricPlottingUtils`**:
-    - While not a specific class shown in a high-level diagram, it's important to note that a utility class or module would ideally contain static helper methods for common tasks related to plotting metric data (e.g., extracting specific data from `metrics_dict`, validating DataFrame columns, adding standard value labels or summaries to plots). `CircuitPerformanceVisualizer` and its internal plot strategies would leverage such utilities to avoid code duplication and maintain consistency.
-
-Visually, the core relationships (focusing on `CircuitPerformanceVisualizer`) can be represented as:
+- **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
+    - A unified entry point that automatically detects available metrics and provides appropriate visualizations.
+    - Can work with Scanner instances or custom metrics data.
+    - Provides methods for creating individual plots, dashboards, or complete visualization suites.
 
 ```{mermaid}
 classDiagram
@@ -499,6 +462,13 @@ classDiagram
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
+        +_validate_required_columns()
+        +_extract_metrics_from_columns()
+        +_create_bar_plot_with_labels()
+        +_add_value_labels_to_bars()
+        +_show_no_data_message()
+        +_setup_plot_axes()
+        +_finalize_plot()
     }
 
     class PlotConfig {
@@ -511,9 +481,27 @@ classDiagram
         +alpha: float
     }
 
+    class QiskitMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_circuit_structure()
+        +plot_instruction_breakdown()
+        +plot_scheduling_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+
+    class ComplexityMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_gate_based_metrics()
+        +plot_complexity_radar()
+        +plot_quantum_volume_analysis()
+        +plot_efficiency_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+
     class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
-        # +_is_dashboard_context: bool
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
         +plot_shot_distribution()
@@ -522,47 +510,69 @@ classDiagram
         +plot_all()
     }
 
-    class PlotStrategy {
-        <<Interface>>
-        #visualizer: CircuitPerformanceVisualizer
-        #config: PlotConfig
-        +plot(ax: Axes)*
-    }
-
-    class SuccessErrorPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class FidelityPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class ShotDistributionPlotStrategy {
-        +plot(ax: Axes)
-    }
-    class AggregateSummaryPlotStrategy {
-        +plot(ax: Axes)
+    class Visualizer {
+        +scanner: Optional[Scanner]
+        +metrics_data: Dict[str, DataFrame]
+        +registered_visualizers: Dict[str, Type[BaseVisualizer]]
+        +register_visualizer()
+        +get_available_metrics()
+        +visualize_metric()
+        +create_dashboard()
+        +visualize_all()
     }
     
-    note for PlotStrategy "Each concrete strategy implements a specific plot type (e.g., success vs error, fidelity)."
+    note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
+    note for QiskitMetricsVisualizer "Visualizes circuit structure and instruction analysis"
+    note for ComplexityMetricsVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
+    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
+    note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
+    BaseVisualizer <|-- QiskitMetricsVisualizer
+    BaseVisualizer <|-- ComplexityMetricsVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
-    CircuitPerformanceVisualizer o--> PlotStrategy : uses (delegates to)
-
-    PlotStrategy <|.. SuccessErrorPlotStrategy : implements
-    PlotStrategy <|.. FidelityPlotStrategy : implements
-    PlotStrategy <|.. ShotDistributionPlotStrategy : implements
-    PlotStrategy <|.. AggregateSummaryPlotStrategy : implements
+    Visualizer --> BaseVisualizer : manages
 ```
 
 ### Built-in Visualizers
 
+#### `QiskitMetricsVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`)
+
+Specialized visualizer for `QiskitMetrics` outputs. It provides methods like:
+- `plot_circuit_structure()`: Visualizes basic circuit structure (depth, width, size, qubits)
+- `plot_instruction_breakdown()`: Shows instruction and gate type analysis
+- `plot_scheduling_metrics()`: Displays scheduling and timing information
+- `create_dashboard()`: Creates a comprehensive dashboard with all QiskitMetrics plots
+- `plot_all()`: Generates all individual plots
+
+#### `ComplexityMetricsVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`)
+
+Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like:
+- `plot_gate_based_metrics()`: Visualizes gate counts and circuit depth metrics
+- `plot_complexity_radar()`: Creates radar chart for normalized complexity indicators
+- `plot_quantum_volume_analysis()`: Shows Quantum Volume estimation and factors
+- `plot_efficiency_metrics()`: Displays parallelism and circuit efficiency analysis
+- `create_dashboard()`: Creates a comprehensive dashboard with all ComplexityMetrics plots
+- `plot_all()`: Generates all individual plots
+
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
 Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
-- `plot_all()`: Generates all standard individual plots.
-- `create_dashboard()`: Creates a consolidated dashboard view.
-- Individual plot methods (e.g., `plot_fidelity_comparison()`, `plot_shot_distribution()`).
+- `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
+- `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
+- `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
+- `plot_aggregate_summary()`: Creates summary plots of aggregate statistics
+- `create_dashboard()`: Generates a comprehensive dashboard with multiple plot types
+- `plot_all()`: Convenience method to generate all available plots
 
-It takes a `metrics_dict` (as produced by the `Scanner`) and an optional `PlotConfig` instance for customization.
+#### `Visualizer` (`qward.visualization.visualizer.Visualizer`)
+
+Unified entry point for all visualizations. It provides methods like:
+- `register_visualizer()`: Register custom visualizers for specific metrics
+- `get_available_metrics()`: Get list of metrics available for visualization
+- `visualize_metric()`: Create visualizations for a specific metric type
+- `create_dashboard()`: Create dashboards for all available metrics
+- `visualize_all()`: Generate all individual plots for all available metrics
+- `get_metric_summary()`: Get summary information about available metrics
 
 For more details on usage, available plot types, and customization, refer to the [Visualization Guide](visualization_guide.md).
