@@ -386,6 +386,17 @@
 <span class="sd">            Dict[str, Any]: Basic metrics including depth, width, size, counts, etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
+
+        <span class="c1"># Check if calibrations attribute exists (removed in Qiskit 2.0)</span>
+        <span class="n">has_calibrations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;calibrations&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">calibrations</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;calibrations&quot;</span><span class="p">)</span>
+            <span class="k">else</span> <span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check if layout attribute exists</span>
+        <span class="n">has_layout</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">(),</span>
             <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span>
@@ -395,8 +406,8 @@
             <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_clbits</span><span class="p">,</span>
             <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">,</span>
             <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">,</span>
-            <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">calibrations</span><span class="p">),</span>
-            <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">),</span>
+            <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="n">has_calibrations</span><span class="p">,</span>
+            <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="n">has_layout</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 
@@ -473,16 +484,31 @@
 
         <span class="c1"># Check if circuit has scheduling information</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;op_start_times&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                    <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
-                    <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubit_duration</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubit_start_time</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubit_stop_time</span><span class="p">,</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
+            <span class="c1"># Use the new estimate_duration() method instead of deprecated properties</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">duration</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">estimate_duration</span><span class="p">()</span>
+                <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+                        <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
+                        <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                        <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Start time is typically 0 for scheduled circuits</span>
+                        <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>  <span class="c1"># Stop time equals duration</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># Fallback if estimate_duration() is not available or fails</span>
+                <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+                        <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
+                        <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">metrics</span></div>
 

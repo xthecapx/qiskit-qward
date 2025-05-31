@@ -261,13 +261,21 @@
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
-<p>The visualization system is built around a simple but powerful architecture:</p>
+<p>The visualization system is built around a powerful and extensible architecture:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class that handles common functionality like output directory management, styling, and plot saving/showing. Subclasses implement <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> for their specific visualization logic</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: A concrete visualizer that creates various plots for circuit performance metrics analysis, including individual plots and comprehensive dashboards</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities</p></li>
+<li><p><strong>Individual Visualizers</strong>: Three specialized visualizers for different metric types:</p>
+<ul>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong>: Circuit structure and instruction analysis</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong>: Complexity analysis with radar charts and efficiency metrics</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Performance metrics with success rates and fidelity analysis</p></li>
 </ul>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>classDiagram
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></strong>: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities</p></li>
+</ul>
+<pre  class="mermaid">
+        classDiagram
     class BaseVisualizer {
         &lt;&lt;abstract&gt;&gt;
         +output_dir: str
@@ -275,8 +283,11 @@
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
-        -_setup_output_dir()
-        -_apply_style()
+        +_validate_required_columns()
+        +_extract_metrics_from_columns()
+        +_create_bar_plot_with_labels()
+        +_setup_plot_axes()
+        +_finalize_plot()
     }
     
     class PlotConfig {
@@ -287,39 +298,60 @@
         +save_format: str
         +grid: bool
         +alpha: float
-        +__post_init__()
+    }
+    
+    class QiskitMetricsVisualizer {
+        +plot_circuit_structure()
+        +plot_instruction_breakdown()
+        +plot_scheduling_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+    
+    class ComplexityMetricsVisualizer {
+        +plot_gate_based_metrics()
+        +plot_complexity_radar()
+        +plot_quantum_volume_analysis()
+        +plot_efficiency_metrics()
+        +create_dashboard()
+        +plot_all()
     }
     
     class CircuitPerformanceVisualizer {
-        +metrics_dict: Dict[str, DataFrame]
-        +individual_df: DataFrame
-        +aggregate_df: DataFrame
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
         +plot_all()
-        -_add_stacked_bar_labels()
-        -_add_stacked_bar_summary()
+    }
+    
+    class Visualizer {
+        +register_visualizer()
+        +get_available_metrics()
+        +visualize_metric()
+        +create_dashboard()
+        +visualize_all()
+        +print_available_metrics()
     }
 
+    BaseVisualizer &lt;|-- QiskitMetricsVisualizer
+    BaseVisualizer &lt;|-- ComplexityMetricsVisualizer
     BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
     BaseVisualizer --&gt; PlotConfig : uses
+    Visualizer --&gt; BaseVisualizer : manages
     
-    note for CircuitPerformanceVisualizer &quot;Handles CircuitPerformance metrics visualization with multiple plot types and dashboard creation&quot;
-</pre></div>
-</div>
-</section>
+    note for Visualizer &quot;Unified entry point with auto-detection and comprehensive visualization&quot;
+    </pre></section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
-<section id="basic-usage">
-<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h3>
+<section id="using-the-unified-visualizer-recommended">
+<h3>Using the Unified Visualizer (Recommended)<a class="headerlink" href="#using-the-unified-visualizer-recommended" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformance</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceVisualizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
 
 <span class="c1"># Create a quantum circuit</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -327,96 +359,186 @@
 <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Run the circuit</span>
+<span class="c1"># Run simulation for CircuitPerformance</span>
 <span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
-<span class="c1"># Calculate metrics</span>
+<span class="c1"># Create scanner with all metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;11&quot;</span><span class="p">)</span>
-<span class="n">circuit_performance</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
-<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+<span class="c1"># Create unified visualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_analysis&quot;</span><span class="p">)</span>
 
-<span class="c1"># Create visualizations</span>
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/my_plots&quot;</span><span class="p">)</span>
-<span class="n">figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># Option 1: Create comprehensive dashboards for all metrics</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dashboards</span><span class="p">)</span><span class="si">}</span><span class="s2"> dashboards&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Create all individual plots</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created plots for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> metric types&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 3: Visualize specific metrics</span>
+<span class="n">qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">complexity_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="custom-configuration">
-<h3>Custom Configuration<a class="headerlink" href="#custom-configuration" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlotConfig</span>
+<section id="using-individual-visualizers">
+<h3>Using Individual Visualizers<a class="headerlink" href="#using-individual-visualizers" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">,</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
 
-<span class="c1"># Create custom configuration</span>
-<span class="n">custom_config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
-    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
-    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">,</span>
-    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">]</span>
-<span class="p">)</span>
+<span class="c1"># Calculate metrics first</span>
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Use custom configuration</span>
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
-    <span class="n">metrics_dict</span><span class="p">,</span> 
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/custom_plots&quot;</span><span class="p">,</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">custom_config</span>
+<span class="c1"># Use QiskitMetrics visualizer</span>
+<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]},</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qiskit_plots&quot;</span>
 <span class="p">)</span>
+<span class="n">qiskit_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Use ComplexityMetrics visualizer</span>
+<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]},</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;complexity_plots&quot;</span>
+<span class="p">)</span>
+<span class="n">complexity_figures</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Use CircuitPerformance visualizer</span>
+<span class="n">circuit_perf_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)}</span>
+<span class="n">perf_viz</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="n">circuit_perf_data</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;performance_plots&quot;</span>
+<span class="p">)</span>
+<span class="n">perf_figures</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="available-visualizers">
 <h2>Available Visualizers<a class="headerlink" href="#available-visualizers" title="Link to this heading">¶</a></h2>
-<section id="circuitperformancevisualizer">
-<h3>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> creates comprehensive visualizations for circuit performance metrics. It expects metrics data with specific keys:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.individual_jobs&quot;</span></code>: DataFrame with individual job metrics</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.aggregate&quot;</span></code>: DataFrame with aggregate statistics</p></li>
-</ul>
+<section id="qiskitmetricsvisualizer">
+<h3>QiskitMetricsVisualizer<a class="headerlink" href="#qiskitmetricsvisualizer" title="Link to this heading">¶</a></h3>
+<p>Visualizes circuit structure and instruction analysis from <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>.</p>
 <section id="individual-plots">
 <h4>Individual Plots<a class="headerlink" href="#individual-plots" title="Link to this heading">¶</a></h4>
 <ol class="arabic">
-<li><p><strong>Success vs Error Rate Comparison</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">visualizer</span><span class="o">.</span><span class="n">plot_success_error_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<li><p><strong>Circuit Structure</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_circuit_structure</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Shows success and error rates across different jobs as a bar chart.</p>
+<p>Shows basic circuit metrics: depth, width, size, qubits, and classical bits.</p>
+</li>
+<li><p><strong>Instruction Breakdown</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_instruction_breakdown</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Displays gate type analysis and instruction distribution.</p>
+</li>
+<li><p><strong>Scheduling Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_scheduling_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Shows scheduling and timing information.</p>
+</li>
+</ol>
+</section>
+<section id="dashboard-and-all-plots">
+<h4>Dashboard and All Plots<a class="headerlink" href="#dashboard-and-all-plots" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create comprehensive dashboard</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Generate all individual plots</span>
+<span class="n">all_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complexitymetricsvisualizer">
+<h3>ComplexityMetricsVisualizer<a class="headerlink" href="#complexitymetricsvisualizer" title="Link to this heading">¶</a></h3>
+<p>Visualizes complexity analysis from <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> with advanced charts and analysis.</p>
+<section id="id1">
+<h4>Individual Plots<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<ol class="arabic">
+<li><p><strong>Gate-Based Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_gate_based_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Shows gate counts, circuit depth, T-gates, and CNOT gates.</p>
+</li>
+<li><p><strong>Complexity Radar Chart</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_complexity_radar</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Creates a radar chart with normalized complexity indicators for quick visual assessment.</p>
+</li>
+<li><p><strong>Quantum Volume Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_quantum_volume_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Displays Quantum Volume estimation and contributing factors.</p>
+</li>
+<li><p><strong>Efficiency Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_efficiency_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Shows parallelism efficiency and circuit efficiency analysis.</p>
+</li>
+</ol>
+</section>
+<section id="id2">
+<h4>Dashboard and All Plots<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create comprehensive dashboard</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Generate all individual plots</span>
+<span class="n">all_figures</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="circuitperformancevisualizer">
+<h3>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h3>
+<p>Visualizes performance metrics from <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code> with success rates, fidelity, and execution analysis.</p>
+<section id="id3">
+<h4>Individual Plots<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
+<ol class="arabic">
+<li><p><strong>Success vs Error Rate Comparison</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_success_error_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Shows success and error rates across different jobs as a grouped bar chart.</p>
 </li>
 <li><p><strong>Fidelity Comparison</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">visualizer</span><span class="o">.</span><span class="n">plot_fidelity_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_fidelity_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Displays fidelity values for each job.</p>
+<p>Displays fidelity values for each job with value labels.</p>
 </li>
 <li><p><strong>Shot Distribution</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">visualizer</span><span class="o">.</span><span class="n">plot_shot_distribution</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_shot_distribution</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Shows the distribution of successful vs failed shots as stacked bars with detailed labels.</p>
 </li>
 <li><p><strong>Aggregate Summary</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">visualizer</span><span class="o">.</span><span class="n">plot_aggregate_summary</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_aggregate_summary</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Provides a comprehensive summary of aggregate statistics.</p>
+<p>Provides a comprehensive summary of aggregate statistics across multiple jobs.</p>
 </li>
 </ol>
 </section>
-<section id="dashboard-view">
-<h4>Dashboard View<a class="headerlink" href="#dashboard-view" title="Link to this heading">¶</a></h4>
-<p>Create a comprehensive dashboard with all visualizations in a 2x2 subplot layout:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dashboard_fig</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="plot-all">
-<h4>Plot All<a class="headerlink" href="#plot-all" title="Link to this heading">¶</a></h4>
-<p>Generate all individual plots at once:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_figures</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<section id="id4">
+<h4>Dashboard and All Plots<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create comprehensive dashboard</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Generate all individual plots</span>
+<span class="n">all_figures</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -424,11 +546,27 @@
 </section>
 <section id="plot-configuration">
 <h2>Plot Configuration<a class="headerlink" href="#plot-configuration" title="Link to this heading">¶</a></h2>
+<section id="plotconfig-options">
+<h3>PlotConfig Options<a class="headerlink" href="#plotconfig-options" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlotConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>           <span class="c1"># Figure size in inches</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                   <span class="c1"># Resolution for saved plots</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>           <span class="c1"># Plot style theme</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">],</span>  <span class="c1"># Custom colors</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span>         <span class="c1"># Output format: png, svg, pdf, eps</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                 <span class="c1"># Show grid lines</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span>                  <span class="c1"># Transparency level</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="available-styles">
 <h3>Available Styles<a class="headerlink" href="#available-styles" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;default&quot;</span></code>: Standard matplotlib style</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;quantum&quot;</span></code>: Custom quantum-themed style with clean backgrounds and seaborn-inspired appearance</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;quantum&quot;</span></code>: Custom quantum-themed style with clean backgrounds</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code>: Minimalist style with white grid</p></li>
 </ul>
 </section>
@@ -450,15 +588,47 @@
 </pre></div>
 </div>
 </section>
-<section id="save-formats">
-<h3>Save Formats<a class="headerlink" href="#save-formats" title="Link to this heading">¶</a></h3>
-<p>Supported formats: <code class="docutils literal notranslate"><span class="pre">&quot;png&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;svg&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;eps&quot;</span></code></p>
-</section>
 </section>
 <section id="advanced-examples">
 <h2>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h2>
-<section id="multiple-jobs-visualization">
-<h3>Multiple Jobs Visualization<a class="headerlink" href="#multiple-jobs-visualization" title="Link to this heading">¶</a></h3>
+<section id="complete-analysis-with-custom-configuration">
+<h3>Complete Analysis with Custom Configuration<a class="headerlink" href="#complete-analysis-with-custom-configuration" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">PlotConfig</span>
+
+<span class="c1"># Create custom configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">,</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">],</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span>
+<span class="p">)</span>
+
+<span class="c1"># Create comprehensive analysis</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+
+<span class="c1"># Use unified visualizer with custom config</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span>
+    <span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> 
+    <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> 
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;comprehensive_analysis&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Create all visualizations</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Print summary</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">print_available_metrics</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="multiple-jobs-analysis">
+<h3>Multiple Jobs Analysis<a class="headerlink" href="#multiple-jobs-analysis" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer.noise</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoiseModel</span><span class="p">,</span> <span class="n">depolarizing_error</span>
 
 <span class="c1"># Create multiple jobs with different noise levels</span>
@@ -467,10 +637,8 @@
 
 <span class="k">for</span> <span class="n">noise_level</span> <span class="ow">in</span> <span class="n">noise_levels</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">noise_level</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
-        <span class="c1"># No noise</span>
         <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Add noise</span>
         <span class="n">noise_model</span> <span class="o">=</span> <span class="n">NoiseModel</span><span class="p">()</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">depolarizing_error</span><span class="p">(</span><span class="n">noise_level</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">noise_model</span><span class="o">.</span><span class="n">add_all_qubit_quantum_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;u1&#39;</span><span class="p">,</span> <span class="s1">&#39;u2&#39;</span><span class="p">,</span> <span class="s1">&#39;u3&#39;</span><span class="p">])</span>
@@ -480,71 +648,93 @@
     
     <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
-<span class="c1"># Wait for completion</span>
-<span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
-    <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-
 <span class="c1"># Analyze with CircuitPerformance</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">circuit_performance_strategy</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">circuit_performance_strategy</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">jobs</span><span class="p">)</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+    <span class="n">circuit_performance</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">circuit_performance_strategy</span><span class="p">)</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Create comprehensive visualizations</span>
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/noise_analysis&quot;</span><span class="p">)</span>
-<span class="n">dashboard</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Visualize noise effects</span>
+<span class="n">perf_viz</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)},</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;noise_analysis&quot;</span>
+<span class="p">)</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="custom-success-criteria">
 <h3>Custom Success Criteria<a class="headerlink" href="#custom-success-criteria" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define custom success criteria for different quantum algorithms</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define custom success criteria for Bell state</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">bell_state_success</span><span class="p">(</span><span class="n">outcome</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Success for Bell state: |00⟩ or |11⟩&quot;&quot;&quot;</span>
     <span class="n">clean</span> <span class="o">=</span> <span class="n">outcome</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">clean</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;00&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">]</span>
 
+<span class="c1"># Use custom criteria</span>
 <span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span>
+    <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
 <span class="p">)</span>
-<span class="n">circuit_performance</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
-<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
 
-<span class="c1"># Visualize with custom styling</span>
+<span class="c1"># Create visualizations with custom styling</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
     <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
     <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">],</span>
     <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
     <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span>
 <span class="p">)</span>
 
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
-    <span class="n">metrics_dict</span><span class="p">,</span> 
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img/bell_state_analysis&quot;</span><span class="p">,</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span>
+    <span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;bell_state_analysis&quot;</span>
 <span class="p">)</span>
 
-<span class="c1"># Create all plots</span>
-<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># Create comprehensive analysis</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="data-format-requirements">
 <h2>Data Format Requirements<a class="headerlink" href="#data-format-requirements" title="Link to this heading">¶</a></h2>
+<section id="qiskitmetricsvisualizer-data-format">
+<h3>QiskitMetricsVisualizer Data Format<a class="headerlink" href="#qiskitmetricsvisualizer-data-format" title="Link to this heading">¶</a></h3>
+<p>Expects a DataFrame with QiskitMetrics columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">basic_metrics.*</span></code>: Circuit structure metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction_metrics.*</span></code>: Gate and instruction analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scheduling_metrics.*</span></code>: Timing information</p></li>
+</ul>
+</section>
+<section id="complexitymetricsvisualizer-data-format">
+<h3>ComplexityMetricsVisualizer Data Format<a class="headerlink" href="#complexitymetricsvisualizer-data-format" title="Link to this heading">¶</a></h3>
+<p>Expects a DataFrame with ComplexityMetrics columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gate_based_metrics.*</span></code>: Gate counts and circuit depth</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entanglement_metrics.*</span></code>: Entanglement analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">standardized_metrics.*</span></code>: Normalized complexity indicators</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">advanced_metrics.*</span></code>: Efficiency and parallelism metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantum_volume.*</span></code>: Quantum Volume estimation</p></li>
+</ul>
+</section>
 <section id="circuitperformancevisualizer-data-format">
 <h3>CircuitPerformanceVisualizer Data Format<a class="headerlink" href="#circuitperformancevisualizer-data-format" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> expects specific DataFrame structures:</p>
+<p>Expects specific DataFrame structures:</p>
 <section id="individual-jobs-dataframe-circuitperformance-individual-jobs">
 <h4>Individual Jobs DataFrame (<code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.individual_jobs&quot;</span></code>)<a class="headerlink" href="#individual-jobs-dataframe-circuitperformance-individual-jobs" title="Link to this heading">¶</a></h4>
-<p>Required columns:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">job_id</span></code>: Unique identifier for each job</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">success_rate</span></code>: Success rate (0.0 to 1.0)</p></li>
@@ -556,7 +746,6 @@
 </section>
 <section id="aggregate-dataframe-circuitperformance-aggregate">
 <h4>Aggregate DataFrame (<code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.aggregate&quot;</span></code>)<a class="headerlink" href="#aggregate-dataframe-circuitperformance-aggregate" title="Link to this heading">¶</a></h4>
-<p>Required columns:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">mean_success_rate</span></code>: Mean success rate across jobs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">std_success_rate</span></code>: Standard deviation of success rate</p></li>
@@ -579,27 +768,60 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;img&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">metrics_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MyCustomMetrics&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;MyCustomMetrics&#39; data not found in metrics_dict.&quot;</span><span class="p">)</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_custom_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a custom plot for your specific needs.&quot;&quot;&quot;</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Required by BaseVisualizer - creates default plot.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_custom_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_custom_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a custom analysis plot.&quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">is_override</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_plot_axes</span><span class="p">(</span><span class="n">fig_ax_override</span><span class="p">)</span>
         
-        <span class="c1"># Your custom plotting logic here</span>
-        <span class="c1"># Access your data via self.metrics_dict</span>
+        <span class="c1"># Extract data using base class utilities</span>
+        <span class="n">custom_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metrics_from_columns</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">my_df</span><span class="p">,</span> 
+            <span class="p">[</span><span class="s2">&quot;metric1&quot;</span><span class="p">,</span> <span class="s2">&quot;metric2&quot;</span><span class="p">,</span> <span class="s2">&quot;metric3&quot;</span><span class="p">],</span>
+            <span class="n">prefix_to_remove</span><span class="o">=</span><span class="s2">&quot;custom_&quot;</span>
+        <span class="p">)</span>
         
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;My Custom Analysis&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">grid</span><span class="p">)</span>
+        <span class="c1"># Create plot using base class utilities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">custom_data</span><span class="p">,</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;My Custom Analysis&quot;</span><span class="p">,</span>
+            <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;Metrics&quot;</span><span class="p">,</span>
+            <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Values&quot;</span><span class="p">,</span>
+            <span class="n">value_format</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span>
+        <span class="p">)</span>
         
-        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s2">&quot;custom_analysis&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">show_plot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
+            <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+            <span class="n">is_override</span><span class="o">=</span><span class="n">is_override</span><span class="p">,</span>
+            <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span>
+            <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;custom_analysis&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all plots for this visualizer.&quot;&quot;&quot;</span>
+        <span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_custom_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">figures</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dashboard with all plots.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_custom_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span>
 
-<span class="c1"># Usage</span>
-<span class="n">custom_visualizer</span> <span class="o">=</span> <span class="n">MyCustomVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
-<span class="n">custom_visualizer</span><span class="o">.</span><span class="n">create_custom_plot</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Register with unified visualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">metrics_data</span><span class="o">=</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">register_visualizer</span><span class="p">(</span><span class="s2">&quot;MyCustomMetrics&quot;</span><span class="p">,</span> <span class="n">MyCustomVisualizer</span><span class="p">)</span>
+
+<span class="c1"># Use custom visualizer</span>
+<span class="n">custom_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;MyCustomMetrics&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -609,48 +831,26 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In a Jupyter cell</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="c1"># Create visualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">)</span>
 
 <span class="c1"># Show plots inline</span>
-<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_success_error_comparison</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">visualizer</span><span class="o">.</span><span class="n">plot_fidelity_comparison</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">complexity_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1"># Create dashboard inline</span>
-<span class="n">dashboard</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># Create dashboards inline</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="styling-and-themes">
-<h2>Styling and Themes<a class="headerlink" href="#styling-and-themes" title="Link to this heading">¶</a></h2>
-<section id="id1">
-<h3>Available Styles<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;default&quot;</span></code>: Matplotlib default</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;seaborn&quot;</span></code>: Seaborn style</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;quantum&quot;</span></code>: Custom quantum computing theme</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;publication&quot;</span></code>: Publication-ready plots</p></li>
-</ul>
-</section>
-<section id="custom-color-palettes">
-<h3>Custom Color Palettes<a class="headerlink" href="#custom-color-palettes" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Quantum-inspired colors</span>
-<span class="n">quantum_colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">,</span> <span class="s2">&quot;#9467bd&quot;</span><span class="p">]</span>
-
-<span class="c1"># Monochrome for publications</span>
-<span class="n">mono_colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#000000&quot;</span><span class="p">,</span> <span class="s2">&quot;#404040&quot;</span><span class="p">,</span> <span class="s2">&quot;#808080&quot;</span><span class="p">,</span> <span class="s2">&quot;#c0c0c0&quot;</span><span class="p">]</span>
-
-<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span><span class="n">color_palette</span><span class="o">=</span><span class="n">quantum_colors</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="performance-tips">
 <h2>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Batch Operations</strong>: Use <code class="docutils literal notranslate"><span class="pre">plot_all()</span></code> for multiple plots to avoid repeated setup</p></li>
+<li><p><strong>Use Unified Visualizer</strong>: The <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> class handles all metric types efficiently</p></li>
+<li><p><strong>Batch Operations</strong>: Use <code class="docutils literal notranslate"><span class="pre">visualize_all()</span></code> or <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> for multiple plots</p></li>
 <li><p><strong>Output Formats</strong>: Use PNG for quick previews, SVG for publications</p></li>
 <li><p><strong>DPI Settings</strong>: Use lower DPI (150) for quick analysis, higher (300+) for publications</p></li>
-<li><p><strong>Memory Management</strong>: Close figures explicitly in loops to prevent memory leaks</p></li>
+<li><p><strong>Memory Management</strong>: The visualization system automatically handles figure cleanup</p></li>
 </ol>
 </section>
 <section id="troubleshooting">
@@ -658,43 +858,53 @@
 <section id="common-issues">
 <h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p><strong>Missing Data Keys</strong>: Ensure your metrics dictionary contains the expected keys (<code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.individual_jobs&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.aggregate&quot;</span></code>)</p></li>
+<li><p><strong>Missing Data Keys</strong>: Ensure your metrics dictionary contains the expected keys for each visualizer</p></li>
 <li><p><strong>Empty DataFrames</strong>: Check that your metric calculations completed successfully</p></li>
 <li><p><strong>Plot Not Showing</strong>: Verify your matplotlib backend settings</p></li>
 <li><p><strong>File Permissions</strong>: Ensure write permissions for the output directory</p></li>
 </ol>
 </section>
-<section id="debug-mode">
-<h3>Debug Mode<a class="headerlink" href="#debug-mode" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable debug information</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<section id="debug-information">
+<h3>Debug Information<a class="headerlink" href="#debug-information" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get summary of available metrics</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">)</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">print_available_metrics</span><span class="p">()</span>
 
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+<span class="c1"># Get detailed metric summary</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">get_metric_summary</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="circuitperformancevisualizer-methods">
-<h2>CircuitPerformanceVisualizer Methods<a class="headerlink" href="#circuitperformancevisualizer-methods" title="Link to this heading">¶</a></h2>
-<section id="core-methods">
-<h3>Core Methods<a class="headerlink" href="#core-methods" title="Link to this heading">¶</a></h3>
+<section id="complete-method-reference">
+<h2>Complete Method Reference<a class="headerlink" href="#complete-method-reference" title="Link to this heading">¶</a></h2>
+<section id="visualizer-unified-entry-point">
+<h3>Visualizer (Unified Entry Point)<a class="headerlink" href="#visualizer-unified-entry-point" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_success_error_comparison(save=False,</span> <span class="pre">show=True)</span></code>: Creates bar charts comparing success vs error rates</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_fidelity_comparison(save=False,</span> <span class="pre">show=True)</span></code>: Shows fidelity values across jobs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_shot_distribution(save=False,</span> <span class="pre">show=True)</span></code>: Displays shot distribution with detailed labels</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_aggregate_summary(save=False,</span> <span class="pre">show=True)</span></code>: Summary of aggregate statistics</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard(save=False,</span> <span class="pre">show=True)</span></code>: Comprehensive 2x2 dashboard</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_all(save=False,</span> <span class="pre">show=True)</span></code>: Generate all individual plots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_visualizer(metric_name,</span> <span class="pre">visualizer_class)</span></code>: Register custom visualizers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_available_metrics()</span></code>: Get list of available metrics for visualization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">visualize_metric(metric_name,</span> <span class="pre">save=True,</span> <span class="pre">show=True)</span></code>: Create plots for specific metric</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard(save=True,</span> <span class="pre">show=True)</span></code>: Create dashboards for all metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">visualize_all(save=True,</span> <span class="pre">show=True)</span></code>: Generate all individual plots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_metric_summary()</span></code>: Get summary information about available metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">print_available_metrics()</span></code>: Print detailed information about available visualizations</p></li>
 </ul>
 </section>
-<section id="utility-methods">
-<h3>Utility Methods<a class="headerlink" href="#utility-methods" title="Link to this heading">¶</a></h3>
+<section id="individual-visualizers">
+<h3>Individual Visualizers<a class="headerlink" href="#individual-visualizers" title="Link to this heading">¶</a></h3>
+<p>All individual visualizers share these common methods:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">save_plot(fig,</span> <span class="pre">filename)</span></code>: Save figure with configured format and DPI</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">show_plot(fig)</span></code>: Display figure with proper backend handling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_plot()</span></code>: Create the default plot (required by BaseVisualizer)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_all(save=True,</span> <span class="pre">show=True)</span></code>: Generate all individual plots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard(save=True,</span> <span class="pre">show=True)</span></code>: Create comprehensive dashboard</p></li>
 </ul>
-<p>For more examples and advanced usage, see the <code class="docutils literal notranslate"><span class="pre">qward/examples/visualization_demo.py</span></code> file.</p>
+<p>Plus their specific plotting methods as detailed in each visualizer section above.</p>
+<p>For more examples and advanced usage, see the <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code> directory, particularly:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">example_visualizer.py</span></code>: Complete visualization examples</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">visualization_demo.py</span></code>: CircuitPerformance visualization demonstrations</p></li>
+</ul>
 </section>
 </section>
 </section>
@@ -758,31 +968,43 @@
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#architecture">Architecture</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a><ul>
-<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
-<li><a class="reference internal" href="#custom-configuration">Custom Configuration</a></li>
+<li><a class="reference internal" href="#using-the-unified-visualizer-recommended">Using the Unified Visualizer (Recommended)</a></li>
+<li><a class="reference internal" href="#using-individual-visualizers">Using Individual Visualizers</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#available-visualizers">Available Visualizers</a><ul>
-<li><a class="reference internal" href="#circuitperformancevisualizer">CircuitPerformanceVisualizer</a><ul>
+<li><a class="reference internal" href="#qiskitmetricsvisualizer">QiskitMetricsVisualizer</a><ul>
 <li><a class="reference internal" href="#individual-plots">Individual Plots</a></li>
-<li><a class="reference internal" href="#dashboard-view">Dashboard View</a></li>
-<li><a class="reference internal" href="#plot-all">Plot All</a></li>
+<li><a class="reference internal" href="#dashboard-and-all-plots">Dashboard and All Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#complexitymetricsvisualizer">ComplexityMetricsVisualizer</a><ul>
+<li><a class="reference internal" href="#id1">Individual Plots</a></li>
+<li><a class="reference internal" href="#id2">Dashboard and All Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#circuitperformancevisualizer">CircuitPerformanceVisualizer</a><ul>
+<li><a class="reference internal" href="#id3">Individual Plots</a></li>
+<li><a class="reference internal" href="#id4">Dashboard and All Plots</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#plot-configuration">Plot Configuration</a><ul>
+<li><a class="reference internal" href="#plotconfig-options">PlotConfig Options</a></li>
 <li><a class="reference internal" href="#available-styles">Available Styles</a></li>
 <li><a class="reference internal" href="#color-palettes">Color Palettes</a></li>
-<li><a class="reference internal" href="#save-formats">Save Formats</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#advanced-examples">Advanced Examples</a><ul>
-<li><a class="reference internal" href="#multiple-jobs-visualization">Multiple Jobs Visualization</a></li>
+<li><a class="reference internal" href="#complete-analysis-with-custom-configuration">Complete Analysis with Custom Configuration</a></li>
+<li><a class="reference internal" href="#multiple-jobs-analysis">Multiple Jobs Analysis</a></li>
 <li><a class="reference internal" href="#custom-success-criteria">Custom Success Criteria</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#data-format-requirements">Data Format Requirements</a><ul>
+<li><a class="reference internal" href="#qiskitmetricsvisualizer-data-format">QiskitMetricsVisualizer Data Format</a></li>
+<li><a class="reference internal" href="#complexitymetricsvisualizer-data-format">ComplexityMetricsVisualizer Data Format</a></li>
 <li><a class="reference internal" href="#circuitperformancevisualizer-data-format">CircuitPerformanceVisualizer Data Format</a><ul>
 <li><a class="reference internal" href="#individual-jobs-dataframe-circuitperformance-individual-jobs">Individual Jobs DataFrame (<code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.individual_jobs&quot;</span></code>)</a></li>
 <li><a class="reference internal" href="#aggregate-dataframe-circuitperformance-aggregate">Aggregate DataFrame (<code class="docutils literal notranslate"><span class="pre">&quot;CircuitPerformance.aggregate&quot;</span></code>)</a></li>
@@ -792,20 +1014,15 @@
 </li>
 <li><a class="reference internal" href="#creating-custom-visualizers">Creating Custom Visualizers</a></li>
 <li><a class="reference internal" href="#integration-with-jupyter-notebooks">Integration with Jupyter Notebooks</a></li>
-<li><a class="reference internal" href="#styling-and-themes">Styling and Themes</a><ul>
-<li><a class="reference internal" href="#id1">Available Styles</a></li>
-<li><a class="reference internal" href="#custom-color-palettes">Custom Color Palettes</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#performance-tips">Performance Tips</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
 <li><a class="reference internal" href="#common-issues">Common Issues</a></li>
-<li><a class="reference internal" href="#debug-mode">Debug Mode</a></li>
+<li><a class="reference internal" href="#debug-information">Debug Information</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#circuitperformancevisualizer-methods">CircuitPerformanceVisualizer Methods</a><ul>
-<li><a class="reference internal" href="#core-methods">Core Methods</a></li>
-<li><a class="reference internal" href="#utility-methods">Utility Methods</a></li>
+<li><a class="reference internal" href="#complete-method-reference">Complete Method Reference</a><ul>
+<li><a class="reference internal" href="#visualizer-unified-entry-point">Visualizer (Unified Entry Point)</a></li>
+<li><a class="reference internal" href="#individual-visualizers">Individual Visualizers</a></li>
 </ul>
 </li>
 </ul>

@@ -260,7 +260,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.job</span><span class="w"> </span><span class="kn">import</span> <span class="n">Job</span> <span class="k">as</span> <span class="n">QiskitJob</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.result</span><span class="w"> </span><span class="kn">import</span> <span class="n">Result</span>
 
 
 <div class="viewcode-block" id="Scanner">
@@ -277,7 +276,6 @@
         <span class="n">circuit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">strategies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -286,14 +284,12 @@
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit to analyze</span>
 <span class="sd">            job: The job that executed the circuit</span>
-<span class="sd">            result: The result of the job execution</span>
 <span class="sd">            strategies: Optional list of metric strategy classes or instances.</span>
 <span class="sd">                       If a class is provided, it will be instantiated with the circuit.</span>
 <span class="sd">                       If an instance is provided, its circuit must match the Scanner&#39;s circuit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">strategies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -333,16 +329,6 @@
 <span class="sd">            Optional[Union[AerJob, QiskitJob]]: The job that executed the circuit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the result of the job execution.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Optional[Result]: The result of the job execution</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">strategies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]:</span>
@@ -467,18 +453,6 @@
 <span class="sd">            job: The job that executed the circuit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span></div>
-
-
-<div class="viewcode-block" id="Scanner.set_result">
-<a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.set_result">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the result of the job execution.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            result: The result of the job execution</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">result</span></div>
 </div>
 
 </pre></div>

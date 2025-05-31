@@ -188,25 +188,12 @@ classDiagram
         <<Context>>
         +circuit: QuantumCircuit
         +job: Union[AerJob, QiskitJob]
-        +result: Result
-        +metrics: List[MetricCalculator]
-        +__init__(circuit, job, result, metrics)
-        +add_metric(metric_calculator)
+        +strategies: List[MetricCalculator]
+        +__init__(circuit, job, strategies)
+        +add_strategy(metric_calculator)
         +calculate_metrics() Dict[str, DataFrame]
         +set_circuit(circuit)
         +set_job(job)
-        +set_result(result)
-    }
-
-    class Result {
-        <<Data>>
-        +job: Union[AerJob, QiskitJob]
-        +counts: Dict[str, int]
-        +metadata: Dict[str, Any]
-        +__init__(job, counts, metadata)
-        +save(path)
-        +load(path)
-        +update_from_job()
     }
 
     class MetricCalculator {
@@ -302,7 +289,6 @@ classDiagram
 
     %% Strategy Pattern Relationships
     Scanner --> MetricCalculator : uses strategies
-    Scanner --> Result : manages
     
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
@@ -335,7 +321,6 @@ The QWARD library is organized into the following folder structure:
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
 │   └── __init__.py
-├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
@@ -370,13 +355,10 @@ This structure provides a clean organization for the code, with:
 ## Components
 
 ### Scanner
-The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.
-
-### Result
-The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.
+The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.
 
 ### MetricCalculator
-The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the `get_default_metrics()` function from the `qward.metrics.defaults` module.
+The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
 
 ### Schema Validation
 The schema validation system provides:
@@ -412,7 +394,7 @@ circuit.cx(0, 1)
 scanner = Scanner(circuit=circuit)
 
 # Add a metric
-scanner.add_metric(QiskitMetrics(circuit))
+scanner.add_strategy(QiskitMetrics(circuit))
 
 # Calculate metrics (traditional approach)
 results = scanner.calculate_metrics()
@@ -434,12 +416,12 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 # Create a scanner with multiple metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
 
 # For circuit performance, you need job execution results
 if job:  # Assuming you have a job from circuit execution
-    scanner.add_metric(CircuitPerformance(circuit, job=job))
+    scanner.add_strategy(CircuitPerformance(circuit, job=job))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()
@@ -536,7 +518,7 @@ class MyCustomMetric(MetricCalculator):
 
 # Usage
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(MyCustomMetric(circuit))
+scanner.add_strategy(MyCustomMetric(circuit))
 results = scanner.calculate_metrics()
 ```
 
@@ -559,11 +541,10 @@ results = scanner.calculate_metrics()
    - Use appropriate Qiskit runtime services for backend execution
    - Validate success criteria for CircuitPerformance metrics
 
-4. **Result Management**
-   - Save results for later analysis
-   - Include relevant metadata with results
-   - Use consistent naming conventions for saved results
+4. **Data Management**
+   - Use consistent naming conventions for analysis results
    - Leverage schema validation to ensure data integrity
+   - Cache structured metrics when performing multiple analyses
 
 5. **Custom Metrics**
    - Inherit from the MetricCalculator base class
@@ -586,8 +567,12 @@ QWARD includes a comprehensive visualization system for analyzing and presenting
 The visualization system is built on the following key components:
 
 - **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations.
-- **`BaseVisualizer`**: An abstract base class for all visualizers. It handles common setup (output directory, styling via `PlotConfig`) and provides `save_plot`/`show_plot` methods. Subclasses must implement `create_plot()` for their specific visualization logic.
-- **`CircuitPerformanceVisualizer`**: A concrete visualizer inheriting from `BaseVisualizer`. It's responsible for generating various plots related to circuit performance metrics with direct plotting methods (no longer using Strategy pattern for simplicity).
+- **`BaseVisualizer`**: An abstract base class for all visualizers. It handles common setup (output directory, styling via `PlotConfig`) and provides utility methods like `save_plot`/`show_plot`, data validation, and plot creation helpers. Subclasses must implement `create_plot()` for their specific visualization logic.
+- **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
+  - **`QiskitMetricsVisualizer`**: Visualizes circuit structure and instruction metrics
+  - **`ComplexityMetricsVisualizer`**: Visualizes complexity analysis with radar charts and efficiency metrics
+  - **`CircuitPerformanceVisualizer`**: Visualizes performance metrics with success rates, fidelity, and shot distributions
+- **`Visualizer`**: A unified entry point that automatically detects available metrics and provides appropriate visualizations.
 
 ```{mermaid}
 classDiagram
@@ -598,6 +583,14 @@ classDiagram
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
+        +_validate_required_columns()
+        +_extract_metrics_from_columns()
+        +_create_bar_plot_with_labels()
+        +_add_value_labels_to_bars()
+        +_show_no_data_message()
+        +_setup_plot_axes()
+        +_finalize_plot()
+        +_format_column_name_for_display()
     }
     
     class PlotConfig {
@@ -608,6 +601,26 @@ classDiagram
         +save_format: str
         +grid: bool
         +alpha: float
+        +__post_init__()
+    }
+    
+    class QiskitMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_circuit_structure()
+        +plot_instruction_breakdown()
+        +plot_scheduling_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+    
+    class ComplexityMetricsVisualizer {
+        +metrics_dict: Dict[str, DataFrame]
+        +plot_gate_based_metrics()
+        +plot_complexity_radar()
+        +plot_quantum_volume_analysis()
+        +plot_efficiency_metrics()
+        +create_dashboard()
+        +plot_all()
     }
     
     class CircuitPerformanceVisualizer {
@@ -619,20 +632,80 @@ classDiagram
         +create_dashboard()
         +plot_all()
     }
+    
+    class Visualizer {
+        +scanner: Optional[Scanner]
+        +metrics_data: Dict[str, DataFrame]
+        +registered_visualizers: Dict[str, Type[BaseVisualizer]]
+        +register_visualizer()
+        +get_available_metrics()
+        +visualize_metric()
+        +create_dashboard()
+        +visualize_all()
+        +get_metric_summary()
+        +print_available_metrics()
+    }
 
+    BaseVisualizer <|-- QiskitMetricsVisualizer
+    BaseVisualizer <|-- ComplexityMetricsVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
+    Visualizer --> BaseVisualizer : manages
+    Visualizer --> Scanner : optional integration
     
-    note for BaseVisualizer "Abstract base class providing core visualization functionality"
-    note for CircuitPerformanceVisualizer "Concrete implementation with direct plotting methods for simplicity"
-    note for PlotConfig "Configuration dataclass for plot appearance and saving options"
+    note for BaseVisualizer "Abstract base class with common utilities for data validation, plot creation, and styling"
+    note for QiskitMetricsVisualizer "Visualizes circuit structure, instruction breakdown, and scheduling metrics"
+    note for ComplexityMetricsVisualizer "Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis"
+    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates, fidelity, and shot distributions"
+    note for Visualizer "Unified entry point that auto-detects metrics and provides comprehensive visualization capabilities"
 ```
 
-### Key Components (Summary)
+### Key Components
 
-1. **`BaseVisualizer`**: Abstract base class providing core visualization functionality.
-2. **`CircuitPerformanceVisualizer`**: Concrete implementation for `CircuitPerformance` metrics with simplified direct plotting methods.
-3. **`PlotConfig`**: Dataclass for easy plot appearance customization.
+#### `BaseVisualizer`
+Abstract base class providing core visualization functionality:
+- **Output Management**: Handles output directory creation and file path management
+- **Plot Configuration**: Integrates with `PlotConfig` for consistent styling
+- **Common Utilities**: Provides reusable methods for data validation, plot creation, and formatting
+- **Save/Show Operations**: Provides `save_plot()` and `show_plot()` methods
+- **Abstract Interface**: Defines `create_plot()` method that subclasses must implement
+
+#### Individual Visualizers
+Three specialized visualizers for different metric types:
+
+1. **`QiskitMetricsVisualizer`**: Handles circuit structure and instruction analysis
+   - Circuit structure metrics (depth, width, size, qubits)
+   - Instruction breakdown and gate type analysis
+   - Scheduling and timing metrics
+   - Comprehensive dashboard with all QiskitMetrics visualizations
+
+2. **`ComplexityMetricsVisualizer`**: Handles complexity analysis visualization
+   - Gate-based complexity metrics
+   - Radar chart for normalized complexity indicators
+   - Quantum Volume analysis and estimation
+   - Efficiency metrics and parallelism analysis
+   - Comprehensive dashboard with complexity overview
+
+3. **`CircuitPerformanceVisualizer`**: Handles execution performance visualization
+   - Success vs error rate comparisons
+   - Fidelity analysis across jobs
+   - Shot distribution (successful vs failed)
+   - Aggregate statistics summary
+   - Supports both single job and multiple job scenarios
+
+#### `Visualizer` (Unified Entry Point)
+Main class that provides a single interface for all visualizations:
+- **Auto-Detection**: Automatically detects available metrics and registers appropriate visualizers
+- **Unified Interface**: Single entry point for creating all visualizations
+- **Flexible Input**: Works with Scanner instances or custom metrics data
+- **Comprehensive Output**: Can create individual plots, dashboards, or complete visualization suites
+
+#### `PlotConfig`
+Configuration dataclass for plot appearance and behavior:
+- **Appearance**: Figure size, DPI, color palettes, transparency
+- **Styling**: Plot styles (default, quantum, minimal)
+- **Output**: Save format (PNG, SVG), grid settings
+- **Extensible**: Easy to customize for different visualization needs
 
 ### Integration with Scanner
 
@@ -641,12 +714,28 @@ The visualization system seamlessly integrates with the Scanner output:
 ```python
 # Calculate metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
+scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
 metrics_dict = scanner.calculate_metrics()
 
-# Create visualizations
-visualizer = CircuitPerformanceVisualizer(metrics_dict)
-figures = visualizer.plot_all(save=True)
+# Option 1: Use unified Visualizer (recommended)
+visualizer = Visualizer(scanner=scanner)
+dashboards = visualizer.create_dashboard(save=True)
+all_plots = visualizer.visualize_all(save=True)
+
+# Option 2: Use individual visualizers directly
+from qward.visualization import QiskitMetricsVisualizer, ComplexityMetricsVisualizer, CircuitPerformanceVisualizer
+
+qiskit_viz = QiskitMetricsVisualizer({"QiskitMetrics": metrics_dict["QiskitMetrics"]})
+qiskit_plots = qiskit_viz.plot_all(save=True)
+
+complexity_viz = ComplexityMetricsVisualizer({"ComplexityMetrics": metrics_dict["ComplexityMetrics"]})
+complexity_plots = complexity_viz.plot_all(save=True)
+
+circuit_perf_data = {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")}
+perf_viz = CircuitPerformanceVisualizer(circuit_perf_data)
+perf_plots = perf_viz.plot_all(save=True)
 ```
 
 ### Extensibility
@@ -654,7 +743,8 @@ figures = visualizer.plot_all(save=True)
 The visualization system is designed for easy extension:
 
 1. **Custom Visualizers**: Create new visualizers by inheriting from `BaseVisualizer`
-2. **Custom Styles**: Define new plot styles and color palettes
-3. **New Plot Types**: Add new visualization methods to existing visualizers
+2. **Custom Plot Types**: Add new visualization methods to existing visualizers
+3. **Custom Styling**: Define new `PlotConfig` presets for different use cases
+4. **Registration System**: Register custom visualizers with the unified `Visualizer` class
 
 For detailed usage and examples, see the [Visualization Guide](visualization_guide.md). 
