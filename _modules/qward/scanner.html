@@ -213,6 +213,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/visualization_unified.html">Unified Visualizer</a></li>
 </ul>
 </li>
 </ul>
@@ -375,8 +378,11 @@
             <span class="c1"># Create a DataFrame for this metric type</span>
             <span class="n">metric_name</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
-            <span class="c1"># Special handling for CircuitPerformance metrics</span>
-            <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">:</span>
+            <span class="c1"># Special handling for CircuitPerformanceMetrics (use CircuitPerformance as key for compatibility)</span>
+            <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;CircuitPerformanceMetrics&quot;</span><span class="p">:</span>
+                <span class="c1"># Use &quot;CircuitPerformance&quot; as the key for backward compatibility with visualization</span>
+                <span class="n">display_name</span> <span class="o">=</span> <span class="s2">&quot;CircuitPerformance&quot;</span>
+
                 <span class="c1"># Check if this is the new API structure or legacy structure</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;get_single_job_metrics&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;get_multiple_jobs_metrics&quot;</span>
@@ -388,20 +394,20 @@
                         <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">legacy_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">])</span>
                         <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">legacy_metrics</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">]])</span>
 
-                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
-                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
+                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="c1"># Single job case</span>
                         <span class="n">single_metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">()</span>
                         <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">single_metrics</span><span class="p">])</span>
-                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
+                        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
                 <span class="k">elif</span> <span class="s2">&quot;individual_jobs&quot;</span> <span class="ow">in</span> <span class="n">metric_results</span><span class="p">:</span>
                     <span class="c1"># Legacy structure - multiple jobs case</span>
                     <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">metric_results</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">])</span>
                     <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">metric_results</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">]])</span>
 
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># New API structure - flatten it for DataFrame compatibility</span>
                     <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="p">{}</span>
@@ -413,7 +419,7 @@
                             <span class="n">flattened_metrics</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">category_metrics</span>
 
                     <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Handle other metrics normally</span>
                 <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="p">{}</span>

@@ -213,6 +213,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_unified.html">Unified Visualizer</a></li>
 </ul>
 </li>
 </ul>
@@ -251,7 +254,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Circuit performance metrics implementation for QWARD.</span>
 
-<span class="sd">This module provides the CircuitPerformance class for analyzing the performance of</span>
+<span class="sd">This module provides the CircuitPerformanceMetrics class for analyzing the performance of</span>
 <span class="sd">quantum circuits based on job execution results. It supports both single job</span>
 <span class="sd">and multiple job analysis with customizable success criteria.</span>
 
@@ -286,9 +289,9 @@
 <span class="n">JobType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="CircuitPerformance">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformance</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
+<div class="viewcode-block" id="CircuitPerformanceMetrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate circuit performance metrics for quantum circuits.</span>
 
@@ -308,14 +311,14 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        # Basic usage with default success criteria (ground state)</span>
-<span class="sd">        performance = CircuitPerformance(circuit, job=job)</span>
+<span class="sd">        performance = CircuitPerformanceMetrics(circuit, job=job)</span>
 <span class="sd">        metrics = performance.get_metrics()</span>
 
 <span class="sd">        # With custom success criteria and expected distribution</span>
 <span class="sd">        def custom_success(state): return state == &quot;101&quot;</span>
 <span class="sd">        expected = {&quot;000&quot;: 0.5, &quot;101&quot;: 0.5}  # Bell state expectation</span>
 
-<span class="sd">        performance = CircuitPerformance(</span>
+<span class="sd">        performance = CircuitPerformanceMetrics(</span>
 <span class="sd">            circuit,</span>
 <span class="sd">            job=job,</span>
 <span class="sd">            success_criteria=custom_success,</span>
@@ -335,7 +338,7 @@
         <span class="n">expected_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a CircuitPerformance object.</span>
+<span class="sd">        Initialize a CircuitPerformanceMetrics object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit to analyze</span>
@@ -360,8 +363,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the ID of this metric.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span>
 
-<div class="viewcode-block" id="CircuitPerformance.is_ready">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.is_ready">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.is_ready">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the metric is ready to be calculated.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
@@ -442,8 +445,8 @@
             <span class="n">max_successful_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">successful_states</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_successful_count</span> <span class="o">/</span> <span class="n">total_shots</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CircuitPerformance.set_expected_distribution">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.set_expected_distribution">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.set_expected_distribution">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.set_expected_distribution">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_expected_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the expected probability distribution for fidelity calculation.</span>
@@ -466,8 +469,8 @@
     <span class="c1"># Main API Methods</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all circuit performance metrics.</span>
@@ -482,8 +485,8 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CircuitPerformanceSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all performance metrics as a structured, validated schema object.</span>
@@ -508,8 +511,8 @@
     <span class="c1"># Success Metrics</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_success_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_success_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_success_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get success rate analysis metrics.</span>
@@ -525,8 +528,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate success metrics&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_success_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_success_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_success_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_success_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SuccessMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get success metrics as a validated schema object.</span>
@@ -542,8 +545,8 @@
     <span class="c1"># Fidelity Metrics</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_fidelity_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_fidelity_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get quantum fidelity analysis metrics.</span>
@@ -559,8 +562,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate fidelity metrics&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_fidelity_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_fidelity_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_fidelity_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_fidelity_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FidelityMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get fidelity metrics as a validated schema object.</span>
@@ -576,8 +579,8 @@
     <span class="c1"># Statistical Metrics</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_statistical_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_statistical_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_statistical_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get statistical analysis metrics.</span>
@@ -593,8 +596,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate statistical metrics&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_statistical_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_statistical_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_statistical_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_statistical_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StatisticalMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get statistical metrics as a validated schema object.</span>
@@ -610,8 +613,8 @@
     <span class="c1"># Single Job Metrics</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_single_job_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_single_job_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_single_job_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_single_job_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_single_job_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate circuit performance metrics from a single job result.</span>
@@ -640,8 +643,8 @@
         <span class="k">return</span> <span class="n">combined_metrics</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_single_job_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_single_job_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_single_job_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_single_job_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_single_job_metrics</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CircuitPerformanceSchema&quot;</span><span class="p">:</span>
@@ -665,8 +668,8 @@
     <span class="c1"># Multiple Jobs Metrics</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.get_multiple_jobs_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_multiple_jobs_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_multiple_jobs_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_multiple_jobs_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_multiple_jobs_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate circuit performance metrics from multiple job results.</span>
@@ -726,8 +729,8 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.get_structured_multiple_jobs_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.get_structured_multiple_jobs_metrics">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_multiple_jobs_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CircuitPerformanceSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get multiple jobs metrics as a validated schema object.</span>
@@ -746,8 +749,8 @@
     <span class="c1"># Job Management Methods</span>
     <span class="c1"># =============================================================================</span>
 
-<div class="viewcode-block" id="CircuitPerformance.add_job">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.add_job">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.add_job">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.add_job">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">JobType</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add one or more jobs to the list of jobs for multiple job metrics.</span>
@@ -770,8 +773,8 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.create_uniform_distribution">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.create_uniform_distribution">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.create_uniform_distribution">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_uniform_distribution">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_uniform_distribution</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -788,8 +791,8 @@
         <span class="k">return</span> <span class="p">{</span><span class="nb">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;0</span><span class="si">{</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">b&quot;</span><span class="p">):</span> <span class="n">prob</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_states</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.create_ground_state_distribution">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.create_ground_state_distribution">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.create_ground_state_distribution">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_ground_state_distribution">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_ground_state_distribution</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -805,8 +808,8 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">ground_state</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformance.create_bell_state_distribution">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformance.create_bell_state_distribution">[docs]</a>
+<div class="viewcode-block" id="CircuitPerformanceMetrics.create_bell_state_distribution">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_bell_state_distribution">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_bell_state_distribution</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

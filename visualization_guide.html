@@ -213,6 +213,9 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
 </ul>
 </li>
 </ul>
@@ -264,11 +267,11 @@
 <p>The visualization system is built around a powerful and extensible architecture:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></strong>: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities</p></li>
 <li><p><strong>Individual Visualizers</strong>: Three specialized visualizers for different metric types:</p>
 <ul>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong>: Circuit structure and instruction analysis</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong>: Complexity analysis with radar charts and efficiency metrics</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Circuit structure and instruction analysis</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Complexity analysis with radar charts and efficiency metrics</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Performance metrics with success rates and fidelity analysis</p></li>
 </ul>
 </li>
@@ -276,13 +279,14 @@
 </ul>
 <pre  class="mermaid">
         classDiagram
-    class BaseVisualizer {
+    class VisualizationStrategy {
         &lt;&lt;abstract&gt;&gt;
         +output_dir: str
         +config: PlotConfig
         +save_plot(fig, filename)
         +show_plot(fig)
-        +create_plot()*
+        +create_dashboard()*
+        +plot_all()*
         +_validate_required_columns()
         +_extract_metrics_from_columns()
         +_create_bar_plot_with_labels()
@@ -300,15 +304,16 @@
         +alpha: float
     }
     
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
     
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +plot_gate_based_metrics()
         +plot_complexity_radar()
         +plot_quantum_volume_analysis()
@@ -327,7 +332,7 @@
     }
     
     class Visualizer {
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -335,11 +340,11 @@
         +print_available_metrics()
     }
 
-    BaseVisualizer &lt;|-- QiskitMetricsVisualizer
-    BaseVisualizer &lt;|-- ComplexityMetricsVisualizer
-    BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
-    BaseVisualizer --&gt; PlotConfig : uses
-    Visualizer --&gt; BaseVisualizer : manages
+    VisualizationStrategy &lt;|-- QiskitVisualizer
+    VisualizationStrategy &lt;|-- ComplexityVisualizer
+    VisualizationStrategy &lt;|-- CircuitPerformanceVisualizer
+    VisualizationStrategy --&gt; PlotConfig : uses
+    Visualizer --&gt; VisualizationStrategy : manages
     
     note for Visualizer &quot;Unified entry point with auto-detection and comprehensive visualization&quot;
     </pre></section>
@@ -350,7 +355,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
 
 <span class="c1"># Create a quantum circuit</span>
@@ -359,18 +364,17 @@
 <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Run simulation for CircuitPerformance</span>
+<span class="c1"># Run simulation for CircuitPerformanceMetrics</span>
 <span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
 <span class="c1"># Create scanner with all metrics</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
 
 <span class="c1"># Create unified visualizer</span>
-<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_analysis&quot;</span><span class="p">)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qward/examples/img&quot;</span><span class="p">)</span>
 
 <span class="c1"># Option 1: Create comprehensive dashboards for all metrics</span>
 <span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -386,42 +390,214 @@
 </pre></div>
 </div>
 </section>
-<section id="using-individual-visualizers">
-<h3>Using Individual Visualizers<a class="headerlink" href="#using-individual-visualizers" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">,</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
+<section id="using-individual-visualizers-advanced">
+<h3>Using Individual Visualizers (Advanced)<a class="headerlink" href="#using-individual-visualizers-advanced" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
 
 <span class="c1"># Calculate metrics first</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Use QiskitMetrics visualizer</span>
-<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">(</span>
+<span class="c1"># Use QiskitVisualizer</span>
+<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">(</span>
     <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]},</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qiskit_plots&quot;</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qward/examples/img&quot;</span>
 <span class="p">)</span>
 <span class="n">qiskit_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1"># Use ComplexityMetrics visualizer</span>
-<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">(</span>
+<span class="c1"># Use ComplexityVisualizer</span>
+<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityVisualizer</span><span class="p">(</span>
     <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]},</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;complexity_plots&quot;</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qward/examples/img&quot;</span>
 <span class="p">)</span>
 <span class="n">complexity_figures</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1"># Use CircuitPerformance visualizer</span>
+<span class="c1"># Use CircuitPerformanceVisualizer</span>
 <span class="n">circuit_perf_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)}</span>
 <span class="n">perf_viz</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
     <span class="n">metrics_dict</span><span class="o">=</span><span class="n">circuit_perf_data</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;performance_plots&quot;</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qward/examples/img&quot;</span>
 <span class="p">)</span>
 <span class="n">perf_figures</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
+<section id="examples-and-usage-patterns">
+<h2>Examples and Usage Patterns<a class="headerlink" href="#examples-and-usage-patterns" title="Link to this heading">¶</a></h2>
+<section id="available-examples">
+<h3>📁 Available Examples<a class="headerlink" href="#available-examples" title="Link to this heading">¶</a></h3>
+<p>QWARD provides comprehensive examples in the <code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code> directory:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">example_visualizer.py</span></code></strong> - Complete workflow examples showing all features of the unified Visualizer</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">visualization_demo.py</span></code></strong> - Focused demo of CircuitPerformanceVisualizer capabilities</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">direct_strategy_example.py</span></code></strong> - Shows how to use visualization strategies directly for maximum control</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">aer.py</span></code></strong> - Integration examples with Qiskit Aer simulator</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">circuit_performance_demo.py</span></code></strong> - Circuit performance analysis examples</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">visualization_quickstart.py</span></code></strong> - Quick start example with minimal setup</p></li>
+</ul>
+</section>
+<section id="two-approaches-to-visualization">
+<h3>🎨 Two Approaches to Visualization<a class="headerlink" href="#two-approaches-to-visualization" title="Link to this heading">¶</a></h3>
+<section id="unified-visualizer-recommended">
+<h4>1. Unified Visualizer (Recommended)<a class="headerlink" href="#unified-visualizer-recommended" title="Link to this heading">¶</a></h4>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> class for most cases - it automatically detects your metrics and creates appropriate visualizations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+
+<span class="c1"># From Scanner</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">)</span>
+
+<span class="c1"># From custom data</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">metrics_data</span><span class="o">=</span><span class="n">custom_metrics_dict</span><span class="p">)</span>
+
+<span class="c1"># Create all visualizations</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Benefits:</strong></p>
+<ul class="simple">
+<li><p>Automatic metric detection</p></li>
+<li><p>Consistent styling across all plots</p></li>
+<li><p>Simple API for complex workflows</p></li>
+<li><p>Built-in error handling</p></li>
+</ul>
+</section>
+<section id="direct-strategy-usage-advanced">
+<h4>2. Direct Strategy Usage (Advanced)<a class="headerlink" href="#direct-strategy-usage-advanced" title="Link to this heading">¶</a></h4>
+<p>Use individual strategies directly when you need fine-grained control:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
+
+<span class="c1"># Use specific strategies directly</span>
+<span class="n">qiskit_strategy</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="o">=</span><span class="n">qiskit_data</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;custom_dir&quot;</span><span class="p">)</span>
+<span class="n">qiskit_strategy</span><span class="o">.</span><span class="n">plot_circuit_structure</span><span class="p">()</span>
+<span class="n">qiskit_strategy</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Benefits:</strong></p>
+<ul class="simple">
+<li><p>Fine-grained control over individual plots</p></li>
+<li><p>Custom configurations per strategy</p></li>
+<li><p>Integration with external data sources</p></li>
+<li><p>Flexible output formats and locations</p></li>
+</ul>
+</section>
+</section>
+<section id="available-strategies">
+<h3>🔧 Available Strategies<a class="headerlink" href="#available-strategies" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Strategy</p></th>
+<th class="head"><p>Metrics Type</p></th>
+<th class="head"><p>Key Visualizations</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></p></td>
+<td><p>QiskitMetrics</p></td>
+<td><p>Circuit structure, gate distribution, instruction metrics</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></p></td>
+<td><p>ComplexityMetrics</p></td>
+<td><p>Gate-based metrics, complexity radar, quantum volume</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></p></td>
+<td><p>CircuitPerformanceMetrics</p></td>
+<td><p>Success rates, fidelity, shot distribution</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="customization">
+<h3>🎛️ Customization<a class="headerlink" href="#customization" title="Link to this heading">¶</a></h3>
+<section id="custom-plot-configuration">
+<h4>Custom Plot Configuration<a class="headerlink" href="#custom-plot-configuration" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlotConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#FF6B6B&quot;</span><span class="p">,</span> <span class="s2">&quot;#4ECDC4&quot;</span><span class="p">,</span> <span class="s2">&quot;#45B7D1&quot;</span><span class="p">],</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span>
+<span class="p">)</span>
+
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-strategies">
+<h4>Custom Strategies<a class="headerlink" href="#custom-strategies" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="p">(</span><span class="n">VisualizationStrategy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Your custom visualization logic</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Generate all plots for this strategy</span>
+        <span class="k">pass</span>
+
+<span class="c1"># Register and use</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;MyMetrics&quot;</span><span class="p">,</span> <span class="n">MyCustomStrategy</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="running-the-examples">
+<h3>🚀 Running the Examples<a class="headerlink" href="#running-the-examples" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run main visualizer examples</span>
+python<span class="w"> </span>qward/examples/example_visualizer.py
+
+<span class="c1"># Run CircuitPerformanceMetrics demo</span>
+python<span class="w"> </span>qward/examples/visualization_demo.py
+
+<span class="c1"># Run direct strategy examples</span>
+python<span class="w"> </span>qward/examples/direct_strategy_example.py
+
+<span class="c1"># Run Aer integration examples</span>
+python<span class="w"> </span>qward/examples/aer.py
+
+<span class="c1"># Quick start example</span>
+python<span class="w"> </span>qward/examples/visualization_quickstart.py
+</pre></div>
+</div>
+</section>
+<section id="output">
+<h3>📊 Output<a class="headerlink" href="#output" title="Link to this heading">¶</a></h3>
+<p>All examples save plots to <code class="docutils literal notranslate"><span class="pre">qward/examples/img/</span></code> by default. You’ll find:</p>
+<ul class="simple">
+<li><p><strong>Dashboards</strong>: Comprehensive multi-plot views</p></li>
+<li><p><strong>Individual plots</strong>: Specific visualizations for detailed analysis</p></li>
+<li><p><strong>Multiple formats</strong>: PNG (default), PDF, SVG support</p></li>
+</ul>
+</section>
+<section id="best-practices">
+<h3>💡 Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Start with the unified Visualizer</strong> - it handles most use cases automatically</p></li>
+<li><p><strong>Use direct strategies</strong> when you need specific plots or custom workflows</p></li>
+<li><p><strong>Customize PlotConfig</strong> for consistent styling across all visualizations</p></li>
+<li><p><strong>Register custom strategies</strong> to extend the system with your own visualizations</p></li>
+<li><p><strong>Check the output directory</strong> - all plots are saved with descriptive names</p></li>
+<li><p><strong>Use meaningful output directories</strong> - organize plots by analysis type or date</p></li>
+</ol>
+</section>
+<section id="key-benefits">
+<h3>🔗 Key Benefits<a class="headerlink" href="#key-benefits" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Strategy Pattern</strong>: Consistent with Scanner architecture</p></li>
+<li><p><strong>Auto-Detection</strong>: Automatically finds and visualizes available metrics</p></li>
+<li><p><strong>Extensible</strong>: Easy to add new visualization strategies</p></li>
+<li><p><strong>Flexible</strong>: Use unified interface or direct strategies as needed</p></li>
+<li><p><strong>Customizable</strong>: Full control over plot appearance and output formats</p></li>
+</ul>
+</section>
+</section>
 <section id="available-visualizers">
 <h2>Available Visualizers<a class="headerlink" href="#available-visualizers" title="Link to this heading">¶</a></h2>
-<section id="qiskitmetricsvisualizer">
-<h3>QiskitMetricsVisualizer<a class="headerlink" href="#qiskitmetricsvisualizer" title="Link to this heading">¶</a></h3>
+<section id="qiskitvisualizer">
+<h3>QiskitVisualizer<a class="headerlink" href="#qiskitvisualizer" title="Link to this heading">¶</a></h3>
 <p>Visualizes circuit structure and instruction analysis from <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>.</p>
 <section id="individual-plots">
 <h4>Individual Plots<a class="headerlink" href="#individual-plots" title="Link to this heading">¶</a></h4>
@@ -432,17 +608,23 @@
 </div>
 <p>Shows basic circuit metrics: depth, width, size, qubits, and classical bits.</p>
 </li>
-<li><p><strong>Instruction Breakdown</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_instruction_breakdown</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<li><p><strong>Gate Distribution</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_gate_distribution</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Displays gate type analysis and instruction distribution.</p>
+<p>Displays gate type analysis and instruction distribution as a pie chart.</p>
 </li>
-<li><p><strong>Scheduling Metrics</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_scheduling_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<li><p><strong>Instruction Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_instruction_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Shows scheduling and timing information.</p>
+<p>Shows instruction-related metrics like connected components and nonlocal gates.</p>
+</li>
+<li><p><strong>Circuit Summary</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_circuit_summary</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Displays derived metrics like gate density and parallelism.</p>
 </li>
 </ol>
 </section>
@@ -457,8 +639,8 @@
 </div>
 </section>
 </section>
-<section id="complexitymetricsvisualizer">
-<h3>ComplexityMetricsVisualizer<a class="headerlink" href="#complexitymetricsvisualizer" title="Link to this heading">¶</a></h3>
+<section id="complexityvisualizer">
+<h3>ComplexityVisualizer<a class="headerlink" href="#complexityvisualizer" title="Link to this heading">¶</a></h3>
 <p>Visualizes complexity analysis from <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> with advanced charts and analysis.</p>
 <section id="id1">
 <h4>Individual Plots<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
@@ -882,7 +1064,7 @@
 <section id="visualizer-unified-entry-point">
 <h3>Visualizer (Unified Entry Point)<a class="headerlink" href="#visualizer-unified-entry-point" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">register_visualizer(metric_name,</span> <span class="pre">visualizer_class)</span></code>: Register custom visualizers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_strategy(metric_name,</span> <span class="pre">strategy_class)</span></code>: Register custom strategies</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">get_available_metrics()</span></code>: Get list of available metrics for visualization</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">visualize_metric(metric_name,</span> <span class="pre">save=True,</span> <span class="pre">show=True)</span></code>: Create plots for specific metric</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard(save=True,</span> <span class="pre">show=True)</span></code>: Create dashboards for all metrics</p></li>
@@ -969,16 +1151,35 @@
 <li><a class="reference internal" href="#architecture">Architecture</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li><a class="reference internal" href="#using-the-unified-visualizer-recommended">Using the Unified Visualizer (Recommended)</a></li>
-<li><a class="reference internal" href="#using-individual-visualizers">Using Individual Visualizers</a></li>
+<li><a class="reference internal" href="#using-individual-visualizers-advanced">Using Individual Visualizers (Advanced)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples-and-usage-patterns">Examples and Usage Patterns</a><ul>
+<li><a class="reference internal" href="#available-examples">📁 Available Examples</a></li>
+<li><a class="reference internal" href="#two-approaches-to-visualization">🎨 Two Approaches to Visualization</a><ul>
+<li><a class="reference internal" href="#unified-visualizer-recommended">1. Unified Visualizer (Recommended)</a></li>
+<li><a class="reference internal" href="#direct-strategy-usage-advanced">2. Direct Strategy Usage (Advanced)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#available-strategies">🔧 Available Strategies</a></li>
+<li><a class="reference internal" href="#customization">🎛️ Customization</a><ul>
+<li><a class="reference internal" href="#custom-plot-configuration">Custom Plot Configuration</a></li>
+<li><a class="reference internal" href="#custom-strategies">Custom Strategies</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#running-the-examples">🚀 Running the Examples</a></li>
+<li><a class="reference internal" href="#output">📊 Output</a></li>
+<li><a class="reference internal" href="#best-practices">💡 Best Practices</a></li>
+<li><a class="reference internal" href="#key-benefits">🔗 Key Benefits</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#available-visualizers">Available Visualizers</a><ul>
-<li><a class="reference internal" href="#qiskitmetricsvisualizer">QiskitMetricsVisualizer</a><ul>
+<li><a class="reference internal" href="#qiskitvisualizer">QiskitVisualizer</a><ul>
 <li><a class="reference internal" href="#individual-plots">Individual Plots</a></li>
 <li><a class="reference internal" href="#dashboard-and-all-plots">Dashboard and All Plots</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#complexitymetricsvisualizer">ComplexityMetricsVisualizer</a><ul>
+<li><a class="reference internal" href="#complexityvisualizer">ComplexityVisualizer</a><ul>
 <li><a class="reference internal" href="#id1">Individual Plots</a></li>
 <li><a class="reference internal" href="#id2">Dashboard and All Plots</a></li>
 </ul>

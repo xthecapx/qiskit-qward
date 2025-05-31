@@ -11,7 +11,7 @@ QWARD provides three main categories of metrics:
 
 -   `QiskitMetrics`: Basic circuit properties extracted directly from QuantumCircuit objects
 -   `ComplexityMetrics`: Advanced complexity analysis based on research literature
--   `CircuitPerformance`: For calculating success/error rates from execution counts against user-defined criteria.
+-   `CircuitPerformanceMetrics`: For calculating success/error rates from execution counts against user-defined criteria.
 
 ### Schema-Based Validation
 - **Type Safety**: Automatic validation using Pydantic schemas
@@ -49,7 +49,7 @@ Structured handling of quantum circuit execution results with support for:
 ### Comprehensive Analysis
 QWARD enables analysis of quantum circuits from multiple perspectives:
 - **Static Analysis**: Circuit structure, complexity, and theoretical properties
-- **Dynamic Analysis**: Execution performance, success rates, and fidelity metrics (`CircuitPerformance`)
+- **Dynamic Analysis**: Execution performance, success rates, and fidelity metrics (`CircuitPerformanceMetrics`)
 - **Comparative Analysis**: Performance across different backends, noise models, or algorithm variants
 
 ### Extensibility
@@ -115,7 +115,7 @@ The library revolves around the following key components:
     -   Key built-in strategies include:
         -   `QiskitMetrics`: For basic circuit properties (depth, width, gate counts).
         -   `ComplexityMetrics`: For advanced circuit complexity analysis (based on D. Shami's work) and Quantum Volume estimation.
-        -   `CircuitPerformance`: For calculating success/error rates from execution counts against user-defined criteria.
+        -   `CircuitPerformanceMetrics`: For calculating success/error rates from execution counts against user-defined criteria.
     -   Extensible: Users can create custom metric strategies by inheriting from `qward.metrics.base_metric.MetricCalculator`.
 
 3.  **`Result` (`qward.Result`)**:
@@ -150,7 +150,7 @@ Qward aims to simplify the process of analyzing quantum circuits and understandi
 Qward helps bridge the gap between theoretical quantum algorithms and their practical implementation by providing:
 
 -   A `Scanner` to orchestrate the application of various analytical metric strategy objects.
--   Comprehensive strategies for circuit structure (`QiskitMetrics`), advanced complexity and QV estimation (`ComplexityMetrics`), and execution outcome analysis (`CircuitPerformance`).
+-   Comprehensive strategies for circuit structure (`QiskitMetrics`), advanced complexity and QV estimation (`ComplexityMetrics`), and execution outcome analysis (`CircuitPerformanceMetrics`).
 -   An extensible system for users to define their own custom metric strategies.
 -   Utilities like `Result` for easier data handling.
 
@@ -167,7 +167,7 @@ The project is under active development. Key implemented features include:
 -   Metric Strategy System:
     -   `QiskitMetrics` for circuit basics.
     -   `ComplexityMetrics` including detailed complexity categories and Quantum Volume estimation.
-    -   `CircuitPerformance` strategy for execution outcome analysis.
+    -   `CircuitPerformanceMetrics` strategy for execution outcome analysis.
     -   Abstract `MetricCalculator` base class for custom strategy development.
 -   Integration with Qiskit's `QuantumCircuit`, `Job`, and `Result` objects.
 -   Example usage scripts in `qward/examples/`.
