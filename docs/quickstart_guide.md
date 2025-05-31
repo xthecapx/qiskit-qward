@@ -44,7 +44,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 
 1.  **Create/Load a `QuantumCircuit`**: Use Qiskit to define your circuit.
 2.  **(Optional) Execute the Circuit**: Run your circuit on a simulator or quantum hardware to get a Qiskit `Job` and its `Result` (containing counts).
-3.  **Instantiate `qward.Scanner`**: Provide the circuit, and optionally the Qiskit `Job` and `qward.Result` (which wraps Qiskit's job result/counts).
+3.  **Instantiate `qward.Scanner`**: Provide the circuit, and optionally the Qiskit `Job`.
 4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformance`) to the scanner.
 5.  **Calculate Metrics**: Call `scanner.calculate_metrics()`.
 6.  **Interpret Results**: The result is a dictionary of pandas DataFrames, one for each metric type.
@@ -55,7 +55,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qward import Scanner, Result # QWARD classes
+from qward import Scanner # QWARD classes
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance # QWARD calculators
 from qward.examples.utils import get_display # For pretty printing in notebooks
 
@@ -76,15 +76,12 @@ job = simulator.run(qc, shots=2048)
 qiskit_job_result = job.result()
 counts = qiskit_job_result.get_counts(qc)
 
-# 3. Instantiate QWARD Scanner and Result
-# QWARD's Result can wrap Qiskit's counts and job metadata
-qward_result = Result(job=job, counts=counts, metadata=qiskit_job_result.to_dict()) 
-
-scanner = Scanner(circuit=qc, job=job, result=qward_result)
+# 3. Instantiate QWARD Scanner
+scanner = Scanner(circuit=qc, job=job)
 
 # 4. Add Metric Calculators
-scanner.add_metric(QiskitMetrics(circuit=qc))
-scanner.add_metric(ComplexityMetrics(circuit=qc))
+scanner.add_strategy(QiskitMetrics(circuit=qc))
+scanner.add_strategy(ComplexityMetrics(circuit=qc))
 
 # For CircuitPerformance, define what a "successful" measurement is
 def success_if_00(bitstring):
@@ -93,7 +90,7 @@ def success_if_00(bitstring):
     return clean_result == "00"
 
 # CircuitPerformance needs a job to get counts from
-scanner.add_metric(CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00))
+scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00))
 
 # 5. Calculate Metrics (Traditional Approach)
 all_metric_data = scanner.calculate_metrics()
@@ -283,12 +280,12 @@ You can also provide calculators directly in the Scanner constructor:
 
 ```python
 # Using calculator classes (will be instantiated automatically)
-scanner = Scanner(circuit=qc, metrics=[QiskitMetrics, ComplexityMetrics])
+scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics])
 
 # Using calculator instances
 qm = QiskitMetrics(qc)
 cm = ComplexityMetrics(qc)
-scanner = Scanner(circuit=qc, metrics=[qm, cm])
+scanner = Scanner(circuit=qc, strategies=[qm, cm])
 
 # Calculate metrics
 all_metric_data = scanner.calculate_metrics()
@@ -327,7 +324,7 @@ class MySimpleCustomCalculator(MetricCalculator):
 
 # Usage:
 custom_calculator = MySimpleCustomCalculator(qc)
-scanner.add_metric(custom_calculator)
+scanner.add_strategy(custom_calculator)
 results = scanner.calculate_metrics() 
 print(results['MySimpleCustomCalculator'])
 

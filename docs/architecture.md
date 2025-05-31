@@ -188,25 +188,12 @@ classDiagram
         <<Context>>
         +circuit: QuantumCircuit
         +job: Union[AerJob, QiskitJob]
-        +result: Result
-        +metrics: List[MetricCalculator]
-        +__init__(circuit, job, result, metrics)
-        +add_metric(metric_calculator)
+        +strategies: List[MetricCalculator]
+        +__init__(circuit, job, strategies)
+        +add_strategy(metric_calculator)
         +calculate_metrics() Dict[str, DataFrame]
         +set_circuit(circuit)
         +set_job(job)
-        +set_result(result)
-    }
-
-    class Result {
-        <<Data>>
-        +job: Union[AerJob, QiskitJob]
-        +counts: Dict[str, int]
-        +metadata: Dict[str, Any]
-        +__init__(job, counts, metadata)
-        +save(path)
-        +load(path)
-        +update_from_job()
     }
 
     class MetricCalculator {
@@ -302,7 +289,6 @@ classDiagram
 
     %% Strategy Pattern Relationships
     Scanner --> MetricCalculator : uses strategies
-    Scanner --> Result : manages
     
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
@@ -335,7 +321,6 @@ The QWARD library is organized into the following folder structure:
 ├── scanner.py                  # Scanner class implementation
 ├── runtime/
 │   └── __init__.py
-├── result.py                   # Result class implementation
 ├── metrics/
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
@@ -370,13 +355,10 @@ This structure provides a clean organization for the code, with:
 ## Components
 
 ### Scanner
-The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, result, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.
-
-### Result
-The Result class represents the output of a quantum circuit execution. It includes the job information, measurement counts, and metadata. It provides methods for saving and loading results, as well as updating results from a job.
+The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.
 
 ### MetricCalculator
-The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the `get_default_metrics()` function from the `qward.metrics.defaults` module.
+The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
 
 ### Schema Validation
 The schema validation system provides:
@@ -412,7 +394,7 @@ circuit.cx(0, 1)
 scanner = Scanner(circuit=circuit)
 
 # Add a metric
-scanner.add_metric(QiskitMetrics(circuit))
+scanner.add_strategy(QiskitMetrics(circuit))
 
 # Calculate metrics (traditional approach)
 results = scanner.calculate_metrics()
@@ -434,12 +416,12 @@ from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 # Create a scanner with multiple metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
 
 # For circuit performance, you need job execution results
 if job:  # Assuming you have a job from circuit execution
-    scanner.add_metric(CircuitPerformance(circuit, job=job))
+    scanner.add_strategy(CircuitPerformance(circuit, job=job))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()
@@ -536,7 +518,7 @@ class MyCustomMetric(MetricCalculator):
 
 # Usage
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(MyCustomMetric(circuit))
+scanner.add_strategy(MyCustomMetric(circuit))
 results = scanner.calculate_metrics()
 ```
 
@@ -559,11 +541,10 @@ results = scanner.calculate_metrics()
    - Use appropriate Qiskit runtime services for backend execution
    - Validate success criteria for CircuitPerformance metrics
 
-4. **Result Management**
-   - Save results for later analysis
-   - Include relevant metadata with results
-   - Use consistent naming conventions for saved results
+4. **Data Management**
+   - Use consistent naming conventions for analysis results
    - Leverage schema validation to ensure data integrity
+   - Cache structured metrics when performing multiple analyses
 
 5. **Custom Metrics**
    - Inherit from the MetricCalculator base class
@@ -733,9 +714,9 @@ The visualization system seamlessly integrates with the Scanner output:
 ```python
 # Calculate metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
+scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
 metrics_dict = scanner.calculate_metrics()
 
 # Option 1: Use unified Visualizer (recommended)

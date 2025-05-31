@@ -10,7 +10,6 @@ from qiskit_aer import AerJob
 from qiskit.providers.job import Job as QiskitJob
 
 from qward.metrics.base_metric import MetricCalculator
-from qward.result import Result
 
 
 class Scanner:
@@ -25,7 +24,6 @@ class Scanner:
         circuit: Optional[QuantumCircuit] = None,
         *,
         job: Optional[Union[AerJob, QiskitJob]] = None,
-        result: Optional[Result] = None,
         strategies: Optional[list] = None,
     ):
         """
@@ -34,14 +32,12 @@ class Scanner:
         Args:
             circuit: The quantum circuit to analyze
             job: The job that executed the circuit
-            result: The result of the job execution
             strategies: Optional list of metric strategy classes or instances.
                        If a class is provided, it will be instantiated with the circuit.
                        If an instance is provided, its circuit must match the Scanner's circuit.
         """
         self._circuit = circuit
         self._job = job
-        self._result = result
         self._strategies: List[MetricCalculator] = []
 
         if strategies is not None:
@@ -81,16 +77,6 @@ class Scanner:
             Optional[Union[AerJob, QiskitJob]]: The job that executed the circuit
         """
         return self._job
-
-    @property
-    def result(self) -> Optional[Result]:
-        """
-        Get the result of the job execution.
-
-        Returns:
-            Optional[Result]: The result of the job execution
-        """
-        return self._result
 
     @property
     def strategies(self) -> List[MetricCalculator]:
@@ -204,12 +190,3 @@ class Scanner:
             job: The job that executed the circuit
         """
         self._job = job
-
-    def set_result(self, result: Result) -> None:
-        """
-        Set the result of the job execution.
-
-        Args:
-            result: The result of the job execution
-        """
-        self._result = result

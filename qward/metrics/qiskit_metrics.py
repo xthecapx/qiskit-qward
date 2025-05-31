@@ -198,16 +198,31 @@ class QiskitMetrics(MetricCalculator):
 
         # Check if circuit has scheduling information
         if hasattr(circuit, "op_start_times") and circuit.op_start_times is not None:
-            metrics.update(
-                {
-                    "is_scheduled": True,
-                    "layout": circuit.layout,
-                    "op_start_times": circuit.op_start_times,
-                    "qubit_duration": circuit.qubit_duration,
-                    "qubit_start_time": circuit.qubit_start_time,
-                    "qubit_stop_time": circuit.qubit_stop_time,
-                }
-            )
+            # Use the new estimate_duration() method instead of deprecated properties
+            try:
+                duration = circuit.estimate_duration()
+                metrics.update(
+                    {
+                        "is_scheduled": True,
+                        "layout": circuit.layout,
+                        "op_start_times": circuit.op_start_times,
+                        "qubit_duration": duration,
+                        "qubit_start_time": 0,  # Start time is typically 0 for scheduled circuits
+                        "qubit_stop_time": duration,  # Stop time equals duration
+                    }
+                )
+            except Exception:
+                # Fallback if estimate_duration() is not available or fails
+                metrics.update(
+                    {
+                        "is_scheduled": True,
+                        "layout": circuit.layout,
+                        "op_start_times": circuit.op_start_times,
+                        "qubit_duration": None,
+                        "qubit_start_time": None,
+                        "qubit_stop_time": None,
+                    }
+                )
 
         return metrics
 

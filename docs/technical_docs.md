@@ -75,7 +75,7 @@ from qiskit_aer import AerSimulator
 sim = AerSimulator()
 job = sim.run(qc, shots=1024)
 
-# For CircuitPerformance, we need the Qiskit Job object (not just its result)
+# For CircuitPerformance, we need the Qiskit Job object
 qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
 
 # Define success criteria
@@ -89,23 +89,26 @@ scanner.add_metric(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_cr
 # print(results["CircuitPerformance.aggregate"])
 ```
 
-### Alternative Approach with Result Object
+### Alternative Approach with Job Object
 ```python
-from qward import Result
+from qiskit_aer import AerSimulator
 
-# Create QWARD Result object
-# from qward.metrics import CircuitPerformance
+# Execute circuit
+sim = AerSimulator()
+job = sim.run(qc, shots=1024)
 
-# qward_result = Result(job=job, counts=job.result().get_counts())
+# For CircuitPerformance, we need the Qiskit Job object
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
 
-# # Create scanner with result
-# scanner = Scanner(circuit=qc, result=qward_result)
+# Define success criteria
+def criteria(outcome):
+    return outcome == "00"  # Success if both qubits measure 0
 
-# # Add metrics
-# scanner.add_metric(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
+# Add CircuitPerformance with job
+scanner.add_metric(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
-# metrics = scanner.calculate_metrics()
-# print(metrics["CircuitPerformance.aggregate"])
+# Calculate all metrics
+# print(results["CircuitPerformance.aggregate"])
 ```
 
 ## Schema Validation
@@ -371,26 +374,21 @@ results = scanner.calculate_metrics()
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qward import Scanner, Result
+from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 
 qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
 sim = AerSimulator()
-job = sim.run(qc).result()
-counts = job.get_counts()
+job = sim.run(qc, shots=1024)
 
-# For CircuitPerformance, we need the Qiskit Job object (not just its result)
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
-
-qward_res = Result(job=qiskit_job_obj, counts=counts)
-
-scanner = Scanner(circuit=qc, job=qiskit_job_obj, result=qward_res)
+# Create scanner with circuit and job
+scanner = Scanner(circuit=qc, job=job)
 scanner.add_strategy(QiskitMetrics(qc))
 scanner.add_strategy(ComplexityMetrics(qc))
 
 def criteria(s): return s == '00' or s == '11' # GHZ state
-scanner.add_strategy(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
 
 results = scanner.calculate_metrics()
 # print(results["CircuitPerformance.aggregate"])
@@ -400,7 +398,7 @@ results = scanner.calculate_metrics()
 ```python
 # from qiskit import QuantumCircuit
 # from qiskit_ibm_runtime import QiskitRuntimeService
-# from qward import Scanner, Result
+# from qward import Scanner
 # from qward.metrics import CircuitPerformance
 
 # qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
@@ -409,11 +407,8 @@ results = scanner.calculate_metrics()
 # service = QiskitRuntimeService()
 # backend = service.backend('ibmq_qasm_simulator')
 # job = service.run(qc, backend=backend)
-# result = job.result()
-# counts = result.get_counts()
 
-# qward_result = Result(job=job, counts=counts)
-# scanner = Scanner(circuit=qc, job=job, result=qward_result)
+# scanner = Scanner(circuit=qc, job=job)
 # def criteria(s): return s == '00' or s == '11'
 # scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
 # metrics = scanner.calculate_metrics()

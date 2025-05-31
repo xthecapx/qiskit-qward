@@ -77,7 +77,7 @@ def demo_circuit_performance_visualization():
     custom_config = PlotConfig(
         figsize=(12, 8),
         style="quantum",
-        dpi=150,
+        dpi=300,
         save_format="svg",
         color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"],
     )

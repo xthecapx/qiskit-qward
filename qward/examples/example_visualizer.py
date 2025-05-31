@@ -76,6 +76,7 @@ def example_custom_config():
     custom_config = PlotConfig(
         figsize=(12, 8),
         style="quantum",
+        dpi=300,
         color_palette=["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"],
         alpha=0.8,
         grid=True,

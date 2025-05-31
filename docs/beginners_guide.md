@@ -15,7 +15,7 @@ Qward is a library built on top of Qiskit that helps quantum developers understa
 ## Key Concepts
 
 ### Scanner
-The `qward.Scanner` class is the central component for orchestrating circuit analysis. You provide it with a `QuantumCircuit` and optionally an execution `Job` or `Result`. You then add various **metric calculator** objects to the `Scanner` to perform different types of analysis.
+The `qward.Scanner` class is the central component for orchestrating circuit analysis. You provide it with a `QuantumCircuit` and optionally an execution `Job`. You then add various **metric calculator** objects to the `Scanner` to perform different types of analysis.
 
 ### Metric Calculators
 Metric calculators are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metric calculators:
@@ -81,7 +81,7 @@ Let's analyze a simple quantum coin flip circuit. This uses a single qubit in su
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator # For running the circuit
-from qward import Scanner, Result   # QWARD's Scanner and Result
+from qward import Scanner   # QWARD's Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance # QWARD calculators
 from qward.examples.utils import create_example_circuit, get_display # Example helper
 
@@ -102,17 +102,14 @@ job = simulator.run(circuit, shots=1024)
 qiskit_job_result = job.result()
 counts = qiskit_job_result.get_counts()
 
-# Wrap Qiskit job and counts in QWARD's Result object
-qward_result_obj = Result(job=job, counts=counts) # Pass the actual job and counts
-
 # 3. Create a Scanner instance
-# We can initialize it with the circuit and the QWARD Result object
-scanner = Scanner(circuit=circuit, result=qward_result_obj, job=job)
+# We can initialize it with the circuit and the job
+scanner = Scanner(circuit=circuit, job=job)
 
 # 4. Add Metric Calculators
 # QiskitMetrics and ComplexityMetrics only need the circuit
-scanner.add_metric(QiskitMetrics(circuit=circuit))
-scanner.add_metric(ComplexityMetrics(circuit=circuit))
+scanner.add_strategy(QiskitMetrics(circuit=circuit))
+scanner.add_strategy(ComplexityMetrics(circuit=circuit))
 
 # CircuitPerformance needs the circuit and the job (or jobs) to get counts
 # Let's define success for the first qubit being '0' (e.g., "tails" if '00' or '01')
@@ -124,7 +121,7 @@ def coin_flip_success_q0_is_0(bitstring):
     # We are interested in the first qubit (q0) state.
     return bitstring.endswith('0') # True if q0 is '0'
 
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
+scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
 # For multiple jobs, you can pass a list of jobs or use circuit_performance_calculator.add_job()
 
 # 5. Calculate all added calculators
@@ -174,9 +171,10 @@ print(f"Schema-based: {structured_metrics.basic_metrics.depth}")
 # 3. Cross-field validation (e.g., error_rate = 1 - success_rate)
 # 4. JSON schema generation for API documentation
 
-# Access granular structured metrics
-basic_schema = qiskit_metrics.get_structured_basic_metrics()
-print(f"Circuit has {basic_schema.num_qubits} qubits and depth {basic_schema.depth}")
+# Access validated data with full type safety
+print(f"Circuit depth: {structured_metrics.basic_metrics.depth}")
+print(f"Gate count: {structured_metrics.basic_metrics.size}")
+print(f"Number of qubits: {structured_metrics.basic_metrics.num_qubits}")
 
 # Validation in action
 try:
@@ -201,12 +199,12 @@ You can also provide calculators directly in the Scanner constructor:
 
 ```python
 # Using calculator classes (will be instantiated automatically)
-scanner = Scanner(circuit=circuit, metrics=[QiskitMetrics, ComplexityMetrics])
+scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
 # Using calculator instances
 qm = QiskitMetrics(circuit)
 cm = ComplexityMetrics(circuit)
-scanner = Scanner(circuit=circuit, metrics=[qm, cm])
+scanner = Scanner(circuit=circuit, strategies=[qm, cm])
 
 # Calculate metrics
 all_metrics_results = scanner.calculate_metrics()
@@ -245,7 +243,7 @@ Instead of a specific named enigma, let's focus on how you would analyze any cus
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qward import Scanner, Result
+from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
 from qward.examples.utils import get_display
 
@@ -266,17 +264,16 @@ simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 qiskit_job_result = job.result()
 counts = qiskit_job_result.get_counts()
-qward_result_obj = Result(job=job, counts=counts)
 
 # 3. Create Scanner and add Calculators
-scanner = Scanner(circuit=circuit, result=qward_result_obj, job=job)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
+scanner = Scanner(circuit=circuit, job=job)
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
 
 # Example CircuitPerformance: success if all qubits are '0' (state '000')
 def all_zeros(bitstring):
     return bitstring.replace(" ", "") == '000'
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job, success_criteria=all_zeros))
+scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job, success_criteria=all_zeros))
 
 # 4. Calculate and display metrics
 all_metrics_results = scanner.calculate_metrics()
@@ -290,7 +287,7 @@ complexity_metrics = ComplexityMetrics(circuit)
 complexity_schema = complexity_metrics.get_structured_metrics()
 
 print(f"\nStructured Complexity Analysis:")
-print(f"  Enhanced Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume}")
+print(f"  Enhanced Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume:.2f}")
 print(f"  Gate Density: {complexity_schema.standardized_metrics.gate_density:.3f}")
 print(f"  Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_efficiency:.3f}")
 print(f"  Entangling Gate Density: {complexity_schema.entanglement_metrics.entangling_gate_density:.3f}")
@@ -484,7 +481,7 @@ my_circuit.cx(0,1)
 custom_calculator = MyCustomCalculator(circuit=my_circuit, an_extra_parameter=5)
 
 scanner = Scanner(circuit=my_circuit)
-scanner.add_metric(custom_calculator)
+scanner.add_strategy(custom_calculator)
 
 results = scanner.calculate_metrics()
 print(results['MyCustomCalculator'])
@@ -598,9 +595,9 @@ job = simulator.run(circuit, shots=1024)
 
 # Create scanner with all metrics
 scanner = Scanner(circuit=circuit)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
+scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
 
 # Create unified visualizer (recommended approach)
 visualizer = Visualizer(scanner=scanner, output_dir="my_plots")
@@ -733,11 +730,11 @@ def analyze_and_visualize_circuit(circuit, job=None):
     
     # 1. Set up metrics
     scanner = Scanner(circuit=circuit)
-    scanner.add_metric(QiskitMetrics(circuit))
-    scanner.add_metric(ComplexityMetrics(circuit))
+    scanner.add_strategy(QiskitMetrics(circuit))
+    scanner.add_strategy(ComplexityMetrics(circuit))
     
     if job:
-        scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+        scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
     
     # 2. Calculate metrics
     metrics_dict = scanner.calculate_metrics()

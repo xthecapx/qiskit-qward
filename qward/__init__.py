@@ -5,7 +5,6 @@ QWARD is a library for analyzing quantum circuits and executing them on quantum 
 """
 
 from qward.scanner import Scanner
-from qward.result import Result
 from qward.metrics import (
     ComplexityMetrics,
     MetricCalculator,
@@ -27,7 +26,6 @@ __all__ = [
     "QiskitMetrics",
     "CircuitPerformance",
     "Scanner",
-    "Result",
     "Visualizer",
     "get_default_strategies",
 ]
