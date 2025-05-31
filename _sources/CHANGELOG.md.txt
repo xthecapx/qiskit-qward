@@ -1,5 +1,100 @@
 # QWARD Changelog
 
+## Version 0.7.0 - Class Naming Refactoring and Documentation Restructuring (2025)
+
+### 🔄 **Class Naming Refactoring**
+
+#### Metrics Classes
+- **Renamed**: `CircuitPerformance` → `CircuitPerformanceMetrics`
+  - Eliminates naming conflicts with visualization classes
+  - Provides clearer distinction between metrics and visualizers
+  - Maintains backward compatibility through Scanner display name mapping
+
+#### Visualization Strategy Classes
+- **Renamed**: `Qiskit` → `QiskitVisualizer`
+- **Renamed**: `Complexity` → `ComplexityVisualizer`
+- **Renamed**: `CircuitPerformance` → `CircuitPerformanceVisualizer`
+- **Benefits**: No more import aliases needed, clearer class purposes
+
+#### Updated Import Structure
+**Before (with conflicts):**
+```python
+from qward.metrics import CircuitPerformance as CircuitPerformanceMetrics
+from qward.visualization import CircuitPerformance as CircuitPerformanceViz, Qiskit, Complexity
+```
+
+**After (clean imports):**
+```python
+from qward.metrics import CircuitPerformanceMetrics
+from qward.visualization import CircuitPerformanceVisualizer, QiskitVisualizer, ComplexityVisualizer
+```
+
+### 📚 **Documentation Restructuring**
+
+#### Removed Root-Level Examples Folder
+- **Deleted**: `examples/` folder at project root
+- **Consolidated**: All examples now properly located in `qward/examples/`
+- **Updated**: All documentation references to point to correct locations
+
+#### Enhanced Documentation Organization
+- **Updated**: `docs/visualization_guide.md` with comprehensive examples section
+- **Updated**: `docs/architecture.md` with current class names and structure
+- **Updated**: `docs/technical_docs.md` with correct class references
+- **Updated**: `docs/beginners_guide.md` with current class names
+- **Added**: New API documentation for visualization system
+
+#### API Documentation Enhancements
+- **Added**: `docs/apidocs/visualization_base.rst`
+- **Added**: `docs/apidocs/visualization_strategies.rst`
+- **Added**: `docs/apidocs/visualization_unified.rst`
+- **Updated**: All existing API docs with correct class names
+
+### 🔧 **Technical Improvements**
+
+#### Backward Compatibility Maintained
+- **Scanner**: Updated to handle `CircuitPerformanceMetrics` class name while maintaining `"CircuitPerformance"` as display name for visualization compatibility
+- **Visualizer**: Auto-registration system updated to import new class names while maintaining same registration keys
+- **Examples**: All examples updated to use new class names while preserving functionality
+
+#### Path Corrections
+- **Fixed**: All examples now use correct `qward/examples/img/` paths when run from project root
+- **Updated**: Default output directories in visualization classes
+- **Verified**: All examples work correctly with new structure
+
+### ✅ **Verification and Testing**
+
+#### Comprehensive Testing
+- **Import Testing**: Verified all new class names import correctly
+- **Functionality Testing**: Confirmed all examples and core functionality preserved
+- **Path Testing**: Verified correct plot output locations
+- **End-to-End Testing**: Successfully ran multiple example files
+
+#### Documentation Accuracy
+- **Class Names**: All documentation updated to reflect current implementation
+- **Method Names**: Corrected throughout all documentation files
+- **File Paths**: Updated to point to correct example locations
+- **Architecture Diagrams**: Updated mermaid diagrams with current class names
+
+### 🎯 **Benefits Achieved**
+
+1. **No Import Conflicts**: Users no longer need aliases for class imports
+2. **Clear Naming**: Explicit distinction between metrics and visualizers
+3. **Professional Structure**: Clean project organization with examples in proper location
+4. **Accurate Documentation**: All references match current implementation
+5. **Maintained Functionality**: Zero breaking changes to existing functionality
+
+### 📖 **Updated Examples**
+
+All examples updated with new class names:
+- `qward/examples/example_visualizer.py`
+- `qward/examples/visualization_demo.py`
+- `qward/examples/direct_strategy_example.py`
+- `qward/examples/aer.py`
+- `qward/examples/circuit_performance_demo.py`
+- `qward/examples/visualization_quickstart.py`
+
+---
+
 ## Version 0.3.0 - Schema-Based Validation and Enhanced Architecture (2025)
 
 ### 🚀 Major Features
@@ -28,7 +123,7 @@
   - `get_structured_quantum_volume()` → `QuantumVolumeSchema`
   - `get_structured_metrics()` → `ComplexityMetricsSchema`
 
-- **CircuitPerformance**: Enhanced validation for single and multiple job analysis
+- **CircuitPerformanceMetrics**: Enhanced validation for single and multiple job analysis
   - `get_structured_single_job_metrics()` → `CircuitPerformanceJobSchema`
   - `get_structured_multiple_jobs_metrics()` → `CircuitPerformanceAggregateSchema`
   - `get_structured_metrics()` → Union of above schemas

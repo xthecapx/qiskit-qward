@@ -213,6 +213,9 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
 </ul>
 </li>
 </ul>
@@ -297,13 +300,13 @@
 <li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics(circuit:</span> <span class="pre">QuantumCircuit)</span></code></p></li>
 </ul>
 </section>
-<section id="circuitperformance">
-<h3>CircuitPerformance<a class="headerlink" href="#circuitperformance" title="Link to this heading">¶</a></h3>
+<section id="circuitperformancemetrics">
+<h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><strong>Purpose</strong>: Calculates performance metrics from execution results</p></li>
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsType.POST_RUNTIME</span></code></p></li>
 <li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.CIRCUIT_PERFORMANCE</span></code></p></li>
-<li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformance(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">job:</span> <span class="pre">Optional[Job]=None,</span> <span class="pre">jobs:</span> <span class="pre">Optional[List[Job]]=None,</span> <span class="pre">result:</span> <span class="pre">Optional[Dict]=None,</span> <span class="pre">success_criteria:</span> <span class="pre">Optional[Callable]=None)</span></code></p></li>
+<li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">job:</span> <span class="pre">Optional[Job]=None,</span> <span class="pre">jobs:</span> <span class="pre">Optional[List[Job]]=None,</span> <span class="pre">result:</span> <span class="pre">Optional[Dict]=None,</span> <span class="pre">success_criteria:</span> <span class="pre">Optional[Callable]=None)</span></code></p></li>
 </ul>
 </section>
 <section id="metric-types-and-ids">
@@ -320,7 +323,7 @@
 <h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
 
 <span class="c1"># Create circuit</span>
 <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -329,11 +332,11 @@
 
 <span class="c1"># Method 1: Add metrics individually</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
 
 <span class="c1"># Method 2: Add metrics via constructor (using classes)</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span><span class="p">])</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">])</span>
 
 <span class="c1"># Calculate metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -348,15 +351,15 @@
 <span class="n">sim</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
-<span class="c1"># For CircuitPerformance, we need the Qiskit Job object</span>
-<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformance</span>
+<span class="c1"># For CircuitPerformanceMetrics, we need the Qiskit Job object</span>
+<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformanceMetrics</span>
 
 <span class="c1"># Define success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">outcome</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">&quot;00&quot;</span>  <span class="c1"># Success if both qubits measure 0</span>
 
-<span class="c1"># Add CircuitPerformance with job</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="c1"># Add CircuitPerformanceMetrics with job</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
@@ -371,15 +374,15 @@
 <span class="n">sim</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
-<span class="c1"># For CircuitPerformance, we need the Qiskit Job object</span>
-<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformance</span>
+<span class="c1"># For CircuitPerformanceMetrics, we need the Qiskit Job object</span>
+<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformanceMetrics</span>
 
 <span class="c1"># Define success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">outcome</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">&quot;00&quot;</span>  <span class="c1"># Success if both qubits measure 0</span>
 
-<span class="c1"># Add CircuitPerformance with job</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="c1"># Add CircuitPerformanceMetrics with job</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
@@ -435,8 +438,8 @@
 </li>
 <li><p><strong>Individual Visualizers</strong>: Three concrete visualizers inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>:</p>
 <ul>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>): Visualizes circuit structure, instruction breakdown, and scheduling metrics.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>): Visualizes circuit structure, instruction breakdown, and scheduling metrics.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>): Visualizes performance metrics with success rates, fidelity, and shot distributions.</p></li>
 </ul>
 </li>
@@ -476,16 +479,17 @@
         +alpha: float
     }
 
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
 
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
@@ -509,7 +513,7 @@
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
         +registered_visualizers: Dict[str, Type[BaseVisualizer]]
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -517,32 +521,33 @@
     }
     
     note for BaseVisualizer &quot;Abstract base class providing core visualization functionality with common utilities&quot;
-    note for QiskitMetricsVisualizer &quot;Visualizes circuit structure and instruction analysis&quot;
-    note for ComplexityMetricsVisualizer &quot;Visualizes complexity analysis with radar charts and efficiency metrics&quot;
+    note for QiskitVisualizer &quot;Visualizes circuit structure and instruction analysis&quot;
+    note for ComplexityVisualizer &quot;Visualizes complexity analysis with radar charts and efficiency metrics&quot;
     note for CircuitPerformanceVisualizer &quot;Visualizes performance metrics with success rates and fidelity analysis&quot;
     note for Visualizer &quot;Unified entry point with auto-detection and comprehensive visualization capabilities&quot;
 
-    BaseVisualizer &lt;|-- QiskitMetricsVisualizer
-    BaseVisualizer &lt;|-- ComplexityMetricsVisualizer
+    BaseVisualizer &lt;|-- QiskitVisualizer
+    BaseVisualizer &lt;|-- ComplexityVisualizer
     BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
     BaseVisualizer --&gt; PlotConfig : uses
     Visualizer --&gt; BaseVisualizer : manages
     </pre></section>
 <section id="built-in-visualizers">
 <h3>Built-in Visualizers<a class="headerlink" href="#built-in-visualizers" title="Link to this heading">¶</a></h3>
-<section id="qiskitmetricsvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitmetricsvisualizer">
-<h4><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>)<a class="headerlink" href="#qiskitmetricsvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitmetricsvisualizer" title="Link to this heading">¶</a></h4>
+<section id="qiskitvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitvisualizer">
+<h4><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>)<a class="headerlink" href="#qiskitvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitvisualizer" title="Link to this heading">¶</a></h4>
 <p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code> outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_circuit_structure()</span></code>: Visualizes basic circuit structure (depth, width, size, qubits)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_instruction_breakdown()</span></code>: Shows instruction and gate type analysis</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_scheduling_metrics()</span></code>: Displays scheduling and timing information</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_gate_distribution()</span></code>: Shows gate type analysis and instruction distribution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_instruction_metrics()</span></code>: Displays instruction-related metrics like connected components</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_circuit_summary()</span></code>: Shows derived metrics like gate density and parallelism</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code>: Creates a comprehensive dashboard with all QiskitMetrics plots</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_all()</span></code>: Generates all individual plots</p></li>
 </ul>
 </section>
-<section id="complexitymetricsvisualizer-qward-visualization-complexity-metrics-visualizer-complexitymetricsvisualizer">
-<h4><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>)<a class="headerlink" href="#complexitymetricsvisualizer-qward-visualization-complexity-metrics-visualizer-complexitymetricsvisualizer" title="Link to this heading">¶</a></h4>
+<section id="complexityvisualizer-qward-visualization-complexity-metrics-visualizer-complexityvisualizer">
+<h4><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>)<a class="headerlink" href="#complexityvisualizer-qward-visualization-complexity-metrics-visualizer-complexityvisualizer" title="Link to this heading">¶</a></h4>
 <p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_gate_based_metrics()</span></code>: Visualizes gate counts and circuit depth metrics</p></li>
@@ -555,7 +560,7 @@
 </section>
 <section id="circuitperformancevisualizer-qward-visualization-circuit-performance-visualizer-circuitperformancevisualizer">
 <h4><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)<a class="headerlink" href="#circuitperformancevisualizer-qward-visualization-circuit-performance-visualizer-circuitperformancevisualizer" title="Link to this heading">¶</a></h4>
-<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code> metric outputs. It provides methods like:</p>
+<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> metric outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_success_error_comparison()</span></code>: Creates bar charts comparing success vs. error rates across jobs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_fidelity_comparison()</span></code>: Visualizes fidelity metrics across different jobs</p></li>
@@ -569,7 +574,7 @@
 <h4><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.visualizer.Visualizer</span></code>)<a class="headerlink" href="#visualizer-qward-visualization-visualizer-visualizer" title="Link to this heading">¶</a></h4>
 <p>Unified entry point for all visualizations. It provides methods like:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">register_visualizer()</span></code>: Register custom visualizers for specific metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_strategy()</span></code>: Register custom strategies for specific metrics</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">get_available_metrics()</span></code>: Get list of metrics available for visualization</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">visualize_metric()</span></code>: Create visualizations for a specific metric type</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code>: Create dashboards for all available metrics</p></li>
@@ -674,7 +679,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
 
 <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
@@ -687,7 +692,7 @@
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;00&#39;</span> <span class="ow">or</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;11&#39;</span> <span class="c1"># GHZ state</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 <span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
@@ -745,8 +750,8 @@
 </li>
 <li><p><strong>Individual Visualizers</strong>: Three concrete visualizers inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>:</p>
 <ul>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>): Visualizes circuit structure, instruction breakdown, and scheduling metrics.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>): Visualizes circuit structure, instruction breakdown, and scheduling metrics.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>): Visualizes performance metrics with success rates, fidelity, and shot distributions.</p></li>
 </ul>
 </li>
@@ -786,16 +791,17 @@
         +alpha: float
     }
 
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
 
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
@@ -819,7 +825,7 @@
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
         +registered_visualizers: Dict[str, Type[BaseVisualizer]]
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -827,13 +833,13 @@
     }
     
     note for BaseVisualizer &quot;Abstract base class providing core visualization functionality with common utilities&quot;
-    note for QiskitMetricsVisualizer &quot;Visualizes circuit structure and instruction analysis&quot;
-    note for ComplexityMetricsVisualizer &quot;Visualizes complexity analysis with radar charts and efficiency metrics&quot;
+    note for QiskitVisualizer &quot;Visualizes circuit structure and instruction analysis&quot;
+    note for ComplexityVisualizer &quot;Visualizes complexity analysis with radar charts and efficiency metrics&quot;
     note for CircuitPerformanceVisualizer &quot;Visualizes performance metrics with success rates and fidelity analysis&quot;
     note for Visualizer &quot;Unified entry point with auto-detection and comprehensive visualization capabilities&quot;
 
-    BaseVisualizer &lt;|-- QiskitMetricsVisualizer
-    BaseVisualizer &lt;|-- ComplexityMetricsVisualizer
+    BaseVisualizer &lt;|-- QiskitVisualizer
+    BaseVisualizer &lt;|-- ComplexityVisualizer
     BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
     BaseVisualizer --&gt; PlotConfig : uses
     Visualizer --&gt; BaseVisualizer : manages
@@ -841,18 +847,19 @@
 <section id="id4">
 <h3>Built-in Visualizers<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <section id="id5">
-<h4><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>)<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
+<h4><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>)<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
 <p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code> outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_circuit_structure()</span></code>: Visualizes basic circuit structure (depth, width, size, qubits)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_instruction_breakdown()</span></code>: Shows instruction and gate type analysis</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">plot_scheduling_metrics()</span></code>: Displays scheduling and timing information</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_gate_distribution()</span></code>: Shows gate type analysis and instruction distribution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_instruction_metrics()</span></code>: Displays instruction-related metrics like connected components</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_circuit_summary()</span></code>: Shows derived metrics like gate density and parallelism</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code>: Creates a comprehensive dashboard with all QiskitMetrics plots</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_all()</span></code>: Generates all individual plots</p></li>
 </ul>
 </section>
 <section id="id6">
-<h4><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>)<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
+<h4><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>)<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
 <p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_gate_based_metrics()</span></code>: Visualizes gate counts and circuit depth metrics</p></li>
@@ -865,7 +872,7 @@
 </section>
 <section id="id7">
 <h4><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
-<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code> metric outputs. It provides methods like:</p>
+<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> metric outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_success_error_comparison()</span></code>: Creates bar charts comparing success vs. error rates across jobs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_fidelity_comparison()</span></code>: Visualizes fidelity metrics across different jobs</p></li>
@@ -879,7 +886,7 @@
 <h4><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.visualizer.Visualizer</span></code>)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h4>
 <p>Unified entry point for all visualizations. It provides methods like:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">register_visualizer()</span></code>: Register custom visualizers for specific metrics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_strategy()</span></code>: Register custom strategies for specific metrics</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">get_available_metrics()</span></code>: Get list of metrics available for visualization</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">visualize_metric()</span></code>: Create visualizations for a specific metric type</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code>: Create dashboards for all available metrics</p></li>
@@ -956,7 +963,7 @@
 <li><a class="reference internal" href="#metric-calculators">Metric Calculators</a><ul>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#circuitperformance">CircuitPerformance</a></li>
+<li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
 <li><a class="reference internal" href="#metric-types-and-ids">Metric Types and IDs</a></li>
 </ul>
 </li>
@@ -974,8 +981,8 @@
 <li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
 <li><a class="reference internal" href="#architecture">Architecture</a></li>
 <li><a class="reference internal" href="#built-in-visualizers">Built-in Visualizers</a><ul>
-<li><a class="reference internal" href="#qiskitmetricsvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitmetricsvisualizer"><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>)</a></li>
-<li><a class="reference internal" href="#complexitymetricsvisualizer-qward-visualization-complexity-metrics-visualizer-complexitymetricsvisualizer"><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>)</a></li>
+<li><a class="reference internal" href="#qiskitvisualizer-qward-visualization-qiskit-metrics-visualizer-qiskitvisualizer"><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>)</a></li>
+<li><a class="reference internal" href="#complexityvisualizer-qward-visualization-complexity-metrics-visualizer-complexityvisualizer"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>)</a></li>
 <li><a class="reference internal" href="#circuitperformancevisualizer-qward-visualization-circuit-performance-visualizer-circuitperformancevisualizer"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)</a></li>
 <li><a class="reference internal" href="#visualizer-qward-visualization-visualizer-visualizer"><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.visualizer.Visualizer</span></code>)</a></li>
 </ul>
@@ -997,8 +1004,8 @@
 <li><a class="reference internal" href="#id2">Visualization System</a><ul>
 <li><a class="reference internal" href="#id3">Architecture</a></li>
 <li><a class="reference internal" href="#id4">Built-in Visualizers</a><ul>
-<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer</span></code>)</a></li>
-<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer</span></code>)</a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer</span></code>)</a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer</span></code>)</a></li>
 <li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)</a></li>
 <li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.visualizer.Visualizer</span></code>)</a></li>
 </ul>

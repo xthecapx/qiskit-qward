@@ -213,6 +213,9 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
 </ul>
 </li>
 </ul>
@@ -301,7 +304,7 @@
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class CircuitPerformance {
+    class CircuitPerformanceMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
         +get_metrics() Dict[str, Any]
         +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
@@ -325,19 +328,19 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. CircuitPerformance : implements
+    MetricCalculator &lt;|.. CircuitPerformanceMetrics : implements
     
     %% Schema Integration
     QiskitMetrics --&gt; SchemaModule : validates with
     ComplexityMetrics --&gt; SchemaModule : validates with
-    CircuitPerformance --&gt; SchemaModule : validates with
+    CircuitPerformanceMetrics --&gt; SchemaModule : validates with
 
     %% Pattern Notes
     note for Scanner &quot;Context: Orchestrates metric calculation and returns consolidated DataFrame&quot;
     note for MetricCalculator &quot;Strategy Interface: Common interface with both Dict and Schema outputs&quot;
     note for QiskitMetrics &quot;Returns validated Qiskit-native metrics with type safety&quot;
     note for ComplexityMetrics &quot;Returns validated complexity analysis metrics with constraints&quot;
-    note for CircuitPerformance &quot;Returns validated execution performance metrics with cross-field validation&quot;
+    note for CircuitPerformanceMetrics &quot;Returns validated execution performance metrics with cross-field validation&quot;
     note for SchemaModule &quot;Pydantic-based validation with automatic type checking and JSON schema generation&quot;
     </pre><section id="key-points">
 <h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
@@ -504,7 +507,7 @@
         +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
-    class CircuitPerformance {
+    class CircuitPerformanceMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
         #_job: Optional[JobType]
         #_jobs: List[JobType]
@@ -546,7 +549,7 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. CircuitPerformance : implements
+    MetricCalculator &lt;|.. CircuitPerformanceMetrics : implements
     
     %% Strategy Interface Dependencies
     MetricCalculator --&gt; MetricsType : defines type
@@ -561,7 +564,7 @@
     
     note for ComplexityMetrics &quot;Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking&quot;
     
-    note for CircuitPerformance &quot;Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria&quot;
+    note for CircuitPerformanceMetrics &quot;Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria&quot;
     </pre></section>
 <section id="folder-structure">
 <h2>Folder Structure<a class="headerlink" href="#folder-structure" title="Link to this heading">¶</a></h2>
@@ -579,7 +582,14 @@
 │   ├── schemas.py              # Pydantic schema definitions
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   └── circuit_performance.py  # CircuitPerformance implementation
+│   └── circuit_performance.py  # CircuitPerformanceMetrics implementation
+├── visualization/
+│   ├── __init__.py
+│   ├── base.py                 # VisualizationStrategy base class and PlotConfig
+│   ├── visualizer.py           # Unified Visualizer class
+│   ├── qiskit_metrics_visualizer.py      # QiskitVisualizer implementation
+│   ├── complexity_metrics_visualizer.py  # ComplexityVisualizer implementation
+│   └── circuit_performance_visualizer.py # CircuitPerformanceVisualizer implementation
 ├── utils/
 │   ├── __init__.py
 │   ├── flatten.py              # Utility for flattening nested lists
@@ -591,7 +601,10 @@
     ├── circuit_performance_demo.py # Circuit performance metrics demonstration
     ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
     ├── aer.py                  # Example Aer simulator usage
-    └── example_metrics_constructor.py # Example for custom metrics constructor
+    ├── example_visualizer.py   # Comprehensive visualization examples
+    ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
+    ├── direct_strategy_example.py # Direct strategy usage examples
+    └── visualization_quickstart.py # Quick visualization example
 </pre></div>
 </div>
 <p>This structure provides a clean organization for the code, with:</p>
@@ -599,8 +612,9 @@
 <li><p><strong>Main Package</strong>: Core classes at the top level for easy imports</p></li>
 <li><p><strong>Runtime Module</strong>: Handles execution of quantum circuits</p></li>
 <li><p><strong>Metrics Module</strong>: Contains all metric implementations and schema definitions</p></li>
+<li><p><strong>Visualization Module</strong>: Contains all visualization strategies and unified visualizer</p></li>
 <li><p><strong>Utils Module</strong>: Helper functions and utilities</p></li>
-<li><p><strong>Examples Module</strong>: Working code examples demonstrating library usage including schema validation</p></li>
+<li><p><strong>Examples Module</strong>: Working code examples demonstrating library usage including schema validation and visualization</p></li>
 </ol>
 </section>
 <section id="components">
@@ -632,9 +646,9 @@
 <h3>ComplexityMetrics<a class="headerlink" href="#complexitymetrics" title="Link to this heading">¶</a></h3>
 <p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through schemas with appropriate constraints and cross-field validation.</p>
 </section>
-<section id="circuitperformance">
-<h3>CircuitPerformance<a class="headerlink" href="#circuitperformance" title="Link to this heading">¶</a></h3>
-<p>The CircuitPerformance class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+<section id="circuitperformancemetrics">
+<h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
+<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
 </section>
 </section>
 <section id="usage-examples">
@@ -673,7 +687,7 @@
 <section id="comprehensive-analysis-with-multiple-metrics">
 <h3>Comprehensive Analysis with Multiple Metrics<a class="headerlink" href="#comprehensive-analysis-with-multiple-metrics" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
 
 <span class="c1"># Create a scanner with multiple metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
@@ -682,7 +696,7 @@
 
 <span class="c1"># For circuit performance, you need job execution results</span>
 <span class="k">if</span> <span class="n">job</span><span class="p">:</span>  <span class="c1"># Assuming you have a job from circuit execution</span>
-    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -699,7 +713,7 @@
 </section>
 <section id="circuit-performance-analysis-with-custom-criteria">
 <h3>Circuit Performance Analysis with Custom Criteria<a class="headerlink" href="#circuit-performance-analysis-with-custom-criteria" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformance</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
 
 <span class="c1"># Define custom success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">bell_state_success</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -707,7 +721,7 @@
     <span class="k">return</span> <span class="n">clean_result</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;0000&quot;</span><span class="p">,</span> <span class="s2">&quot;1111&quot;</span><span class="p">]</span>  <span class="c1"># |00⟩ or |11⟩ states</span>
 
 <span class="c1"># Create circuit performance metric with custom criteria</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformance</span><span class="p">(</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> 
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> 
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
@@ -811,7 +825,7 @@
 <ul class="simple">
 <li><p>Handle job and result errors appropriately</p></li>
 <li><p>Use appropriate Qiskit runtime services for backend execution</p></li>
-<li><p>Validate success criteria for CircuitPerformance metrics</p></li>
+<li><p>Validate success criteria for CircuitPerformanceMetrics metrics</p></li>
 </ul>
 </li>
 <li><p><strong>Data Management</strong></p>
@@ -847,11 +861,11 @@
 <p>The visualization system is built on the following key components:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></strong>: An abstract base class for all visualizers. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides utility methods like <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code>, data validation, and plot creation helpers. Subclasses must implement <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> for their specific visualization logic.</p></li>
-<li><p><strong>Individual Visualizers</strong>: Three concrete visualizers inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code>:</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></strong>: An abstract base class for all visualizers. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides utility methods like <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code>, data validation, and plot creation helpers. Subclasses must implement <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_all()</span></code> for their specific visualization logic.</p></li>
+<li><p><strong>Individual Visualizers</strong>: Three concrete visualizers inheriting from <code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code>:</p>
 <ul>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong>: Visualizes circuit structure and instruction metrics</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong>: Visualizes complexity analysis with radar charts and efficiency metrics</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Visualizes circuit structure and instruction metrics</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Visualizes complexity analysis with radar charts and efficiency metrics</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Visualizes performance metrics with success rates, fidelity, and shot distributions</p></li>
 </ul>
 </li>
@@ -859,13 +873,14 @@
 </ul>
 <pre  class="mermaid">
         classDiagram
-    class BaseVisualizer {
+    class VisualizationStrategy {
         &lt;&lt;abstract&gt;&gt;
         +output_dir: str
         +config: PlotConfig
         +save_plot(fig, filename)
         +show_plot(fig)
-        +create_plot()*
+        +create_dashboard()*
+        +plot_all()*
         +_validate_required_columns()
         +_extract_metrics_from_columns()
         +_create_bar_plot_with_labels()
@@ -887,16 +902,17 @@
         +__post_init__()
     }
     
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
     
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
@@ -919,8 +935,8 @@
     class Visualizer {
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
-        +registered_visualizers: Dict[str, Type[BaseVisualizer]]
-        +register_visualizer()
+        +registered_strategies: Dict[str, Type[VisualizationStrategy]]
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -929,45 +945,45 @@
         +print_available_metrics()
     }
 
-    BaseVisualizer &lt;|-- QiskitMetricsVisualizer
-    BaseVisualizer &lt;|-- ComplexityMetricsVisualizer
-    BaseVisualizer &lt;|-- CircuitPerformanceVisualizer
-    BaseVisualizer --&gt; PlotConfig : uses
-    Visualizer --&gt; BaseVisualizer : manages
+    VisualizationStrategy &lt;|-- QiskitVisualizer
+    VisualizationStrategy &lt;|-- ComplexityVisualizer
+    VisualizationStrategy &lt;|-- CircuitPerformanceVisualizer
+    VisualizationStrategy --&gt; PlotConfig : uses
+    Visualizer --&gt; VisualizationStrategy : manages
     Visualizer --&gt; Scanner : optional integration
     
-    note for BaseVisualizer &quot;Abstract base class with common utilities for data validation, plot creation, and styling&quot;
-    note for QiskitMetricsVisualizer &quot;Visualizes circuit structure, instruction breakdown, and scheduling metrics&quot;
-    note for ComplexityMetricsVisualizer &quot;Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis&quot;
+    note for VisualizationStrategy &quot;Abstract base class with common utilities for data validation, plot creation, and styling&quot;
+    note for QiskitVisualizer &quot;Visualizes circuit structure, gate distribution, and instruction metrics&quot;
+    note for ComplexityVisualizer &quot;Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis&quot;
     note for CircuitPerformanceVisualizer &quot;Visualizes performance metrics with success rates, fidelity, and shot distributions&quot;
     note for Visualizer &quot;Unified entry point that auto-detects metrics and provides comprehensive visualization capabilities&quot;
     </pre></section>
 <section id="key-components">
 <h3>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">¶</a></h3>
-<section id="basevisualizer">
-<h4><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code><a class="headerlink" href="#basevisualizer" title="Link to this heading">¶</a></h4>
+<section id="visualizationstrategy">
+<h4><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code><a class="headerlink" href="#visualizationstrategy" title="Link to this heading">¶</a></h4>
 <p>Abstract base class providing core visualization functionality:</p>
 <ul class="simple">
 <li><p><strong>Output Management</strong>: Handles output directory creation and file path management</p></li>
 <li><p><strong>Plot Configuration</strong>: Integrates with <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code> for consistent styling</p></li>
 <li><p><strong>Common Utilities</strong>: Provides reusable methods for data validation, plot creation, and formatting</p></li>
 <li><p><strong>Save/Show Operations</strong>: Provides <code class="docutils literal notranslate"><span class="pre">save_plot()</span></code> and <code class="docutils literal notranslate"><span class="pre">show_plot()</span></code> methods</p></li>
-<li><p><strong>Abstract Interface</strong>: Defines <code class="docutils literal notranslate"><span class="pre">create_plot()</span></code> method that subclasses must implement</p></li>
+<li><p><strong>Abstract Interface</strong>: Defines <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_all()</span></code> methods that subclasses must implement</p></li>
 </ul>
 </section>
 <section id="individual-visualizers">
 <h4>Individual Visualizers<a class="headerlink" href="#individual-visualizers" title="Link to this heading">¶</a></h4>
 <p>Three specialized visualizers for different metric types:</p>
 <ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitMetricsVisualizer</span></code></strong>: Handles circuit structure and instruction analysis</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Handles circuit structure and instruction analysis</p>
 <ul class="simple">
 <li><p>Circuit structure metrics (depth, width, size, qubits)</p></li>
-<li><p>Instruction breakdown and gate type analysis</p></li>
-<li><p>Scheduling and timing metrics</p></li>
+<li><p>Gate distribution and type analysis</p></li>
+<li><p>Instruction metrics and connectivity analysis</p></li>
 <li><p>Comprehensive dashboard with all QiskitMetrics visualizations</p></li>
 </ul>
 </li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityMetricsVisualizer</span></code></strong>: Handles complexity analysis visualization</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Handles complexity analysis visualization</p>
 <ul class="simple">
 <li><p>Gate-based complexity metrics</p></li>
 <li><p>Radar chart for normalized complexity indicators</p></li>
@@ -1015,7 +1031,7 @@
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="c1"># Option 1: Use unified Visualizer (recommended)</span>
@@ -1024,12 +1040,12 @@
 <span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Option 2: Use individual visualizers directly</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">,</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
 
-<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">({</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]})</span>
+<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">({</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]})</span>
 <span class="n">qiskit_plots</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">({</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]})</span>
+<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityVisualizer</span><span class="p">({</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]})</span>
 <span class="n">complexity_plots</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">circuit_perf_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)}</span>
@@ -1042,12 +1058,12 @@
 <h3>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading">¶</a></h3>
 <p>The visualization system is designed for easy extension:</p>
 <ol class="arabic simple">
-<li><p><strong>Custom Visualizers</strong>: Create new visualizers by inheriting from <code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></p></li>
+<li><p><strong>Custom Visualizers</strong>: Create new visualizers by inheriting from <code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></p></li>
 <li><p><strong>Custom Plot Types</strong>: Add new visualization methods to existing visualizers</p></li>
 <li><p><strong>Custom Styling</strong>: Define new <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code> presets for different use cases</p></li>
 <li><p><strong>Registration System</strong>: Register custom visualizers with the unified <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> class</p></li>
 </ol>
-<p>For detailed usage and examples, see the <a class="reference internal" href="visualization_guide.html"><span class="std std-doc">Visualization Guide</span></a>.</p>
+<p>For detailed usage and examples, see the <a class="reference internal" href="visualization_guide.html"><span class="std std-doc">Visualization Guide</span></a> and explore the comprehensive examples in <a class="reference internal" href="#../qward/examples/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code></span></a>.</p>
 </section>
 </section>
 </section>
@@ -1125,7 +1141,7 @@
 <li><a class="reference internal" href="#schema-validation">Schema Validation</a></li>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#circuitperformance">CircuitPerformance</a></li>
+<li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
@@ -1140,7 +1156,7 @@
 <li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
 <li><a class="reference internal" href="#architecture-overview">Architecture Overview</a></li>
 <li><a class="reference internal" href="#key-components">Key Components</a><ul>
-<li><a class="reference internal" href="#basevisualizer"><code class="docutils literal notranslate"><span class="pre">BaseVisualizer</span></code></a></li>
+<li><a class="reference internal" href="#visualizationstrategy"><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></a></li>
 <li><a class="reference internal" href="#individual-visualizers">Individual Visualizers</a></li>
 <li><a class="reference internal" href="#visualizer-unified-entry-point"><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (Unified Entry Point)</a></li>
 <li><a class="reference internal" href="#plotconfig"><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></a></li>

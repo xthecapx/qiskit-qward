@@ -45,7 +45,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 1.  **Create/Load a `QuantumCircuit`**: Use Qiskit to define your circuit.
 2.  **(Optional) Execute the Circuit**: Run your circuit on a simulator or quantum hardware to get a Qiskit `Job` and its `Result` (containing counts).
 3.  **Instantiate `qward.Scanner`**: Provide the circuit, and optionally the Qiskit `Job`.
-4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformance`) to the scanner.
+4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformanceMetrics`) to the scanner.
 5.  **Calculate Metrics**: Call `scanner.calculate_metrics()`.
 6.  **Interpret Results**: The result is a dictionary of pandas DataFrames, one for each metric type.
 7.  **(New) Use Schema Validation**: Access structured, validated metrics through schema objects for enhanced type safety.
@@ -56,7 +56,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner # QWARD classes
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance # QWARD calculators
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics # QWARD calculators
 from qward.examples.utils import get_display # For pretty printing in notebooks
 
 display = get_display()
@@ -90,7 +90,7 @@ def success_if_00(bitstring):
     return clean_result == "00"
 
 # CircuitPerformance needs a job to get counts from
-scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00))
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=success_if_00))
 
 # 5. Calculate Metrics (Traditional Approach)
 all_metric_data = scanner.calculate_metrics()
@@ -109,7 +109,7 @@ if "ComplexityMetrics" in all_metric_data:
     print(f"  Circuit Depth: {complexity_df['gate_based_metrics.circuit_depth'].iloc[0]}")
     print(f"  Enhanced QV Estimate: {complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]}")
 
-# Example: Accessing specific data from CircuitPerformance output
+# Example: Accessing specific data from CircuitPerformanceMetrics output
 if "CircuitPerformance.aggregate" in all_metric_data:
     success_df = all_metric_data["CircuitPerformance.aggregate"]
     print("\nSuccess Rate Data (for '00'):")
@@ -166,12 +166,12 @@ except ImportError:
     print("❌ Pydantic not available - install pydantic for schema validation")
 
 # CircuitPerformance with schema validation
-circuit_performance = CircuitPerformance(circuit=qc, job=job, success_criteria=success_if_00)
+circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=success_if_00)
 try:
     # Single job analysis
     job_schema = circuit_performance.get_structured_single_job_metrics()
     
-    print("\n✅ CircuitPerformance Schema Validation:")
+    print("\n✅ CircuitPerformanceMetrics Schema Validation:")
     print(f"  Job ID: {job_schema.job_id}")
     print(f"  Success Rate: {job_schema.success_rate:.3f}")
     print(f"  Error Rate: {job_schema.error_rate:.3f}")  # Automatically validated
@@ -243,7 +243,7 @@ visualizer.print_available_metrics()
    - Quantum Volume analysis and factors
    - Efficiency and parallelism metrics
 
-3. **CircuitPerformance Visualizations**:
+3. **CircuitPerformanceMetrics Visualizations**:
    - Success vs error rate comparisons
    - Fidelity analysis across jobs
    - Shot distribution (successful vs failed)
@@ -356,7 +356,7 @@ Qward, through its built-in metric calculator classes, offers insights into:
    - **Contributing factors**: Detailed breakdown of enhancement calculations
    - **Schema support**: Nested validation for all QV components
 
-### 4. Execution Success (`CircuitPerformance`)
+### 4. Execution Success (`CircuitPerformanceMetrics`)
    - **Single job analysis**: Success rate, error rate, fidelity for individual executions
    - **Multiple job analysis**: Aggregate statistics across multiple runs
    - **Custom criteria**: User-defined success conditions
