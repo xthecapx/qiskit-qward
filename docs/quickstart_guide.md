@@ -200,6 +200,81 @@ try:
     )
 except Exception as e:
     print(f"✅ Validation caught error: {type(e).__name__} - Success rate cannot exceed 1.0")
+
+### Visualization: Creating Beautiful Plots
+
+Qward includes a comprehensive visualization system that automatically creates publication-quality plots of your metrics:
+
+```python
+# 8. Create Visualizations
+from qward.visualization import Visualizer
+
+print("\n--- Creating Visualizations ---")
+
+# Create unified visualizer (recommended approach)
+visualizer = Visualizer(scanner=scanner, output_dir="quickstart_plots")
+
+# Option 1: Create comprehensive dashboards for all metrics
+print("Creating dashboards...")
+dashboards = visualizer.create_dashboard(save=True, show=False)
+print(f"✅ Created {len(dashboards)} dashboards")
+
+# Option 2: Create all individual plots
+print("Creating individual plots...")
+all_plots = visualizer.visualize_all(save=True, show=False)
+print(f"✅ Created plots for {len(all_plots)} metric types")
+
+# Option 3: Visualize specific metrics
+print("Creating QiskitMetrics plots...")
+qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=False)
+print(f"✅ Created {len(qiskit_plots)} QiskitMetrics plots")
+
+# Print summary of what was created
+visualizer.print_available_metrics()
+```
+
+#### Available Visualizations
+
+1. **QiskitMetrics Visualizations**:
+   - Circuit structure (depth, width, size, qubits)
+   - Instruction breakdown and gate analysis
+   - Scheduling and timing metrics
+
+2. **ComplexityMetrics Visualizations**:
+   - Gate-based complexity metrics
+   - Radar chart for normalized complexity indicators
+   - Quantum Volume analysis and factors
+   - Efficiency and parallelism metrics
+
+3. **CircuitPerformance Visualizations**:
+   - Success vs error rate comparisons
+   - Fidelity analysis across jobs
+   - Shot distribution (successful vs failed)
+   - Aggregate statistics summary
+
+#### Custom Visualization Configuration
+
+```python
+from qward.visualization import PlotConfig
+
+# Create custom plot configuration
+config = PlotConfig(
+    figsize=(12, 8),           # Larger figures
+    style="quantum",           # Quantum-themed styling
+    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],
+    save_format="svg",         # High-quality vector graphics
+    dpi=150,                   # Good balance of quality and speed
+    alpha=0.8                  # Transparency level
+)
+
+# Use custom configuration
+custom_visualizer = Visualizer(
+    scanner=scanner, 
+    config=config, 
+    output_dir="custom_quickstart_plots"
+)
+custom_dashboards = custom_visualizer.create_dashboard(save=True, show=False)
+print(f"✅ Created custom-styled dashboards: {list(custom_dashboards.keys())}")
 ```
 
 ### Alternative: Using Constructor with Calculators
@@ -352,5 +427,6 @@ The easiest way to work with Qward is often using Jupyter notebooks. If you use 
 
 - Explore the [Beginner's Guide](beginners_guide.md) for detailed tutorials
 - Check the [Architecture Documentation](architecture.md) to understand the design patterns
+- Review the [Visualization Guide](visualization_guide.md) for comprehensive plotting capabilities
 - Review the [API Documentation](apidocs/index.rst) for complete reference
 - Try the examples in `qward/examples/` to see real-world usage
