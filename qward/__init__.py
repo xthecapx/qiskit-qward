@@ -15,6 +15,7 @@ from qward.metrics import (
     CircuitPerformance,
     get_default_strategies,
 )
+from qward.visualization import Visualizer
 
 from qward.version import __version__
 
@@ -27,5 +28,6 @@ __all__ = [
     "CircuitPerformance",
     "Scanner",
     "Result",
+    "Visualizer",
     "get_default_strategies",
 ]
