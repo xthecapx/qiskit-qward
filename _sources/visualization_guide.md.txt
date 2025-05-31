@@ -6,13 +6,17 @@ QWARD provides a comprehensive visualization system for quantum circuit metrics.
 
 ## Architecture
 
-The visualization system is built around a simple but powerful architecture:
+The visualization system is built around a powerful and extensible architecture:
 
 - **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations
-- **`BaseVisualizer`**: An abstract base class that handles common functionality like output directory management, styling, and plot saving/showing. Subclasses implement `create_plot()` for their specific visualization logic
-- **`CircuitPerformanceVisualizer`**: A concrete visualizer that creates various plots for circuit performance metrics analysis, including individual plots and comprehensive dashboards
+- **`BaseVisualizer`**: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities
+- **Individual Visualizers**: Three specialized visualizers for different metric types:
+  - **`QiskitMetricsVisualizer`**: Circuit structure and instruction analysis
+  - **`ComplexityMetricsVisualizer`**: Complexity analysis with radar charts and efficiency metrics
+  - **`CircuitPerformanceVisualizer`**: Performance metrics with success rates and fidelity analysis
+- **`Visualizer`**: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities
 
-```mermaid
+```{mermaid}
 classDiagram
     class BaseVisualizer {
         <<abstract>>
@@ -21,8 +25,11 @@ classDiagram
         +save_plot(fig, filename)
         +show_plot(fig)
         +create_plot()*
-        -_setup_output_dir()
-        -_apply_style()
+        +_validate_required_columns()
+        +_extract_metrics_from_columns()
+        +_create_bar_plot_with_labels()
+        +_setup_plot_axes()
+        +_finalize_plot()
     }
     
     class PlotConfig {
@@ -33,39 +40,62 @@ classDiagram
         +save_format: str
         +grid: bool
         +alpha: float
-        +__post_init__()
+    }
+    
+    class QiskitMetricsVisualizer {
+        +plot_circuit_structure()
+        +plot_instruction_breakdown()
+        +plot_scheduling_metrics()
+        +create_dashboard()
+        +plot_all()
+    }
+    
+    class ComplexityMetricsVisualizer {
+        +plot_gate_based_metrics()
+        +plot_complexity_radar()
+        +plot_quantum_volume_analysis()
+        +plot_efficiency_metrics()
+        +create_dashboard()
+        +plot_all()
     }
     
     class CircuitPerformanceVisualizer {
-        +metrics_dict: Dict[str, DataFrame]
-        +individual_df: DataFrame
-        +aggregate_df: DataFrame
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
         +plot_all()
-        -_add_stacked_bar_labels()
-        -_add_stacked_bar_summary()
+    }
+    
+    class Visualizer {
+        +register_visualizer()
+        +get_available_metrics()
+        +visualize_metric()
+        +create_dashboard()
+        +visualize_all()
+        +print_available_metrics()
     }
 
+    BaseVisualizer <|-- QiskitMetricsVisualizer
+    BaseVisualizer <|-- ComplexityMetricsVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
+    Visualizer --> BaseVisualizer : manages
     
-    note for CircuitPerformanceVisualizer "Handles CircuitPerformance metrics visualization with multiple plot types and dashboard creation"
+    note for Visualizer "Unified entry point with auto-detection and comprehensive visualization"
 ```
 
 ## Quick Start
 
-### Basic Usage
+### Using the Unified Visualizer (Recommended)
 
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import CircuitPerformance
-from qward.visualization import CircuitPerformanceVisualizer
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.visualization import Visualizer
 
 # Create a quantum circuit
 circuit = QuantumCircuit(2, 2)
@@ -73,101 +103,201 @@ circuit.h(0)
 circuit.cx(0, 1)
 circuit.measure_all()
 
-# Run the circuit
+# Run simulation for CircuitPerformance
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
-# Calculate metrics
+# Create scanner with all metrics
 scanner = Scanner(circuit=circuit)
-circuit_performance = CircuitPerformance(circuit=circuit, success_criteria=lambda x: x == "11")
-circuit_performance.add_job(job)
-scanner.add_strategy(circuit_performance)
+scanner.add_metric(QiskitMetrics(circuit))
+scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
 
-metrics_dict = scanner.calculate_metrics()
+# Create unified visualizer
+visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
 
-# Create visualizations
-visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/my_plots")
-figures = visualizer.plot_all(save=True, show=False)
+# Option 1: Create comprehensive dashboards for all metrics
+dashboards = visualizer.create_dashboard(save=True, show=False)
+print(f"Created {len(dashboards)} dashboards")
+
+# Option 2: Create all individual plots
+all_plots = visualizer.visualize_all(save=True, show=False)
+print(f"Created plots for {len(all_plots)} metric types")
+
+# Option 3: Visualize specific metrics
+qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=False)
+complexity_plots = visualizer.visualize_metric("ComplexityMetrics", save=True, show=False)
 ```
 
-### Custom Configuration
+### Using Individual Visualizers
 
 ```python
-from qward.visualization import PlotConfig
+from qward.visualization import QiskitMetricsVisualizer, ComplexityMetricsVisualizer, CircuitPerformanceVisualizer
 
-# Create custom configuration
-custom_config = PlotConfig(
-    figsize=(12, 8),
-    style="quantum",
-    dpi=150,
-    save_format="svg",
-    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
-)
+# Calculate metrics first
+metrics_dict = scanner.calculate_metrics()
 
-# Use custom configuration
-visualizer = CircuitPerformanceVisualizer(
-    metrics_dict, 
-    output_dir="img/custom_plots",
-    config=custom_config
+# Use QiskitMetrics visualizer
+qiskit_viz = QiskitMetricsVisualizer(
+    metrics_dict={"QiskitMetrics": metrics_dict["QiskitMetrics"]},
+    output_dir="qiskit_plots"
 )
+qiskit_figures = qiskit_viz.plot_all(save=True, show=False)
+
+# Use ComplexityMetrics visualizer
+complexity_viz = ComplexityMetricsVisualizer(
+    metrics_dict={"ComplexityMetrics": metrics_dict["ComplexityMetrics"]},
+    output_dir="complexity_plots"
+)
+complexity_figures = complexity_viz.plot_all(save=True, show=False)
+
+# Use CircuitPerformance visualizer
+circuit_perf_data = {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")}
+perf_viz = CircuitPerformanceVisualizer(
+    metrics_dict=circuit_perf_data,
+    output_dir="performance_plots"
+)
+perf_figures = perf_viz.plot_all(save=True, show=False)
 ```
 
 ## Available Visualizers
 
+### QiskitMetricsVisualizer
+
+Visualizes circuit structure and instruction analysis from `QiskitMetrics`.
+
+#### Individual Plots
+
+1. **Circuit Structure**
+   ```python
+   qiskit_viz.plot_circuit_structure(save=True, show=True)
+   ```
+   Shows basic circuit metrics: depth, width, size, qubits, and classical bits.
+
+2. **Instruction Breakdown**
+   ```python
+   qiskit_viz.plot_instruction_breakdown(save=True, show=True)
+   ```
+   Displays gate type analysis and instruction distribution.
+
+3. **Scheduling Metrics**
+   ```python
+   qiskit_viz.plot_scheduling_metrics(save=True, show=True)
+   ```
+   Shows scheduling and timing information.
+
+#### Dashboard and All Plots
+
+```python
+# Create comprehensive dashboard
+dashboard = qiskit_viz.create_dashboard(save=True, show=False)
+
+# Generate all individual plots
+all_figures = qiskit_viz.plot_all(save=True, show=False)
+```
+
+### ComplexityMetricsVisualizer
+
+Visualizes complexity analysis from `ComplexityMetrics` with advanced charts and analysis.
+
+#### Individual Plots
+
+1. **Gate-Based Metrics**
+   ```python
+   complexity_viz.plot_gate_based_metrics(save=True, show=True)
+   ```
+   Shows gate counts, circuit depth, T-gates, and CNOT gates.
+
+2. **Complexity Radar Chart**
+   ```python
+   complexity_viz.plot_complexity_radar(save=True, show=True)
+   ```
+   Creates a radar chart with normalized complexity indicators for quick visual assessment.
+
+3. **Quantum Volume Analysis**
+   ```python
+   complexity_viz.plot_quantum_volume_analysis(save=True, show=True)
+   ```
+   Displays Quantum Volume estimation and contributing factors.
+
+4. **Efficiency Metrics**
+   ```python
+   complexity_viz.plot_efficiency_metrics(save=True, show=True)
+   ```
+   Shows parallelism efficiency and circuit efficiency analysis.
+
+#### Dashboard and All Plots
+
+```python
+# Create comprehensive dashboard
+dashboard = complexity_viz.create_dashboard(save=True, show=False)
+
+# Generate all individual plots
+all_figures = complexity_viz.plot_all(save=True, show=False)
+```
+
 ### CircuitPerformanceVisualizer
 
-The `CircuitPerformanceVisualizer` creates comprehensive visualizations for circuit performance metrics. It expects metrics data with specific keys:
-- `"CircuitPerformance.individual_jobs"`: DataFrame with individual job metrics
-- `"CircuitPerformance.aggregate"`: DataFrame with aggregate statistics
+Visualizes performance metrics from `CircuitPerformance` with success rates, fidelity, and execution analysis.
 
 #### Individual Plots
 
 1. **Success vs Error Rate Comparison**
    ```python
-   visualizer.plot_success_error_comparison(save=True, show=True)
+   perf_viz.plot_success_error_comparison(save=True, show=True)
    ```
-   Shows success and error rates across different jobs as a bar chart.
+   Shows success and error rates across different jobs as a grouped bar chart.
 
 2. **Fidelity Comparison**
    ```python
-   visualizer.plot_fidelity_comparison(save=True, show=True)
+   perf_viz.plot_fidelity_comparison(save=True, show=True)
    ```
-   Displays fidelity values for each job.
+   Displays fidelity values for each job with value labels.
 
 3. **Shot Distribution**
    ```python
-   visualizer.plot_shot_distribution(save=True, show=True)
+   perf_viz.plot_shot_distribution(save=True, show=True)
    ```
    Shows the distribution of successful vs failed shots as stacked bars with detailed labels.
 
 4. **Aggregate Summary**
    ```python
-   visualizer.plot_aggregate_summary(save=True, show=True)
+   perf_viz.plot_aggregate_summary(save=True, show=True)
    ```
-   Provides a comprehensive summary of aggregate statistics.
+   Provides a comprehensive summary of aggregate statistics across multiple jobs.
 
-#### Dashboard View
-
-Create a comprehensive dashboard with all visualizations in a 2x2 subplot layout:
+#### Dashboard and All Plots
 
 ```python
-dashboard_fig = visualizer.create_dashboard(save=True, show=False)
-```
+# Create comprehensive dashboard
+dashboard = perf_viz.create_dashboard(save=True, show=False)
 
-#### Plot All
-
-Generate all individual plots at once:
-
-```python
-all_figures = visualizer.plot_all(save=True, show=False)
+# Generate all individual plots
+all_figures = perf_viz.plot_all(save=True, show=False)
 ```
 
 ## Plot Configuration
 
+### PlotConfig Options
+
+```python
+from qward.visualization import PlotConfig
+
+config = PlotConfig(
+    figsize=(12, 8),           # Figure size in inches
+    dpi=300,                   # Resolution for saved plots
+    style="quantum",           # Plot style theme
+    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],  # Custom colors
+    save_format="png",         # Output format: png, svg, pdf, eps
+    grid=True,                 # Show grid lines
+    alpha=0.8                  # Transparency level
+)
+```
+
 ### Available Styles
 
 - `"default"`: Standard matplotlib style
-- `"quantum"`: Custom quantum-themed style with clean backgrounds and seaborn-inspired appearance
+- `"quantum"`: Custom quantum-themed style with clean backgrounds
 - `"minimal"`: Minimalist style with white grid
 
 ### Color Palettes
@@ -189,13 +319,45 @@ default_palette = [
 ]
 ```
 
-### Save Formats
-
-Supported formats: `"png"`, `"svg"`, `"pdf"`, `"eps"`
-
 ## Advanced Examples
 
-### Multiple Jobs Visualization
+### Complete Analysis with Custom Configuration
+
+```python
+from qward.visualization import Visualizer, PlotConfig
+
+# Create custom configuration
+config = PlotConfig(
+    figsize=(14, 10),
+    style="quantum",
+    dpi=150,
+    save_format="svg",
+    color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],
+    alpha=0.8
+)
+
+# Create comprehensive analysis
+scanner = Scanner(circuit=circuit)
+scanner.add_metric(QiskitMetrics(circuit))
+scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+
+# Use unified visualizer with custom config
+visualizer = Visualizer(
+    scanner=scanner, 
+    config=config, 
+    output_dir="comprehensive_analysis"
+)
+
+# Create all visualizations
+dashboards = visualizer.create_dashboard(save=True, show=False)
+all_plots = visualizer.visualize_all(save=True, show=False)
+
+# Print summary
+visualizer.print_available_metrics()
+```
+
+### Multiple Jobs Analysis
 
 ```python
 from qiskit_aer.noise import NoiseModel, depolarizing_error
@@ -206,10 +368,8 @@ noise_levels = [0.0, 0.01, 0.05, 0.1]
 
 for noise_level in noise_levels:
     if noise_level == 0.0:
-        # No noise
         job = simulator.run(circuit, shots=1024)
     else:
-        # Add noise
         noise_model = NoiseModel()
         error = depolarizing_error(noise_level, 1)
         noise_model.add_all_qubit_quantum_error(error, ['u1', 'u2', 'u3'])
@@ -219,70 +379,87 @@ for noise_level in noise_levels:
     
     jobs.append(job)
 
-# Wait for completion
-for job in jobs:
-    job.result()
-
 # Analyze with CircuitPerformance
-scanner = Scanner(circuit=circuit)
-circuit_performance_strategy = CircuitPerformance(circuit=circuit)
-circuit_performance_strategy.add_job(jobs)
+circuit_performance = CircuitPerformance(circuit=circuit)
+for job in jobs:
+    circuit_performance.add_job(job)
 
-scanner.add_strategy(circuit_performance_strategy)
+scanner = Scanner(circuit=circuit)
+scanner.add_metric(circuit_performance)
 metrics_dict = scanner.calculate_metrics()
 
-# Create comprehensive visualizations
-visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/noise_analysis")
-dashboard = visualizer.create_dashboard(save=True, show=True)
+# Visualize noise effects
+perf_viz = CircuitPerformanceVisualizer(
+    {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")},
+    output_dir="noise_analysis"
+)
+dashboard = perf_viz.create_dashboard(save=True, show=True)
 ```
 
 ### Custom Success Criteria
 
 ```python
-# Define custom success criteria for different quantum algorithms
+# Define custom success criteria for Bell state
 def bell_state_success(outcome):
     """Success for Bell state: |00⟩ or |11⟩"""
     clean = outcome.replace(" ", "")
     return clean in ["00", "11"]
 
+# Use custom criteria
 circuit_performance = CircuitPerformance(
     circuit=circuit,
+    job=job,
     success_criteria=bell_state_success
 )
-circuit_performance.add_job(job)
 
 scanner = Scanner(circuit=circuit)
-scanner.add_strategy(circuit_performance)
-metrics_dict = scanner.calculate_metrics()
+scanner.add_metric(QiskitMetrics(circuit))
+scanner.add_metric(ComplexityMetrics(circuit))
+scanner.add_metric(circuit_performance)
 
-# Visualize with custom styling
+# Create visualizations with custom styling
 config = PlotConfig(
-    figsize=(14, 10),
+    figsize=(16, 12),
     style="quantum",
     color_palette=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],
     save_format="png",
     dpi=150
 )
 
-visualizer = CircuitPerformanceVisualizer(
-    metrics_dict, 
-    output_dir="img/bell_state_analysis",
-    config=config
+visualizer = Visualizer(
+    scanner=scanner,
+    config=config,
+    output_dir="bell_state_analysis"
 )
 
-# Create all plots
-visualizer.plot_all(save=True, show=False)
+# Create comprehensive analysis
+dashboards = visualizer.create_dashboard(save=True, show=False)
+all_plots = visualizer.visualize_all(save=True, show=False)
 ```
 
 ## Data Format Requirements
 
+### QiskitMetricsVisualizer Data Format
+
+Expects a DataFrame with QiskitMetrics columns:
+- `basic_metrics.*`: Circuit structure metrics
+- `instruction_metrics.*`: Gate and instruction analysis
+- `scheduling_metrics.*`: Timing information
+
+### ComplexityMetricsVisualizer Data Format
+
+Expects a DataFrame with ComplexityMetrics columns:
+- `gate_based_metrics.*`: Gate counts and circuit depth
+- `entanglement_metrics.*`: Entanglement analysis
+- `standardized_metrics.*`: Normalized complexity indicators
+- `advanced_metrics.*`: Efficiency and parallelism metrics
+- `quantum_volume.*`: Quantum Volume estimation
+
 ### CircuitPerformanceVisualizer Data Format
 
-The `CircuitPerformanceVisualizer` expects specific DataFrame structures:
+Expects specific DataFrame structures:
 
 #### Individual Jobs DataFrame (`"CircuitPerformance.individual_jobs"`)
-
-Required columns:
 - `job_id`: Unique identifier for each job
 - `success_rate`: Success rate (0.0 to 1.0)
 - `error_rate`: Error rate (0.0 to 1.0)
@@ -291,8 +468,6 @@ Required columns:
 - `successful_shots`: Number of successful shots
 
 #### Aggregate DataFrame (`"CircuitPerformance.aggregate"`)
-
-Required columns:
 - `mean_success_rate`: Mean success rate across jobs
 - `std_success_rate`: Standard deviation of success rate
 - `min_success_rate`: Minimum success rate
@@ -313,27 +488,60 @@ class MyCustomVisualizer(BaseVisualizer):
     def __init__(self, metrics_dict, output_dir="img", config=None):
         super().__init__(output_dir, config)
         self.metrics_dict = metrics_dict
+        self.my_df = metrics_dict.get("MyCustomMetrics")
+        
+        if self.my_df is None:
+            raise ValueError("'MyCustomMetrics' data not found in metrics_dict.")
     
-    def create_custom_plot(self, save=False, show=True):
-        """Create a custom plot for your specific needs."""
-        fig, ax = plt.subplots(figsize=self.config.figsize)
+    def create_plot(self):
+        """Required by BaseVisualizer - creates default plot."""
+        return self.plot_custom_analysis(save=False, show=False)
+    
+    def plot_custom_analysis(self, save=True, show=True, fig_ax_override=None):
+        """Create a custom analysis plot."""
+        fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
         
-        # Your custom plotting logic here
-        # Access your data via self.metrics_dict
+        # Extract data using base class utilities
+        custom_data = self._extract_metrics_from_columns(
+            self.my_df, 
+            ["metric1", "metric2", "metric3"],
+            prefix_to_remove="custom_"
+        )
         
-        ax.set_title("My Custom Analysis")
-        ax.grid(self.config.grid)
+        # Create plot using base class utilities
+        self._create_bar_plot_with_labels(
+            data=custom_data,
+            ax=ax,
+            title="My Custom Analysis",
+            xlabel="Metrics",
+            ylabel="Values",
+            value_format="auto"
+        )
         
-        if save:
-            self.save_plot(fig, "custom_analysis")
-        if show:
-            self.show_plot(fig)
-        
-        return fig
+        return self._finalize_plot(
+            fig=fig,
+            is_override=is_override,
+            save=save,
+            show=show,
+            filename="custom_analysis"
+        )
+    
+    def plot_all(self, save=True, show=True):
+        """Generate all plots for this visualizer."""
+        figures = []
+        figures.append(self.plot_custom_analysis(save=save, show=show))
+        return figures
+    
+    def create_dashboard(self, save=True, show=True):
+        """Create a dashboard with all plots."""
+        return self.plot_custom_analysis(save=save, show=show)
 
-# Usage
-custom_visualizer = MyCustomVisualizer(metrics_dict)
-custom_visualizer.create_custom_plot(save=True)
+# Register with unified visualizer
+visualizer = Visualizer(metrics_data=metrics_dict)
+visualizer.register_visualizer("MyCustomMetrics", MyCustomVisualizer)
+
+# Use custom visualizer
+custom_plots = visualizer.visualize_metric("MyCustomMetrics", save=True)
 ```
 
 ## Integration with Jupyter Notebooks
@@ -344,74 +552,67 @@ QWARD visualizations work seamlessly in Jupyter notebooks:
 # In a Jupyter cell
 %matplotlib inline
 
-visualizer = CircuitPerformanceVisualizer(metrics_dict)
+# Create visualizer
+visualizer = Visualizer(scanner=scanner)
 
 # Show plots inline
-visualizer.plot_success_error_comparison(show=True, save=False)
-visualizer.plot_fidelity_comparison(show=True, save=False)
+qiskit_plots = visualizer.visualize_metric("QiskitMetrics", show=True, save=False)
+complexity_plots = visualizer.visualize_metric("ComplexityMetrics", show=True, save=False)
 
-# Create dashboard inline
-dashboard = visualizer.create_dashboard(show=True, save=False)
-```
-
-## Styling and Themes
-
-### Available Styles
-- `"default"`: Matplotlib default
-- `"seaborn"`: Seaborn style
-- `"quantum"`: Custom quantum computing theme
-- `"publication"`: Publication-ready plots
-
-### Custom Color Palettes
-```python
-# Quantum-inspired colors
-quantum_colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
-
-# Monochrome for publications
-mono_colors = ["#000000", "#404040", "#808080", "#c0c0c0"]
-
-config = PlotConfig(color_palette=quantum_colors)
+# Create dashboards inline
+dashboards = visualizer.create_dashboard(show=True, save=False)
 ```
 
 ## Performance Tips
 
-1. **Batch Operations**: Use `plot_all()` for multiple plots to avoid repeated setup
-2. **Output Formats**: Use PNG for quick previews, SVG for publications
-3. **DPI Settings**: Use lower DPI (150) for quick analysis, higher (300+) for publications
-4. **Memory Management**: Close figures explicitly in loops to prevent memory leaks
+1. **Use Unified Visualizer**: The `Visualizer` class handles all metric types efficiently
+2. **Batch Operations**: Use `visualize_all()` or `create_dashboard()` for multiple plots
+3. **Output Formats**: Use PNG for quick previews, SVG for publications
+4. **DPI Settings**: Use lower DPI (150) for quick analysis, higher (300+) for publications
+5. **Memory Management**: The visualization system automatically handles figure cleanup
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Missing Data Keys**: Ensure your metrics dictionary contains the expected keys (`"CircuitPerformance.individual_jobs"` and `"CircuitPerformance.aggregate"`)
+1. **Missing Data Keys**: Ensure your metrics dictionary contains the expected keys for each visualizer
 2. **Empty DataFrames**: Check that your metric calculations completed successfully
 3. **Plot Not Showing**: Verify your matplotlib backend settings
 4. **File Permissions**: Ensure write permissions for the output directory
 
-### Debug Mode
-```python
-# Enable debug information
-import logging
-logging.basicConfig(level=logging.DEBUG)
+### Debug Information
 
-visualizer = CircuitPerformanceVisualizer(metrics_dict)
+```python
+# Get summary of available metrics
+visualizer = Visualizer(scanner=scanner)
+visualizer.print_available_metrics()
+
+# Get detailed metric summary
+summary = visualizer.get_metric_summary()
+print(summary)
 ```
 
-## CircuitPerformanceVisualizer Methods
+## Complete Method Reference
 
-### Core Methods
+### Visualizer (Unified Entry Point)
 
-- `plot_success_error_comparison(save=False, show=True)`: Creates bar charts comparing success vs error rates
-- `plot_fidelity_comparison(save=False, show=True)`: Shows fidelity values across jobs
-- `plot_shot_distribution(save=False, show=True)`: Displays shot distribution with detailed labels
-- `plot_aggregate_summary(save=False, show=True)`: Summary of aggregate statistics
-- `create_dashboard(save=False, show=True)`: Comprehensive 2x2 dashboard
-- `plot_all(save=False, show=True)`: Generate all individual plots
+- `register_visualizer(metric_name, visualizer_class)`: Register custom visualizers
+- `get_available_metrics()`: Get list of available metrics for visualization
+- `visualize_metric(metric_name, save=True, show=True)`: Create plots for specific metric
+- `create_dashboard(save=True, show=True)`: Create dashboards for all metrics
+- `visualize_all(save=True, show=True)`: Generate all individual plots
+- `get_metric_summary()`: Get summary information about available metrics
+- `print_available_metrics()`: Print detailed information about available visualizations
 
-### Utility Methods
+### Individual Visualizers
 
-- `save_plot(fig, filename)`: Save figure with configured format and DPI
-- `show_plot(fig)`: Display figure with proper backend handling
+All individual visualizers share these common methods:
+- `create_plot()`: Create the default plot (required by BaseVisualizer)
+- `plot_all(save=True, show=True)`: Generate all individual plots
+- `create_dashboard(save=True, show=True)`: Create comprehensive dashboard
 
-For more examples and advanced usage, see the `qward/examples/visualization_demo.py` file.
+Plus their specific plotting methods as detailed in each visualizer section above.
+
+For more examples and advanced usage, see the `qward/examples/` directory, particularly:
+- `example_visualizer.py`: Complete visualization examples
+- `visualization_demo.py`: CircuitPerformance visualization demonstrations

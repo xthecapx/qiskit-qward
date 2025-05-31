@@ -271,7 +271,7 @@
 <h2>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h2>
 <section id="scanner">
 <h3>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code> class is the central component for orchestrating circuit analysis. You provide it with a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and optionally an execution <code class="docutils literal notranslate"><span class="pre">Job</span></code> or <code class="docutils literal notranslate"><span class="pre">Result</span></code>. You then add various <strong>metric calculator</strong> objects to the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to perform different types of analysis.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">qward.Scanner</span></code> class is the central component for orchestrating circuit analysis. You provide it with a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> and optionally an execution <code class="docutils literal notranslate"><span class="pre">Job</span></code>. You then add various <strong>metric calculator</strong> objects to the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> to perform different types of analysis.</p>
 </section>
 <section id="metric-calculators">
 <h3>Metric Calculators<a class="headerlink" href="#metric-calculators" title="Link to this heading">¶</a></h3>
@@ -339,7 +339,7 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <p>Let’s analyze a simple quantum coin flip circuit. This uses a single qubit in superposition.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span> <span class="c1"># For running the circuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span>   <span class="c1"># QWARD&#39;s Scanner and Result</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>   <span class="c1"># QWARD&#39;s Scanner</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span> <span class="c1"># QWARD calculators</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.examples.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_example_circuit</span><span class="p">,</span> <span class="n">get_display</span> <span class="c1"># Example helper</span>
 
@@ -360,17 +360,14 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="n">qiskit_job_result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">counts</span> <span class="o">=</span> <span class="n">qiskit_job_result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 
-<span class="c1"># Wrap Qiskit job and counts in QWARD&#39;s Result object</span>
-<span class="n">qward_result_obj</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">)</span> <span class="c1"># Pass the actual job and counts</span>
-
 <span class="c1"># 3. Create a Scanner instance</span>
-<span class="c1"># We can initialize it with the circuit and the QWARD Result object</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">qward_result_obj</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="c1"># We can initialize it with the circuit and the job</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
 
 <span class="c1"># 4. Add Metric Calculators</span>
 <span class="c1"># QiskitMetrics and ComplexityMetrics only need the circuit</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">))</span>
 
 <span class="c1"># CircuitPerformance needs the circuit and the job (or jobs) to get counts</span>
 <span class="c1"># Let&#39;s define success for the first qubit being &#39;0&#39; (e.g., &quot;tails&quot; if &#39;00&#39; or &#39;01&#39;)</span>
@@ -382,7 +379,7 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
     <span class="c1"># We are interested in the first qubit (q0) state.</span>
     <span class="k">return</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span> <span class="c1"># True if q0 is &#39;0&#39;</span>
 
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">coin_flip_success_q0_is_0</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">coin_flip_success_q0_is_0</span><span class="p">))</span>
 <span class="c1"># For multiple jobs, you can pass a list of jobs or use circuit_performance_calculator.add_job()</span>
 
 <span class="c1"># 5. Calculate all added calculators</span>
@@ -431,9 +428,10 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="c1"># 3. Cross-field validation (e.g., error_rate = 1 - success_rate)</span>
 <span class="c1"># 4. JSON schema generation for API documentation</span>
 
-<span class="c1"># Access granular structured metrics</span>
-<span class="n">basic_schema</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_structured_basic_metrics</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit has </span><span class="si">{</span><span class="n">basic_schema</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2"> qubits and depth </span><span class="si">{</span><span class="n">basic_schema</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Access validated data with full type safety</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of qubits: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="c1"># Validation in action</span>
 <span class="k">try</span><span class="p">:</span>
@@ -457,12 +455,12 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <h3>Alternative: Using Constructor with Calculators<a class="headerlink" href="#alternative-using-constructor-with-calculators" title="Link to this heading">¶</a></h3>
 <p>You can also provide calculators directly in the Scanner constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using calculator classes (will be instantiated automatically)</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
 
 <span class="c1"># Using calculator instances</span>
 <span class="n">qm</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">qm</span><span class="p">,</span> <span class="n">cm</span><span class="p">])</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">qm</span><span class="p">,</span> <span class="n">cm</span><span class="p">])</span>
 
 <span class="c1"># Calculate metrics</span>
 <span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -503,7 +501,7 @@ c: 2/═══════════╩══╩═
 <p>Instead of a specific named enigma, let’s focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for <code class="docutils literal notranslate"><span class="pre">CircuitPerformance</span></code>, then use the <code class="docutils literal notranslate"><span class="pre">Scanner</span></code> with appropriate calculators.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span><span class="p">,</span> <span class="n">Result</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.examples.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_display</span>
 
@@ -524,17 +522,16 @@ c: 2/═══════════╩══╩═
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 <span class="n">qiskit_job_result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 <span class="n">counts</span> <span class="o">=</span> <span class="n">qiskit_job_result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
-<span class="n">qward_result_obj</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">)</span>
 
 <span class="c1"># 3. Create Scanner and add Calculators</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">qward_result_obj</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 
 <span class="c1"># Example CircuitPerformance: success if all qubits are &#39;0&#39; (state &#39;000&#39;)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">all_zeros</span><span class="p">(</span><span class="n">bitstring</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">bitstring</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;000&#39;</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">all_zeros</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">all_zeros</span><span class="p">))</span>
 
 <span class="c1"># 4. Calculate and display metrics</span>
 <span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -548,7 +545,7 @@ c: 2/═══════════╩══╩═
 <span class="n">complexity_schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Structured Complexity Analysis:&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Enhanced Quantum Volume: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Enhanced Quantum Volume: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Gate Density: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">standardized_metrics</span><span class="o">.</span><span class="n">gate_density</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Parallelism Efficiency: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">advanced_metrics</span><span class="o">.</span><span class="n">parallelism_efficiency</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Entangling Gate Density: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">entanglement_metrics</span><span class="o">.</span><span class="n">entangling_gate_density</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -743,7 +740,7 @@ c: 2/═══════════╩══╩═
 <span class="n">custom_calculator</span> <span class="o">=</span> <span class="n">MyCustomCalculator</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">my_circuit</span><span class="p">,</span> <span class="n">an_extra_parameter</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">my_circuit</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="n">custom_calculator</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">custom_calculator</span><span class="p">)</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;MyCustomCalculator&#39;</span><span class="p">])</span>
@@ -846,6 +843,211 @@ c: 2/═══════════╩══╩═
 <li><p>Review the <a class="reference internal" href="architecture.html"><span class="std std-doc">Architecture Documentation</span></a> to understand the library’s design patterns and schema system</p></li>
 </ul>
 </section>
+<section id="visualization-system">
+<h2>Visualization System<a class="headerlink" href="#visualization-system" title="Link to this heading">¶</a></h2>
+<p>QWARD includes a comprehensive visualization system that makes it easy to create beautiful, informative plots of your quantum circuit analysis. The visualization system automatically detects your metrics and creates appropriate visualizations.</p>
+<section id="quick-visualization-example">
+<h3>Quick Visualization Example<a class="headerlink" href="#quick-visualization-example" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+
+<span class="c1"># Create and analyze a circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="c1"># Run simulation for CircuitPerformance</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+
+<span class="c1"># Create scanner with all metrics</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+
+<span class="c1"># Create unified visualizer (recommended approach)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_plots&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 1: Create comprehensive dashboards for all metrics</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dashboards</span><span class="p">)</span><span class="si">}</span><span class="s2"> dashboards&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Create all individual plots</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created plots for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> metric types&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 3: Visualize specific metrics</span>
+<span class="n">qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">complexity_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_metric</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="available-visualizations">
+<h3>Available Visualizations<a class="headerlink" href="#available-visualizations" title="Link to this heading">¶</a></h3>
+<p>QWARD provides three specialized visualizers:</p>
+<section id="qiskitmetrics-visualizations">
+<h4>1. QiskitMetrics Visualizations<a class="headerlink" href="#qiskitmetrics-visualizations" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Circuit Structure</strong>: Basic metrics like depth, width, size, and qubit count</p></li>
+<li><p><strong>Instruction Breakdown</strong>: Gate type analysis and instruction distribution</p></li>
+<li><p><strong>Scheduling Metrics</strong>: Timing and scheduling information</p></li>
+</ul>
+</section>
+<section id="complexitymetrics-visualizations">
+<h4>2. ComplexityMetrics Visualizations<a class="headerlink" href="#complexitymetrics-visualizations" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Gate-Based Metrics</strong>: Gate counts, depth, and T-gate analysis</p></li>
+<li><p><strong>Complexity Radar Chart</strong>: Normalized complexity indicators in a radar plot</p></li>
+<li><p><strong>Quantum Volume Analysis</strong>: QV estimation and contributing factors</p></li>
+<li><p><strong>Efficiency Metrics</strong>: Parallelism and circuit efficiency analysis</p></li>
+</ul>
+</section>
+<section id="circuitperformance-visualizations">
+<h4>3. CircuitPerformance Visualizations<a class="headerlink" href="#circuitperformance-visualizations" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Success vs Error Rates</strong>: Comparison across different jobs</p></li>
+<li><p><strong>Fidelity Analysis</strong>: Fidelity metrics visualization</p></li>
+<li><p><strong>Shot Distribution</strong>: Successful vs failed shots as stacked bars</p></li>
+<li><p><strong>Aggregate Summary</strong>: Statistical summary across multiple jobs</p></li>
+</ul>
+</section>
+</section>
+<section id="using-individual-visualizers">
+<h3>Using Individual Visualizers<a class="headerlink" href="#using-individual-visualizers" title="Link to this heading">¶</a></h3>
+<p>You can also use individual visualizers directly for more control:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">,</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
+
+<span class="c1"># Calculate metrics first</span>
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Use QiskitMetrics visualizer</span>
+<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitMetricsVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]},</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qiskit_plots&quot;</span>
+<span class="p">)</span>
+<span class="n">qiskit_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Use ComplexityMetrics visualizer</span>
+<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityMetricsVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]},</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;complexity_plots&quot;</span>
+<span class="p">)</span>
+<span class="n">complexity_figures</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Use CircuitPerformance visualizer</span>
+<span class="n">circuit_perf_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)}</span>
+<span class="n">perf_viz</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span>
+    <span class="n">metrics_dict</span><span class="o">=</span><span class="n">circuit_perf_data</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;performance_plots&quot;</span>
+<span class="p">)</span>
+<span class="n">perf_figures</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="customizing-plot-appearance">
+<h3>Customizing Plot Appearance<a class="headerlink" href="#customizing-plot-appearance" title="Link to this heading">¶</a></h3>
+<p>You can customize the appearance of your plots using <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">PlotConfig</span>
+
+<span class="c1"># Create custom plot configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>           <span class="c1"># Larger figures</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>                   <span class="c1"># Lower DPI for faster rendering</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>           <span class="c1"># Use quantum-themed styling</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">],</span>  <span class="c1"># Custom colors</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">,</span>         <span class="c1"># Save as SVG instead of PNG</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                 <span class="c1"># Show grid lines</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span>                  <span class="c1"># Transparency level</span>
+<span class="p">)</span>
+
+<span class="c1"># Use custom configuration</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;custom_plots&quot;</span><span class="p">)</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="understanding-your-visualizations">
+<h3>Understanding Your Visualizations<a class="headerlink" href="#understanding-your-visualizations" title="Link to this heading">¶</a></h3>
+<section id="qiskitmetrics-plots">
+<h4>QiskitMetrics Plots<a class="headerlink" href="#qiskitmetrics-plots" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Circuit Structure</strong>: Shows the basic building blocks of your circuit</p></li>
+<li><p><strong>Instruction Breakdown</strong>: Helps identify which gate types dominate your circuit</p></li>
+<li><p><strong>Scheduling Metrics</strong>: Useful for understanding timing constraints</p></li>
+</ul>
+</section>
+<section id="complexitymetrics-plots">
+<h4>ComplexityMetrics Plots<a class="headerlink" href="#complexitymetrics-plots" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Gate-Based Metrics</strong>: Shows raw complexity indicators</p></li>
+<li><p><strong>Radar Chart</strong>: Provides a quick visual overview of normalized complexity</p></li>
+<li><p><strong>Quantum Volume</strong>: Estimates the computational capability required</p></li>
+<li><p><strong>Efficiency Metrics</strong>: Shows how well your circuit uses available resources</p></li>
+</ul>
+</section>
+<section id="circuitperformance-plots">
+<h4>CircuitPerformance Plots<a class="headerlink" href="#circuitperformance-plots" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Success/Error Rates</strong>: Shows how often your circuit produces correct results</p></li>
+<li><p><strong>Fidelity</strong>: Measures how close your results are to the ideal</p></li>
+<li><p><strong>Shot Distribution</strong>: Shows the distribution of measurement outcomes</p></li>
+<li><p><strong>Aggregate Summary</strong>: Provides statistical overview across multiple runs</p></li>
+</ul>
+</section>
+</section>
+<section id="best-practices-for-visualization">
+<h3>Best Practices for Visualization<a class="headerlink" href="#best-practices-for-visualization" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Start with Dashboards</strong>: Use <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> to get a comprehensive overview</p></li>
+<li><p><strong>Use Unified Visualizer</strong>: The <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> class automatically handles all metric types</p></li>
+<li><p><strong>Save Your Plots</strong>: Always save plots for later analysis and reporting</p></li>
+<li><p><strong>Customize Appearance</strong>: Use <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code> to match your presentation needs</p></li>
+<li><p><strong>Organize Output</strong>: Use descriptive output directory names for different analyses</p></li>
+</ol>
+</section>
+<section id="integration-with-analysis-workflow">
+<h3>Integration with Analysis Workflow<a class="headerlink" href="#integration-with-analysis-workflow" title="Link to this heading">¶</a></h3>
+<p>The visualization system integrates seamlessly with your analysis workflow:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Complete analysis and visualization workflow</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_and_visualize_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete analysis and visualization of a quantum circuit.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># 1. Set up metrics</span>
+    <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">job</span><span class="p">:</span>
+        <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformance</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+    
+    <span class="c1"># 2. Calculate metrics</span>
+    <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+    
+    <span class="c1"># 3. Create visualizations</span>
+    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;analysis_</span><span class="si">{</span><span class="n">circuit</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create comprehensive dashboards</span>
+    <span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="c1"># Print summary</span>
+    <span class="n">visualizer</span><span class="o">.</span><span class="n">print_available_metrics</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">metrics_dict</span><span class="p">,</span> <span class="n">dashboards</span>
+
+<span class="c1"># Use the function</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">create_example_circuit</span><span class="p">()</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">metrics</span><span class="p">,</span> <span class="n">plots</span> <span class="o">=</span> <span class="n">analyze_and_visualize_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This visualization system makes it easy to understand your quantum circuits at a glance and identify areas for optimization or further analysis.</p>
+</section>
+</section>
 </section>
 
         </article>
@@ -945,6 +1147,26 @@ c: 2/═══════════╩══╩═
 </ul>
 </li>
 <li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+<li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
+<li><a class="reference internal" href="#quick-visualization-example">Quick Visualization Example</a></li>
+<li><a class="reference internal" href="#available-visualizations">Available Visualizations</a><ul>
+<li><a class="reference internal" href="#qiskitmetrics-visualizations">1. QiskitMetrics Visualizations</a></li>
+<li><a class="reference internal" href="#complexitymetrics-visualizations">2. ComplexityMetrics Visualizations</a></li>
+<li><a class="reference internal" href="#circuitperformance-visualizations">3. CircuitPerformance Visualizations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-individual-visualizers">Using Individual Visualizers</a></li>
+<li><a class="reference internal" href="#customizing-plot-appearance">Customizing Plot Appearance</a></li>
+<li><a class="reference internal" href="#understanding-your-visualizations">Understanding Your Visualizations</a><ul>
+<li><a class="reference internal" href="#qiskitmetrics-plots">QiskitMetrics Plots</a></li>
+<li><a class="reference internal" href="#complexitymetrics-plots">ComplexityMetrics Plots</a></li>
+<li><a class="reference internal" href="#circuitperformance-plots">CircuitPerformance Plots</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#best-practices-for-visualization">Best Practices for Visualization</a></li>
+<li><a class="reference internal" href="#integration-with-analysis-workflow">Integration with Analysis Workflow</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

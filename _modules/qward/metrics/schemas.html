@@ -265,7 +265,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span><span class="p">,</span> <span class="n">ConfigDict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitInstruction</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.transpiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
 
@@ -284,6 +284,23 @@
 <span class="sd">    This schema validates basic metrics that can be extracted directly</span>
 <span class="sd">    from a QuantumCircuit object, such as depth, width, and gate counts.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;count_ops&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;barrier&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit depth (number of time steps)&quot;</span><span class="p">)</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit width (total qubits and classical bits)&quot;</span><span class="p">)</span>
@@ -308,27 +325,6 @@
                     <span class="sa">f</span><span class="s2">&quot;Operation count for &#39;</span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2">&#39; must be non-negative, got </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="BasicMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.BasicMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s2">&quot;count_ops&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;barrier&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -348,6 +344,8 @@
 <span class="sd">    connectivity of a quantum circuit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Allow CircuitInstruction objects</span>
+
     <span class="n">num_connected_components</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of connected components&quot;</span><span class="p">)</span>
     <span class="n">num_nonlocal_gates</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of non-local gates&quot;</span><span class="p">)</span>
     <span class="n">num_tensor_factors</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of tensor factors&quot;</span><span class="p">)</span>
@@ -366,14 +364,6 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">instructions</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Instruction list for &#39;</span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2">&#39; cannot be empty&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="InstructionMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.InstructionMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Allow CircuitInstruction objects</span></div>
 </div>
 
 
@@ -392,6 +382,8 @@
 <span class="sd">    This schema validates metrics related to circuit scheduling and</span>
 <span class="sd">    timing information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Allow Layout objects</span>
 
     <span class="n">is_scheduled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Whether the circuit is scheduled&quot;</span><span class="p">)</span>
     <span class="n">layout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Layout</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit layout (if scheduled)&quot;</span><span class="p">)</span>
@@ -418,14 +410,6 @@
             <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;qubit_start_time&quot;</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Qubit stop time must be &gt;= start time&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="SchedulingMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SchedulingMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Allow Layout objects</span></div>
 </div>
 
 
@@ -444,6 +428,40 @@
 <span class="sd">    This schema combines all individual metric schemas into a single</span>
 <span class="sd">    comprehensive structure for Qiskit metrics.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;basic_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;count_ops&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;barrier&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;instruction_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;num_connected_components&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;num_nonlocal_gates&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;num_tensor_factors&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;num_unitary_factors&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="p">[]},</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;scheduling_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">basic_metrics</span><span class="p">:</span> <span class="n">BasicMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Basic circuit metrics&quot;</span><span class="p">)</span>
     <span class="n">instruction_metrics</span><span class="p">:</span> <span class="n">InstructionMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -536,45 +554,6 @@
             <span class="n">instruction_metrics</span><span class="o">=</span><span class="n">InstructionMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">instruction_metrics</span><span class="p">),</span>
             <span class="n">scheduling_metrics</span><span class="o">=</span><span class="n">SchedulingMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">scheduling_metrics</span><span class="p">),</span>
         <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="QiskitMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.QiskitMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Complete schema for Qiskit-derived quantum circuit metrics&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;basic_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-                    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                    <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;count_ops&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;barrier&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;instruction_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;num_connected_components&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                    <span class="s2">&quot;num_nonlocal_gates&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                    <span class="s2">&quot;num_tensor_factors&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                    <span class="s2">&quot;num_unitary_factors&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                    <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">{},</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;scheduling_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">},</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -594,13 +573,26 @@
 <span class="sd">    in quantum circuits.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;gate_count&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">&quot;circuit_depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s2">&quot;t_count&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">&quot;cnot_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;two_qubit_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
     <span class="n">gate_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total number of gates in the circuit&quot;</span><span class="p">)</span>
     <span class="n">circuit_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit depth (number of time steps)&quot;</span><span class="p">)</span>
     <span class="n">t_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of T gates (important for fault tolerance)&quot;</span><span class="p">)</span>
     <span class="n">cnot_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of CNOT gates&quot;</span><span class="p">)</span>
     <span class="n">two_qubit_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total number of two-qubit gates&quot;</span><span class="p">)</span>
     <span class="n">multi_qubit_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Ratio of multi-qubit to total gates&quot;</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Ratio of multi-qubit gates to total gates&quot;</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="GateBasedMetricsSchema.validate_ratio_bounds">
@@ -612,23 +604,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Multi-qubit ratio must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="GateBasedMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.GateBasedMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;gate_count&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-                <span class="s2">&quot;circuit_depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                <span class="s2">&quot;t_count&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                <span class="s2">&quot;cnot_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                <span class="s2">&quot;two_qubit_count&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -642,6 +617,10 @@
 <span class="sd">    This schema validates metrics related to entanglement generation</span>
 <span class="sd">    and quantum correlations in circuits.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;entangling_gate_density&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;entangling_width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}}</span>
+    <span class="p">)</span>
 
     <span class="n">entangling_gate_density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Density of entangling gates&quot;</span>
@@ -657,14 +636,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entangling gate density must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="EntanglementMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.EntanglementMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;entangling_gate_density&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;entangling_width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}}</span></div>
 </div>
 
 
@@ -678,6 +649,17 @@
 <span class="sd">    This schema validates standardized metrics for comparing</span>
 <span class="sd">    circuits of different sizes and structures.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;circuit_volume&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s2">&quot;gate_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+                <span class="s2">&quot;non_clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">circuit_volume</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit volume (depth × width)&quot;</span><span class="p">)</span>
     <span class="n">gate_density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gate density (gates per qubit-time-step)&quot;</span><span class="p">)</span>
@@ -702,29 +684,12 @@
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;non_clifford_ratio&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_ratio_sum</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that Clifford + non-Clifford ratios don&#39;t exceed 1.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that Clifford and non-Clifford ratios sum to approximately 1.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;clifford_ratio&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="n">total_ratio</span> <span class="o">=</span> <span class="n">v</span> <span class="o">+</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;clifford_ratio&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">total_ratio</span> <span class="o">&gt;</span> <span class="mf">1.01</span><span class="p">:</span>  <span class="c1"># Allow small floating point errors</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Sum of Clifford and non-Clifford ratios cannot exceed 1.0, got </span><span class="si">{</span><span class="n">total_ratio</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">v</span> <span class="o">+</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;clifford_ratio&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.99</span> <span class="o">&lt;=</span> <span class="n">total</span> <span class="o">&lt;=</span> <span class="mf">1.01</span><span class="p">:</span>  <span class="c1"># Allow small floating point errors</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Clifford and non-Clifford ratios must sum to 1.0, got </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="StandardizedMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.StandardizedMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;circuit_volume&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-                <span class="s2">&quot;gate_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                <span class="s2">&quot;clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
-                <span class="s2">&quot;non_clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -739,6 +704,17 @@
 <span class="sd">    including parallelism and resource utilization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;parallelism_factor&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+                <span class="s2">&quot;parallelism_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                <span class="s2">&quot;circuit_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s2">&quot;quantum_resource_utilization&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
     <span class="n">parallelism_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Average gates per time step&quot;</span><span class="p">)</span>
     <span class="n">parallelism_efficiency</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Efficiency of parallelism&quot;</span>
@@ -747,7 +723,7 @@
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit resource efficiency&quot;</span>
     <span class="p">)</span>
     <span class="n">quantum_resource_utilization</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Quantum resource utilization metric&quot;</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Quantum resource utilization&quot;</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="AdvancedMetricsSchema.validate_efficiency_bounds">
@@ -757,23 +733,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_efficiency_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that efficiency metrics are between 0 and 1.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Efficiency metric must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Efficiency must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="AdvancedMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.AdvancedMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;parallelism_factor&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
-                <span class="s2">&quot;parallelism_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.625</span><span class="p">,</span>
-                <span class="s2">&quot;circuit_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                <span class="s2">&quot;quantum_resource_utilization&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -788,12 +749,22 @@
 <span class="sd">    circuit characteristics into composite measures.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                <span class="s2">&quot;weighted_complexity&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+                <span class="s2">&quot;normalized_weighted_complexity&quot;</span><span class="p">:</span> <span class="mf">5.5</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
     <span class="n">square_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How close the circuit is to square&quot;</span>
     <span class="p">)</span>
     <span class="n">weighted_complexity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weighted gate complexity score&quot;</span><span class="p">)</span>
     <span class="n">normalized_weighted_complexity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Weighted complexity per qubit&quot;</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Normalized weighted complexity per qubit&quot;</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="DerivedMetricsSchema.validate_square_ratio">
@@ -805,20 +776,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Square ratio must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="DerivedMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.DerivedMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-                <span class="s2">&quot;weighted_complexity&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
-                <span class="s2">&quot;normalized_weighted_complexity&quot;</span><span class="p">:</span> <span class="mf">37.5</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -831,6 +788,18 @@
 
 <span class="sd">    This schema validates the factors used in quantum volume estimation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+                <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">square_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Square circuit factor&quot;</span><span class="p">)</span>
     <span class="n">circuit_density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit density factor&quot;</span><span class="p">)</span>
@@ -847,22 +816,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ratio factor must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="QuantumVolumeFactorsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.QuantumVolumeFactorsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
-                <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -876,6 +829,18 @@
 <span class="sd">    This schema validates the basic circuit metrics used as input</span>
 <span class="sd">    for quantum volume estimation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit depth&quot;</span><span class="p">)</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit width&quot;</span><span class="p">)</span>
@@ -895,22 +860,6 @@
                     <span class="sa">f</span><span class="s2">&quot;Operation count for &#39;</span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2">&#39; must be non-negative, got </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="QuantumVolumeCircuitMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.QuantumVolumeCircuitMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
-                <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -925,6 +874,30 @@
 <span class="sd">    calculation factors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">:</span> <span class="mf">9.6</span><span class="p">,</span>
+                <span class="s2">&quot;effective_depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;factors&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                    <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                    <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                    <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+                    <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;circuit_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
     <span class="n">standard_quantum_volume</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard quantum volume (2^n)&quot;</span><span class="p">)</span>
     <span class="n">enhanced_quantum_volume</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Enhanced quantum volume estimate&quot;</span>
@@ -932,7 +905,7 @@
     <span class="n">effective_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Effective depth for QV calculation&quot;</span><span class="p">)</span>
     <span class="n">factors</span><span class="p">:</span> <span class="n">QuantumVolumeFactorsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;QV calculation factors&quot;</span><span class="p">)</span>
     <span class="n">circuit_metrics</span><span class="p">:</span> <span class="n">QuantumVolumeCircuitMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Input circuit metrics&quot;</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit metrics used in QV calculation&quot;</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="QuantumVolumeSchema.validate_enhanced_qv">
@@ -940,38 +913,11 @@
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_enhanced_qv</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that enhanced QV is at least as large as standard QV.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;standard_quantum_volume&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Enhanced quantum volume cannot be less than standard quantum volume&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that enhanced QV is &gt;= standard QV.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;standard_quantum_volume&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Enhanced quantum volume must be &gt;= standard quantum volume&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="QuantumVolumeSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.QuantumVolumeSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-                <span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">:</span> <span class="mf">24.8</span><span class="p">,</span>
-                <span class="s2">&quot;effective_depth&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="s2">&quot;factors&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                    <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                    <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                    <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
-                    <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;circuit_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
-                    <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
-                <span class="p">},</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -985,6 +931,58 @@
 <span class="sd">    This schema combines all individual complexity metric schemas into</span>
 <span class="sd">    a single comprehensive structure for circuit complexity analysis.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;gate_based_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;gate_count&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s2">&quot;circuit_depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                    <span class="s2">&quot;t_count&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;cnot_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;two_qubit_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;entanglement_metrics&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;entangling_gate_density&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;entangling_width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+                <span class="s2">&quot;standardized_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;circuit_volume&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                    <span class="s2">&quot;gate_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                    <span class="s2">&quot;clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+                    <span class="s2">&quot;non_clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;advanced_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;parallelism_factor&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+                    <span class="s2">&quot;parallelism_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                    <span class="s2">&quot;circuit_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                    <span class="s2">&quot;quantum_resource_utilization&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;derived_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                    <span class="s2">&quot;weighted_complexity&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+                    <span class="s2">&quot;normalized_weighted_complexity&quot;</span><span class="p">:</span> <span class="mf">5.5</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;quantum_volume&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                    <span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">:</span> <span class="mf">9.6</span><span class="p">,</span>
+                    <span class="s2">&quot;effective_depth&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;factors&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+                        <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                        <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+                        <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;circuit_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                        <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                        <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">gate_based_metrics</span><span class="p">:</span> <span class="n">GateBasedMetricsSchema</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gate-based complexity metrics&quot;</span>
@@ -1107,63 +1105,6 @@
             <span class="n">derived_metrics</span><span class="o">=</span><span class="n">DerivedMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">categories</span><span class="p">[</span><span class="s2">&quot;derived_metrics&quot;</span><span class="p">]),</span>
             <span class="n">quantum_volume</span><span class="o">=</span><span class="n">QuantumVolumeSchema</span><span class="p">(</span><span class="o">**</span><span class="n">qv_base</span><span class="p">),</span>
         <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="ComplexityMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.ComplexityMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Complete schema for quantum circuit complexity metrics&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;gate_based_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;gate_count&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-                    <span class="s2">&quot;circuit_depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                    <span class="s2">&quot;t_count&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                    <span class="s2">&quot;cnot_count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                    <span class="s2">&quot;two_qubit_count&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;entanglement_metrics&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;entangling_gate_density&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;entangling_width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
-                <span class="s2">&quot;standardized_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;circuit_volume&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-                    <span class="s2">&quot;gate_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                    <span class="s2">&quot;clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
-                    <span class="s2">&quot;non_clifford_ratio&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;advanced_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;parallelism_factor&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
-                    <span class="s2">&quot;parallelism_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.625</span><span class="p">,</span>
-                    <span class="s2">&quot;circuit_efficiency&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                    <span class="s2">&quot;quantum_resource_utilization&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;derived_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-                    <span class="s2">&quot;weighted_complexity&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
-                    <span class="s2">&quot;normalized_weighted_complexity&quot;</span><span class="p">:</span> <span class="mf">37.5</span><span class="p">,</span>
-                <span class="p">},</span>
-                <span class="s2">&quot;quantum_volume&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;standard_quantum_volume&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-                    <span class="s2">&quot;enhanced_quantum_volume&quot;</span><span class="p">:</span> <span class="mf">24.8</span><span class="p">,</span>
-                    <span class="s2">&quot;effective_depth&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                    <span class="s2">&quot;factors&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;square_ratio&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                        <span class="s2">&quot;circuit_density&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                        <span class="s2">&quot;multi_qubit_ratio&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                        <span class="s2">&quot;connectivity_factor&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
-                        <span class="s2">&quot;enhancement_factor&quot;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span>
-                    <span class="p">},</span>
-                    <span class="s2">&quot;circuit_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                        <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
-                        <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                        <span class="s2">&quot;operation_counts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
-                    <span class="p">},</span>
-                <span class="p">},</span>
-            <span class="p">},</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -1183,6 +1124,22 @@
 <span class="sd">    success rate, error rate, and shot analysis for both</span>
 <span class="sd">    single job and multiple jobs cases.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+                <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">870</span><span class="p">,</span>
+                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.82</span><span class="p">,</span>
+                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span>
+                <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">3072</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># Single job fields</span>
     <span class="n">success_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1214,28 +1171,11 @@
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_successful_shots</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that successful_shots &lt;= total_shots.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that successful shots &lt;= total shots.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;total_shots&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span> <span class="ow">and</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Successful shots (</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">) cannot exceed total shots (</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_shots&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
-                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Successful shots cannot exceed total shots&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="SuccessMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.SuccessMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
-                <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
-                <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">768</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -1250,6 +1190,21 @@
 <span class="sd">    quantum fidelity and related measures for both single</span>
 <span class="sd">    job and multiple jobs cases.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">,</span>
+                <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;mean_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.89</span><span class="p">,</span>
+                <span class="s2">&quot;std_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span>
+                <span class="s2">&quot;min_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                <span class="s2">&quot;max_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.94</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># Single job fields</span>
     <span class="n">fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1274,22 +1229,7 @@
         <span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Standard deviation of fidelities&quot;</span>
     <span class="p">)</span>
     <span class="n">min_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum fidelity&quot;</span><span class="p">)</span>
-    <span class="n">max_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum fidelity&quot;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="FidelityMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.FidelityMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
-                <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
-</div>
+    <span class="n">max_fidelity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum fidelity&quot;</span><span class="p">)</span></div>
 
 
 
@@ -1303,6 +1243,24 @@
 <span class="sd">    measurement outcome distributions for both single job</span>
 <span class="sd">    and multiple jobs cases.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+                <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
+                <span class="s2">&quot;num_unique_outcomes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;mean_entropy&quot;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span>
+                <span class="s2">&quot;mean_uniformity&quot;</span><span class="p">:</span> <span class="mf">0.72</span><span class="p">,</span>
+                <span class="s2">&quot;mean_concentration&quot;</span><span class="p">:</span> <span class="mf">0.28</span><span class="p">,</span>
+                <span class="s2">&quot;mean_dominant_probability&quot;</span><span class="p">:</span> <span class="mf">0.58</span><span class="p">,</span>
+                <span class="s2">&quot;std_entropy&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="s2">&quot;std_uniformity&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># Single job fields</span>
     <span class="n">entropy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1349,26 +1307,10 @@
     <span class="p">)</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_ratio_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that ratios are between 0 and 1.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that probability/ratio metrics are between 0 and 1.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ratio must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Probability/ratio must be between 0.0 and 1.0, got </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="StatisticalMetricsSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.StatisticalMetricsSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
-                <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-                <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
-                <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-                <span class="s2">&quot;num_unique_outcomes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -1452,36 +1394,46 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformanceSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Complete schema for circuit performance metrics&quot;</span><span class="p">,</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;success_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                    <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                    <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                    <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
                     <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
-                    <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">768</span><span class="p">,</span>
+                    <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">870</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.82</span><span class="p">,</span>
+                    <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                    <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                    <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span>
+                    <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">3072</span><span class="p">,</span>
                 <span class="p">},</span>
                 <span class="s2">&quot;fidelity_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                    <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">,</span>
                     <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                     <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.89</span><span class="p">,</span>
+                    <span class="s2">&quot;std_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span>
+                    <span class="s2">&quot;min_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                    <span class="s2">&quot;max_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.94</span><span class="p">,</span>
                 <span class="p">},</span>
                 <span class="s2">&quot;statistical_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
-                    <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-                    <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
-                    <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+                    <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+                    <span class="s2">&quot;uniformity&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                    <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                    <span class="s2">&quot;dominant_outcome_probability&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
                     <span class="s2">&quot;num_unique_outcomes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_entropy&quot;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_uniformity&quot;</span><span class="p">:</span> <span class="mf">0.72</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_concentration&quot;</span><span class="p">:</span> <span class="mf">0.28</span><span class="p">,</span>
+                    <span class="s2">&quot;mean_dominant_probability&quot;</span><span class="p">:</span> <span class="mf">0.58</span><span class="p">,</span>
+                    <span class="s2">&quot;std_entropy&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                    <span class="s2">&quot;std_uniformity&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
                 <span class="p">},</span>
             <span class="p">},</span>
-        <span class="p">}</span></div>
-</div>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1502,6 +1454,19 @@
 <span class="sd">    DEPRECATED: Use CircuitPerformanceSchema instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="s2">&quot;job_12345&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">,</span>
+                <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">870</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
     <span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unique identifier for the job&quot;</span><span class="p">)</span>
     <span class="n">success_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Success rate (0.0 to 1.0)&quot;</span><span class="p">)</span>
     <span class="n">error_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Error rate (0.0 to 1.0)&quot;</span><span class="p">)</span>
@@ -1517,9 +1482,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that error_rate = 1 - success_rate.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;success_rate&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
             <span class="n">expected_error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">expected_error_rate</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">:</span>  <span class="c1"># Allow for floating point precision</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">expected_error_rate</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.001</span><span class="p">:</span>  <span class="c1"># Allow small floating point errors</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Error rate </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> should equal 1 - success_rate (</span><span class="si">{</span><span class="n">expected_error_rate</span><span class="si">}</span><span class="s2">)&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Error rate (</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">) must equal 1 - success_rate (</span><span class="si">{</span><span class="n">expected_error_rate</span><span class="si">}</span><span class="s2">)&quot;</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
 
@@ -1535,23 +1500,6 @@
                 <span class="sa">f</span><span class="s2">&quot;Successful shots (</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">) cannot exceed total shots (</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_shots&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="CircuitPerformanceJobSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceJobSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="s2">&quot;job_12345&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
-                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span>
-                <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
-                <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">768</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 
@@ -1567,6 +1515,20 @@
 
 <span class="sd">    DEPRECATED: Use CircuitPerformanceSchema instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.82</span><span class="p">,</span>
+                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span>
+                <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">3072</span><span class="p">,</span>
+                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.89</span><span class="p">,</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.18</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="n">mean_success_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mean success rate across jobs&quot;</span>
@@ -1615,24 +1577,6 @@
                     <span class="sa">f</span><span class="s2">&quot;Error rate </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> should equal 1 - mean_success_rate (</span><span class="si">{</span><span class="n">expected_error_rate</span><span class="si">}</span><span class="s2">)&quot;</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span></div>
-
-
-<div class="viewcode-block" id="CircuitPerformanceAggregateSchema.Config">
-<a class="viewcode-back" href="../../../apidocs/metrics_schemas.html#qward.metrics.schemas.CircuitPerformanceAggregateSchema.Config">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic configuration.&quot;&quot;&quot;</span>
-
-        <span class="n">json_schema_extra</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;example&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.72</span><span class="p">,</span>
-                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
-                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.65</span><span class="p">,</span>
-                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span>
-                <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="mi">3072</span><span class="p">,</span>
-                <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
-                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.28</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">}</span></div>
 </div>
 
 </pre></div>
