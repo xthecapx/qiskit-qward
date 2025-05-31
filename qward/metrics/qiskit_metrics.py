@@ -123,6 +123,17 @@ class QiskitMetrics(MetricCalculator):
             Dict[str, Any]: Basic metrics including depth, width, size, counts, etc.
         """
         circuit = self.circuit
+
+        # Check if calibrations attribute exists (removed in Qiskit 2.0)
+        has_calibrations = (
+            hasattr(circuit, "calibrations") and bool(circuit.calibrations)
+            if hasattr(circuit, "calibrations")
+            else False
+        )
+
+        # Check if layout attribute exists
+        has_layout = hasattr(circuit, "layout") and bool(circuit.layout)
+
         return {
             "depth": circuit.depth(),
             "width": circuit.width(),
@@ -132,8 +143,8 @@ class QiskitMetrics(MetricCalculator):
             "num_clbits": circuit.num_clbits,
             "num_ancillas": circuit.num_ancillas,
             "num_parameters": circuit.num_parameters,
-            "has_calibrations": bool(circuit.calibrations),
-            "has_layout": bool(circuit.layout),
+            "has_calibrations": has_calibrations,
+            "has_layout": has_layout,
         }
 
     def get_structured_basic_metrics(self) -> BasicMetricsSchema:

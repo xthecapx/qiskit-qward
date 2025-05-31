@@ -16,7 +16,7 @@ The visualization system is built around a powerful and extensible architecture:
   - **`CircuitPerformanceVisualizer`**: Performance metrics with success rates and fidelity analysis
 - **`Visualizer`**: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities
 
-```mermaid
+```{mermaid}
 classDiagram
     class BaseVisualizer {
         <<abstract>>
