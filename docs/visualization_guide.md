@@ -9,22 +9,23 @@ QWARD provides a comprehensive visualization system for quantum circuit metrics.
 The visualization system is built around a powerful and extensible architecture:
 
 - **`PlotConfig`**: A dataclass holding all plot appearance and saving configurations
-- **`BaseVisualizer`**: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities
+- **`VisualizationStrategy`**: An abstract base class that handles common functionality like output directory management, styling, data validation, and plot creation utilities
 - **Individual Visualizers**: Three specialized visualizers for different metric types:
-  - **`QiskitMetricsVisualizer`**: Circuit structure and instruction analysis
-  - **`ComplexityMetricsVisualizer`**: Complexity analysis with radar charts and efficiency metrics
+  - **`QiskitVisualizer`**: Circuit structure and instruction analysis
+  - **`ComplexityVisualizer`**: Complexity analysis with radar charts and efficiency metrics
   - **`CircuitPerformanceVisualizer`**: Performance metrics with success rates and fidelity analysis
 - **`Visualizer`**: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities
 
 ```{mermaid}
 classDiagram
-    class BaseVisualizer {
+    class VisualizationStrategy {
         <<abstract>>
         +output_dir: str
         +config: PlotConfig
         +save_plot(fig, filename)
         +show_plot(fig)
-        +create_plot()*
+        +create_dashboard()*
+        +plot_all()*
         +_validate_required_columns()
         +_extract_metrics_from_columns()
         +_create_bar_plot_with_labels()
@@ -42,15 +43,16 @@ classDiagram
         +alpha: float
     }
     
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
     
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +plot_gate_based_metrics()
         +plot_complexity_radar()
         +plot_quantum_volume_analysis()
@@ -69,7 +71,7 @@ classDiagram
     }
     
     class Visualizer {
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -77,11 +79,11 @@ classDiagram
         +print_available_metrics()
     }
 
-    BaseVisualizer <|-- QiskitMetricsVisualizer
-    BaseVisualizer <|-- ComplexityMetricsVisualizer
-    BaseVisualizer <|-- CircuitPerformanceVisualizer
-    BaseVisualizer --> PlotConfig : uses
-    Visualizer --> BaseVisualizer : manages
+    VisualizationStrategy <|-- QiskitVisualizer
+    VisualizationStrategy <|-- ComplexityVisualizer
+    VisualizationStrategy <|-- CircuitPerformanceVisualizer
+    VisualizationStrategy --> PlotConfig : uses
+    Visualizer --> VisualizationStrategy : manages
     
     note for Visualizer "Unified entry point with auto-detection and comprehensive visualization"
 ```
@@ -94,7 +96,7 @@ classDiagram
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.visualization import Visualizer
 
 # Create a quantum circuit
@@ -103,18 +105,17 @@ circuit.h(0)
 circuit.cx(0, 1)
 circuit.measure_all()
 
-# Run simulation for CircuitPerformance
+# Run simulation for CircuitPerformanceMetrics
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
 # Create scanner with all metrics
-scanner = Scanner(circuit=circuit)
-scanner.add_metric(QiskitMetrics(circuit))
-scanner.add_metric(ComplexityMetrics(circuit))
-scanner.add_metric(CircuitPerformance(circuit=circuit, job=job))
+scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
+circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
+scanner.add_strategy(circuit_performance)
 
 # Create unified visualizer
-visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
+visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
 
 # Option 1: Create comprehensive dashboards for all metrics
 dashboards = visualizer.create_dashboard(save=True, show=False)
@@ -129,40 +130,184 @@ qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=Fals
 complexity_plots = visualizer.visualize_metric("ComplexityMetrics", save=True, show=False)
 ```
 
-### Using Individual Visualizers
+### Using Individual Visualizers (Advanced)
 
 ```python
-from qward.visualization import QiskitMetricsVisualizer, ComplexityMetricsVisualizer, CircuitPerformanceVisualizer
+from qward.visualization import QiskitVisualizer, ComplexityVisualizer, CircuitPerformanceVisualizer
 
 # Calculate metrics first
 metrics_dict = scanner.calculate_metrics()
 
-# Use QiskitMetrics visualizer
-qiskit_viz = QiskitMetricsVisualizer(
+# Use QiskitVisualizer
+qiskit_viz = QiskitVisualizer(
     metrics_dict={"QiskitMetrics": metrics_dict["QiskitMetrics"]},
-    output_dir="qiskit_plots"
+    output_dir="qward/examples/img"
 )
 qiskit_figures = qiskit_viz.plot_all(save=True, show=False)
 
-# Use ComplexityMetrics visualizer
-complexity_viz = ComplexityMetricsVisualizer(
+# Use ComplexityVisualizer
+complexity_viz = ComplexityVisualizer(
     metrics_dict={"ComplexityMetrics": metrics_dict["ComplexityMetrics"]},
-    output_dir="complexity_plots"
+    output_dir="qward/examples/img"
 )
 complexity_figures = complexity_viz.plot_all(save=True, show=False)
 
-# Use CircuitPerformance visualizer
+# Use CircuitPerformanceVisualizer
 circuit_perf_data = {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")}
 perf_viz = CircuitPerformanceVisualizer(
     metrics_dict=circuit_perf_data,
-    output_dir="performance_plots"
+    output_dir="qward/examples/img"
 )
 perf_figures = perf_viz.plot_all(save=True, show=False)
 ```
 
+## Examples and Usage Patterns
+
+### 📁 Available Examples
+
+QWARD provides comprehensive examples in the `qward/examples/` directory:
+
+- **`example_visualizer.py`** - Complete workflow examples showing all features of the unified Visualizer
+- **`visualization_demo.py`** - Focused demo of CircuitPerformanceVisualizer capabilities
+- **`direct_strategy_example.py`** - Shows how to use visualization strategies directly for maximum control
+- **`aer.py`** - Integration examples with Qiskit Aer simulator
+- **`circuit_performance_demo.py`** - Circuit performance analysis examples
+- **`visualization_quickstart.py`** - Quick start example with minimal setup
+
+### 🎨 Two Approaches to Visualization
+
+#### 1. Unified Visualizer (Recommended)
+
+Use the `Visualizer` class for most cases - it automatically detects your metrics and creates appropriate visualizations:
+
+```python
+from qward.visualization import Visualizer
+
+# From Scanner
+visualizer = Visualizer(scanner=scanner)
+
+# From custom data
+visualizer = Visualizer(metrics_data=custom_metrics_dict)
+
+# Create all visualizations
+visualizer.visualize_all()
+```
+
+**Benefits:**
+- Automatic metric detection
+- Consistent styling across all plots
+- Simple API for complex workflows
+- Built-in error handling
+
+#### 2. Direct Strategy Usage (Advanced)
+
+Use individual strategies directly when you need fine-grained control:
+
+```python
+from qward.visualization import QiskitVisualizer, ComplexityVisualizer, CircuitPerformanceVisualizer
+
+# Use specific strategies directly
+qiskit_strategy = QiskitVisualizer(metrics_dict=qiskit_data, output_dir="custom_dir")
+qiskit_strategy.plot_circuit_structure()
+qiskit_strategy.create_dashboard()
+```
+
+**Benefits:**
+- Fine-grained control over individual plots
+- Custom configurations per strategy
+- Integration with external data sources
+- Flexible output formats and locations
+
+### 🔧 Available Strategies
+
+| Strategy | Metrics Type | Key Visualizations |
+|----------|-------------|-------------------|
+| `QiskitVisualizer` | QiskitMetrics | Circuit structure, gate distribution, instruction metrics |
+| `ComplexityVisualizer` | ComplexityMetrics | Gate-based metrics, complexity radar, quantum volume |
+| `CircuitPerformanceVisualizer` | CircuitPerformanceMetrics | Success rates, fidelity, shot distribution |
+
+### 🎛️ Customization
+
+#### Custom Plot Configuration
+
+```python
+from qward.visualization import PlotConfig
+
+config = PlotConfig(
+    figsize=(12, 8),
+    style="quantum",
+    color_palette=["#FF6B6B", "#4ECDC4", "#45B7D1"],
+    save_format="pdf"
+)
+
+visualizer = Visualizer(scanner=scanner, config=config)
+```
+
+#### Custom Strategies
+
+```python
+from qward.visualization import VisualizationStrategy
+
+class MyCustomStrategy(VisualizationStrategy):
+    def create_dashboard(self, save=True, show=True):
+        # Your custom visualization logic
+        pass
+    
+    def plot_all(self, save=True, show=True):
+        # Generate all plots for this strategy
+        pass
+
+# Register and use
+visualizer.register_strategy("MyMetrics", MyCustomStrategy)
+```
+
+### 🚀 Running the Examples
+
+```bash
+# Run main visualizer examples
+python qward/examples/example_visualizer.py
+
+# Run CircuitPerformanceMetrics demo
+python qward/examples/visualization_demo.py
+
+# Run direct strategy examples
+python qward/examples/direct_strategy_example.py
+
+# Run Aer integration examples
+python qward/examples/aer.py
+
+# Quick start example
+python qward/examples/visualization_quickstart.py
+```
+
+### 📊 Output
+
+All examples save plots to `qward/examples/img/` by default. You'll find:
+
+- **Dashboards**: Comprehensive multi-plot views
+- **Individual plots**: Specific visualizations for detailed analysis
+- **Multiple formats**: PNG (default), PDF, SVG support
+
+### 💡 Best Practices
+
+1. **Start with the unified Visualizer** - it handles most use cases automatically
+2. **Use direct strategies** when you need specific plots or custom workflows
+3. **Customize PlotConfig** for consistent styling across all visualizations
+4. **Register custom strategies** to extend the system with your own visualizations
+5. **Check the output directory** - all plots are saved with descriptive names
+6. **Use meaningful output directories** - organize plots by analysis type or date
+
+### 🔗 Key Benefits
+
+- **Strategy Pattern**: Consistent with Scanner architecture
+- **Auto-Detection**: Automatically finds and visualizes available metrics
+- **Extensible**: Easy to add new visualization strategies
+- **Flexible**: Use unified interface or direct strategies as needed
+- **Customizable**: Full control over plot appearance and output formats
+
 ## Available Visualizers
 
-### QiskitMetricsVisualizer
+### QiskitVisualizer
 
 Visualizes circuit structure and instruction analysis from `QiskitMetrics`.
 
@@ -174,17 +319,23 @@ Visualizes circuit structure and instruction analysis from `QiskitMetrics`.
    ```
    Shows basic circuit metrics: depth, width, size, qubits, and classical bits.
 
-2. **Instruction Breakdown**
+2. **Gate Distribution**
    ```python
-   qiskit_viz.plot_instruction_breakdown(save=True, show=True)
+   qiskit_viz.plot_gate_distribution(save=True, show=True)
    ```
-   Displays gate type analysis and instruction distribution.
+   Displays gate type analysis and instruction distribution as a pie chart.
 
-3. **Scheduling Metrics**
+3. **Instruction Metrics**
    ```python
-   qiskit_viz.plot_scheduling_metrics(save=True, show=True)
+   qiskit_viz.plot_instruction_metrics(save=True, show=True)
    ```
-   Shows scheduling and timing information.
+   Shows instruction-related metrics like connected components and nonlocal gates.
+
+4. **Circuit Summary**
+   ```python
+   qiskit_viz.plot_circuit_summary(save=True, show=True)
+   ```
+   Displays derived metrics like gate density and parallelism.
 
 #### Dashboard and All Plots
 
@@ -196,7 +347,7 @@ dashboard = qiskit_viz.create_dashboard(save=True, show=False)
 all_figures = qiskit_viz.plot_all(save=True, show=False)
 ```
 
-### ComplexityMetricsVisualizer
+### ComplexityVisualizer
 
 Visualizes complexity analysis from `ComplexityMetrics` with advanced charts and analysis.
 
@@ -596,7 +747,7 @@ print(summary)
 
 ### Visualizer (Unified Entry Point)
 
-- `register_visualizer(metric_name, visualizer_class)`: Register custom visualizers
+- `register_strategy(metric_name, strategy_class)`: Register custom strategies
 - `get_available_metrics()`: Get list of available metrics for visualization
 - `visualize_metric(metric_name, save=True, show=True)`: Create plots for specific metric
 - `create_dashboard(save=True, show=True)`: Create dashboards for all metrics

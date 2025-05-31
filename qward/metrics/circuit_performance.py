@@ -1,7 +1,7 @@
 """
 Circuit performance metrics implementation for QWARD.
 
-This module provides the CircuitPerformance class for analyzing the performance of
+This module provides the CircuitPerformanceMetrics class for analyzing the performance of
 quantum circuits based on job execution results. It supports both single job
 and multiple job analysis with customizable success criteria.
 
@@ -36,7 +36,7 @@ except ImportError:
 JobType = Union[AerJob, QiskitJob]
 
 
-class CircuitPerformance(MetricCalculator):
+class CircuitPerformanceMetrics(MetricCalculator):
     """
     Calculate circuit performance metrics for quantum circuits.
 
@@ -56,14 +56,14 @@ class CircuitPerformance(MetricCalculator):
 
     Example:
         # Basic usage with default success criteria (ground state)
-        performance = CircuitPerformance(circuit, job=job)
+        performance = CircuitPerformanceMetrics(circuit, job=job)
         metrics = performance.get_metrics()
 
         # With custom success criteria and expected distribution
         def custom_success(state): return state == "101"
         expected = {"000": 0.5, "101": 0.5}  # Bell state expectation
 
-        performance = CircuitPerformance(
+        performance = CircuitPerformanceMetrics(
             circuit,
             job=job,
             success_criteria=custom_success,
@@ -83,7 +83,7 @@ class CircuitPerformance(MetricCalculator):
         expected_distribution: Optional[Dict[str, float]] = None,
     ):
         """
-        Initialize a CircuitPerformance object.
+        Initialize a CircuitPerformanceMetrics object.
 
         Args:
             circuit: The quantum circuit to analyze

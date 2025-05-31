@@ -1,188 +1,100 @@
+# QWARD - Quantum Circuit Analysis and Runtime Development
+
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-informational)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-informational)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-%E2%89%A5%201.0.0-6133BD)](https://github.com/Qiskit/qiskit)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
 
-# Qiskit Qward
+QWARD is a comprehensive framework for analyzing quantum circuits and validating quantum code execution quality on quantum processing units (QPUs). It provides tools to analyze circuit complexity, measure performance metrics, and visualize quantum algorithm behavior.
 
-Qiskit Qward is a framework for analyzing and validating quantum code execution quality on quantum processing units (QPUs). It helps developers and researchers understand how their quantum algorithms perform on real hardware, providing insights into QPU behavior and code quality metrics.
+## 🚀 Quick Start
 
-Qward provides tools to execute quantum circuits on QPUs, collect comprehensive execution metrics, analyze circuit performance, validate algorithm correctness, generate insights about QPU behavior, and compare results across different backends.
+```python
+from qiskit import QuantumCircuit
+from qward import Scanner
+from qward.metrics import QiskitMetrics, ComplexityMetrics
+from qward.visualization import Visualizer
 
-### Table of Contents
+# Create a quantum circuit
+circuit = QuantumCircuit(2)
+circuit.h(0)
+circuit.cx(0, 1)
 
-##### For Users
+# Analyze the circuit
+scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
+metrics = scanner.calculate_metrics()
 
-1.  [About the Project](docs/project_overview.md)
-2.  [Beginner's Guide](docs/beginners_guide.md)
-3.  [Installation](INSTALL.md)
-4.  [Quickstart Guide](docs/quickstart_guide.md)
-5.  [Tutorials](docs/tutorials/index.rst)
-6.  [How-Tos](docs/how_tos/index.rst)
-7.  [How to Give Feedback](#how-to-give-feedback)
-8.  [Contribution Guidelines](#contribution-guidelines)
-9.  [License](#license)
-
-##### For Developers/Contributors
-
-1. [Contribution Guide](CONTRIBUTING.md)
-2. [Technical Docs](docs/technical_docs.md)
-3. [Pre-Push Verification](#pre-push-verification)
-
-
-----------------------------------------------------------------------------------------------------
-
-### How to Give Feedback
-
-We encourage your feedback! You can share your thoughts with us by:
-- Opening an issue in the repository
-
-----------------------------------------------------------------------------------------------------
-
-### Contribution Guidelines
-
-For information on how to contribute to this project, please take a look at our [contribution guidelines](CONTRIBUTING.md).
-
-----------------------------------------------------------------------------------------------------
-
-### License
-[Apache License 2.0](LICENSE.txt)
-
-## Pre-Push Verification
-
-Before pushing changes to ensure CI passes, run these commands in order:
-
-### Quick Start: Use the Verification Script
-```bash
-# Run the automated verification script
-./verify.sh
-```
-This script runs all essential checks automatically and provides clear feedback.
-
-### Manual Verification Commands
-
-### 1. Code Formatting
-```bash
-# Check code formatting (should show no changes needed)
-black --check .
-
-# If formatting is needed, run:
-black .
+# Visualize results
+visualizer = Visualizer(scanner=scanner)
+dashboards = visualizer.create_dashboard(save=True)
 ```
 
-### 2. Linting
+## 📚 Documentation
+
+### For Users
+- **[Project Overview](docs/project_overview.md)** - Learn about QWARD's goals and capabilities
+- **[Installation Guide](INSTALL.md)** - Get QWARD up and running
+- **[Beginner's Guide](docs/beginners_guide.md)** - Start here if you're new to QWARD
+- **[Quickstart Guide](docs/quickstart_guide.md)** - Jump right into using QWARD
+- **[Architecture Overview](docs/architecture.md)** - Understand QWARD's design and components
+- **[Visualization Guide](docs/visualization_guide.md)** - Learn about QWARD's visualization capabilities
+
+### For Developers
+- **[Developer Guide](docs/developer_guide.md)** - Development setup and code quality standards
+- **[Technical Documentation](docs/technical_docs.md)** - Deep dive into QWARD's implementation
+- **[Contribution Guidelines](CONTRIBUTING.md)** - How to contribute to QWARD
+- **[API Documentation](docs/apidocs/index.rst)** - Complete API reference
+
+## 🎯 Key Features
+
+- **Circuit Analysis**: Comprehensive metrics for quantum circuit complexity and structure
+- **Performance Monitoring**: Track success rates, fidelity, and execution statistics
+- **Visualization**: Rich, interactive plots and dashboards for metric analysis
+- **Schema Validation**: Type-safe metrics with Pydantic-based validation
+- **Extensible Architecture**: Plugin-based system for custom metrics and visualizations
+- **Multi-Backend Support**: Works with Qiskit Aer, IBM Quantum, and other providers
+
+## 🛠️ Installation
+
 ```bash
-# Run pylint on core library and tests (should get 10.00/10)
-pylint -rn qward tests
+# Install from PyPI (when available)
+pip install qward
+
+# Or install from source
+git clone https://github.com/your-org/qiskit-qward.git
+cd qiskit-qward
+pip install -e .
 ```
 
-### 3. Type Checking
-```bash
-# Run mypy type checking (should show no errors)
-mypy qward tests
-```
+## 📖 Examples
 
-### 4. Unit Tests
-```bash
-# Run the test suite
-python -m pytest tests/ -v
+Explore comprehensive examples in the [`qward/examples/`](qward/examples/) directory:
 
-# Or run specific test file
-python -m pytest tests/test_validator.py -v
-```
+- **[Basic Usage](qward/examples/example_visualizer.py)** - Complete workflow examples
+- **[Circuit Performance](qward/examples/circuit_performance_demo.py)** - Performance analysis
+- **[Visualization Demo](qward/examples/visualization_demo.py)** - Visualization capabilities
+- **[Aer Integration](qward/examples/aer.py)** - Using QWARD with Qiskit Aer
 
-### 5. All-in-One Verification
-```bash
-# Run all essential checks at once
-black --check . && \
-pylint -rn qward tests && \
-mypy qward tests && \
-python -m pytest tests/ -v
-```
+## 🤝 Contributing
 
-### 6. Full Tox Suite (if tox is available)
-```bash
-# Run the complete lint environment
-tox -e lint
+We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.md) for details on:
 
-# Run tests with coverage
-tox -e coverage
+- Setting up the development environment
+- Code style and quality standards
+- Testing requirements
+- Submitting pull requests
 
-# Run tests for specific Python version
-tox -e py310  # or py311, py312
-```
+## 📄 License
 
-### 7. Optional: Notebook Linting (if nbqa is installed)
-```bash
-# Check for any notebooks in docs (usually none)
-nbqa pylint -rn docs/
-```
+This project is licensed under the [Apache License 2.0](LICENSE.txt).
 
-### Expected Results
-- **Black**: `All done! ✨ 🍰 ✨ X files would be left unchanged.`
-- **Pylint**: `Your code has been rated at 10.00/10`
-- **MyPy**: `Success: no issues found in X source files`
-- **Tests**: All tests should pass with `PASSED` status
+## 🔗 Links
 
-### Quick Verification (Minimum Required)
-```bash
-# Essential checks only (fastest)
-black --check . && pylint -rn qward tests && mypy qward tests
-```
+- **Documentation**: [docs/](docs/)
+- **Examples**: [qward/examples/](qward/examples/)
+- **Issues**: [GitHub Issues](https://github.com/your-org/qiskit-qward/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/qiskit-qward/discussions)
 
-### Notes
-- Examples folder is excluded from linting (configured in `.pylintrc` and `mypy.ini`)
-- Core library maintains strict code quality standards (10.00/10 pylint score)
-- Type hints are enforced for all public APIs
-- If any command fails, fix the issues before pushing
+---
 
-### Troubleshooting
-**Black formatting issues:**
-```bash
-# Fix formatting automatically
-black .
-```
-
-**Pylint score below 10.00:**
-- Check the pylint output for specific issues
-- Fix code quality issues or add appropriate disable comments for false positives
-- Ensure examples folder is excluded (should be automatic)
-
-**MyPy type errors:**
-- Add missing type hints
-- Fix type mismatches
-- Use `# type: ignore` for legitimate cases where mypy is wrong
-
-**Test failures:**
-```bash
-# Run tests with more verbose output
-python -m pytest tests/ -v -s
-
-# Run specific test
-python -m pytest tests/test_validator.py::TestScanner::test_scanner_init -v
-```
-
-**Missing dependencies:**
-```bash
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Or install specific tools
-pip install black pylint mypy pytest
-```
-
-### Summary
-The verification process ensures:
-- ✅ **Code Quality**: 10.00/10 pylint score maintained
-- ✅ **Type Safety**: All type hints validated with mypy  
-- ✅ **Code Style**: Consistent formatting with black
-- ✅ **Functionality**: All tests pass
-- ✅ **CI Compatibility**: Same checks as CI pipeline
-
-**Recommended workflow:**
-1. Make your changes
-2. Run `./verify.sh` (or manual commands)
-3. Fix any issues reported
-4. Commit and push with confidence
-
-----------------------------------------------------------------------------------------------------
+*QWARD is designed to help quantum developers and researchers understand and optimize their quantum algorithms through comprehensive analysis and visualization tools.*

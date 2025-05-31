@@ -41,17 +41,24 @@ class PlotConfig:
             ]
 
 
-class BaseVisualizer(ABC):
-    """Base class for all QWARD visualizers."""
+class VisualizationStrategy(ABC):
+    """Base class for all QWARD visualization strategies."""
 
-    def __init__(self, output_dir: str = "img", config: Optional[PlotConfig] = None):
+    def __init__(
+        self,
+        metrics_dict: Dict[str, pd.DataFrame],
+        output_dir: str = "img",
+        config: Optional[PlotConfig] = None,
+    ):
         """
-        Initialize the base visualizer.
+        Initialize the visualization strategy.
 
         Args:
+            metrics_dict: Dictionary containing metrics data for this strategy
             output_dir: Directory to save plots
             config: Plot configuration settings
         """
+        self.metrics_dict = metrics_dict
         self.output_dir = output_dir
         self.config = config or PlotConfig()
         self._setup_output_dir()
@@ -349,6 +356,11 @@ class BaseVisualizer(ABC):
         return display_name.replace("_", " ").title()
 
     @abstractmethod
-    def create_plot(self) -> plt.Figure:
-        """Create the main plot. Must be implemented by subclasses."""
+    def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
+        """Create a comprehensive dashboard for this strategy's metrics."""
+        pass
+
+    @abstractmethod
+    def plot_all(self, save: bool = True, show: bool = True) -> List[plt.Figure]:
+        """Generate all individual plots for this strategy."""
         pass

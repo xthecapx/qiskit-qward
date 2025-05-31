@@ -118,8 +118,11 @@ class Scanner:
             # Create a DataFrame for this metric type
             metric_name = strategy.__class__.__name__
 
-            # Special handling for CircuitPerformance metrics
-            if metric_name == "CircuitPerformance":
+            # Special handling for CircuitPerformanceMetrics (use CircuitPerformance as key for compatibility)
+            if metric_name == "CircuitPerformanceMetrics":
+                # Use "CircuitPerformance" as the key for backward compatibility with visualization
+                display_name = "CircuitPerformance"
+
                 # Check if this is the new API structure or legacy structure
                 if hasattr(strategy, "get_single_job_metrics") and hasattr(
                     strategy, "get_multiple_jobs_metrics"
@@ -131,20 +134,20 @@ class Scanner:
                         individual_jobs_df = pd.DataFrame(legacy_metrics["individual_jobs"])
                         aggregate_df = pd.DataFrame([legacy_metrics["aggregate"]])
 
-                        metric_dataframes[f"{metric_name}.individual_jobs"] = individual_jobs_df
-                        metric_dataframes[f"{metric_name}.aggregate"] = aggregate_df
+                        metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
+                        metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
                     else:
                         # Single job case
                         single_metrics = strategy.get_single_job_metrics()
                         single_job_df = pd.DataFrame([single_metrics])
-                        metric_dataframes[f"{metric_name}.individual_jobs"] = single_job_df
+                        metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
                 elif "individual_jobs" in metric_results:
                     # Legacy structure - multiple jobs case
                     individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
                     aggregate_df = pd.DataFrame([metric_results["aggregate"]])
 
-                    metric_dataframes[f"{metric_name}.individual_jobs"] = individual_jobs_df
-                    metric_dataframes[f"{metric_name}.aggregate"] = aggregate_df
+                    metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
+                    metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
                 else:
                     # New API structure - flatten it for DataFrame compatibility
                     flattened_metrics = {}
@@ -156,7 +159,7 @@ class Scanner:
                             flattened_metrics[category] = category_metrics
 
                     single_job_df = pd.DataFrame([flattened_metrics])
-                    metric_dataframes[f"{metric_name}.individual_jobs"] = single_job_df
+                    metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
             else:
                 # Handle other metrics normally
                 flattened_metrics = {}

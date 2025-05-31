@@ -1,8 +1,8 @@
 """
-Demo showing how to use QWARD's CircuitPerformance metrics.
+Demo showing how to use QWARD's CircuitPerformanceMetrics metrics.
 
 This example demonstrates:
-1. Traditional approach using CircuitPerformance directly
+1. Traditional approach using CircuitPerformanceMetrics directly
 2. Schema-based approach with validation
 3. Custom success criteria and fidelity calculation
 4. Validation features and error handling
@@ -14,7 +14,7 @@ import json
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
-from qward.metrics.circuit_performance import CircuitPerformance
+from qward.metrics.circuit_performance import CircuitPerformanceMetrics
 
 # Import schemas for structured data validation
 try:
@@ -65,7 +65,7 @@ def demo_traditional_approach() -> None:
     job = run_circuit_simulation(circuit, shots=1024)
 
     # Calculate success rate metrics
-    success_rate = CircuitPerformance(circuit, job=job)
+    success_rate = CircuitPerformanceMetrics(circuit, job=job)
     metrics = success_rate.get_metrics()
 
     print("Single Job Metrics (Dictionary):")
@@ -79,7 +79,7 @@ def demo_traditional_approach() -> None:
         run_circuit_simulation(circuit, shots=512),
     ]
 
-    success_rate_multi = CircuitPerformance(circuit, jobs=jobs)
+    success_rate_multi = CircuitPerformanceMetrics(circuit, jobs=jobs)
     multi_metrics = success_rate_multi.get_metrics()
 
     print("Multiple Jobs Metrics (Dictionary):")
@@ -105,7 +105,7 @@ def demo_schema_approach() -> None:
 
     try:
         # Calculate structured metrics for single job
-        circuit_performance = CircuitPerformance(circuit, job=job)
+        circuit_performance = CircuitPerformanceMetrics(circuit, job=job)
         structured_metrics = circuit_performance.get_structured_metrics()
 
         print("✓ Schema-based metrics (structured object):")
@@ -127,7 +127,7 @@ def demo_schema_approach() -> None:
             run_circuit_simulation(circuit),
         ]
 
-        circuit_performance_multi = CircuitPerformance(circuit, jobs=jobs)
+        circuit_performance_multi = CircuitPerformanceMetrics(circuit, jobs=jobs)
         aggregate_metrics = circuit_performance_multi.get_structured_metrics()
 
         print("\n✓ Multiple jobs aggregate metrics:")
@@ -153,7 +153,7 @@ def demo_custom_success_criteria() -> None:
     job = run_circuit_simulation(circuit, shots=1024)
 
     # Default success criteria (all zeros)
-    default_success = CircuitPerformance(circuit, job=job)
+    default_success = CircuitPerformanceMetrics(circuit, job=job)
     default_metrics = default_success.get_metrics()
 
     print("Default Success Criteria (|00⟩ only):")
@@ -167,7 +167,9 @@ def demo_custom_success_criteria() -> None:
         # For Bell states, we expect either all 0s or all 1s
         return clean_result in ["0000", "1111"]  # 00 00 or 11 11 for 2-qubit + 2-classical
 
-    bell_success = CircuitPerformance(circuit, job=job, success_criteria=bell_success_criteria)
+    bell_success = CircuitPerformanceMetrics(
+        circuit, job=job, success_criteria=bell_success_criteria
+    )
     bell_metrics = bell_success.get_metrics()
 
     print("Custom Success Criteria (|00⟩ or |11⟩):")
@@ -271,7 +273,7 @@ def demo_validation_features() -> None:
     job = run_circuit_simulation(circuit)
 
     # Get real metrics and validate them
-    circuit_performance = CircuitPerformance(circuit, job=job)
+    circuit_performance = CircuitPerformanceMetrics(circuit, job=job)
     real_metrics = circuit_performance.get_structured_metrics()
 
     print("✓ Real metrics validated successfully:")

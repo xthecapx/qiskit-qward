@@ -5,7 +5,7 @@ This script shows how to use QWARD to analyze quantum circuits using the Aer sim
 """
 
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.examples.utils import create_example_circuit, get_display
 
 from qiskit_aer import AerSimulator, AerJob
@@ -191,7 +191,7 @@ def example_circuit_performance_metrics(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit, job=job)
 
     # Add CircuitPerformance strategy
-    circuit_performance_strategy = CircuitPerformance(
+    circuit_performance_strategy = CircuitPerformanceMetrics(
         circuit=circuit, job=job, success_criteria=lambda x: x == "11"
     )
     scanner.add_strategy(circuit_performance_strategy)
@@ -238,7 +238,7 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
     scanner.add_strategy(QiskitMetrics(circuit))
     scanner.add_strategy(ComplexityMetrics(circuit))
     scanner.add_strategy(
-        CircuitPerformance(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
+        CircuitPerformanceMetrics(circuit=circuit, job=job, success_criteria=lambda x: x == "11")
     )
 
     # Calculate metrics
@@ -346,7 +346,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     scanner = Scanner(circuit=circuit)
 
     # Add CircuitPerformance strategy with multiple jobs
-    circuit_performance_strategy = CircuitPerformance(
+    circuit_performance_strategy = CircuitPerformanceMetrics(
         circuit=circuit, success_criteria=lambda x: x == "11"
     )
 
@@ -382,13 +382,13 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
 
     # Create visualizer with custom configuration
     visualizer = CircuitPerformanceVisualizer(
-        metrics_dict=circuit_perf_data, output_dir="examples/img", config=config
+        metrics_dict=circuit_perf_data, output_dir="qward/examples/img", config=config
     )
 
     # Create comprehensive dashboard
     print("\nCreating CircuitPerformance visualization dashboard...")
     dashboard_fig = visualizer.create_dashboard(save=True, show=False)
-    print("✅ Dashboard saved to examples/img/")
+    print("✅ Dashboard saved to qward/examples/img/")
 
     # Create all individual plots
     print("Creating individual CircuitPerformance plots...")

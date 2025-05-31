@@ -7,7 +7,7 @@ This script demonstrates the basic visualization capabilities with minimal setup
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import CircuitPerformance
+from qward.metrics import CircuitPerformanceMetrics
 from qward.visualization import CircuitPerformanceVisualizer
 
 
@@ -38,7 +38,9 @@ def main():
         clean = outcome.replace(" ", "")
         return clean in ["00", "11"]
 
-    circuit_performance = CircuitPerformance(circuit=circuit, success_criteria=bell_state_success)
+    circuit_performance = CircuitPerformanceMetrics(
+        circuit=circuit, success_criteria=bell_state_success
+    )
     circuit_performance.add_job(jobs)
     scanner.add_strategy(circuit_performance)
 
@@ -48,10 +50,12 @@ def main():
     metrics_dict["CircuitPerformance.aggregate"].plot()
 
     # Create visualizations
-    visualizer = CircuitPerformanceVisualizer(metrics_dict, output_dir="img/quickstart")
+    visualizer = CircuitPerformanceVisualizer(
+        metrics_dict, output_dir="qward/examples/img/quickstart"
+    )
     visualizer.plot_all(save=True, show=False)
 
-    print("Visualizations saved to img/quickstart/")
+    print("Visualizations saved to qward/examples/img/quickstart/")
 
     # Print summary
     aggregate_data = metrics_dict.get("CircuitPerformance.aggregate")
