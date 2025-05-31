@@ -1,35 +1,40 @@
 """
-Example demonstrating how to use QWARD with Aer simulator.
+Example script demonstrating the use of QWARD with Aer simulator.
+
+This script shows how to use QWARD to analyze quantum circuits using the Aer simulator.
 """
 
-from qward.examples.utils import get_display, create_example_circuit
-
-from qiskit import QuantumCircuit
-from qiskit_aer import AerSimulator, AerJob
-from qward import Scanner, Result
+from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.examples.utils import create_example_circuit, get_display
+
+from qiskit_aer import AerSimulator, AerJob
+from qiskit import QuantumCircuit
 
 display = get_display()
 
 
 def example_default_strategies(circuit: QuantumCircuit):
     """
-    Example 1: Using default metric strategies (QISKIT and COMPLEXITY)
+    Example 1: Using default strategies
 
-    This example demonstrates how to use the default metric strategies provided by QWARD.
-    The default strategies include QISKIT and COMPLEXITY metrics.
+    This example demonstrates how to use the default strategies provided by QWARD.
+    The default strategies include QiskitMetrics and ComplexityMetrics.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 1: Using default metric strategies")
+    print("\nExample 1: Using default strategies")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
     # Add default strategies
-    scanner.add_strategy(QiskitMetrics(circuit))
-    scanner.add_strategy(ComplexityMetrics(circuit))
+    from qward.metrics.defaults import get_default_strategies
+
+    default_strategies = get_default_strategies()
+    for strategy in default_strategies:
+        scanner.add_strategy(strategy(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
@@ -44,27 +49,27 @@ def example_default_strategies(circuit: QuantumCircuit):
 
 def example_qiskit_strategy(circuit: QuantumCircuit):
     """
-    Example 2: Using only QISKIT metric strategy
+    Example 2: Using QiskitMetrics strategy
 
-    This example demonstrates how to use only QISKIT metrics by creating a QiskitMetrics
-    strategy and adding it to the Scanner.
+    This example demonstrates how to use the QiskitMetrics strategy to analyze
+    the basic properties of a quantum circuit.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 2: Using only QISKIT metric strategy")
+    print("\nExample 2: Using QiskitMetrics strategy")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add only QiskitMetrics strategy
+    # Add QiskitMetrics strategy
     scanner.add_strategy(QiskitMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Qiskit metrics DataFrame:")
+    # Display the QiskitMetrics DataFrame
+    print("\nQiskitMetrics DataFrame:")
     display(metrics_dict["QiskitMetrics"])
 
     return scanner
@@ -72,16 +77,16 @@ def example_qiskit_strategy(circuit: QuantumCircuit):
 
 def example_constructor_strategies(circuit: QuantumCircuit):
     """
-    Example 2b: Using strategies via constructor
+    Example 3: Using strategies in constructor
 
-    This example demonstrates using strategies via the Scanner constructor.
+    This example demonstrates how to pass strategies directly to the Scanner constructor.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 2b: Using strategies via constructor")
+    print("\nExample 3: Using strategies in constructor")
 
-    # Create a scanner with strategies via constructor
+    # Create a scanner with strategies in constructor
     scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
     # Calculate metrics
@@ -97,27 +102,27 @@ def example_constructor_strategies(circuit: QuantumCircuit):
 
 def example_complexity_metrics(circuit: QuantumCircuit):
     """
-    Example 3: Using only COMPLEXITY metrics
+    Example 4: Using ComplexityMetrics strategy
 
-    This example demonstrates how to use only COMPLEXITY metrics by creating a ComplexityMetrics
-    instance and adding it to the Scanner.
+    This example demonstrates how to use the ComplexityMetrics strategy to analyze
+    the complexity of a quantum circuit.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 3: Using only COMPLEXITY metrics")
+    print("\nExample 4: Using ComplexityMetrics strategy")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
 
-    # Add only ComplexityMetrics
+    # Add ComplexityMetrics strategy
     scanner.add_strategy(ComplexityMetrics(circuit))
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
 
-    # Display the metrics
-    print("Complexity metrics DataFrame:")
+    # Display the ComplexityMetrics DataFrame
+    print("\nComplexityMetrics DataFrame:")
     display(metrics_dict["ComplexityMetrics"])
 
     return scanner
@@ -125,15 +130,14 @@ def example_complexity_metrics(circuit: QuantumCircuit):
 
 def example_multiple_strategies(circuit: QuantumCircuit):
     """
-    Example 4: Using multiple metric strategies
+    Example 5: Using multiple strategies
 
-    This example demonstrates how to use multiple metric strategies together by creating
-    QiskitMetrics and ComplexityMetrics instances and adding them to the Scanner.
+    This example demonstrates how to use multiple strategies together.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 4: Using multiple metric strategies")
+    print("\nExample 5: Using multiple strategies")
 
     # Create a scanner with the circuit
     scanner = Scanner(circuit=circuit)
@@ -155,14 +159,15 @@ def example_multiple_strategies(circuit: QuantumCircuit):
 
 def example_circuit_performance_metrics(circuit: QuantumCircuit):
     """
-    Example 5: Using CircuitPerformance with Aer simulator
+    Example 6: Using CircuitPerformance strategy
 
-    This example demonstrates how to use CircuitPerformance with the Aer simulator.
+    This example demonstrates how to use the CircuitPerformance strategy to analyze
+    the performance of a quantum circuit execution.
 
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 5: Using CircuitPerformance with Aer simulator")
+    print("\nExample 6: Using CircuitPerformance strategy")
 
     # Create an Aer simulator
     simulator = AerSimulator()
@@ -176,17 +181,14 @@ def example_circuit_performance_metrics(circuit: QuantumCircuit):
     print("Job result:")
     print(result)
 
-    # Create a Result object with the counts from the job result
+    # Get the counts from the job result
     counts = result.get_counts()
-    qward_result = Result(job=job, counts=counts)
 
     print("counts:")
     print(counts)
-    print("QWARD result:")
-    print(qward_result)
 
-    # Create a scanner with the circuit and result
-    scanner = Scanner(circuit=circuit, result=qward_result)
+    # Create a scanner with the circuit and job
+    scanner = Scanner(circuit=circuit, job=job)
 
     # Add CircuitPerformance strategy
     circuit_performance_strategy = CircuitPerformance(
@@ -212,7 +214,7 @@ def example_circuit_performance_metrics(circuit: QuantumCircuit):
 
 def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
     """
-    Example 6: Using all strategies together
+    Example 7: Using all strategies together
 
     This example demonstrates how to use all strategies together by creating QiskitMetrics,
     ComplexityMetrics, and CircuitPerformance instances and adding them to the Scanner.
@@ -221,17 +223,16 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
         circuit: The quantum circuit to analyze
         job: The Aer job from the simulator
     """
-    print("\nExample 6: Using all strategies together")
+    print("\nExample 7: Using all strategies together")
 
     # Get the result
     result = job.result()
 
-    # Create a Result object with the counts from the job result
+    # Get the counts from the job result
     counts = result.get_counts()
-    qward_result = Result(job=job, counts=counts)
 
-    # Create a scanner with the circuit and result
-    scanner = Scanner(circuit=circuit, result=qward_result)
+    # Create a scanner with the circuit and job
+    scanner = Scanner(circuit=circuit, job=job)
 
     # Add all strategies
     scanner.add_strategy(QiskitMetrics(circuit))
@@ -264,7 +265,7 @@ def example_all_strategies(circuit: QuantumCircuit, job: AerJob):
 
 def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     """
-    Example 7: Using CircuitPerformance with multiple Aer simulator jobs
+    Example 8: Using CircuitPerformance with multiple Aer simulator jobs
 
     This example demonstrates how to use CircuitPerformance with multiple Aer simulator jobs
     to analyze the success rate across different runs. It includes comprehensive
@@ -277,7 +278,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     Args:
         circuit: The quantum circuit to analyze
     """
-    print("\nExample 7: Using CircuitPerformance with multiple Aer simulator jobs")
+    print("\nExample 8: Using CircuitPerformance with multiple Aer simulator jobs")
 
     # Import noise model components
     from qiskit_aer.noise import (
@@ -371,55 +372,57 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
 
     print("\nCreating visualizations using QWARD CircuitPerformanceVisualizer...")
 
-    # Create a custom configuration for the plots
+    # Create a custom configuration for high-quality plots
     config = PlotConfig(figsize=(10, 6), style="quantum", dpi=300, save_format="png")
 
-    # Initialize the visualizer
+    # Extract CircuitPerformance data for visualization
+    circuit_perf_data = {
+        k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")
+    }
+
+    # Create visualizer with custom configuration
     visualizer = CircuitPerformanceVisualizer(
-        metrics_dict=metrics_dict, output_dir="img", config=config
+        metrics_dict=circuit_perf_data, output_dir="examples/img", config=config
     )
 
-    # Option 1: Create all individual plots
-    visualizer.plot_all(save=True, show=True)
+    # Create comprehensive dashboard
+    print("\nCreating CircuitPerformance visualization dashboard...")
+    dashboard_fig = visualizer.create_dashboard(save=True, show=False)
+    print("✅ Dashboard saved to examples/img/")
 
-    # Option 2: Create a comprehensive dashboard (uncomment to use instead)
-    # dashboard = visualizer.create_dashboard(save=True, show=True)
-
-    # Compare individual job results
-    print("\nIndividual job results:")
-    for i, job in enumerate(jobs):
-        result = job.result()
-        counts = result.get_counts()
-        total_shots = sum(counts.values())
-        successful_shots = counts.get("11", 0)
-        success_rate = successful_shots / total_shots if total_shots > 0 else 0.0
-
-        print(f"Job {i+1} success rate: {success_rate:.4f}")
-        print(f"Job {i+1} counts: {counts}")
+    # Create all individual plots
+    print("Creating individual CircuitPerformance plots...")
+    all_figures = visualizer.plot_all(save=True, show=False)
+    print(f"✅ Created {len(all_figures)} individual plots")
 
     return scanner, jobs
 
 
 def main():
     """
-    Main function demonstrating how to use QWARD with Aer simulator.
+    Main function to run all examples.
     """
-    # Create a simple quantum circuit
+    print("QWARD Aer Examples")
+    print("=" * 50)
+
+    # Create a simple quantum circuit for testing
     circuit = create_example_circuit()
 
-    # Run the examples with new strategy naming
+    print("Quantum Circuit:")
+    display(circuit.draw(output="mpl"))
+
+    # Run examples
     example_default_strategies(circuit)
     example_qiskit_strategy(circuit)
     example_constructor_strategies(circuit)
     example_complexity_metrics(circuit)
     example_multiple_strategies(circuit)
-
-    # Run success rate examples
-    _, job = example_circuit_performance_metrics(circuit)
+    scanner, job = example_circuit_performance_metrics(circuit)
     example_all_strategies(circuit, job)
-
-    # Run multiple jobs success rate example
     example_multiple_jobs_success_rate(circuit)
+
+    print("\n" + "=" * 50)
+    print("All examples completed successfully!")
 
 
 if __name__ == "__main__":
