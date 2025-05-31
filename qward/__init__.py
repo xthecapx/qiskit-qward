@@ -11,7 +11,7 @@ from qward.metrics import (
     MetricsId,
     MetricsType,
     QiskitMetrics,
-    CircuitPerformance,
+    CircuitPerformanceMetrics,
     get_default_strategies,
 )
 from qward.visualization import Visualizer
@@ -24,7 +24,7 @@ __all__ = [
     "MetricsId",
     "MetricsType",
     "QiskitMetrics",
-    "CircuitPerformance",
+    "CircuitPerformanceMetrics",
     "Scanner",
     "Visualizer",
     "get_default_strategies",

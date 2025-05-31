@@ -1,5 +1,5 @@
 """
-ComplexityMetrics visualization module for QWARD.
+Complexity visualization strategy for QWARD.
 """
 
 from typing import Dict, List, Optional
@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from .base import BaseVisualizer, PlotConfig
+from .base import VisualizationStrategy, PlotConfig
 
 
-class ComplexityMetricsVisualizer(BaseVisualizer):
-    """Visualizer for ComplexityMetrics with comprehensive complexity analysis."""
+class ComplexityVisualizer(VisualizationStrategy):
+    """Visualization strategy for ComplexityMetrics with comprehensive complexity analysis."""
 
     def __init__(
         self,
@@ -21,7 +21,7 @@ class ComplexityMetricsVisualizer(BaseVisualizer):
         config: Optional[PlotConfig] = None,
     ):
         """
-        Initialize the ComplexityMetrics visualizer.
+        Initialize the Complexity visualization strategy.
 
         Args:
             metrics_dict: Dictionary containing ComplexityMetrics data.
@@ -29,8 +29,7 @@ class ComplexityMetricsVisualizer(BaseVisualizer):
             output_dir: Directory to save plots.
             config: Plot configuration settings.
         """
-        super().__init__(output_dir, config)
-        self.metrics_dict = metrics_dict
+        super().__init__(metrics_dict, output_dir, config)
 
         # Fetch data
         self.complexity_df = self.metrics_dict.get("ComplexityMetrics")
@@ -53,13 +52,6 @@ class ComplexityMetricsVisualizer(BaseVisualizer):
         ]
 
         self._validate_required_columns(self.complexity_df, required_cols, "ComplexityMetrics data")
-
-    def create_plot(self) -> plt.Figure:
-        """
-        Creates the default plot for this visualizer, which is the dashboard.
-        This method is required by BaseVisualizer.
-        """
-        return self.create_dashboard(save=False, show=False)
 
     def plot_gate_based_metrics(
         self,

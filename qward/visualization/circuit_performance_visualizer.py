@@ -1,5 +1,5 @@
 """
-CircuitPerformance visualization module for QWARD.
+CircuitPerformance visualization strategy for QWARD.
 """
 
 from typing import Dict, List, Optional
@@ -7,11 +7,11 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .base import BaseVisualizer, PlotConfig
+from .base import VisualizationStrategy, PlotConfig
 
 
-class CircuitPerformanceVisualizer(BaseVisualizer):
-    """Visualizer for CircuitPerformance metrics with performance analysis."""
+class CircuitPerformanceVisualizer(VisualizationStrategy):
+    """Visualization strategy for CircuitPerformance metrics with performance analysis."""
 
     def __init__(
         self,
@@ -20,7 +20,7 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
         config: Optional[PlotConfig] = None,
     ):
         """
-        Initialize the CircuitPerformance visualizer.
+        Initialize the CircuitPerformance visualization strategy.
 
         Args:
             metrics_dict: Dictionary containing CircuitPerformance metrics.
@@ -28,8 +28,7 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
             output_dir: Directory to save plots.
             config: Plot configuration settings.
         """
-        super().__init__(output_dir, config)
-        self.metrics_dict = metrics_dict
+        super().__init__(metrics_dict, output_dir, config)
 
         # Fetch data - support both old and new key names
         self.individual_df = self.metrics_dict.get("CircuitPerformance.individual_jobs")
@@ -79,13 +78,6 @@ class CircuitPerformanceVisualizer(BaseVisualizer):
             self._validate_required_columns(
                 self.aggregate_df, required_aggregate_cols, "CircuitPerformance aggregate data"
             )
-
-    def create_plot(self) -> plt.Figure:
-        """
-        Creates the default plot for this visualizer, which is the dashboard.
-        This method is required by BaseVisualizer.
-        """
-        return self.create_dashboard(save=False, show=False)
 
     def plot_success_error_comparison(
         self,

@@ -6,7 +6,7 @@ Circuit Performance Metrics
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: qward.metrics.circuit_performance.CircuitPerformance
+.. autoclass:: qward.metrics.circuit_performance.CircuitPerformanceMetrics
    :members:
    :undoc-members:
    :show-inheritance:

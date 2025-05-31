@@ -32,11 +32,11 @@ QWARD provides several built-in metric calculators:
 -   **ID**: `MetricsId.COMPLEXITY`
 -   **Constructor**: `ComplexityMetrics(circuit: QuantumCircuit)`
 
-### CircuitPerformance
+### CircuitPerformanceMetrics
 -   **Purpose**: Calculates performance metrics from execution results
 -   **Type**: `MetricsType.POST_RUNTIME`
 -   **ID**: `MetricsId.CIRCUIT_PERFORMANCE`
--   **Constructor**: `CircuitPerformance(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
+-   **Constructor**: `CircuitPerformanceMetrics(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
 
 ### Metric Types and IDs
 -   `MetricsType(Enum)`: Defines when metrics can be calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
@@ -48,7 +48,7 @@ QWARD provides several built-in metric calculators:
 ```python
 from qiskit import QuantumCircuit
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 
 # Create circuit
 qc = QuantumCircuit(2)
@@ -57,11 +57,11 @@ qc.cx(0, 1)
 
 # Method 1: Add metrics individually
 scanner = Scanner(circuit=qc)
-scanner.add_metric(QiskitMetrics(qc))
-scanner.add_metric(ComplexityMetrics(qc))
+scanner.add_strategy(QiskitMetrics(qc))
+scanner.add_strategy(ComplexityMetrics(qc))
 
 # Method 2: Add metrics via constructor (using classes)
-scanner = Scanner(circuit=qc, metrics=[QiskitMetrics, ComplexityMetrics, CircuitPerformance])
+scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics])
 
 # Calculate metrics
 results = scanner.calculate_metrics()
@@ -75,15 +75,15 @@ from qiskit_aer import AerSimulator
 sim = AerSimulator()
 job = sim.run(qc, shots=1024)
 
-# For CircuitPerformance, we need the Qiskit Job object
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
+# For CircuitPerformanceMetrics, we need the Qiskit Job object
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformanceMetrics
 
 # Define success criteria
 def criteria(outcome):
     return outcome == "00"  # Success if both qubits measure 0
 
-# Add CircuitPerformance with job
-scanner.add_metric(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+# Add CircuitPerformanceMetrics with job
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
 # print(results["CircuitPerformance.aggregate"])
@@ -97,15 +97,15 @@ from qiskit_aer import AerSimulator
 sim = AerSimulator()
 job = sim.run(qc, shots=1024)
 
-# For CircuitPerformance, we need the Qiskit Job object
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformance
+# For CircuitPerformanceMetrics, we need the Qiskit Job object
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformanceMetrics
 
 # Define success criteria
 def criteria(outcome):
     return outcome == "00"  # Success if both qubits measure 0
 
-# Add CircuitPerformance with job
-scanner.add_metric(CircuitPerformance(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+# Add CircuitPerformanceMetrics with job
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
 # print(results["CircuitPerformance.aggregate"])
@@ -152,8 +152,8 @@ The visualization system is built on the following key components:
     - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
 - **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
-    - **`QiskitMetricsVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
-    - **`ComplexityMetricsVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
+    - **`QiskitVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
+    - **`ComplexityVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
     - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
 
 - **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
@@ -189,16 +189,17 @@ classDiagram
         +alpha: float
     }
 
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
 
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
@@ -222,7 +223,7 @@ classDiagram
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
         +registered_visualizers: Dict[str, Type[BaseVisualizer]]
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -230,13 +231,13 @@ classDiagram
     }
     
     note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
-    note for QiskitMetricsVisualizer "Visualizes circuit structure and instruction analysis"
-    note for ComplexityMetricsVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
+    note for QiskitVisualizer "Visualizes circuit structure and instruction analysis"
+    note for ComplexityVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
     note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
     note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
-    BaseVisualizer <|-- QiskitMetricsVisualizer
-    BaseVisualizer <|-- ComplexityMetricsVisualizer
+    BaseVisualizer <|-- QiskitVisualizer
+    BaseVisualizer <|-- ComplexityVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
     Visualizer --> BaseVisualizer : manages
@@ -244,16 +245,17 @@ classDiagram
 
 ### Built-in Visualizers
 
-#### `QiskitMetricsVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`)
+#### `QiskitVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`)
 
 Specialized visualizer for `QiskitMetrics` outputs. It provides methods like:
 - `plot_circuit_structure()`: Visualizes basic circuit structure (depth, width, size, qubits)
-- `plot_instruction_breakdown()`: Shows instruction and gate type analysis
-- `plot_scheduling_metrics()`: Displays scheduling and timing information
+- `plot_gate_distribution()`: Shows gate type analysis and instruction distribution
+- `plot_instruction_metrics()`: Displays instruction-related metrics like connected components
+- `plot_circuit_summary()`: Shows derived metrics like gate density and parallelism
 - `create_dashboard()`: Creates a comprehensive dashboard with all QiskitMetrics plots
 - `plot_all()`: Generates all individual plots
 
-#### `ComplexityMetricsVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`)
+#### `ComplexityVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`)
 
 Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like:
 - `plot_gate_based_metrics()`: Visualizes gate counts and circuit depth metrics
@@ -265,7 +267,7 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
-Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
+Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
 - `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
@@ -276,7 +278,7 @@ Specialized visualizer for `CircuitPerformance` metric outputs. It provides meth
 #### `Visualizer` (`qward.visualization.visualizer.Visualizer`)
 
 Unified entry point for all visualizations. It provides methods like:
-- `register_visualizer()`: Register custom visualizers for specific metrics
+- `register_strategy()`: Register custom strategies for specific metrics
 - `get_available_metrics()`: Get list of metrics available for visualization
 - `visualize_metric()`: Create visualizations for a specific metric type
 - `create_dashboard()`: Create dashboards for all available metrics
@@ -375,7 +377,7 @@ results = scanner.calculate_metrics()
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 
 qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
@@ -388,7 +390,7 @@ scanner.add_strategy(QiskitMetrics(qc))
 scanner.add_strategy(ComplexityMetrics(qc))
 
 def criteria(s): return s == '00' or s == '11' # GHZ state
-scanner.add_strategy(CircuitPerformance(circuit=qc, job=job, success_criteria=criteria))
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=criteria))
 
 results = scanner.calculate_metrics()
 # print(results["CircuitPerformance.aggregate"])
@@ -439,8 +441,8 @@ The visualization system is built on the following key components:
     - Requires subclasses to implement the `create_plot()` method for their specific visualization logic.
 
 - **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
-    - **`QiskitMetricsVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
-    - **`ComplexityMetricsVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
+    - **`QiskitVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
+    - **`ComplexityVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
     - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
 
 - **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
@@ -476,16 +478,17 @@ classDiagram
         +alpha: float
     }
 
-    class QiskitMetricsVisualizer {
+    class QiskitVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_circuit_structure()
-        +plot_instruction_breakdown()
-        +plot_scheduling_metrics()
+        +plot_gate_distribution()
+        +plot_instruction_metrics()
+        +plot_circuit_summary()
         +create_dashboard()
         +plot_all()
     }
 
-    class ComplexityMetricsVisualizer {
+    class ComplexityVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
@@ -509,7 +512,7 @@ classDiagram
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
         +registered_visualizers: Dict[str, Type[BaseVisualizer]]
-        +register_visualizer()
+        +register_strategy()
         +get_available_metrics()
         +visualize_metric()
         +create_dashboard()
@@ -517,13 +520,13 @@ classDiagram
     }
     
     note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
-    note for QiskitMetricsVisualizer "Visualizes circuit structure and instruction analysis"
-    note for ComplexityMetricsVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
+    note for QiskitVisualizer "Visualizes circuit structure and instruction analysis"
+    note for ComplexityVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
     note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
     note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
-    BaseVisualizer <|-- QiskitMetricsVisualizer
-    BaseVisualizer <|-- ComplexityMetricsVisualizer
+    BaseVisualizer <|-- QiskitVisualizer
+    BaseVisualizer <|-- ComplexityVisualizer
     BaseVisualizer <|-- CircuitPerformanceVisualizer
     BaseVisualizer --> PlotConfig : uses
     Visualizer --> BaseVisualizer : manages
@@ -531,16 +534,17 @@ classDiagram
 
 ### Built-in Visualizers
 
-#### `QiskitMetricsVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitMetricsVisualizer`)
+#### `QiskitVisualizer` (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`)
 
 Specialized visualizer for `QiskitMetrics` outputs. It provides methods like:
 - `plot_circuit_structure()`: Visualizes basic circuit structure (depth, width, size, qubits)
-- `plot_instruction_breakdown()`: Shows instruction and gate type analysis
-- `plot_scheduling_metrics()`: Displays scheduling and timing information
+- `plot_gate_distribution()`: Shows gate type analysis and instruction distribution
+- `plot_instruction_metrics()`: Displays instruction-related metrics like connected components
+- `plot_circuit_summary()`: Shows derived metrics like gate density and parallelism
 - `create_dashboard()`: Creates a comprehensive dashboard with all QiskitMetrics plots
 - `plot_all()`: Generates all individual plots
 
-#### `ComplexityMetricsVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityMetricsVisualizer`)
+#### `ComplexityVisualizer` (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`)
 
 Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like:
 - `plot_gate_based_metrics()`: Visualizes gate counts and circuit depth metrics
@@ -552,7 +556,7 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
-Specialized visualizer for `CircuitPerformance` metric outputs. It provides methods like:
+Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
 - `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
@@ -563,7 +567,7 @@ Specialized visualizer for `CircuitPerformance` metric outputs. It provides meth
 #### `Visualizer` (`qward.visualization.visualizer.Visualizer`)
 
 Unified entry point for all visualizations. It provides methods like:
-- `register_visualizer()`: Register custom visualizers for specific metrics
+- `register_strategy()`: Register custom strategies for specific metrics
 - `get_available_metrics()`: Get list of metrics available for visualization
 - `visualize_metric()`: Create visualizations for a specific metric type
 - `create_dashboard()`: Create dashboards for all available metrics

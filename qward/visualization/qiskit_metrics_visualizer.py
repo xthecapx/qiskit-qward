@@ -1,5 +1,5 @@
 """
-QiskitMetrics visualization module for QWARD.
+Qiskit visualization strategy for QWARD.
 """
 
 from typing import Dict, List, Optional
@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from .base import BaseVisualizer, PlotConfig
+from .base import VisualizationStrategy, PlotConfig
 
 
-class QiskitMetricsVisualizer(BaseVisualizer):
-    """Visualizer for QiskitMetrics with circuit structure and instruction analysis."""
+class QiskitVisualizer(VisualizationStrategy):
+    """Visualization strategy for QiskitMetrics with circuit structure and instruction analysis."""
 
     def __init__(
         self,
@@ -21,7 +21,7 @@ class QiskitMetricsVisualizer(BaseVisualizer):
         config: Optional[PlotConfig] = None,
     ):
         """
-        Initialize the QiskitMetrics visualizer.
+        Initialize the Qiskit visualization strategy.
 
         Args:
             metrics_dict: Dictionary containing QiskitMetrics data.
@@ -29,8 +29,7 @@ class QiskitMetricsVisualizer(BaseVisualizer):
             output_dir: Directory to save plots.
             config: Plot configuration settings.
         """
-        super().__init__(output_dir, config)
-        self.metrics_dict = metrics_dict
+        super().__init__(metrics_dict, output_dir, config)
 
         # Fetch data
         self.qiskit_df = self.metrics_dict.get("QiskitMetrics")
@@ -54,13 +53,6 @@ class QiskitMetricsVisualizer(BaseVisualizer):
         ]
 
         self._validate_required_columns(self.qiskit_df, required_basic_cols, "QiskitMetrics data")
-
-    def create_plot(self) -> plt.Figure:
-        """
-        Creates the default plot for this visualizer, which is the dashboard.
-        This method is required by BaseVisualizer.
-        """
-        return self.create_dashboard(save=False, show=False)
 
     def plot_circuit_structure(
         self,

@@ -21,7 +21,7 @@ The `qward.Scanner` class is the central component for orchestrating circuit ana
 Metric calculators are classes that perform specific calculations or data extraction based on a circuit, a job, or a result. Qward provides several built-in metric calculators:
 -   `QiskitMetrics`: Extracts basic properties directly available from a `QuantumCircuit` object (e.g., depth, width, gate counts).
 -   `ComplexityMetrics`: Calculates a wide range of complexity indicators, including those from "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by D. Shami, and also provides Quantum Volume estimation.
--   `CircuitPerformance`: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion.
+-   `CircuitPerformanceMetrics`: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion.
 
 You can also create your own custom metric calculators by subclassing `qward.metrics.base_metric.MetricCalculator`.
 
@@ -82,7 +82,7 @@ Let's analyze a simple quantum coin flip circuit. This uses a single qubit in su
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator # For running the circuit
 from qward import Scanner   # QWARD's Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance # QWARD calculators
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics # QWARD calculators
 from qward.examples.utils import create_example_circuit, get_display # Example helper
 
 display = get_display()
@@ -111,7 +111,7 @@ scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit=circuit))
 scanner.add_strategy(ComplexityMetrics(circuit=circuit))
 
-# CircuitPerformance needs the circuit and the job (or jobs) to get counts
+# CircuitPerformanceMetrics needs the circuit and the job (or jobs) to get counts
 # Let's define success for the first qubit being '0' (e.g., "tails" if '00' or '01')
 # The example circuit measures two qubits. Bitstrings are read right-to-left (q1q0).
 # So, '00' means qubit 0 is '0', qubit 1 is '0'.
@@ -121,7 +121,7 @@ def coin_flip_success_q0_is_0(bitstring):
     # We are interested in the first qubit (q0) state.
     return bitstring.endswith('0') # True if q0 is '0'
 
-scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job, success_criteria=coin_flip_success_q0_is_0))
 # For multiple jobs, you can pass a list of jobs or use circuit_performance_calculator.add_job()
 
 # 5. Calculate all added calculators
@@ -144,8 +144,8 @@ if "ComplexityMetrics" in all_metrics_results:
     print(f"  Standard Quantum Volume: {complexity_df['quantum_volume.standard_quantum_volume'].iloc[0]}")
     print(f"  Enhanced Quantum Volume: {complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]}")
 
-if "CircuitPerformance.aggregate" in all_metrics_results:
-    success_df = all_metrics_results["CircuitPerformance.aggregate"]
+if "CircuitPerformanceMetrics.aggregate" in all_metrics_results:
+    success_df = all_metrics_results["CircuitPerformanceMetrics.aggregate"]
     print("\nCoin Flip (q0 is '0') Success Rate:")
     print(f"  Mean success rate: {success_df['mean_success_rate'].iloc[0]:.2%}")
     print(f"  Total shots: {success_df['total_trials'].iloc[0]}")
@@ -214,8 +214,8 @@ This example shows how to:
 1.  Create a quantum circuit.
 2.  Simulate it using Qiskit Aer and obtain results (counts).
 3.  Use `qward.Scanner` to analyze the circuit and its results.
-4.  Add various calculator types (`QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformance`).
-5.  Calculate and interpret the metrics. For `ComplexityMetrics`, this includes gate counts, depth, and Quantum Volume estimates. For `CircuitPerformance`, it includes the mean success based on your criteria.
+4.  Add various calculator types (`QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformanceMetrics`).
+5.  Calculate and interpret the metrics. For `ComplexityMetrics`, this includes gate counts, depth, and Quantum Volume estimates. For `CircuitPerformanceMetrics`, it includes the mean success based on your criteria.
 6.  Use both traditional dictionary and modern schema-based approaches.
 
 ### Understanding the Circuit
@@ -238,13 +238,13 @@ The results should show approximately 50% "00" and 50% "11". Our "coin flip" suc
 
 ## Going Further: A More Complex Circuit
 
-Instead of a specific named enigma, let's focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for `CircuitPerformance`, then use the `Scanner` with appropriate calculators.
+Instead of a specific named enigma, let's focus on how you would analyze any custom or more complex circuit. You would follow a similar pattern: create your circuit, simulate if needed for `CircuitPerformanceMetrics`, then use the `Scanner` with appropriate calculators.
 
 ```python
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.examples.utils import get_display
 
 display = get_display()
@@ -259,7 +259,7 @@ circuit.measure([0,1,2], [0,1,2])
 print("3-qubit GHZ Circuit:")
 display(circuit.draw(output='mpl'))
 
-# 2. Simulate (optional, needed for CircuitPerformance)
+# 2. Simulate (optional, needed for CircuitPerformanceMetrics)
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 qiskit_job_result = job.result()
@@ -270,10 +270,10 @@ scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
 
-# Example CircuitPerformance: success if all qubits are '0' (state '000')
+# Example CircuitPerformanceMetrics: success if all qubits are '0' (state '000')
 def all_zeros(bitstring):
     return bitstring.replace(" ", "") == '000'
-scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job, success_criteria=all_zeros))
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job, success_criteria=all_zeros))
 
 # 4. Calculate and display metrics
 all_metrics_results = scanner.calculate_metrics()
@@ -387,13 +387,13 @@ print(f"Circuit Density: {factors.circuit_density:.2f}")
 
 ## Circuit Performance Analysis with Schema Validation
 
-The `CircuitPerformance` calculator now provides comprehensive validation for both single job and multiple job scenarios:
+The `CircuitPerformanceMetrics` calculator now provides comprehensive validation for both single job and multiple job scenarios:
 
 ```python
-from qward.metrics import CircuitPerformance
+from qward.metrics import CircuitPerformanceMetrics
 
 # Create circuit performance calculator
-circuit_performance = CircuitPerformance(circuit=circuit, job=job)
+circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
 
 # Traditional approach
 traditional_metrics = circuit_performance.get_metrics()
@@ -551,8 +551,8 @@ def robust_success_criteria(result: str) -> bool:
     # Define your success condition
     return clean_result.startswith("00")  # Example: first two qubits are 0
 
-# Use with CircuitPerformance calculator
-circuit_performance = CircuitPerformance(
+# Use with CircuitPerformanceMetrics calculator
+circuit_performance = CircuitPerformanceMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=robust_success_criteria
@@ -580,8 +580,8 @@ QWARD includes a comprehensive visualization system that makes it easy to create
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
-from qward.visualization import Visualizer
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.visualization import QiskitVisualizer, ComplexityVisualizer, CircuitPerformanceVisualizer
 
 # Create and analyze a circuit
 circuit = QuantumCircuit(2, 2)
@@ -589,7 +589,7 @@ circuit.h(0)
 circuit.cx(0, 1)
 circuit.measure_all()
 
-# Run simulation for CircuitPerformance
+# Run simulation for CircuitPerformanceMetrics
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
@@ -597,22 +597,32 @@ job = simulator.run(circuit, shots=1024)
 scanner = Scanner(circuit=circuit)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
+scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
 
-# Create unified visualizer (recommended approach)
-visualizer = Visualizer(scanner=scanner, output_dir="my_plots")
+# Calculate metrics first
+metrics_dict = scanner.calculate_metrics()
 
-# Option 1: Create comprehensive dashboards for all metrics
-dashboards = visualizer.create_dashboard(save=True, show=False)
-print(f"Created {len(dashboards)} dashboards")
+# Use QiskitMetrics visualizer
+qiskit_viz = QiskitVisualizer(
+    metrics_dict={"QiskitMetrics": metrics_dict["QiskitMetrics"]},
+    output_dir="qiskit_plots"
+)
+qiskit_figures = qiskit_viz.plot_all(save=True, show=False)
 
-# Option 2: Create all individual plots
-all_plots = visualizer.visualize_all(save=True, show=False)
-print(f"Created plots for {len(all_plots)} metric types")
+# Use ComplexityMetrics visualizer
+complexity_viz = ComplexityVisualizer(
+    metrics_dict={"ComplexityMetrics": metrics_dict["ComplexityMetrics"]},
+    output_dir="complexity_plots"
+)
+complexity_figures = complexity_viz.plot_all(save=True, show=False)
 
-# Option 3: Visualize specific metrics
-qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=False)
-complexity_plots = visualizer.visualize_metric("ComplexityMetrics", save=True, show=False)
+# Use CircuitPerformanceMetrics visualizer
+circuit_perf_data = {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")}
+perf_viz = CircuitPerformanceVisualizer(
+    metrics_dict=circuit_perf_data,
+    output_dir="performance_plots"
+)
+perf_figures = perf_viz.plot_all(save=True, show=False)
 ```
 
 ### Available Visualizations
@@ -630,7 +640,7 @@ QWARD provides three specialized visualizers:
 - **Quantum Volume Analysis**: QV estimation and contributing factors
 - **Efficiency Metrics**: Parallelism and circuit efficiency analysis
 
-#### 3. CircuitPerformance Visualizations
+#### 3. CircuitPerformanceMetrics Visualizations
 - **Success vs Error Rates**: Comparison across different jobs
 - **Fidelity Analysis**: Fidelity metrics visualization
 - **Shot Distribution**: Successful vs failed shots as stacked bars
@@ -641,26 +651,26 @@ QWARD provides three specialized visualizers:
 You can also use individual visualizers directly for more control:
 
 ```python
-from qward.visualization import QiskitMetricsVisualizer, ComplexityMetricsVisualizer, CircuitPerformanceVisualizer
+from qward.visualization import QiskitVisualizer, ComplexityVisualizer, CircuitPerformanceVisualizer
 
 # Calculate metrics first
 metrics_dict = scanner.calculate_metrics()
 
 # Use QiskitMetrics visualizer
-qiskit_viz = QiskitMetricsVisualizer(
+qiskit_viz = QiskitVisualizer(
     metrics_dict={"QiskitMetrics": metrics_dict["QiskitMetrics"]},
     output_dir="qiskit_plots"
 )
 qiskit_figures = qiskit_viz.plot_all(save=True, show=False)
 
 # Use ComplexityMetrics visualizer
-complexity_viz = ComplexityMetricsVisualizer(
+complexity_viz = ComplexityVisualizer(
     metrics_dict={"ComplexityMetrics": metrics_dict["ComplexityMetrics"]},
     output_dir="complexity_plots"
 )
 complexity_figures = complexity_viz.plot_all(save=True, show=False)
 
-# Use CircuitPerformance visualizer
+# Use CircuitPerformanceMetrics visualizer
 circuit_perf_data = {k: v for k, v in metrics_dict.items() if k.startswith("CircuitPerformance")}
 perf_viz = CircuitPerformanceVisualizer(
     metrics_dict=circuit_perf_data,
@@ -705,7 +715,7 @@ dashboards = visualizer.create_dashboard(save=True, show=False)
 - **Quantum Volume**: Estimates the computational capability required
 - **Efficiency Metrics**: Shows how well your circuit uses available resources
 
-#### CircuitPerformance Plots
+#### CircuitPerformanceMetrics Plots
 - **Success/Error Rates**: Shows how often your circuit produces correct results
 - **Fidelity**: Measures how close your results are to the ideal
 - **Shot Distribution**: Shows the distribution of measurement outcomes
@@ -734,7 +744,7 @@ def analyze_and_visualize_circuit(circuit, job=None):
     scanner.add_strategy(ComplexityMetrics(circuit))
     
     if job:
-        scanner.add_strategy(CircuitPerformance(circuit=circuit, job=job))
+        scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
     
     # 2. Calculate metrics
     metrics_dict = scanner.calculate_metrics()

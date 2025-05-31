@@ -4,7 +4,7 @@ Example demonstrating the new unified Visualizer system for QWARD.
 
 from qward.examples.utils import get_display, create_example_circuit
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformance
+from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.visualization import Visualizer, PlotConfig
 from qiskit_aer import AerSimulator
 
@@ -20,7 +20,7 @@ def example_basic_visualizer():
     scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
     # Create visualizer from scanner
-    visualizer = Visualizer(scanner=scanner)
+    visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
 
     # Print available metrics
     visualizer.print_available_metrics()
@@ -35,18 +35,18 @@ def example_basic_visualizer():
 
 
 def example_with_circuit_performance():
-    """Example: Using all three visualizers including CircuitPerformance."""
-    print("\n=== Example: All Visualizers with CircuitPerformance ===")
+    """Example: Using all three visualizers including CircuitPerformanceVisualizer."""
+    print("\n=== Example: All Visualizers with CircuitPerformanceVisualizer ===")
 
     # Create a circuit
     circuit = create_example_circuit()
 
-    # Run circuit on simulator to get jobs for CircuitPerformance
+    # Run circuit on simulator to get jobs for CircuitPerformanceMetrics
     simulator = AerSimulator()
     jobs = [simulator.run(circuit, shots=500) for _ in range(3)]
 
-    # Create CircuitPerformance with multiple jobs
-    circuit_performance = CircuitPerformance(circuit=circuit, jobs=jobs)
+    # Create CircuitPerformanceMetrics with multiple jobs
+    circuit_performance = CircuitPerformanceMetrics(circuit=circuit, jobs=jobs)
 
     # Create scanner with all metrics
     scanner = Scanner(
@@ -54,7 +54,7 @@ def example_with_circuit_performance():
     )
 
     # Create visualizer
-    visualizer = Visualizer(scanner=scanner)
+    visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
 
     # Print available metrics
     visualizer.print_available_metrics()
@@ -87,7 +87,9 @@ def example_custom_config():
     scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
     # Create visualizer with custom config
-    visualizer = Visualizer(scanner=scanner, config=custom_config, output_dir="custom_plots")
+    visualizer = Visualizer(
+        scanner=scanner, config=custom_config, output_dir="qward/examples/custom_plots"
+    )
 
     # Visualize specific metric
     print("Creating QiskitMetrics visualizations with custom config...")
@@ -124,7 +126,7 @@ def example_custom_data():
     custom_metrics_dict = {"QiskitMetrics": custom_qiskit_data}
 
     # Create visualizer with custom data
-    visualizer = Visualizer(metrics_data=custom_metrics_dict)
+    visualizer = Visualizer(metrics_data=custom_metrics_dict, output_dir="qward/examples/img")
 
     # Show what's available
     visualizer.print_available_metrics()
@@ -135,56 +137,128 @@ def example_custom_data():
     print(f"Created visualizations for {len(all_figures)} metric types")
 
 
-def example_individual_visualizers():
-    """Example: Using individual metric visualizers directly."""
-    print("\n=== Example: Individual Visualizers ===")
+def example_individual_strategies():
+    """Example: Using individual visualization strategies directly."""
+    print("\n=== Example: Individual Visualization Strategies ===")
 
-    from qward.visualization import (
-        QiskitMetricsVisualizer,
-        ComplexityMetricsVisualizer,
-        CircuitPerformanceVisualizer,
-    )
+    from qward.visualization import QiskitVisualizer, ComplexityVisualizer
+    from qward.visualization import CircuitPerformanceVisualizer
 
     # Create circuit and get metrics
     circuit = create_example_circuit()
 
-    # Create scanner with all metrics including CircuitPerformance
+    # Create scanner with all metrics including CircuitPerformanceMetrics
     simulator = AerSimulator()
     jobs = [simulator.run(circuit, shots=500) for _ in range(2)]
-    circuit_performance = CircuitPerformance(circuit=circuit, jobs=jobs)
+    circuit_performance_metrics = CircuitPerformanceMetrics(circuit=circuit, jobs=jobs)
 
     scanner = Scanner(
-        circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics, circuit_performance]
+        circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics, circuit_performance_metrics]
     )
     metrics_data = scanner.calculate_metrics()
 
-    # Use QiskitMetrics visualizer directly
+    # Use QiskitVisualizer strategy directly
     if "QiskitMetrics" in metrics_data:
-        print("Creating QiskitMetrics visualizations...")
-        qiskit_viz = QiskitMetricsVisualizer(
-            metrics_dict={"QiskitMetrics": metrics_data["QiskitMetrics"]}
+        print("Creating QiskitMetrics visualizations using QiskitVisualizer strategy...")
+        qiskit_strategy = QiskitVisualizer(
+            metrics_dict={"QiskitMetrics": metrics_data["QiskitMetrics"]},
+            output_dir="qward/examples/img",
         )
-        qiskit_figures = qiskit_viz.plot_all(save=True, show=False)
+        qiskit_figures = qiskit_strategy.plot_all(save=True, show=False)
         print(f"Created {len(qiskit_figures)} QiskitMetrics plots")
 
-    # Use ComplexityMetrics visualizer directly
+    # Use ComplexityVisualizer strategy directly
     if "ComplexityMetrics" in metrics_data:
-        print("Creating ComplexityMetrics visualizations...")
-        complexity_viz = ComplexityMetricsVisualizer(
-            metrics_dict={"ComplexityMetrics": metrics_data["ComplexityMetrics"]}
+        print("Creating ComplexityMetrics visualizations using ComplexityVisualizer strategy...")
+        complexity_strategy = ComplexityVisualizer(
+            metrics_dict={"ComplexityMetrics": metrics_data["ComplexityMetrics"]},
+            output_dir="qward/examples/img",
         )
-        complexity_figures = complexity_viz.plot_all(save=True, show=False)
+        complexity_figures = complexity_strategy.plot_all(save=True, show=False)
         print(f"Created {len(complexity_figures)} ComplexityMetrics plots")
 
-    # Use CircuitPerformance visualizer directly
+    # Use CircuitPerformanceVisualizer strategy directly
     circuit_perf_data = {
         k: v for k, v in metrics_data.items() if k.startswith("CircuitPerformance")
     }
     if circuit_perf_data:
-        print("Creating CircuitPerformance visualizations...")
-        perf_viz = CircuitPerformanceVisualizer(metrics_dict=circuit_perf_data)
-        perf_figures = perf_viz.plot_all(save=True, show=False)
+        print(
+            "Creating CircuitPerformance visualizations using CircuitPerformanceVisualizer strategy..."
+        )
+        perf_strategy = CircuitPerformanceVisualizer(
+            metrics_dict=circuit_perf_data, output_dir="qward/examples/img"
+        )
+        perf_figures = perf_strategy.plot_all(save=True, show=False)
         print(f"Created {len(perf_figures)} CircuitPerformance plots")
+
+
+def example_custom_strategy():
+    """Example: Creating and registering a custom visualization strategy."""
+    print("\n=== Example: Custom Visualization Strategy ===")
+
+    from qward.visualization import VisualizationStrategy
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
+    # Define a custom strategy
+    class CustomMetricsStrategy(VisualizationStrategy):
+        """Custom visualization strategy for demonstration."""
+
+        def create_dashboard(self, save=True, show=True):
+            """Create a custom dashboard."""
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
+            fig.suptitle("Custom Metrics Dashboard", fontsize=16)
+
+            # Plot 1: Sample bar chart
+            ax1.bar(["A", "B", "C"], [1, 2, 3], color=self.config.color_palette[:3])
+            ax1.set_title("Sample Bar Chart")
+
+            # Plot 2: Sample line plot
+            ax2.plot([1, 2, 3, 4], [1, 4, 2, 3], color=self.config.color_palette[0])
+            ax2.set_title("Sample Line Plot")
+
+            # Plot 3: Sample scatter plot
+            ax3.scatter([1, 2, 3], [3, 1, 2], color=self.config.color_palette[1])
+            ax3.set_title("Sample Scatter Plot")
+
+            # Plot 4: Text summary
+            ax4.text(
+                0.5, 0.5, "Custom Strategy\nDemonstration", ha="center", va="center", fontsize=14
+            )
+            ax4.set_title("Summary")
+            ax4.set_xlim(0, 1)
+            ax4.set_ylim(0, 1)
+
+            plt.tight_layout()
+
+            if save:
+                self.save_plot(fig, "custom_strategy_dashboard")
+            if show:
+                self.show_plot(fig)
+            return fig
+
+        def plot_all(self, save=True, show=True):
+            """Generate all plots for this strategy."""
+            return [self.create_dashboard(save, show)]
+
+    # Create some dummy data for the custom strategy
+    custom_data = pd.DataFrame({"metric_a": [1, 2, 3], "metric_b": [4, 5, 6]})
+
+    # Create visualizer and register custom strategy
+    visualizer = Visualizer(
+        metrics_data={"CustomMetrics": custom_data}, output_dir="qward/examples/img"
+    )
+
+    # Register the custom strategy
+    visualizer.register_strategy("CustomMetrics", CustomMetricsStrategy)
+
+    print("Registered custom strategy!")
+    print(f"Available strategies: {list(visualizer.list_registered_strategies().keys())}")
+
+    # Use the custom strategy
+    print("Creating visualizations with custom strategy...")
+    custom_figures = visualizer.visualize_metric("CustomMetrics", save=True, show=False)
+    print(f"Created {len(custom_figures)} custom plots")
 
 
 def example_metric_summary():
@@ -196,7 +270,7 @@ def example_metric_summary():
     scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 
     # Create visualizer
-    visualizer = Visualizer(scanner=scanner)
+    visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
 
     # Get summary
     summary = visualizer.get_metric_summary()
@@ -222,10 +296,11 @@ if __name__ == "__main__":
     example_with_circuit_performance()
     example_custom_config()
     example_custom_data()
-    example_individual_visualizers()
+    example_individual_strategies()
+    example_custom_strategy()
     example_metric_summary()
 
     print("\n" + "=" * 50)
     print(
-        "All examples completed! Check the 'img/' and 'custom_plots/' directories for generated plots."
+        "All examples completed! Check the 'qward/examples/img/' and 'qward/examples/custom_plots/' directories for generated plots."
     )
