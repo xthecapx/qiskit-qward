@@ -42,21 +42,24 @@ class Scanner:
 
         if strategies is not None:
             for strategy in strategies:
-                # If strategy is a class (not instance), instantiate with circuit
-                if isinstance(strategy, type):
-                    self._strategies.append(strategy(circuit))
-                else:
-                    # If strategy is an instance, check for .circuit or ._circuit attribute
-                    strategy_circuit = getattr(strategy, "circuit", None)
-                    if strategy_circuit is None:
-                        # Try protected attribute (for base class)
-                        strategy_circuit = getattr(strategy, "_circuit", None)
-                    if strategy_circuit is not None:
-                        if strategy_circuit is not circuit:
-                            raise ValueError(
-                                f"Strategy instance {strategy.__class__.__name__} was initialized with a different circuit than the Scanner."
-                            )
-                    self._strategies.append(strategy)
+                self._add_strategy_to_list(strategy)
+
+    def _add_strategy_to_list(self, strategy):
+        """Helper method to add a strategy to the list with validation."""
+        # If strategy is a class (not instance), instantiate with circuit
+        if isinstance(strategy, type):
+            self._strategies.append(strategy(self._circuit))
+            return
+
+        # Strategy is an instance - validate circuit compatibility
+        strategy_circuit = getattr(strategy, "circuit", None) or getattr(strategy, "_circuit", None)
+
+        if strategy_circuit is not None and strategy_circuit is not self._circuit:
+            raise ValueError(
+                f"Strategy instance {strategy.__class__.__name__} was initialized with a different circuit than the Scanner."
+            )
+
+        self._strategies.append(strategy)
 
     @property
     def circuit(self) -> Optional[QuantumCircuit]:
@@ -107,109 +110,107 @@ class Scanner:
             - "CircuitPerformance.individual_jobs": DataFrame containing metrics for each job
             - "CircuitPerformance.aggregate": DataFrame containing aggregate metrics across all jobs
         """
-        # Initialize a dictionary to store DataFrames for each metric type
-        metric_dataframes = {}
+        metric_dataframes: Dict[str, pd.DataFrame] = {}
 
-        # Calculate metrics for each strategy
         for strategy in self.strategies:
-            # Get the metrics from the strategy
             metric_results = strategy.get_metrics()
-
-            # Create a DataFrame for this metric type
             metric_name = strategy.__class__.__name__
 
-            # Special handling for CircuitPerformanceMetrics (use CircuitPerformance as key for compatibility)
             if metric_name == "CircuitPerformanceMetrics":
-                # Use "CircuitPerformance" as the key for backward compatibility with visualization
-                display_name = "CircuitPerformance"
-
-                # Check if this is the new API structure or legacy structure
-                if hasattr(strategy, "get_single_job_metrics") and hasattr(
-                    strategy, "get_multiple_jobs_metrics"
-                ):
-                    # Use legacy methods for backward compatibility with visualization
-                    if len(getattr(strategy, "_jobs", [])) > 1:
-                        # Multiple jobs case
-                        legacy_metrics = strategy.get_multiple_jobs_metrics()
-                        individual_jobs_df = pd.DataFrame(legacy_metrics["individual_jobs"])
-                        aggregate_df = pd.DataFrame([legacy_metrics["aggregate"]])
-
-                        metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
-                        metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
-                    else:
-                        # Single job case
-                        single_metrics = strategy.get_single_job_metrics()
-                        single_job_df = pd.DataFrame([single_metrics])
-                        metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-                elif hasattr(metric_results, "to_flat_dict"):
-                    # New schema-based API - convert to flat dict for DataFrame compatibility
-                    flattened_metrics = metric_results.to_flat_dict()
-                    single_job_df = pd.DataFrame([flattened_metrics])
-                    metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-                elif isinstance(metric_results, dict) and "individual_jobs" in metric_results:
-                    # Legacy structure - multiple jobs case
-                    individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
-                    aggregate_df = pd.DataFrame([metric_results["aggregate"]])
-
-                    metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
-                    metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
-                else:
-                    # Fallback - try to flatten manually
-                    flattened_metrics = {}
-                    if isinstance(metric_results, dict):
-                        for category, category_metrics in metric_results.items():
-                            if isinstance(category_metrics, dict):
-                                for key, value in category_metrics.items():
-                                    flattened_metrics[f"{category}.{key}"] = value
-                            else:
-                                flattened_metrics[category] = category_metrics
-                    else:
-                        # If it's a schema object, convert to dict first
-                        if hasattr(metric_results, "model_dump"):
-                            metric_dict = metric_results.model_dump()
-                            for category, category_metrics in metric_dict.items():
-                                if isinstance(category_metrics, dict):
-                                    for key, value in category_metrics.items():
-                                        flattened_metrics[f"{category}.{key}"] = value
-                                else:
-                                    flattened_metrics[category] = category_metrics
-
-                    single_job_df = pd.DataFrame([flattened_metrics])
-                    metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+                self._process_circuit_performance_metrics(
+                    strategy, metric_results, metric_dataframes
+                )
             else:
-                # Handle other metrics - check if it's a schema object
-                if hasattr(metric_results, "to_flat_dict"):
-                    # Schema object - use to_flat_dict method
-                    flattened_metrics = metric_results.to_flat_dict()
-                elif isinstance(metric_results, dict):
-                    # Legacy dictionary - flatten manually
-                    flattened_metrics = {}
-                    for key, value in metric_results.items():
-                        if isinstance(value, dict):
-                            for subkey, subvalue in value.items():
-                                flattened_metrics[f"{key}.{subkey}"] = subvalue
-                        else:
-                            flattened_metrics[key] = value
-                else:
-                    # Schema object without to_flat_dict - try model_dump
-                    if hasattr(metric_results, "model_dump"):
-                        metric_dict = metric_results.model_dump()
-                        flattened_metrics = {}
-                        for key, value in metric_dict.items():
-                            if isinstance(value, dict):
-                                for subkey, subvalue in value.items():
-                                    flattened_metrics[f"{key}.{subkey}"] = subvalue
-                            else:
-                                flattened_metrics[key] = value
-                    else:
-                        # Fallback - treat as single value
-                        flattened_metrics = {"value": metric_results}
-
-                # Create DataFrame for this metric type
-                df = pd.DataFrame([flattened_metrics])
-                metric_dataframes[metric_name] = df
+                self._process_standard_metrics(metric_name, metric_results, metric_dataframes)
 
         return metric_dataframes
+
+    def _process_circuit_performance_metrics(self, strategy, metric_results, metric_dataframes):
+        """Process CircuitPerformanceMetrics with backward compatibility."""
+        display_name = "CircuitPerformance"
+
+        # Check for legacy API methods
+        if self._has_legacy_api(strategy):
+            self._process_legacy_circuit_performance(strategy, display_name, metric_dataframes)
+            return
+
+        # Check for new schema-based API
+        if hasattr(metric_results, "to_flat_dict"):
+            flattened_metrics = metric_results.to_flat_dict()
+            single_job_df = pd.DataFrame([flattened_metrics])
+            metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+            return
+
+        # Check for legacy structure with individual_jobs
+        if isinstance(metric_results, dict) and "individual_jobs" in metric_results:
+            individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
+            aggregate_df = pd.DataFrame([metric_results["aggregate"]])
+            metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
+            metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
+            return
+
+        # Fallback - flatten manually
+        flattened_metrics = self._flatten_metrics(metric_results)
+        single_job_df = pd.DataFrame([flattened_metrics])
+        metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+
+    def _has_legacy_api(self, strategy):
+        """Check if strategy has legacy API methods."""
+        return hasattr(strategy, "get_single_job_metrics") and hasattr(
+            strategy, "get_multiple_jobs_metrics"
+        )
+
+    def _process_legacy_circuit_performance(self, strategy, display_name, metric_dataframes):
+        """Process legacy CircuitPerformance metrics."""
+        jobs_count = len(getattr(strategy, "_jobs", []))
+
+        if jobs_count > 1:
+            legacy_metrics = strategy.get_multiple_jobs_metrics()
+            individual_jobs_df = pd.DataFrame(legacy_metrics["individual_jobs"])
+            aggregate_df = pd.DataFrame([legacy_metrics["aggregate"]])
+            metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
+            metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
+        else:
+            single_metrics = strategy.get_single_job_metrics()
+            single_job_df = pd.DataFrame([single_metrics])
+            metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+
+    def _process_standard_metrics(self, metric_name, metric_results, metric_dataframes):
+        """Process standard (non-CircuitPerformance) metrics."""
+        # Check if it's a schema object with to_flat_dict method
+        if hasattr(metric_results, "to_flat_dict"):
+            flattened_metrics = metric_results.to_flat_dict()
+        else:
+            flattened_metrics = self._flatten_metrics(metric_results)
+
+        df = pd.DataFrame([flattened_metrics])
+        metric_dataframes[metric_name] = df
+
+    def _flatten_metrics(self, metric_results):
+        """Flatten metric results into a single-level dictionary."""
+        flattened_metrics = {}
+
+        if isinstance(metric_results, dict):
+            for key, value in metric_results.items():
+                if isinstance(value, dict):
+                    for subkey, subvalue in value.items():
+                        flattened_metrics[f"{key}.{subkey}"] = subvalue
+                else:
+                    flattened_metrics[key] = value
+        elif hasattr(metric_results, "model_dump"):
+            # Schema object without to_flat_dict - try model_dump
+            metric_dict = metric_results.model_dump()
+            for key, value in metric_dict.items():
+                if isinstance(value, dict):
+                    for subkey, subvalue in value.items():
+                        flattened_metrics[f"{key}.{subkey}"] = subvalue
+                else:
+                    flattened_metrics[key] = value
+        else:
+            # Fallback - treat as single value
+            flattened_metrics = {"value": metric_results}
+
+        return flattened_metrics
 
     def set_circuit(self, circuit: QuantumCircuit) -> None:
         """
