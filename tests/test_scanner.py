@@ -219,7 +219,7 @@ class TestScanner(unittest.TestCase):
 
         # Should raise the exception since Scanner doesn't handle errors gracefully
         with self.assertRaises(Exception):
-            results = scanner.calculate_metrics()
+            scanner.calculate_metrics()
 
 
 if __name__ == "__main__":

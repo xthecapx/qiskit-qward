@@ -66,7 +66,7 @@ class TestIntegration(unittest.TestCase):
         self.assertIn("CircuitPerformance.individual_jobs", results)
 
         # 4. Verify DataFrame structure
-        for metric_name, df in results.items():
+        for df in results.values():
             self.assertIsInstance(df, pd.DataFrame)
             self.assertGreater(len(df.columns), 0)
             self.assertEqual(len(df), 1)  # Should have one row
