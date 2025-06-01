@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -411,26 +411,7 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get all complexity metrics for the circuit.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Dictionary containing all complexity metrics organized by category</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;gate_based_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gate_based_metrics</span><span class="p">(),</span>
-            <span class="s2">&quot;entanglement_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entanglement_metrics</span><span class="p">(),</span>
-            <span class="s2">&quot;standardized_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_standardized_metrics</span><span class="p">(),</span>
-            <span class="s2">&quot;advanced_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_advanced_metrics</span><span class="p">(),</span>
-            <span class="s2">&quot;derived_metrics&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_derived_metrics</span><span class="p">(),</span>
-            <span class="s2">&quot;quantum_volume&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_quantum_volume</span><span class="p">(),</span>
-        <span class="p">}</span></div>
-
-
-<div class="viewcode-block" id="ComplexityMetrics.get_structured_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_structured_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ComplexityMetricsSchema&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ComplexityMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all complexity metrics as a structured, validated schema object.</span>
 
@@ -569,22 +550,30 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
         <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
-        <span class="n">gate_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
         <span class="n">op_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span>
+
+        <span class="c1"># Use sum of operation counts instead of circuit.size() to handle all operations consistently</span>
+        <span class="n">total_operations</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">op_counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
         <span class="c1"># Circuit volume (depth × width)</span>
         <span class="n">circuit_volume</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">*</span> <span class="n">width</span>
 
         <span class="c1"># Gate density (gates per qubit-time-step)</span>
-        <span class="n">gate_density</span> <span class="o">=</span> <span class="n">gate_count</span> <span class="o">/</span> <span class="n">circuit_volume</span> <span class="k">if</span> <span class="n">circuit_volume</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">gate_density</span> <span class="o">=</span> <span class="n">total_operations</span> <span class="o">/</span> <span class="n">circuit_volume</span> <span class="k">if</span> <span class="n">circuit_volume</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
 
-        <span class="c1"># Clifford vs non-Clifford ratio</span>
+        <span class="c1"># Clifford vs non-Clifford ratio (only considering computational gates)</span>
         <span class="n">clifford_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_gates_by_type</span><span class="p">(</span><span class="n">op_counts</span><span class="p">,</span> <span class="n">CLIFFORD_GATES</span><span class="p">)</span>
         <span class="n">non_computational_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_gates_by_type</span><span class="p">(</span><span class="n">op_counts</span><span class="p">,</span> <span class="n">NON_COMPUTATIONAL_GATES</span><span class="p">)</span>
-        <span class="n">non_clifford_count</span> <span class="o">=</span> <span class="n">gate_count</span> <span class="o">-</span> <span class="n">clifford_count</span> <span class="o">-</span> <span class="n">non_computational_count</span>
+        <span class="n">computational_gate_count</span> <span class="o">=</span> <span class="n">total_operations</span> <span class="o">-</span> <span class="n">non_computational_count</span>
+        <span class="n">non_clifford_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">computational_gate_count</span> <span class="o">-</span> <span class="n">clifford_count</span><span class="p">)</span>
 
-        <span class="n">clifford_ratio</span> <span class="o">=</span> <span class="n">clifford_count</span> <span class="o">/</span> <span class="n">gate_count</span> <span class="k">if</span> <span class="n">gate_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">non_clifford_ratio</span> <span class="o">=</span> <span class="n">non_clifford_count</span> <span class="o">/</span> <span class="n">gate_count</span> <span class="k">if</span> <span class="n">gate_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="c1"># Calculate ratios based on computational gates only</span>
+        <span class="n">clifford_ratio</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">clifford_count</span> <span class="o">/</span> <span class="n">computational_gate_count</span> <span class="k">if</span> <span class="n">computational_gate_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">non_clifford_ratio</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">non_clifford_count</span> <span class="o">/</span> <span class="n">computational_gate_count</span> <span class="k">if</span> <span class="n">computational_gate_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;circuit_volume&quot;</span><span class="p">:</span> <span class="n">circuit_volume</span><span class="p">,</span>

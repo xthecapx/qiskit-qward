@@ -11,6 +11,7 @@ The `Scanner` class is the main orchestrator for metric calculation. It maintain
 - Coordinates multiple metric calculators
 - Returns consolidated results as DataFrames
 - Supports both class-based and instance-based metric addition
+- Automatically handles schema-to-DataFrame conversion
 
 ### Output Format
 The `calculate_metrics()` method returns a dictionary where keys are metric calculator class names (or a modified name for `CircuitPerformance` with multiple jobs), and values are pandas DataFrames containing the metric data.
@@ -25,18 +26,21 @@ QWARD provides several built-in metric calculators:
 -   **Type**: `MetricsType.PRE_RUNTIME`
 -   **ID**: `MetricsId.QISKIT`
 -   **Constructor**: `QiskitMetrics(circuit: QuantumCircuit)`
+-   **Returns**: `QiskitMetricsSchema` object with validated data
 
 ### ComplexityMetrics
 -   **Purpose**: Calculates circuit complexity metrics based on research literature
 -   **Type**: `MetricsType.PRE_RUNTIME`
 -   **ID**: `MetricsId.COMPLEXITY`
 -   **Constructor**: `ComplexityMetrics(circuit: QuantumCircuit)`
+-   **Returns**: `ComplexityMetricsSchema` object with validated data
 
 ### CircuitPerformanceMetrics
 -   **Purpose**: Calculates performance metrics from execution results
 -   **Type**: `MetricsType.POST_RUNTIME`
 -   **ID**: `MetricsId.CIRCUIT_PERFORMANCE`
 -   **Constructor**: `CircuitPerformanceMetrics(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
+-   **Returns**: `CircuitPerformanceSchema` object with validated data
 
 ### Metric Types and IDs
 -   `MetricsType(Enum)`: Defines when metrics can be calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
@@ -63,8 +67,13 @@ scanner.add_strategy(ComplexityMetrics(qc))
 # Method 2: Add metrics via constructor (using classes)
 scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics])
 
-# Calculate metrics
+# Calculate metrics (returns DataFrames)
 results = scanner.calculate_metrics()
+
+# Access schema objects directly
+qiskit_metrics = QiskitMetrics(qc)
+metrics = qiskit_metrics.get_metrics()  # Returns QiskitMetricsSchema
+print(f"Circuit depth: {metrics.basic_metrics.depth}")
 ```
 
 ### Working with Execution Results
@@ -86,7 +95,12 @@ def criteria(outcome):
 scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
-# print(results["CircuitPerformance.aggregate"])
+results = scanner.calculate_metrics()
+
+# Access schema object directly
+circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
+performance_metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
+print(f"Success rate: {performance_metrics.success_metrics.success_rate:.3f}")
 ```
 
 ### Alternative Approach with Job Object
@@ -108,7 +122,12 @@ def criteria(outcome):
 scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
-# print(results["CircuitPerformance.aggregate"])
+results = scanner.calculate_metrics()
+
+# Access schema object directly
+circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
+performance_metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
+print(f"Success rate: {performance_metrics.success_metrics.success_rate:.3f}")
 ```
 
 ## Schema Validation
@@ -122,14 +141,15 @@ QWARD includes comprehensive schema-based validation using Pydantic for enhanced
 - **API Documentation**: Automatic JSON schema generation
 
 ### Usage
-Each metric calculator provides both traditional dictionary outputs and structured schema outputs:
+All metric calculators return validated schema objects directly:
 
 ```python
-# Traditional approach
-metrics_dict = calculator.get_metrics()
+# Unified API - all metric classes work the same way
+metrics = calculator.get_metrics()  # Returns validated schema object
+depth = metrics.basic_metrics.depth  # Type-safe access with IDE support
 
-# Schema-based approach
-structured_metrics = calculator.get_structured_metrics()
+# Convert to flat dictionary for DataFrame operations when needed
+flat_dict = metrics.to_flat_dict()
 ```
 
 ## Visualization System
@@ -304,12 +324,19 @@ Refer to the `qward/metrics/complexity_metrics.py` source or its docstrings for 
 
 Example access:
 ```python
-# results = scanner.calculate_metrics()
-# complexity_df = results.get("ComplexityMetrics")
-# if complexity_df is not None:
-#     gate_count = complexity_df['gate_based_metrics.gate_count'].iloc[0]
-#     t_count = complexity_df['gate_based_metrics.t_count'].iloc[0]
-#     # ... and so on
+# Scanner returns DataFrames
+results = scanner.calculate_metrics()
+complexity_df = results.get("ComplexityMetrics")
+if complexity_df is not None:
+    gate_count = complexity_df['gate_based_metrics.gate_count'].iloc[0]
+    t_count = complexity_df['gate_based_metrics.t_count'].iloc[0]
+    # ... and so on
+
+# Direct schema access (recommended)
+complexity_metrics = ComplexityMetrics(circuit)
+schema = complexity_metrics.get_metrics()  # Returns ComplexityMetricsSchema
+gate_count = schema.gate_based_metrics.gate_count
+t_count = schema.gate_based_metrics.t_count
 ```
 
 ## Quantum Volume Estimation (via `ComplexityMetrics`)
@@ -323,7 +350,13 @@ The `ComplexityMetrics` class also performs Quantum Volume (QV) estimation based
 
 Example access from `ComplexityMetrics` DataFrame:
 ```python
-# enhanced_qv = complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]
+# DataFrame access
+enhanced_qv = complexity_df['quantum_volume.enhanced_quantum_volume'].iloc[0]
+
+# Schema access (recommended)
+complexity_metrics = ComplexityMetrics(circuit)
+schema = complexity_metrics.get_metrics()
+enhanced_qv = schema.quantum_volume.enhanced_quantum_volume
 ```
 
 ## Technical Guidelines for Custom Strategies
@@ -332,7 +365,7 @@ When creating a new metric strategy by inheriting from `qward.metrics.base_metri
 1.  **Implement Abstract Methods**: `_get_metric_type`, `_get_metric_id`, `is_ready`, `get_metrics`.
 2.  **Strategy ID**: If your strategy is conceptually new, consider if `MetricsId` enum in `qward.metrics.types` needs to be extended. For purely external or highly specific custom strategies, you might need a strategy if modifying the core enum is not desired (though the base class expects a `MetricsId` enum member).
 3.  **Data Requirements**: Clearly define if your strategy is `PRE_RUNTIME` (only needs circuit) or `POST_RUNTIME` (needs job/results). If `POST_RUNTIME`, your `__init__` should accept job(s) or result data, and `is_ready` should check for their presence.
-4.  **Return Format**: `get_metrics()` must return a dictionary where keys are string metric names and values are the calculated metric values.
+4.  **Return Format**: `get_metrics()` must return a validated Pydantic schema object for type safety and data integrity.
 
 ## API Flow and Usage Patterns
 
@@ -351,6 +384,11 @@ scanner.add_strategy(ComplexityMetrics(qc))
 results = scanner.calculate_metrics()
 # print(results["QiskitMetrics"])
 # print(results["ComplexityMetrics"])
+
+# Direct schema access
+qiskit_metrics = QiskitMetrics(qc)
+metrics = qiskit_metrics.get_metrics()  # Returns QiskitMetricsSchema
+print(f"Circuit depth: {metrics.basic_metrics.depth}")
 ```
 
 ### Pattern 2: Using Constructor with Strategies
@@ -370,6 +408,10 @@ cm = ComplexityMetrics(qc)
 scanner = Scanner(circuit=qc, strategies=[qm, cm])
 
 results = scanner.calculate_metrics()
+
+# Access schemas directly
+qiskit_schema = qm.get_metrics()
+complexity_schema = cm.get_metrics()
 ```
 
 ### Pattern 3: Analysis with Execution Results
@@ -394,6 +436,11 @@ scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=job, success_crit
 
 results = scanner.calculate_metrics()
 # print(results["CircuitPerformance.aggregate"])
+
+# Direct schema access
+circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=criteria)
+performance_schema = circuit_performance.get_metrics()
+print(f"Success rate: {performance_schema.success_metrics.success_rate:.3f}")
 ```
 
 ### Pattern 4: Using Standard Qiskit Runtime Services

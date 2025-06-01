@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Visualization Guide" href="visualization_guide.html" /><link rel="prev" title="Project Overview" href="project_overview.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Visualization Guide" href="visualization_guide.html" /><link rel="prev" title="QWARD Project Overview" href="project_overview.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>QWARD Architecture - Qward 0.1.0</title>
@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -274,52 +274,39 @@
         &lt;&lt;Context&gt;&gt;
         +circuit: QuantumCircuit
         +calculators: List[MetricCalculator]
-        +calculate_metrics() DataFrame
+        +calculate_metrics() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
         &lt;&lt;Strategy Interface&gt;&gt;
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() BaseModel
+        +get_metrics() BaseModel
     }
 
     class QiskitMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() QiskitMetricsSchema
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +circuit: QuantumCircuit
+        +get_metrics() QiskitMetricsSchema
+        +is_ready() bool
     }
 
     class ComplexityMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() ComplexityMetricsSchema
-        +get_structured_gate_based_metrics() GateBasedMetricsSchema
-        +get_structured_entanglement_metrics() EntanglementMetricsSchema
-        +get_structured_standardized_metrics() StandardizedMetricsSchema
-        +get_structured_advanced_metrics() AdvancedMetricsSchema
-        +get_structured_derived_metrics() DerivedMetricsSchema
-        +get_structured_quantum_volume() QuantumVolumeSchema
+        +get_metrics() ComplexityMetricsSchema
     }
 
     class CircuitPerformanceMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
-        +get_structured_single_job_metrics() CircuitPerformanceJobSchema
-        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
+        +get_metrics() CircuitPerformanceSchema
     }
 
     class SchemaModule {
         &lt;&lt;Validation Layer&gt;&gt;
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +CircuitPerformanceJobSchema
-        +CircuitPerformanceAggregateSchema
+        +CircuitPerformanceSchema
         +validate_data()
         +generate_json_schema()
+        +to_flat_dict()
     }
 
     %% Strategy Pattern Relationships
@@ -336,8 +323,8 @@
     CircuitPerformanceMetrics --&gt; SchemaModule : validates with
 
     %% Pattern Notes
-    note for Scanner &quot;Context: Orchestrates metric calculation and returns consolidated DataFrame&quot;
-    note for MetricCalculator &quot;Strategy Interface: Common interface with both Dict and Schema outputs&quot;
+    note for Scanner &quot;Context: Orchestrates metric calculation and returns dictionary of DataFrames&quot;
+    note for MetricCalculator &quot;Strategy Interface: Common interface returning validated schema objects&quot;
     note for QiskitMetrics &quot;Returns validated Qiskit-native metrics with type safety&quot;
     note for ComplexityMetrics &quot;Returns validated complexity analysis metrics with constraints&quot;
     note for CircuitPerformanceMetrics &quot;Returns validated execution performance metrics with cross-field validation&quot;
@@ -346,17 +333,18 @@
 <h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><strong>Scanner (Context)</strong>: Maintains metric calculators and delegates calculation work</p></li>
-<li><p><strong>MetricCalculator (Interface)</strong>: Defines common interface with both dictionary and schema outputs</p></li>
+<li><p><strong>MetricCalculator (Interface)</strong>: Defines common interface returning validated schema objects</p></li>
 <li><p><strong>Concrete Strategies</strong>: Each implements different metric calculation algorithms with validation</p></li>
 <li><p><strong>Schema Validation</strong>: Pydantic-based data validation ensures type safety and constraint checking</p></li>
-<li><p><strong>Dual API</strong>: Both traditional dictionary and modern schema-based approaches supported</p></li>
+<li><p><strong>Unified API</strong>: All metric classes use <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> to return schema objects directly</p></li>
+<li><p><strong>Scanner Integration</strong>: Scanner automatically calls <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> for DataFrame conversion</p></li>
 <li><p><strong>Strategy Pattern Benefits</strong>: Runtime strategy switching, extensibility, separation of concerns</p></li>
 </ul>
 </section>
 </section>
 <section id="schema-based-data-validation">
 <h2>Schema-Based Data Validation<a class="headerlink" href="#schema-based-data-validation" title="Link to this heading">¶</a></h2>
-<p>QWARD now includes comprehensive schema-based validation using Pydantic, providing:</p>
+<p>QWARD includes comprehensive schema-based validation using Pydantic, providing:</p>
 <pre  class="mermaid">
         classDiagram
     %% Schema Validation Architecture
@@ -366,6 +354,7 @@
         +model_validate()
         +model_json_schema()
         +model_dump()
+        +to_flat_dict()
     }
     
     class QiskitMetricsSchema {
@@ -387,40 +376,24 @@
         +from_flat_dict() ComplexityMetricsSchema
     }
     
-    class CircuitPerformanceJobSchema {
-        +job_id: str
-        +success_rate: float [0.0-1.0]
-        +error_rate: float [0.0-1.0]
-        +fidelity: float [0.0-1.0]
-        +total_shots: int [≥0]
-        +successful_shots: int [≥0]
+    class CircuitPerformanceSchema {
+        +success_metrics: SuccessMetricsSchema
+        +fidelity_metrics: FidelityMetricsSchema
+        +statistical_metrics: StatisticalMetricsSchema
         +validate_error_rate()
         +validate_successful_shots()
-    }
-    
-    class CircuitPerformanceAggregateSchema {
-        +mean_success_rate: float [0.0-1.0]
-        +std_success_rate: float [≥0.0]
-        +min_success_rate: float [0.0-1.0]
-        +max_success_rate: float [0.0-1.0]
-        +total_trials: int [≥0]
-        +fidelity: float [0.0-1.0]
-        +error_rate: float [0.0-1.0]
-        +validate_min_max_order()
-        +validate_error_rate_consistency()
+        +to_flat_dict() Dict[str, Any]
     }
 
     %% Inheritance
     BaseModel &lt;|-- QiskitMetricsSchema
     BaseModel &lt;|-- ComplexityMetricsSchema
-    BaseModel &lt;|-- CircuitPerformanceJobSchema
-    BaseModel &lt;|-- CircuitPerformanceAggregateSchema
+    BaseModel &lt;|-- CircuitPerformanceSchema
 
     %% Validation Features
     note for QiskitMetricsSchema &quot;Validates circuit metrics with type checking and constraints&quot;
     note for ComplexityMetricsSchema &quot;Validates complexity metrics with range and cross-field validation&quot;
-    note for CircuitPerformanceJobSchema &quot;Validates single job metrics with rate consistency checks&quot;
-    note for CircuitPerformanceAggregateSchema &quot;Validates aggregate metrics with statistical constraints&quot;
+    note for CircuitPerformanceSchema &quot;Validates performance metrics with rate consistency checks and statistical constraints&quot;
     </pre><section id="schema-benefits">
 <h3>Schema Benefits<a class="headerlink" href="#schema-benefits" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
@@ -428,7 +401,7 @@
 <li><p><strong>Constraint Validation</strong>: Range checks, cross-field validation, and business rules</p></li>
 <li><p><strong>IDE Support</strong>: Full autocomplete and type hints</p></li>
 <li><p><strong>API Documentation</strong>: Automatic JSON schema generation</p></li>
-<li><p><strong>DataFrame Compatibility</strong>: Easy conversion to/from flat dictionaries</p></li>
+<li><p><strong>DataFrame Compatibility</strong>: Easy conversion to/from flat dictionaries via <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code></p></li>
 <li><p><strong>Error Prevention</strong>: Catch data inconsistencies early</p></li>
 </ol>
 </section>
@@ -465,7 +438,7 @@
         +_get_metric_type()* MetricsType
         +_get_metric_id()* MetricsId
         +is_ready()* bool
-        +get_metrics()* Dict[str, Any]
+        +get_metrics()* BaseModel
         +_ensure_schemas_available()
     }
 
@@ -475,14 +448,7 @@
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() QiskitMetricsSchema
-        +get_basic_metrics() Dict[str, Any]
-        +get_instruction_metrics() Dict[str, Any]
-        +get_scheduling_metrics() Dict[str, Any]
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +get_metrics() QiskitMetricsSchema
     }
 
     class ComplexityMetrics {
@@ -491,20 +457,13 @@
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() ComplexityMetricsSchema
+        +get_metrics() ComplexityMetricsSchema
         +get_gate_based_metrics() Dict[str, Any]
         +get_entanglement_metrics() Dict[str, Any]
         +get_standardized_metrics() Dict[str, Any]
         +get_advanced_metrics() Dict[str, Any]
         +get_derived_metrics() Dict[str, Any]
         +estimate_quantum_volume() Dict[str, Any]
-        +get_structured_gate_based_metrics() GateBasedMetricsSchema
-        +get_structured_entanglement_metrics() EntanglementMetricsSchema
-        +get_structured_standardized_metrics() StandardizedMetricsSchema
-        +get_structured_advanced_metrics() AdvancedMetricsSchema
-        +get_structured_derived_metrics() DerivedMetricsSchema
-        +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
     class CircuitPerformanceMetrics {
@@ -517,12 +476,9 @@
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
+        +get_metrics() CircuitPerformanceSchema
         +get_single_job_metrics(job) Dict[str, Any]
         +get_multiple_jobs_metrics() Dict[str, Any]
-        +get_structured_single_job_metrics(job) CircuitPerformanceJobSchema
-        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
         +add_job(job)
         +_calculate_success_metrics(counts, job_id) Dict[str, Any]
         +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
@@ -556,15 +512,15 @@
     MetricCalculator --&gt; MetricsId : defines identifier
 
     %% Notes about Enhanced Architecture
-    note for Scanner &quot;Context: Maintains references to metric calculators and delegates work. Returns DataFrames for analysis.&quot;
+    note for Scanner &quot;Context: Maintains references to metric calculators and delegates work. Returns dictionary of DataFrames for analysis.&quot;
     
-    note for MetricCalculator &quot;Strategy Interface: Common interface with both Dict and Schema outputs. Includes schema availability checking.&quot;
+    note for MetricCalculator &quot;Strategy Interface: Common interface returning validated schema objects. Includes schema availability checking.&quot;
     
-    note for QiskitMetrics &quot;Concrete Strategy: Qiskit-native metrics with granular structured methods for each category&quot;
+    note for QiskitMetrics &quot;Concrete Strategy: Qiskit-native metrics with validated schema output&quot;
     
     note for ComplexityMetrics &quot;Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking&quot;
     
-    note for CircuitPerformanceMetrics &quot;Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria&quot;
+    note for CircuitPerformanceMetrics &quot;Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria&quot;
     </pre></section>
 <section id="folder-structure">
 <h2>Folder Structure<a class="headerlink" href="#folder-structure" title="Link to this heading">¶</a></h2>
@@ -621,11 +577,11 @@
 <h2>Components<a class="headerlink" href="#components" title="Link to this heading">¶</a></h2>
 <section id="scanner">
 <h3>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h3>
-<p>The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.</p>
+<p>The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as a dictionary of DataFrames for easy analysis.</p>
 </section>
 <section id="metriccalculator">
 <h3>MetricCalculator<a class="headerlink" href="#metriccalculator" title="Link to this heading">¶</a></h3>
-<p>The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the <code class="docutils literal notranslate"><span class="pre">get_default_strategies()</span></code> function from the <code class="docutils literal notranslate"><span class="pre">qward.metrics.defaults</span></code> module.</p>
+<p>The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now return validated schema objects directly through <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code>. Default metric classes can be obtained using the <code class="docutils literal notranslate"><span class="pre">get_default_strategies()</span></code> function from the <code class="docutils literal notranslate"><span class="pre">qward.metrics.defaults</span></code> module.</p>
 </section>
 <section id="schema-validation">
 <h3>Schema Validation<a class="headerlink" href="#schema-validation" title="Link to this heading">¶</a></h3>
@@ -640,15 +596,15 @@
 </section>
 <section id="qiskitmetrics">
 <h3>QiskitMetrics<a class="headerlink" href="#qiskitmetrics" title="Link to this heading">¶</a></h3>
-<p>The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, including basic metrics (depth, width, gate counts), instruction metrics (connectivity, factors), and scheduling metrics (timing information). It now provides both dictionary and structured schema outputs with granular access to each metric category.</p>
+<p>The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, including basic metrics (depth, width, gate counts), instruction metrics (connectivity, factors), and scheduling metrics (timing information). It returns a validated <code class="docutils literal notranslate"><span class="pre">QiskitMetricsSchema</span></code> object with type-safe access to all metric categories.</p>
 </section>
 <section id="complexitymetrics">
 <h3>ComplexityMetrics<a class="headerlink" href="#complexitymetrics" title="Link to this heading">¶</a></h3>
-<p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through schemas with appropriate constraints and cross-field validation.</p>
+<p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through a <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> with appropriate constraints and cross-field validation.</p>
 </section>
 <section id="circuitperformancemetrics">
 <h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
-<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
 </section>
 </section>
 <section id="usage-examples">
@@ -670,17 +626,17 @@
 <span class="c1"># Add a metric</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 
-<span class="c1"># Calculate metrics (traditional approach)</span>
+<span class="c1"># Calculate metrics (Scanner returns dictionary of DataFrames)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Use structured metrics (new schema-based approach)</span>
+<span class="c1"># Use schema-based metrics directly</span>
 <span class="n">qiskit_metrics</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">structured_metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns QiskitMetricsSchema</span>
 
 <span class="c1"># Access validated data with full type safety</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of qubits: </span><span class="si">{</span><span class="n">structured_metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of qubits: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -698,12 +654,12 @@
 <span class="k">if</span> <span class="n">job</span><span class="p">:</span>  <span class="c1"># Assuming you have a job from circuit execution</span>
     <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
-<span class="c1"># Calculate all metrics</span>
+<span class="c1"># Calculate all metrics (returns dictionary of DataFrames)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Access structured metrics for detailed analysis</span>
+<span class="c1"># Access schema-based metrics for detailed analysis</span>
 <span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">complexity_schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
+<span class="n">complexity_schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Quantum Volume: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate Density: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">standardized_metrics</span><span class="o">.</span><span class="n">gate_density</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -727,15 +683,11 @@
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
 <span class="p">)</span>
 
-<span class="c1"># Get structured metrics with validation</span>
-<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">circuit_performance</span><span class="o">.</span><span class="n">runtime_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="n">job_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_structured_single_job_metrics</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success Rate: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">job_schema</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">aggregate_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_structured_multiple_jobs_metrics</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean Success Rate: </span><span class="si">{</span><span class="n">aggregate_schema</span><span class="o">.</span><span class="n">mean_success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Standard Deviation: </span><span class="si">{</span><span class="n">aggregate_schema</span><span class="o">.</span><span class="n">std_success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Get validated schema with automatic constraint checking</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Automatically validated</span>
 </pre></div>
 </div>
 </section>
@@ -746,7 +698,7 @@
 
 <span class="c1"># Generate JSON schema for API documentation</span>
 <span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
-<span class="n">schema_obj</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
+<span class="n">schema_obj</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 
 <span class="c1"># Get JSON schema for documentation</span>
 <span class="n">json_schema</span> <span class="o">=</span> <span class="n">ComplexityMetricsSchema</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span>
@@ -771,7 +723,11 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetricsSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">custom_complexity</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">circuit_signature</span><span class="p">:</span> <span class="nb">str</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetric</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
@@ -786,13 +742,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyCustomMetricsSchema</span><span class="p">:</span>
         <span class="c1"># Custom metric calculation</span>
         <span class="n">custom_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;custom_complexity&quot;</span><span class="p">:</span> <span class="n">custom_value</span><span class="p">,</span>
-            <span class="s2">&quot;circuit_signature&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">q_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span><span class="si">}</span><span class="s2">d&quot;</span>
-        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">MyCustomMetricsSchema</span><span class="p">(</span>
+            <span class="n">custom_complexity</span><span class="o">=</span><span class="n">custom_value</span><span class="p">,</span>
+            <span class="n">circuit_signature</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">q_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span><span class="si">}</span><span class="s2">d&quot;</span>
+        <span class="p">)</span>
 
 <span class="c1"># Usage</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
@@ -810,15 +766,15 @@
 <li><p>Use the Scanner class for all circuit analysis</p></li>
 <li><p>Add metrics before calculating results</p></li>
 <li><p>Consider using multiple metrics for comprehensive analysis</p></li>
-<li><p>Prefer structured metrics for type safety and validation</p></li>
+<li><p>All metrics now return validated schema objects by default</p></li>
 </ul>
 </li>
 <li><p><strong>Schema Usage</strong></p>
 <ul class="simple">
-<li><p>Use structured methods when you need type safety and validation</p></li>
-<li><p>Use traditional dictionary methods for backward compatibility</p></li>
-<li><p>Leverage JSON schema generation for API documentation</p></li>
+<li><p>All metric classes now return schema objects directly via <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></p></li>
 <li><p>Take advantage of IDE autocomplete with schema objects</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> when you need dictionary format for DataFrames</p></li>
+<li><p>Leverage JSON schema generation for API documentation</p></li>
 </ul>
 </li>
 <li><p><strong>Execution</strong></p>
@@ -831,24 +787,24 @@
 <li><p><strong>Data Management</strong></p>
 <ul class="simple">
 <li><p>Use consistent naming conventions for analysis results</p></li>
-<li><p>Leverage schema validation to ensure data integrity</p></li>
-<li><p>Cache structured metrics when performing multiple analyses</p></li>
+<li><p>Schema validation ensures data integrity automatically</p></li>
+<li><p>Scanner handles schema-to-DataFrame conversion seamlessly</p></li>
 </ul>
 </li>
 <li><p><strong>Custom Metrics</strong></p>
 <ul class="simple">
 <li><p>Inherit from the MetricCalculator base class</p></li>
 <li><p>Implement the required abstract methods</p></li>
-<li><p>Return results in a consistent format</p></li>
+<li><p>Return validated schema objects from <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></p></li>
 <li><p>Document metric calculation methodology</p></li>
-<li><p>Consider adding schema validation for custom metrics</p></li>
+<li><p>Consider adding custom Pydantic schemas for validation</p></li>
 </ul>
 </li>
 <li><p><strong>Performance</strong></p>
 <ul class="simple">
 <li><p>Schema validation adds minimal overhead but provides significant benefits</p></li>
-<li><p>Use flat dictionary conversion for DataFrame operations</p></li>
-<li><p>Cache structured metrics when performing multiple analyses</p></li>
+<li><p>Scanner automatically handles <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> conversion for DataFrames</p></li>
+<li><p>All validation happens at metric calculation time</p></li>
 </ul>
 </li>
 </ol>
@@ -1089,7 +1045,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Project Overview</div>
+                <div class="title">QWARD Project Overview</div>
                 
               </div>
             </a>

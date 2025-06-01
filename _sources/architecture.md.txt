@@ -18,52 +18,39 @@ classDiagram
         <<Context>>
         +circuit: QuantumCircuit
         +calculators: List[MetricCalculator]
-        +calculate_metrics() DataFrame
+        +calculate_metrics() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
         <<Strategy Interface>>
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() BaseModel
+        +get_metrics() BaseModel
     }
 
     class QiskitMetrics {
         <<Concrete Strategy>>
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() QiskitMetricsSchema
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +circuit: QuantumCircuit
+        +get_metrics() QiskitMetricsSchema
+        +is_ready() bool
     }
 
     class ComplexityMetrics {
         <<Concrete Strategy>>
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() ComplexityMetricsSchema
-        +get_structured_gate_based_metrics() GateBasedMetricsSchema
-        +get_structured_entanglement_metrics() EntanglementMetricsSchema
-        +get_structured_standardized_metrics() StandardizedMetricsSchema
-        +get_structured_advanced_metrics() AdvancedMetricsSchema
-        +get_structured_derived_metrics() DerivedMetricsSchema
-        +get_structured_quantum_volume() QuantumVolumeSchema
+        +get_metrics() ComplexityMetricsSchema
     }
 
     class CircuitPerformanceMetrics {
         <<Concrete Strategy>>
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
-        +get_structured_single_job_metrics() CircuitPerformanceJobSchema
-        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
+        +get_metrics() CircuitPerformanceSchema
     }
 
     class SchemaModule {
         <<Validation Layer>>
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +CircuitPerformanceJobSchema
-        +CircuitPerformanceAggregateSchema
+        +CircuitPerformanceSchema
         +validate_data()
         +generate_json_schema()
+        +to_flat_dict()
     }
 
     %% Strategy Pattern Relationships
@@ -80,8 +67,8 @@ classDiagram
     CircuitPerformanceMetrics --> SchemaModule : validates with
 
     %% Pattern Notes
-    note for Scanner "Context: Orchestrates metric calculation and returns consolidated DataFrame"
-    note for MetricCalculator "Strategy Interface: Common interface with both Dict and Schema outputs"
+    note for Scanner "Context: Orchestrates metric calculation and returns dictionary of DataFrames"
+    note for MetricCalculator "Strategy Interface: Common interface returning validated schema objects"
     note for QiskitMetrics "Returns validated Qiskit-native metrics with type safety"
     note for ComplexityMetrics "Returns validated complexity analysis metrics with constraints"
     note for CircuitPerformanceMetrics "Returns validated execution performance metrics with cross-field validation"
@@ -91,15 +78,16 @@ classDiagram
 ### Key Points
 
 - **Scanner (Context)**: Maintains metric calculators and delegates calculation work
-- **MetricCalculator (Interface)**: Defines common interface with both dictionary and schema outputs
+- **MetricCalculator (Interface)**: Defines common interface returning validated schema objects
 - **Concrete Strategies**: Each implements different metric calculation algorithms with validation
 - **Schema Validation**: Pydantic-based data validation ensures type safety and constraint checking
-- **Dual API**: Both traditional dictionary and modern schema-based approaches supported
+- **Unified API**: All metric classes use `get_metrics()` to return schema objects directly
+- **Scanner Integration**: Scanner automatically calls `to_flat_dict()` for DataFrame conversion
 - **Strategy Pattern Benefits**: Runtime strategy switching, extensibility, separation of concerns
 
 ## Schema-Based Data Validation
 
-QWARD now includes comprehensive schema-based validation using Pydantic, providing:
+QWARD includes comprehensive schema-based validation using Pydantic, providing:
 
 ```{mermaid}
 classDiagram
@@ -110,6 +98,7 @@ classDiagram
         +model_validate()
         +model_json_schema()
         +model_dump()
+        +to_flat_dict()
     }
     
     class QiskitMetricsSchema {
@@ -131,40 +120,24 @@ classDiagram
         +from_flat_dict() ComplexityMetricsSchema
     }
     
-    class CircuitPerformanceJobSchema {
-        +job_id: str
-        +success_rate: float [0.0-1.0]
-        +error_rate: float [0.0-1.0]
-        +fidelity: float [0.0-1.0]
-        +total_shots: int [≥0]
-        +successful_shots: int [≥0]
+    class CircuitPerformanceSchema {
+        +success_metrics: SuccessMetricsSchema
+        +fidelity_metrics: FidelityMetricsSchema
+        +statistical_metrics: StatisticalMetricsSchema
         +validate_error_rate()
         +validate_successful_shots()
-    }
-    
-    class CircuitPerformanceAggregateSchema {
-        +mean_success_rate: float [0.0-1.0]
-        +std_success_rate: float [≥0.0]
-        +min_success_rate: float [0.0-1.0]
-        +max_success_rate: float [0.0-1.0]
-        +total_trials: int [≥0]
-        +fidelity: float [0.0-1.0]
-        +error_rate: float [0.0-1.0]
-        +validate_min_max_order()
-        +validate_error_rate_consistency()
+        +to_flat_dict() Dict[str, Any]
     }
 
     %% Inheritance
     BaseModel <|-- QiskitMetricsSchema
     BaseModel <|-- ComplexityMetricsSchema
-    BaseModel <|-- CircuitPerformanceJobSchema
-    BaseModel <|-- CircuitPerformanceAggregateSchema
+    BaseModel <|-- CircuitPerformanceSchema
 
     %% Validation Features
     note for QiskitMetricsSchema "Validates circuit metrics with type checking and constraints"
     note for ComplexityMetricsSchema "Validates complexity metrics with range and cross-field validation"
-    note for CircuitPerformanceJobSchema "Validates single job metrics with rate consistency checks"
-    note for CircuitPerformanceAggregateSchema "Validates aggregate metrics with statistical constraints"
+    note for CircuitPerformanceSchema "Validates performance metrics with rate consistency checks and statistical constraints"
 ```
 
 ### Schema Benefits
@@ -173,7 +146,7 @@ classDiagram
 2. **Constraint Validation**: Range checks, cross-field validation, and business rules
 3. **IDE Support**: Full autocomplete and type hints
 4. **API Documentation**: Automatic JSON schema generation
-5. **DataFrame Compatibility**: Easy conversion to/from flat dictionaries
+5. **DataFrame Compatibility**: Easy conversion to/from flat dictionaries via `to_flat_dict()`
 6. **Error Prevention**: Catch data inconsistencies early
 
 ## Detailed Architecture
@@ -209,7 +182,7 @@ classDiagram
         +_get_metric_type()* MetricsType
         +_get_metric_id()* MetricsId
         +is_ready()* bool
-        +get_metrics()* Dict[str, Any]
+        +get_metrics()* BaseModel
         +_ensure_schemas_available()
     }
 
@@ -219,14 +192,7 @@ classDiagram
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() QiskitMetricsSchema
-        +get_basic_metrics() Dict[str, Any]
-        +get_instruction_metrics() Dict[str, Any]
-        +get_scheduling_metrics() Dict[str, Any]
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +get_metrics() QiskitMetricsSchema
     }
 
     class ComplexityMetrics {
@@ -235,20 +201,13 @@ classDiagram
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() ComplexityMetricsSchema
+        +get_metrics() ComplexityMetricsSchema
         +get_gate_based_metrics() Dict[str, Any]
         +get_entanglement_metrics() Dict[str, Any]
         +get_standardized_metrics() Dict[str, Any]
         +get_advanced_metrics() Dict[str, Any]
         +get_derived_metrics() Dict[str, Any]
         +estimate_quantum_volume() Dict[str, Any]
-        +get_structured_gate_based_metrics() GateBasedMetricsSchema
-        +get_structured_entanglement_metrics() EntanglementMetricsSchema
-        +get_structured_standardized_metrics() StandardizedMetricsSchema
-        +get_structured_advanced_metrics() AdvancedMetricsSchema
-        +get_structured_derived_metrics() DerivedMetricsSchema
-        +get_structured_quantum_volume() QuantumVolumeSchema
     }
 
     class CircuitPerformanceMetrics {
@@ -261,12 +220,9 @@ classDiagram
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() Dict[str, Any]
-        +get_structured_metrics() Union[CircuitPerformanceJobSchema, CircuitPerformanceAggregateSchema]
+        +get_metrics() CircuitPerformanceSchema
         +get_single_job_metrics(job) Dict[str, Any]
         +get_multiple_jobs_metrics() Dict[str, Any]
-        +get_structured_single_job_metrics(job) CircuitPerformanceJobSchema
-        +get_structured_multiple_jobs_metrics() CircuitPerformanceAggregateSchema
         +add_job(job)
         +_calculate_success_metrics(counts, job_id) Dict[str, Any]
         +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
@@ -300,15 +256,15 @@ classDiagram
     MetricCalculator --> MetricsId : defines identifier
 
     %% Notes about Enhanced Architecture
-    note for Scanner "Context: Maintains references to metric calculators and delegates work. Returns DataFrames for analysis."
+    note for Scanner "Context: Maintains references to metric calculators and delegates work. Returns dictionary of DataFrames for analysis."
     
-    note for MetricCalculator "Strategy Interface: Common interface with both Dict and Schema outputs. Includes schema availability checking."
+    note for MetricCalculator "Strategy Interface: Common interface returning validated schema objects. Includes schema availability checking."
     
-    note for QiskitMetrics "Concrete Strategy: Qiskit-native metrics with granular structured methods for each category"
+    note for QiskitMetrics "Concrete Strategy: Qiskit-native metrics with validated schema output"
     
     note for ComplexityMetrics "Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking"
     
-    note for CircuitPerformanceMetrics "Concrete Strategy: Circuit performance analysis with single/multiple job support and custom criteria"
+    note for CircuitPerformanceMetrics "Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria"
 ```
 
 ## Folder Structure
@@ -366,10 +322,10 @@ This structure provides a clean organization for the code, with:
 ## Components
 
 ### Scanner
-The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as DataFrames for easy analysis.
+The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as a dictionary of DataFrames for easy analysis.
 
 ### MetricCalculator
-The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now support both traditional dictionary outputs and modern schema-based validation. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
+The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now return validated schema objects directly through `get_metrics()`. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
 
 ### Schema Validation
 The schema validation system provides:
@@ -380,13 +336,13 @@ The schema validation system provides:
 - **IDE Support**: Full autocomplete and type hints for better developer experience
 
 ### QiskitMetrics
-The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, including basic metrics (depth, width, gate counts), instruction metrics (connectivity, factors), and scheduling metrics (timing information). It now provides both dictionary and structured schema outputs with granular access to each metric category.
+The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, including basic metrics (depth, width, gate counts), instruction metrics (connectivity, factors), and scheduling metrics (timing information). It returns a validated `QiskitMetricsSchema` object with type-safe access to all metric categories.
 
 ### ComplexityMetrics
-The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through schemas with appropriate constraints and cross-field validation.
+The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
 
 ### CircuitPerformanceMetrics
-The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class now provides structured outputs with validation for both individual job metrics and aggregate statistics across multiple jobs.
+The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
 
 ## Usage Examples
 
@@ -407,17 +363,17 @@ scanner = Scanner(circuit=circuit)
 # Add a metric
 scanner.add_strategy(QiskitMetrics(circuit))
 
-# Calculate metrics (traditional approach)
+# Calculate metrics (Scanner returns dictionary of DataFrames)
 results = scanner.calculate_metrics()
 
-# Use structured metrics (new schema-based approach)
+# Use schema-based metrics directly
 qiskit_metrics = QiskitMetrics(circuit)
-structured_metrics = qiskit_metrics.get_structured_metrics()
+metrics = qiskit_metrics.get_metrics()  # Returns QiskitMetricsSchema
 
 # Access validated data with full type safety
-print(f"Circuit depth: {structured_metrics.basic_metrics.depth}")
-print(f"Gate count: {structured_metrics.basic_metrics.size}")
-print(f"Number of qubits: {structured_metrics.basic_metrics.num_qubits}")
+print(f"Circuit depth: {metrics.basic_metrics.depth}")
+print(f"Gate count: {metrics.basic_metrics.size}")
+print(f"Number of qubits: {metrics.basic_metrics.num_qubits}")
 ```
 
 ### Comprehensive Analysis with Multiple Metrics
@@ -434,12 +390,12 @@ scanner.add_strategy(ComplexityMetrics(circuit))
 if job:  # Assuming you have a job from circuit execution
     scanner.add_strategy(CircuitPerformanceMetrics(circuit, job=job))
 
-# Calculate all metrics
+# Calculate all metrics (returns dictionary of DataFrames)
 results = scanner.calculate_metrics()
 
-# Access structured metrics for detailed analysis
+# Access schema-based metrics for detailed analysis
 complexity_metrics = ComplexityMetrics(circuit)
-complexity_schema = complexity_metrics.get_structured_metrics()
+complexity_schema = complexity_metrics.get_metrics()
 
 print(f"Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume}")
 print(f"Gate Density: {complexity_schema.standardized_metrics.gate_density}")
@@ -462,15 +418,11 @@ circuit_performance = CircuitPerformanceMetrics(
     success_criteria=bell_state_success
 )
 
-# Get structured metrics with validation
-if len(circuit_performance.runtime_jobs) == 1:
-    job_schema = circuit_performance.get_structured_single_job_metrics()
-    print(f"Success Rate: {job_schema.success_rate:.3f}")
-    print(f"Fidelity: {job_schema.fidelity:.3f}")
-else:
-    aggregate_schema = circuit_performance.get_structured_multiple_jobs_metrics()
-    print(f"Mean Success Rate: {aggregate_schema.mean_success_rate:.3f}")
-    print(f"Standard Deviation: {aggregate_schema.std_success_rate:.3f}")
+# Get validated schema with automatic constraint checking
+metrics = circuit_performance.get_metrics()
+print(f"Success Rate: {metrics.success_metrics.success_rate:.3f}")
+print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
+print(f"Error Rate: {metrics.success_metrics.error_rate:.3f}")  # Automatically validated
 ```
 
 ### Schema Validation and JSON Generation
@@ -480,7 +432,7 @@ import json
 
 # Generate JSON schema for API documentation
 complexity_metrics = ComplexityMetrics(circuit)
-schema_obj = complexity_metrics.get_structured_metrics()
+schema_obj = complexity_metrics.get_metrics()
 
 # Get JSON schema for documentation
 json_schema = ComplexityMetricsSchema.model_json_schema()
@@ -504,7 +456,11 @@ except Exception as e:
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 from qiskit import QuantumCircuit
-from typing import Dict, Any
+from pydantic import BaseModel
+
+class MyCustomMetricsSchema(BaseModel):
+    custom_complexity: float
+    circuit_signature: str
 
 class MyCustomMetric(MetricCalculator):
     def __init__(self, circuit: QuantumCircuit):
@@ -519,13 +475,13 @@ class MyCustomMetric(MetricCalculator):
     def is_ready(self) -> bool:
         return self.circuit is not None
     
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> MyCustomMetricsSchema:
         # Custom metric calculation
         custom_value = self.circuit.depth() * self.circuit.num_qubits
-        return {
-            "custom_complexity": custom_value,
-            "circuit_signature": f"{self.circuit.num_qubits}q_{self.circuit.depth()}d"
-        }
+        return MyCustomMetricsSchema(
+            custom_complexity=custom_value,
+            circuit_signature=f"{self.circuit.num_qubits}q_{self.circuit.depth()}d"
+        )
 
 # Usage
 scanner = Scanner(circuit=circuit)
@@ -539,13 +495,13 @@ results = scanner.calculate_metrics()
    - Use the Scanner class for all circuit analysis
    - Add metrics before calculating results
    - Consider using multiple metrics for comprehensive analysis
-   - Prefer structured metrics for type safety and validation
+   - All metrics now return validated schema objects by default
 
 2. **Schema Usage**
-   - Use structured methods when you need type safety and validation
-   - Use traditional dictionary methods for backward compatibility
-   - Leverage JSON schema generation for API documentation
+   - All metric classes now return schema objects directly via `get_metrics()`
    - Take advantage of IDE autocomplete with schema objects
+   - Use `to_flat_dict()` when you need dictionary format for DataFrames
+   - Leverage JSON schema generation for API documentation
 
 3. **Execution**
    - Handle job and result errors appropriately
@@ -554,20 +510,20 @@ results = scanner.calculate_metrics()
 
 4. **Data Management**
    - Use consistent naming conventions for analysis results
-   - Leverage schema validation to ensure data integrity
-   - Cache structured metrics when performing multiple analyses
+   - Schema validation ensures data integrity automatically
+   - Scanner handles schema-to-DataFrame conversion seamlessly
 
 5. **Custom Metrics**
    - Inherit from the MetricCalculator base class
    - Implement the required abstract methods
-   - Return results in a consistent format
+   - Return validated schema objects from `get_metrics()`
    - Document metric calculation methodology
-   - Consider adding schema validation for custom metrics
+   - Consider adding custom Pydantic schemas for validation
 
 6. **Performance**
    - Schema validation adds minimal overhead but provides significant benefits
-   - Use flat dictionary conversion for DataFrame operations
-   - Cache structured metrics when performing multiple analyses
+   - Scanner automatically handles `to_flat_dict()` conversion for DataFrames
+   - All validation happens at metric calculation time
 
 ## Visualization System
 

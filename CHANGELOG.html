@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -258,6 +258,182 @@
         <article role="main" id="furo-main-content">
           <section id="qward-changelog">
 <h1>QWARD Changelog<a class="headerlink" href="#qward-changelog" title="Link to this heading">¶</a></h1>
+<section id="version-0-8-0-api-simplification-and-unified-schema-based-architecture-2025">
+<h2>Version 0.8.0 - API Simplification and Unified Schema-Based Architecture (2025)<a class="headerlink" href="#version-0-8-0-api-simplification-and-unified-schema-based-architecture-2025" title="Link to this heading">¶</a></h2>
+<section id="major-api-simplification">
+<h3>🚀 <strong>Major API Simplification</strong><a class="headerlink" href="#major-api-simplification" title="Link to this heading">¶</a></h3>
+<section id="unified-schema-based-api">
+<h4>Unified Schema-Based API<a class="headerlink" href="#unified-schema-based-api" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Simplified API</strong>: All metric classes now use <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> to return schema objects directly</p></li>
+<li><p><strong>Removed Dual API</strong>: Eliminated the confusing dual approach of dictionary vs schema methods</p></li>
+<li><p><strong>Single Responsibility</strong>: Metric classes only return structured, validated data</p></li>
+<li><p><strong>Scanner Integration</strong>: Scanner automatically handles flattening via <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> for DataFrame creation</p></li>
+<li><p><strong>Type Safety by Default</strong>: Users automatically get validated schema objects with full IDE support</p></li>
+</ul>
+</section>
+<section id="method-consolidation">
+<h4>Method Consolidation<a class="headerlink" href="#method-consolidation" title="Link to this heading">¶</a></h4>
+<p><strong>Before (Confusing Dual API):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dictionary approach</span>
+<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns Dict[str, Any]</span>
+
+<span class="c1"># Schema approach  </span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>  <span class="c1"># Returns Schema object</span>
+<span class="n">basic</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">()</span>  <span class="c1"># QiskitMetrics only</span>
+<span class="n">gate_based</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_gate_based_metrics</span><span class="p">()</span>  <span class="c1"># ComplexityMetrics only</span>
+</pre></div>
+</div>
+<p><strong>After (Clean Unified API):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Single, consistent API across all metric classes</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns Schema object directly</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe access with IDE support</span>
+</pre></div>
+</div>
+</section>
+<section id="updated-method-signatures">
+<h4>Updated Method Signatures<a class="headerlink" href="#updated-method-signatures" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>QiskitMetrics</strong>: <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">QiskitMetricsSchema</span></code></p></li>
+<li><p><strong>ComplexityMetrics</strong>: <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code></p></li>
+<li><p><strong>CircuitPerformanceMetrics</strong>: <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code></p></li>
+</ul>
+</section>
+<section id="scanner-enhancements">
+<h4>Scanner Enhancements<a class="headerlink" href="#scanner-enhancements" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Automatic Detection</strong>: Scanner detects schema objects and calls <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> automatically</p></li>
+<li><p><strong>DataFrame Compatibility</strong>: Maintains backward compatibility with visualization system</p></li>
+<li><p><strong>Seamless Integration</strong>: No changes needed in existing Scanner usage patterns</p></li>
+</ul>
+</section>
+</section>
+<section id="technical-improvements">
+<h3>🔧 <strong>Technical Improvements</strong><a class="headerlink" href="#technical-improvements" title="Link to this heading">¶</a></h3>
+<section id="eliminated-api-confusion">
+<h4>Eliminated API Confusion<a class="headerlink" href="#eliminated-api-confusion" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Removed Methods</strong>: All <code class="docutils literal notranslate"><span class="pre">get_structured_*</span></code> methods eliminated</p></li>
+<li><p><strong>Removed Methods</strong>: All granular methods like <code class="docutils literal notranslate"><span class="pre">get_basic_metrics()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_gate_based_metrics()</span></code> removed</p></li>
+<li><p><strong>Consistent Interface</strong>: All metric classes have identical <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> interface</p></li>
+<li><p><strong>Less Code Duplication</strong>: No need to implement multiple methods per metric class</p></li>
+</ul>
+</section>
+<section id="enhanced-type-safety">
+<h4>Enhanced Type Safety<a class="headerlink" href="#enhanced-type-safety" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Default Validation</strong>: All metric access is validated by default</p></li>
+<li><p><strong>IDE Support</strong>: Full autocomplete and type hints out of the box</p></li>
+<li><p><strong>Error Prevention</strong>: Schema validation catches data inconsistencies early</p></li>
+<li><p><strong>JSON Schema</strong>: Automatic API documentation generation maintained</p></li>
+</ul>
+</section>
+</section>
+<section id="documentation-updates">
+<h3>📚 <strong>Documentation Updates</strong><a class="headerlink" href="#documentation-updates" title="Link to this heading">¶</a></h3>
+<section id="comprehensive-documentation-overhaul">
+<h4>Comprehensive Documentation Overhaul<a class="headerlink" href="#comprehensive-documentation-overhaul" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Updated All Examples</strong>: All code examples now use the simplified API</p></li>
+<li><p><strong>Removed Dual API References</strong>: Eliminated confusing “traditional vs schema” comparisons</p></li>
+<li><p><strong>Simplified Guides</strong>: Cleaner, more focused documentation without API choice confusion</p></li>
+<li><p><strong>Updated Architecture Diagrams</strong>: Mermaid diagrams reflect the simplified architecture</p></li>
+</ul>
+</section>
+<section id="migration-information">
+<h4>Migration Information<a class="headerlink" href="#migration-information" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Breaking Changes</strong>: Old <code class="docutils literal notranslate"><span class="pre">get_structured_*</span></code> methods no longer available</p></li>
+<li><p><strong>Simple Migration</strong>: Replace <code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> with <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></p></li>
+<li><p><strong>Scanner Compatibility</strong>: Scanner usage remains unchanged</p></li>
+<li><p><strong>Visualization Compatibility</strong>: All visualization examples work without changes</p></li>
+</ul>
+</section>
+</section>
+<section id="benefits-achieved">
+<h3>🎯 <strong>Benefits Achieved</strong><a class="headerlink" href="#benefits-achieved" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Eliminated Confusion</strong>: No more choice between dictionary vs schema approaches</p></li>
+<li><p><strong>Type Safety by Default</strong>: Users automatically get validated data with IDE support</p></li>
+<li><p><strong>Consistent API</strong>: All metric classes have the same interface</p></li>
+<li><p><strong>Reduced Complexity</strong>: Fewer methods to learn and maintain</p></li>
+<li><p><strong>Better Developer Experience</strong>: Clear, predictable API with excellent tooling support</p></li>
+<li><p><strong>Maintained Functionality</strong>: Scanner and visualization systems work seamlessly</p></li>
+</ol>
+</section>
+<section id="updated-usage-examples">
+<h3>📖 <strong>Updated Usage Examples</strong><a class="headerlink" href="#updated-usage-examples" title="Link to this heading">¶</a></h3>
+<section id="simple-consistent-api">
+<h4>Simple, Consistent API<a class="headerlink" href="#simple-consistent-api" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># All metric classes use the same pattern</span>
+<span class="n">qiskit_metrics</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns QiskitMetricsSchema</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe access</span>
+
+<span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns ComplexityMetricsSchema</span>
+<span class="n">qv</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span>  <span class="c1"># Type-safe access</span>
+
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
+<span class="n">success_rate</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span>  <span class="c1"># Type-safe access</span>
+</pre></div>
+</div>
+</section>
+<section id="scanner-integration-unchanged">
+<h4>Scanner Integration (Unchanged)<a class="headerlink" href="#scanner-integration-unchanged" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scanner usage remains exactly the same</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">dataframes</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>  <span class="c1"># Still returns DataFrames</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="migration-guide">
+<h3>🔄 <strong>Migration Guide</strong><a class="headerlink" href="#migration-guide" title="Link to this heading">¶</a></h3>
+<section id="for-existing-users">
+<h4>For Existing Users<a class="headerlink" href="#for-existing-users" title="Link to this heading">¶</a></h4>
+<p>Simple migration path - just update method calls:</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old dual API approach</span>
+<span class="n">traditional_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Dict</span>
+<span class="n">schema_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>  <span class="c1"># Schema</span>
+<span class="n">basic_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">()</span>  <span class="c1"># Granular access</span>
+</pre></div>
+</div>
+<p><strong>After:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># New unified API approach</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns Schema directly</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe access</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="scanner-usage-unchanged">
+<h3>Scanner Usage (Unchanged)<a class="headerlink" href="#scanner-usage-unchanged" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scanner usage remains exactly the same</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">dataframes</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>  <span class="c1"># Still returns DataFrames</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling">
+<h3>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simple error handling for the new API</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+    <span class="c1"># Use validated data with confidence</span>
+    <span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metric calculation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
 <section id="version-0-7-0-class-naming-refactoring-and-documentation-restructuring-2025">
 <h2>Version 0.7.0 - Class Naming Refactoring and Documentation Restructuring (2025)<a class="headerlink" href="#version-0-7-0-class-naming-refactoring-and-documentation-restructuring-2025" title="Link to this heading">¶</a></h2>
 <section id="class-naming-refactoring">
@@ -327,8 +503,8 @@
 </ul>
 </section>
 </section>
-<section id="technical-improvements">
-<h3>🔧 <strong>Technical Improvements</strong><a class="headerlink" href="#technical-improvements" title="Link to this heading">¶</a></h3>
+<section id="id1">
+<h3>🔧 <strong>Technical Improvements</strong><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <section id="backward-compatibility-maintained">
 <h4>Backward Compatibility Maintained<a class="headerlink" href="#backward-compatibility-maintained" title="Link to this heading">¶</a></h4>
 <ul class="simple">
@@ -367,8 +543,8 @@
 </ul>
 </section>
 </section>
-<section id="benefits-achieved">
-<h3>🎯 <strong>Benefits Achieved</strong><a class="headerlink" href="#benefits-achieved" title="Link to this heading">¶</a></h3>
+<section id="id2">
+<h3>🎯 <strong>Benefits Achieved</strong><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p><strong>No Import Conflicts</strong>: Users no longer need aliases for class imports</p></li>
 <li><p><strong>Clear Naming</strong>: Explicit distinction between metrics and visualizers</p></li>
@@ -414,28 +590,17 @@
 <ul class="simple">
 <li><p><strong>QiskitMetrics</strong>: Added structured methods for granular access</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_basic_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">BasicMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_instruction_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">InstructionMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_scheduling_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">SchedulingMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">QiskitMetricsSchema</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">QiskitMetricsSchema</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>ComplexityMetrics</strong>: Comprehensive schema validation with constraints</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_gate_based_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">GateBasedMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_entanglement_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">EntanglementMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_standardized_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">StandardizedMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_advanced_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">AdvancedMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_derived_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">DerivedMetricsSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_quantum_volume()</span></code> → <code class="docutils literal notranslate"><span class="pre">QuantumVolumeSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>CircuitPerformanceMetrics</strong>: Enhanced validation for single and multiple job analysis</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_single_job_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceJobSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_multiple_jobs_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceAggregateSchema</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_structured_metrics()</span></code> → Union of above schemas</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> → <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code></p></li>
 </ul>
 </li>
 </ul>
@@ -465,8 +630,8 @@
 </li>
 </ul>
 </section>
-<section id="enhanced-type-safety">
-<h4>Enhanced Type Safety<a class="headerlink" href="#enhanced-type-safety" title="Link to this heading">¶</a></h4>
+<section id="id3">
+<h4>Enhanced Type Safety<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Migrated to Pydantic V2</strong> with modern field validators</p></li>
 <li><p><strong>Fixed all mypy type checking issues</strong></p></li>
@@ -475,10 +640,10 @@
 </ul>
 </section>
 </section>
-<section id="documentation-updates">
-<h3>📚 Documentation Updates<a class="headerlink" href="#documentation-updates" title="Link to this heading">¶</a></h3>
-<section id="comprehensive-documentation-overhaul">
-<h4>Comprehensive Documentation Overhaul<a class="headerlink" href="#comprehensive-documentation-overhaul" title="Link to this heading">¶</a></h4>
+<section id="id4">
+<h3>📚 Documentation Updates<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<section id="id5">
+<h4>Comprehensive Documentation Overhaul<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Updated Architecture Documentation</strong></p>
 <ul>
@@ -514,8 +679,8 @@
 </ul>
 </section>
 </section>
-<section id="id1">
-<h3>🛠️ Technical Improvements<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<section id="id6">
+<h3>🛠️ Technical Improvements<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <section id="module-organization">
 <h4>Module Organization<a class="headerlink" href="#module-organization" title="Link to this heading">¶</a></h4>
 <ul class="simple">
@@ -580,8 +745,8 @@
 <li><p><strong>JSON Schema Generation</strong>: API documentation automation</p></li>
 </ul>
 </section>
-<section id="id2">
-<h4>Updated Examples<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<section id="id7">
+<h4>Updated Examples<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Modernized existing examples</strong> to show both approaches</p></li>
 <li><p><strong>Added error handling patterns</strong> for robust applications</p></li>
@@ -641,35 +806,43 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="migration-guide">
-<h2>Migration Guide<a class="headerlink" href="#migration-guide" title="Link to this heading">¶</a></h2>
-<section id="for-existing-users">
-<h3>For Existing Users<a class="headerlink" href="#for-existing-users" title="Link to this heading">¶</a></h3>
-<p>No changes required! All existing code continues to work exactly as before.</p>
-</section>
-<section id="for-new-features">
-<h3>For New Features<a class="headerlink" href="#for-new-features" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Traditional approach (still supported)</span>
-<span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
-<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;basic_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span>
-
-<span class="c1"># New schema approach (recommended for new code)</span>
-<span class="n">schema</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
-<span class="n">depth</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe with IDE support</span>
+<section id="id8">
+<h2>Migration Guide<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<section id="id9">
+<h3>For Existing Users<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<p>Simple migration path - just update method calls:</p>
+<p><strong>Before:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old dual API approach</span>
+<span class="n">traditional_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Dict</span>
+<span class="n">schema_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>  <span class="c1"># Schema</span>
+<span class="n">basic_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">()</span>  <span class="c1"># Granular access</span>
+</pre></div>
+</div>
+<p><strong>After:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># New unified API approach</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns Schema directly</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe access</span>
 </pre></div>
 </div>
 </section>
-<section id="error-handling">
-<h3>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">structured_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
+<section id="id10">
+<h3>Scanner Usage (Unchanged)<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scanner usage remains exactly the same</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">dataframes</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>  <span class="c1"># Still returns DataFrames</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3>Error Handling<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simple error handling for the new API</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
     <span class="c1"># Use validated data with confidence</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="c1"># Fallback to traditional approach if Pydantic not available</span>
-    <span class="n">traditional_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
-<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="c1"># Handle validation errors gracefully</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metric calculation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -681,7 +854,8 @@
 <li><p>Enhanced architecture and schema validation system</p></li>
 <li><p>Comprehensive code cleanup and type safety improvements</p></li>
 <li><p>Complete documentation overhaul with modern examples</p></li>
-<li><p>Backward-compatible API design with future-ready features</p></li>
+<li><p>API simplification with maintained functionality</p></li>
+<li><p>Backward-compatible design with future-ready features</p></li>
 </ul>
 </section>
 </section>
@@ -724,6 +898,38 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">QWARD Changelog</a><ul>
+<li><a class="reference internal" href="#version-0-8-0-api-simplification-and-unified-schema-based-architecture-2025">Version 0.8.0 - API Simplification and Unified Schema-Based Architecture (2025)</a><ul>
+<li><a class="reference internal" href="#major-api-simplification">🚀 <strong>Major API Simplification</strong></a><ul>
+<li><a class="reference internal" href="#unified-schema-based-api">Unified Schema-Based API</a></li>
+<li><a class="reference internal" href="#method-consolidation">Method Consolidation</a></li>
+<li><a class="reference internal" href="#updated-method-signatures">Updated Method Signatures</a></li>
+<li><a class="reference internal" href="#scanner-enhancements">Scanner Enhancements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#technical-improvements">🔧 <strong>Technical Improvements</strong></a><ul>
+<li><a class="reference internal" href="#eliminated-api-confusion">Eliminated API Confusion</a></li>
+<li><a class="reference internal" href="#enhanced-type-safety">Enhanced Type Safety</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#documentation-updates">📚 <strong>Documentation Updates</strong></a><ul>
+<li><a class="reference internal" href="#comprehensive-documentation-overhaul">Comprehensive Documentation Overhaul</a></li>
+<li><a class="reference internal" href="#migration-information">Migration Information</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#benefits-achieved">🎯 <strong>Benefits Achieved</strong></a></li>
+<li><a class="reference internal" href="#updated-usage-examples">📖 <strong>Updated Usage Examples</strong></a><ul>
+<li><a class="reference internal" href="#simple-consistent-api">Simple, Consistent API</a></li>
+<li><a class="reference internal" href="#scanner-integration-unchanged">Scanner Integration (Unchanged)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#migration-guide">🔄 <strong>Migration Guide</strong></a><ul>
+<li><a class="reference internal" href="#for-existing-users">For Existing Users</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scanner-usage-unchanged">Scanner Usage (Unchanged)</a></li>
+<li><a class="reference internal" href="#error-handling">Error Handling</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#version-0-7-0-class-naming-refactoring-and-documentation-restructuring-2025">Version 0.7.0 - Class Naming Refactoring and Documentation Restructuring (2025)</a><ul>
 <li><a class="reference internal" href="#class-naming-refactoring">🔄 <strong>Class Naming Refactoring</strong></a><ul>
 <li><a class="reference internal" href="#metrics-classes">Metrics Classes</a></li>
@@ -737,7 +943,7 @@
 <li><a class="reference internal" href="#api-documentation-enhancements">API Documentation Enhancements</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#technical-improvements">🔧 <strong>Technical Improvements</strong></a><ul>
+<li><a class="reference internal" href="#id1">🔧 <strong>Technical Improvements</strong></a><ul>
 <li><a class="reference internal" href="#backward-compatibility-maintained">Backward Compatibility Maintained</a></li>
 <li><a class="reference internal" href="#path-corrections">Path Corrections</a></li>
 </ul>
@@ -747,7 +953,7 @@
 <li><a class="reference internal" href="#documentation-accuracy">Documentation Accuracy</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#benefits-achieved">🎯 <strong>Benefits Achieved</strong></a></li>
+<li><a class="reference internal" href="#id2">🎯 <strong>Benefits Achieved</strong></a></li>
 <li><a class="reference internal" href="#updated-examples">📖 <strong>Updated Examples</strong></a></li>
 </ul>
 </li>
@@ -760,14 +966,14 @@
 <li><a class="reference internal" href="#code-quality-improvements">🔧 Code Quality Improvements</a><ul>
 <li><a class="reference internal" href="#cleaned-up-codebase">Cleaned Up Codebase</a></li>
 <li><a class="reference internal" href="#simplified-architecture">Simplified Architecture</a></li>
-<li><a class="reference internal" href="#enhanced-type-safety">Enhanced Type Safety</a></li>
+<li><a class="reference internal" href="#id3">Enhanced Type Safety</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#documentation-updates">📚 Documentation Updates</a><ul>
-<li><a class="reference internal" href="#comprehensive-documentation-overhaul">Comprehensive Documentation Overhaul</a></li>
+<li><a class="reference internal" href="#id4">📚 Documentation Updates</a><ul>
+<li><a class="reference internal" href="#id5">Comprehensive Documentation Overhaul</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id1">🛠️ Technical Improvements</a><ul>
+<li><a class="reference internal" href="#id6">🛠️ Technical Improvements</a><ul>
 <li><a class="reference internal" href="#module-organization">Module Organization</a></li>
 <li><a class="reference internal" href="#backward-compatibility">Backward Compatibility</a></li>
 </ul>
@@ -780,7 +986,7 @@
 </li>
 <li><a class="reference internal" href="#examples-and-demos">📊 Examples and Demos</a><ul>
 <li><a class="reference internal" href="#new-demonstration-files">New Demonstration Files</a></li>
-<li><a class="reference internal" href="#id2">Updated Examples</a></li>
+<li><a class="reference internal" href="#id7">Updated Examples</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#validation-capabilities">🔍 Validation Capabilities</a><ul>
@@ -796,10 +1002,10 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#migration-guide">Migration Guide</a><ul>
-<li><a class="reference internal" href="#for-existing-users">For Existing Users</a></li>
-<li><a class="reference internal" href="#for-new-features">For New Features</a></li>
-<li><a class="reference internal" href="#error-handling">Error Handling</a></li>
+<li><a class="reference internal" href="#id8">Migration Guide</a><ul>
+<li><a class="reference internal" href="#id9">For Existing Users</a></li>
+<li><a class="reference internal" href="#id10">Scanner Usage (Unchanged)</a></li>
+<li><a class="reference internal" href="#id11">Error Handling</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#contributors">Contributors</a></li>
