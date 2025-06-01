@@ -141,7 +141,7 @@ class Scanner:
                         single_metrics = strategy.get_single_job_metrics()
                         single_job_df = pd.DataFrame([single_metrics])
                         metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-                elif hasattr(metric_results, 'to_flat_dict'):
+                elif hasattr(metric_results, "to_flat_dict"):
                     # New schema-based API - convert to flat dict for DataFrame compatibility
                     flattened_metrics = metric_results.to_flat_dict()
                     single_job_df = pd.DataFrame([flattened_metrics])
@@ -165,7 +165,7 @@ class Scanner:
                                 flattened_metrics[category] = category_metrics
                     else:
                         # If it's a schema object, convert to dict first
-                        if hasattr(metric_results, 'model_dump'):
+                        if hasattr(metric_results, "model_dump"):
                             metric_dict = metric_results.model_dump()
                             for category, category_metrics in metric_dict.items():
                                 if isinstance(category_metrics, dict):
@@ -178,7 +178,7 @@ class Scanner:
                     metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
             else:
                 # Handle other metrics - check if it's a schema object
-                if hasattr(metric_results, 'to_flat_dict'):
+                if hasattr(metric_results, "to_flat_dict"):
                     # Schema object - use to_flat_dict method
                     flattened_metrics = metric_results.to_flat_dict()
                 elif isinstance(metric_results, dict):
@@ -192,7 +192,7 @@ class Scanner:
                             flattened_metrics[key] = value
                 else:
                     # Schema object without to_flat_dict - try model_dump
-                    if hasattr(metric_results, 'model_dump'):
+                    if hasattr(metric_results, "model_dump"):
                         metric_dict = metric_results.model_dump()
                         flattened_metrics = {}
                         for key, value in metric_dict.items():

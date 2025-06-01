@@ -1,5 +1,150 @@
 # QWARD Changelog
 
+## Version 0.8.0 - API Simplification and Unified Schema-Based Architecture (2025)
+
+### 🚀 **Major API Simplification**
+
+#### Unified Schema-Based API
+- **Simplified API**: All metric classes now use `get_metrics()` to return schema objects directly
+- **Removed Dual API**: Eliminated the confusing dual approach of dictionary vs schema methods
+- **Single Responsibility**: Metric classes only return structured, validated data
+- **Scanner Integration**: Scanner automatically handles flattening via `to_flat_dict()` for DataFrame creation
+- **Type Safety by Default**: Users automatically get validated schema objects with full IDE support
+
+#### Method Consolidation
+**Before (Confusing Dual API):**
+```python
+# Dictionary approach
+metrics_dict = calculator.get_metrics()  # Returns Dict[str, Any]
+
+# Schema approach  
+schema = calculator.get_structured_metrics()  # Returns Schema object
+basic = calculator.get_basic_metrics()  # QiskitMetrics only
+gate_based = calculator.get_structured_gate_based_metrics()  # ComplexityMetrics only
+```
+
+**After (Clean Unified API):**
+```python
+# Single, consistent API across all metric classes
+metrics = calculator.get_metrics()  # Returns Schema object directly
+depth = metrics.basic_metrics.depth  # Type-safe access with IDE support
+```
+
+#### Updated Method Signatures
+- **QiskitMetrics**: `get_metrics()` → `QiskitMetricsSchema`
+- **ComplexityMetrics**: `get_metrics()` → `ComplexityMetricsSchema`  
+- **CircuitPerformanceMetrics**: `get_metrics()` → `CircuitPerformanceSchema`
+
+#### Scanner Enhancements
+- **Automatic Detection**: Scanner detects schema objects and calls `to_flat_dict()` automatically
+- **DataFrame Compatibility**: Maintains backward compatibility with visualization system
+- **Seamless Integration**: No changes needed in existing Scanner usage patterns
+
+### 🔧 **Technical Improvements**
+
+#### Eliminated API Confusion
+- **Removed Methods**: All `get_structured_*` methods eliminated
+- **Removed Methods**: All granular methods like `get_basic_metrics()`, `get_gate_based_metrics()` removed
+- **Consistent Interface**: All metric classes have identical `get_metrics()` interface
+- **Less Code Duplication**: No need to implement multiple methods per metric class
+
+#### Enhanced Type Safety
+- **Default Validation**: All metric access is validated by default
+- **IDE Support**: Full autocomplete and type hints out of the box
+- **Error Prevention**: Schema validation catches data inconsistencies early
+- **JSON Schema**: Automatic API documentation generation maintained
+
+### 📚 **Documentation Updates**
+
+#### Comprehensive Documentation Overhaul
+- **Updated All Examples**: All code examples now use the simplified API
+- **Removed Dual API References**: Eliminated confusing "traditional vs schema" comparisons
+- **Simplified Guides**: Cleaner, more focused documentation without API choice confusion
+- **Updated Architecture Diagrams**: Mermaid diagrams reflect the simplified architecture
+
+#### Migration Information
+- **Breaking Changes**: Old `get_structured_*` methods no longer available
+- **Simple Migration**: Replace `get_structured_metrics()` with `get_metrics()`
+- **Scanner Compatibility**: Scanner usage remains unchanged
+- **Visualization Compatibility**: All visualization examples work without changes
+
+### 🎯 **Benefits Achieved**
+
+1. **Eliminated Confusion**: No more choice between dictionary vs schema approaches
+2. **Type Safety by Default**: Users automatically get validated data with IDE support
+3. **Consistent API**: All metric classes have the same interface
+4. **Reduced Complexity**: Fewer methods to learn and maintain
+5. **Better Developer Experience**: Clear, predictable API with excellent tooling support
+6. **Maintained Functionality**: Scanner and visualization systems work seamlessly
+
+### 📖 **Updated Usage Examples**
+
+#### Simple, Consistent API
+```python
+# All metric classes use the same pattern
+qiskit_metrics = QiskitMetrics(circuit)
+metrics = qiskit_metrics.get_metrics()  # Returns QiskitMetricsSchema
+depth = metrics.basic_metrics.depth  # Type-safe access
+
+complexity_metrics = ComplexityMetrics(circuit)
+metrics = complexity_metrics.get_metrics()  # Returns ComplexityMetricsSchema
+qv = metrics.quantum_volume.enhanced_quantum_volume  # Type-safe access
+
+circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
+metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
+success_rate = metrics.success_metrics.success_rate  # Type-safe access
+```
+
+#### Scanner Integration (Unchanged)
+```python
+# Scanner usage remains exactly the same
+scanner = Scanner(circuit=circuit)
+scanner.add_strategy(QiskitMetrics(circuit))
+scanner.add_strategy(ComplexityMetrics(circuit))
+dataframes = scanner.calculate_metrics()  # Still returns DataFrames
+```
+
+### 🔄 **Migration Guide**
+
+#### For Existing Users
+Simple migration path - just update method calls:
+
+**Before:**
+```python
+# Old dual API approach
+traditional_metrics = calculator.get_metrics()  # Dict
+schema_metrics = calculator.get_structured_metrics()  # Schema
+basic_metrics = calculator.get_basic_metrics()  # Granular access
+```
+
+**After:**
+```python
+# New unified API approach
+metrics = calculator.get_metrics()  # Returns Schema directly
+depth = metrics.basic_metrics.depth  # Type-safe access
+```
+
+### Scanner Usage (Unchanged)
+```python
+# Scanner usage remains exactly the same
+scanner = Scanner(circuit=circuit)
+scanner.add_strategy(QiskitMetrics(circuit))
+dataframes = scanner.calculate_metrics()  # Still returns DataFrames
+```
+
+### Error Handling
+```python
+# Simple error handling for the new API
+try:
+    metrics = calculator.get_metrics()
+    # Use validated data with confidence
+    depth = metrics.basic_metrics.depth
+except Exception as e:
+    print(f"Metric calculation failed: {e}")
+```
+
+---
+
 ## Version 0.7.0 - Class Naming Refactoring and Documentation Restructuring (2025)
 
 ### 🔄 **Class Naming Refactoring**
@@ -109,24 +254,13 @@ All examples updated with new class names:
 
 #### Enhanced Metric Calculators
 - **QiskitMetrics**: Added structured methods for granular access
-  - `get_basic_metrics()` → `BasicMetricsSchema`
-  - `get_instruction_metrics()` → `InstructionMetricsSchema`
-  - `get_scheduling_metrics()` → `SchedulingMetricsSchema`
-  - `get_structured_metrics()` → `QiskitMetricsSchema`
+  - `get_metrics()` → `QiskitMetricsSchema`
 
 - **ComplexityMetrics**: Comprehensive schema validation with constraints
-  - `get_structured_gate_based_metrics()` → `GateBasedMetricsSchema`
-  - `get_structured_entanglement_metrics()` → `EntanglementMetricsSchema`
-  - `get_structured_standardized_metrics()` → `StandardizedMetricsSchema`
-  - `get_structured_advanced_metrics()` → `AdvancedMetricsSchema`
-  - `get_structured_derived_metrics()` → `DerivedMetricsSchema`
-  - `get_structured_quantum_volume()` → `QuantumVolumeSchema`
-  - `get_structured_metrics()` → `ComplexityMetricsSchema`
+  - `get_metrics()` → `ComplexityMetricsSchema`
 
 - **CircuitPerformanceMetrics**: Enhanced validation for single and multiple job analysis
-  - `get_structured_single_job_metrics()` → `CircuitPerformanceJobSchema`
-  - `get_structured_multiple_jobs_metrics()` → `CircuitPerformanceAggregateSchema`
-  - `get_structured_metrics()` → Union of above schemas
+  - `get_metrics()` → `CircuitPerformanceSchema`
 
 ### 🔧 Code Quality Improvements
 
@@ -261,30 +395,40 @@ All examples updated with new class names:
 ## Migration Guide
 
 ### For Existing Users
-No changes required! All existing code continues to work exactly as before.
+Simple migration path - just update method calls:
 
-### For New Features
+**Before:**
 ```python
-# Traditional approach (still supported)
-metrics = calculator.get_metrics()
-depth = metrics['basic_metrics']['depth']
+# Old dual API approach
+traditional_metrics = calculator.get_metrics()  # Dict
+schema_metrics = calculator.get_structured_metrics()  # Schema
+basic_metrics = calculator.get_basic_metrics()  # Granular access
+```
 
-# New schema approach (recommended for new code)
-schema = calculator.get_structured_metrics()
-depth = schema.basic_metrics.depth  # Type-safe with IDE support
+**After:**
+```python
+# New unified API approach
+metrics = calculator.get_metrics()  # Returns Schema directly
+depth = metrics.basic_metrics.depth  # Type-safe access
+```
+
+### Scanner Usage (Unchanged)
+```python
+# Scanner usage remains exactly the same
+scanner = Scanner(circuit=circuit)
+scanner.add_strategy(QiskitMetrics(circuit))
+dataframes = scanner.calculate_metrics()  # Still returns DataFrames
 ```
 
 ### Error Handling
 ```python
+# Simple error handling for the new API
 try:
-    structured_metrics = calculator.get_structured_metrics()
+    metrics = calculator.get_metrics()
     # Use validated data with confidence
-except ImportError:
-    # Fallback to traditional approach if Pydantic not available
-    traditional_metrics = calculator.get_metrics()
-except ValidationError as e:
-    # Handle validation errors gracefully
-    print(f"Data validation failed: {e}")
+    depth = metrics.basic_metrics.depth
+except Exception as e:
+    print(f"Metric calculation failed: {e}")
 ```
 
 ---
@@ -293,4 +437,5 @@ except ValidationError as e:
 - Enhanced architecture and schema validation system
 - Comprehensive code cleanup and type safety improvements
 - Complete documentation overhaul with modern examples
-- Backward-compatible API design with future-ready features 
+- API simplification with maintained functionality
+- Backward-compatible design with future-ready features 

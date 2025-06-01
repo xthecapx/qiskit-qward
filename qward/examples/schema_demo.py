@@ -42,7 +42,7 @@ def demo_traditional_approach() -> Dict[str, Any]:
 
     # New API - get_metrics() returns schema object
     schema_metrics = qiskit_metrics.get_metrics()
-    
+
     # Convert to traditional flattened dictionary for backward compatibility
     traditional_metrics = schema_metrics.to_flat_dict()
 
