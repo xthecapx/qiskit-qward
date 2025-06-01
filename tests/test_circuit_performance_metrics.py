@@ -147,8 +147,10 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
 
     def test_custom_success_criteria(self):
         """Test with custom success criteria."""
+
         # Success criteria: only "00 00" state
-        only_00_criteria = lambda result: result == "00 00"
+        def only_00_criteria(result):
+            return result == "00 00"
 
         metrics = CircuitPerformanceMetrics(
             circuit=self.circuit, job=self.job, success_criteria=only_00_criteria
@@ -283,7 +285,8 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         job_single = self.simulator.run(single_qubit, shots=1000)
 
         # Success criteria for single qubit: state "0 0"
-        single_qubit_criteria = lambda result: result == "0 0"
+        def single_qubit_criteria(result):
+            return result == "0 0"
 
         metrics = CircuitPerformanceMetrics(
             circuit=single_qubit, job=job_single, success_criteria=single_qubit_criteria
@@ -303,7 +306,8 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         job_identity = self.simulator.run(identity_circuit, shots=1000)
 
         # Success criteria: state "00 00" (correct format with space)
-        identity_criteria = lambda result: result == "00 00"
+        def identity_criteria(result):
+            return result == "00 00"
 
         metrics = CircuitPerformanceMetrics(
             circuit=identity_circuit, job=job_identity, success_criteria=identity_criteria
