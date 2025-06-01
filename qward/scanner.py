@@ -141,7 +141,12 @@ class Scanner:
                         single_metrics = strategy.get_single_job_metrics()
                         single_job_df = pd.DataFrame([single_metrics])
                         metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-                elif "individual_jobs" in metric_results:
+                elif hasattr(metric_results, 'to_flat_dict'):
+                    # New schema-based API - convert to flat dict for DataFrame compatibility
+                    flattened_metrics = metric_results.to_flat_dict()
+                    single_job_df = pd.DataFrame([flattened_metrics])
+                    metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+                elif isinstance(metric_results, dict) and "individual_jobs" in metric_results:
                     # Legacy structure - multiple jobs case
                     individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
                     aggregate_df = pd.DataFrame([metric_results["aggregate"]])
@@ -149,26 +154,56 @@ class Scanner:
                     metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
                     metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
                 else:
-                    # New API structure - flatten it for DataFrame compatibility
+                    # Fallback - try to flatten manually
                     flattened_metrics = {}
-                    for category, category_metrics in metric_results.items():
-                        if isinstance(category_metrics, dict):
-                            for key, value in category_metrics.items():
-                                flattened_metrics[f"{category}.{key}"] = value
-                        else:
-                            flattened_metrics[category] = category_metrics
+                    if isinstance(metric_results, dict):
+                        for category, category_metrics in metric_results.items():
+                            if isinstance(category_metrics, dict):
+                                for key, value in category_metrics.items():
+                                    flattened_metrics[f"{category}.{key}"] = value
+                            else:
+                                flattened_metrics[category] = category_metrics
+                    else:
+                        # If it's a schema object, convert to dict first
+                        if hasattr(metric_results, 'model_dump'):
+                            metric_dict = metric_results.model_dump()
+                            for category, category_metrics in metric_dict.items():
+                                if isinstance(category_metrics, dict):
+                                    for key, value in category_metrics.items():
+                                        flattened_metrics[f"{category}.{key}"] = value
+                                else:
+                                    flattened_metrics[category] = category_metrics
 
                     single_job_df = pd.DataFrame([flattened_metrics])
                     metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
             else:
-                # Handle other metrics normally
-                flattened_metrics = {}
-                for key, value in metric_results.items():
-                    if isinstance(value, dict):
-                        for subkey, subvalue in value.items():
-                            flattened_metrics[f"{key}.{subkey}"] = subvalue
+                # Handle other metrics - check if it's a schema object
+                if hasattr(metric_results, 'to_flat_dict'):
+                    # Schema object - use to_flat_dict method
+                    flattened_metrics = metric_results.to_flat_dict()
+                elif isinstance(metric_results, dict):
+                    # Legacy dictionary - flatten manually
+                    flattened_metrics = {}
+                    for key, value in metric_results.items():
+                        if isinstance(value, dict):
+                            for subkey, subvalue in value.items():
+                                flattened_metrics[f"{key}.{subkey}"] = subvalue
+                        else:
+                            flattened_metrics[key] = value
+                else:
+                    # Schema object without to_flat_dict - try model_dump
+                    if hasattr(metric_results, 'model_dump'):
+                        metric_dict = metric_results.model_dump()
+                        flattened_metrics = {}
+                        for key, value in metric_dict.items():
+                            if isinstance(value, dict):
+                                for subkey, subvalue in value.items():
+                                    flattened_metrics[f"{key}.{subkey}"] = subvalue
+                            else:
+                                flattened_metrics[key] = value
                     else:
-                        flattened_metrics[key] = value
+                        # Fallback - treat as single value
+                        flattened_metrics = {"value": metric_results}
 
                 # Create DataFrame for this metric type
                 df = pd.DataFrame([flattened_metrics])

@@ -106,7 +106,7 @@ def demo_schema_approach() -> None:
     try:
         # Calculate structured metrics for single job
         circuit_performance = CircuitPerformanceMetrics(circuit, job=job)
-        structured_metrics = circuit_performance.get_structured_metrics()
+        structured_metrics = circuit_performance.get_metrics()
 
         print("✓ Schema-based metrics (structured object):")
         print(f"   Type: {type(structured_metrics)}")
@@ -128,7 +128,7 @@ def demo_schema_approach() -> None:
         ]
 
         circuit_performance_multi = CircuitPerformanceMetrics(circuit, jobs=jobs)
-        aggregate_metrics = circuit_performance_multi.get_structured_metrics()
+        aggregate_metrics = circuit_performance_multi.get_metrics()
 
         print("\n✓ Multiple jobs aggregate metrics:")
         print(f"   Mean Success Rate: {aggregate_metrics.success_metrics.mean_success_rate}")
@@ -157,7 +157,7 @@ def demo_custom_success_criteria() -> None:
     default_metrics = default_success.get_metrics()
 
     print("Default Success Criteria (|00⟩ only):")
-    print(f"Success Rate: {default_metrics['success_metrics']['success_rate']:.3f}")
+    print(f"Success Rate: {default_metrics.success_metrics.success_rate:.3f}")
     print()
 
     # Custom success criteria (Bell state outcomes: |00⟩ or |11⟩)
@@ -173,7 +173,7 @@ def demo_custom_success_criteria() -> None:
     bell_metrics = bell_success.get_metrics()
 
     print("Custom Success Criteria (|00⟩ or |11⟩):")
-    print(f"Success Rate: {bell_metrics['success_metrics']['success_rate']:.3f}")
+    print(f"Success Rate: {bell_metrics.success_metrics.success_rate:.3f}")
     print()
 
 
@@ -274,7 +274,7 @@ def demo_validation_features() -> None:
 
     # Get real metrics and validate them
     circuit_performance = CircuitPerformanceMetrics(circuit, job=job)
-    real_metrics = circuit_performance.get_structured_metrics()
+    real_metrics = circuit_performance.get_metrics()  # Now returns schema directly
 
     print("✓ Real metrics validated successfully:")
     print(f"   Success Rate: {real_metrics.success_metrics.success_rate:.3f}")

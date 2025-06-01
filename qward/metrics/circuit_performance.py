@@ -208,20 +208,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
     # Main API Methods
     # =============================================================================
 
-    def get_metrics(self) -> Dict[str, Any]:
-        """
-        Get all circuit performance metrics.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing all performance metrics organized by category
-        """
-        return {
-            "success_metrics": self.get_success_metrics(),
-            "fidelity_metrics": self.get_fidelity_metrics(),
-            "statistical_metrics": self.get_statistical_metrics(),
-        }
-
-    def get_structured_metrics(self) -> "CircuitPerformanceSchema":
+    def get_metrics(self) -> "CircuitPerformanceSchema":
         """
         Get all performance metrics as a structured, validated schema object.
 

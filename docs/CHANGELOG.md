@@ -109,9 +109,9 @@ All examples updated with new class names:
 
 #### Enhanced Metric Calculators
 - **QiskitMetrics**: Added structured methods for granular access
-  - `get_structured_basic_metrics()` → `BasicMetricsSchema`
-  - `get_structured_instruction_metrics()` → `InstructionMetricsSchema`
-  - `get_structured_scheduling_metrics()` → `SchedulingMetricsSchema`
+  - `get_basic_metrics()` → `BasicMetricsSchema`
+  - `get_instruction_metrics()` → `InstructionMetricsSchema`
+  - `get_scheduling_metrics()` → `SchedulingMetricsSchema`
   - `get_structured_metrics()` → `QiskitMetricsSchema`
 
 - **ComplexityMetrics**: Comprehensive schema validation with constraints
