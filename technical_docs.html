@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Project Overview" href="project_overview.html" /><link rel="prev" title="Qward Beginner’s Guide" href="beginners_guide.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="QWARD Project Overview" href="project_overview.html" /><link rel="prev" title="Qward Beginner’s Guide" href="beginners_guide.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Technical Documentation - Qward 0.1.0</title>
@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -269,6 +269,7 @@
 <li><p>Coordinates multiple metric calculators</p></li>
 <li><p>Returns consolidated results as DataFrames</p></li>
 <li><p>Supports both class-based and instance-based metric addition</p></li>
+<li><p>Automatically handles schema-to-DataFrame conversion</p></li>
 </ul>
 </section>
 <section id="output-format">
@@ -289,6 +290,7 @@
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsType.PRE_RUNTIME</span></code></p></li>
 <li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.QISKIT</span></code></p></li>
 <li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">QiskitMetrics(circuit:</span> <span class="pre">QuantumCircuit)</span></code></p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">QiskitMetricsSchema</span></code> object with validated data</p></li>
 </ul>
 </section>
 <section id="complexitymetrics">
@@ -298,6 +300,7 @@
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsType.PRE_RUNTIME</span></code></p></li>
 <li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.COMPLEXITY</span></code></p></li>
 <li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics(circuit:</span> <span class="pre">QuantumCircuit)</span></code></p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> object with validated data</p></li>
 </ul>
 </section>
 <section id="circuitperformancemetrics">
@@ -307,6 +310,7 @@
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsType.POST_RUNTIME</span></code></p></li>
 <li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.CIRCUIT_PERFORMANCE</span></code></p></li>
 <li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">job:</span> <span class="pre">Optional[Job]=None,</span> <span class="pre">jobs:</span> <span class="pre">Optional[List[Job]]=None,</span> <span class="pre">result:</span> <span class="pre">Optional[Dict]=None,</span> <span class="pre">success_criteria:</span> <span class="pre">Optional[Callable]=None)</span></code></p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validated data</p></li>
 </ul>
 </section>
 <section id="metric-types-and-ids">
@@ -338,8 +342,13 @@
 <span class="c1"># Method 2: Add metrics via constructor (using classes)</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">])</span>
 
-<span class="c1"># Calculate metrics</span>
+<span class="c1"># Calculate metrics (returns DataFrames)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access schema objects directly</span>
+<span class="n">qiskit_metrics</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns QiskitMetricsSchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -362,7 +371,12 @@
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
-<span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access schema object directly</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -385,7 +399,12 @@
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
-<span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access schema object directly</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -404,12 +423,13 @@
 </section>
 <section id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
-<p>Each metric calculator provides both traditional dictionary outputs and structured schema outputs:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Traditional approach</span>
-<span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<p>All metric calculators return validated schema objects directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Unified API - all metric classes work the same way</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns validated schema object</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span>  <span class="c1"># Type-safe access with IDE support</span>
 
-<span class="c1"># Schema-based approach</span>
-<span class="n">structured_metrics</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">get_structured_metrics</span><span class="p">()</span>
+<span class="c1"># Convert to flat dictionary for DataFrame operations when needed</span>
+<span class="n">flat_dict</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -601,12 +621,19 @@
 <li><p>Derived Metrics</p></li>
 </ul>
 <p>Example access:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># results = scanner.calculate_metrics()</span>
-<span class="c1"># complexity_df = results.get(&quot;ComplexityMetrics&quot;)</span>
-<span class="c1"># if complexity_df is not None:</span>
-<span class="c1">#     gate_count = complexity_df[&#39;gate_based_metrics.gate_count&#39;].iloc[0]</span>
-<span class="c1">#     t_count = complexity_df[&#39;gate_based_metrics.t_count&#39;].iloc[0]</span>
-<span class="c1">#     # ... and so on</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scanner returns DataFrames</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+<span class="n">complexity_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">complexity_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">gate_count</span> <span class="o">=</span> <span class="n">complexity_df</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics.gate_count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">t_count</span> <span class="o">=</span> <span class="n">complexity_df</span><span class="p">[</span><span class="s1">&#39;gate_based_metrics.t_count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># ... and so on</span>
+
+<span class="c1"># Direct schema access (recommended)</span>
+<span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns ComplexityMetricsSchema</span>
+<span class="n">gate_count</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">gate_based_metrics</span><span class="o">.</span><span class="n">gate_count</span>
+<span class="n">t_count</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">gate_based_metrics</span><span class="o">.</span><span class="n">t_count</span>
 </pre></div>
 </div>
 </section>
@@ -620,7 +647,13 @@
 <li><p><strong>Contributing Factors</strong>: <code class="docutils literal notranslate"><span class="pre">quantum_volume.factors.square_ratio</span></code>, etc.</p></li>
 </ul>
 <p>Example access from <code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code> DataFrame:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># enhanced_qv = complexity_df[&#39;quantum_volume.enhanced_quantum_volume&#39;].iloc[0]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DataFrame access</span>
+<span class="n">enhanced_qv</span> <span class="o">=</span> <span class="n">complexity_df</span><span class="p">[</span><span class="s1">&#39;quantum_volume.enhanced_quantum_volume&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Schema access (recommended)</span>
+<span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<span class="n">enhanced_qv</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span>
 </pre></div>
 </div>
 </section>
@@ -631,7 +664,7 @@
 <li><p><strong>Implement Abstract Methods</strong>: <code class="docutils literal notranslate"><span class="pre">_get_metric_type</span></code>, <code class="docutils literal notranslate"><span class="pre">_get_metric_id</span></code>, <code class="docutils literal notranslate"><span class="pre">is_ready</span></code>, <code class="docutils literal notranslate"><span class="pre">get_metrics</span></code>.</p></li>
 <li><p><strong>Strategy ID</strong>: If your strategy is conceptually new, consider if <code class="docutils literal notranslate"><span class="pre">MetricsId</span></code> enum in <code class="docutils literal notranslate"><span class="pre">qward.metrics.types</span></code> needs to be extended. For purely external or highly specific custom strategies, you might need a strategy if modifying the core enum is not desired (though the base class expects a <code class="docutils literal notranslate"><span class="pre">MetricsId</span></code> enum member).</p></li>
 <li><p><strong>Data Requirements</strong>: Clearly define if your strategy is <code class="docutils literal notranslate"><span class="pre">PRE_RUNTIME</span></code> (only needs circuit) or <code class="docutils literal notranslate"><span class="pre">POST_RUNTIME</span></code> (needs job/results). If <code class="docutils literal notranslate"><span class="pre">POST_RUNTIME</span></code>, your <code class="docutils literal notranslate"><span class="pre">__init__</span></code> should accept job(s) or result data, and <code class="docutils literal notranslate"><span class="pre">is_ready</span></code> should check for their presence.</p></li>
-<li><p><strong>Return Format</strong>: <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> must return a dictionary where keys are string metric names and values are the calculated metric values.</p></li>
+<li><p><strong>Return Format</strong>: <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> must return a validated Pydantic schema object for type safety and data integrity.</p></li>
 </ol>
 </section>
 <section id="api-flow-and-usage-patterns">
@@ -651,6 +684,11 @@
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 <span class="c1"># print(results[&quot;QiskitMetrics&quot;])</span>
 <span class="c1"># print(results[&quot;ComplexityMetrics&quot;])</span>
+
+<span class="c1"># Direct schema access</span>
+<span class="n">qiskit_metrics</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns QiskitMetricsSchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Circuit depth: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -671,6 +709,10 @@
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">qm</span><span class="p">,</span> <span class="n">cm</span><span class="p">])</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access schemas directly</span>
+<span class="n">qiskit_schema</span> <span class="o">=</span> <span class="n">qm</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<span class="n">complexity_schema</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -696,6 +738,11 @@
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 <span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
+
+<span class="c1"># Direct schema access</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">performance_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -909,7 +956,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Project Overview</div>
+                <div class="title">QWARD Project Overview</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

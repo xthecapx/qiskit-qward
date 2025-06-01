@@ -1,6 +1,6 @@
 # Quickstart Guide
 
-Qward is a Python library for analyzing quantum circuits and their execution quality on quantum processing units (QPUs) or simulators. This guide will help you quickly get started with both traditional dictionary-based metrics and the new schema-based validation system.
+Qward is a Python library for analyzing quantum circuits and their execution quality on quantum processing units (QPUs) or simulators. This guide will help you quickly get started with the unified schema-based API that provides type safety and data validation by default.
 
 ## Installation
 
@@ -38,7 +38,7 @@ pip install -e .
 
 ## Usage
 
-Qward revolves around the `Scanner` class, which uses various metric calculator objects to analyze Qiskit `QuantumCircuit` objects and their execution results. The library now provides both traditional dictionary outputs and modern schema-based validation for enhanced type safety and data integrity.
+Qward revolves around the `Scanner` class, which uses various metric calculator objects to analyze Qiskit `QuantumCircuit` objects and their execution results. The library provides a unified schema-based API that returns validated objects with full type safety and IDE support.
 
 ### Core Workflow
 
@@ -48,7 +48,7 @@ Qward revolves around the `Scanner` class, which uses various metric calculator 
 4.  **Add Metric Calculators**: Instantiate and add desired metric calculator classes from `qward.metrics` (e.g., `QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformanceMetrics`) to the scanner.
 5.  **Calculate Metrics**: Call `scanner.calculate_metrics()`.
 6.  **Interpret Results**: The result is a dictionary of pandas DataFrames, one for each metric type.
-7.  **(New) Use Schema Validation**: Access structured, validated metrics through schema objects for enhanced type safety.
+7.  **Use Schema Objects**: Access validated metrics directly through schema objects for enhanced type safety.
 
 ### Example: Analyzing a Simple Circuit
 
@@ -92,11 +92,11 @@ def success_if_00(bitstring):
 # CircuitPerformance needs a job to get counts from
 scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=success_if_00))
 
-# 5. Calculate Metrics (Traditional Approach)
+# 5. Calculate Metrics (Scanner returns DataFrames)
 all_metric_data = scanner.calculate_metrics()
 
 # 6. Interpret Results
-print("\n--- All Calculated Metrics (Traditional DataFrames) ---")
+print("\n--- All Calculated Metrics (DataFrames from Scanner) ---")
 for metric_name, df in all_metric_data.items():
     print(f"\nMetric: {metric_name}")
     display(df)
@@ -117,83 +117,73 @@ if "CircuitPerformance.aggregate" in all_metric_data:
     print(f"  Total Shots: {success_df['total_trials'].iloc[0]}")
 ```
 
-### New Feature: Schema-Based Validation
+### Schema-Based API (Type-Safe Access)
 
-Qward now provides structured, validated metrics through Pydantic schemas:
+Qward provides validated schema objects for direct access to metrics with full type safety:
 
 ```python
-# 7. Use Schema-Based Validation (New Feature)
-print("\n--- Schema-Based Validation (Type-Safe Access) ---")
+# 7. Use Schema-Based API (Type-Safe Access)
+print("\n--- Schema-Based API (Type-Safe Access) ---")
 
 # QiskitMetrics with schema validation
 qiskit_metrics = QiskitMetrics(qc)
-try:
-    # Get structured metrics with automatic validation
-    qiskit_schema = qiskit_metrics.get_structured_metrics()
-    
-    print("✅ QiskitMetrics Schema Validation:")
-    print(f"  Circuit Depth: {qiskit_schema.basic_metrics.depth}")
-    print(f"  Number of Qubits: {qiskit_schema.basic_metrics.num_qubits}")
-    print(f"  Gate Count: {qiskit_schema.basic_metrics.size}")
-    print(f"  Multi-qubit Gates: {qiskit_schema.instruction_metrics.multi_qubit_gate_count}")
-    
-    # Access granular schemas
-    basic_metrics = qiskit_metrics.get_structured_basic_metrics()
-    print(f"  Width: {basic_metrics.width}")
-    
-except ImportError:
-    print("❌ Pydantic not available - install pydantic for schema validation")
+qiskit_schema = qiskit_metrics.get_metrics()  # Returns QiskitMetricsSchema
+
+print("✅ QiskitMetrics Schema:")
+print(f"  Circuit Depth: {qiskit_schema.basic_metrics.depth}")
+print(f"  Number of Qubits: {qiskit_schema.basic_metrics.num_qubits}")
+print(f"  Gate Count: {qiskit_schema.basic_metrics.size}")
+print(f"  Multi-qubit Gates: {qiskit_schema.instruction_metrics.multi_qubit_gate_count}")
+print(f"  Width: {qiskit_schema.basic_metrics.width}")
 
 # ComplexityMetrics with schema validation
 complexity_metrics = ComplexityMetrics(qc)
-try:
-    complexity_schema = complexity_metrics.get_structured_metrics()
-    
-    print("\n✅ ComplexityMetrics Schema Validation:")
-    print(f"  Enhanced Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume:.2f}")
-    print(f"  Gate Density: {complexity_schema.standardized_metrics.gate_density:.3f}")
-    print(f"  Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_efficiency:.3f}")
-    print(f"  T-gate Count: {complexity_schema.gate_based_metrics.t_count}")
-    
-    # Access individual category schemas
-    gate_metrics = complexity_metrics.get_structured_gate_based_metrics()
-    print(f"  Multi-qubit Ratio: {gate_metrics.multi_qubit_ratio:.3f}")
-    
-    qv_metrics = complexity_metrics.get_structured_quantum_volume()
-    print(f"  QV Enhancement Factor: {qv_metrics.factors.enhancement_factor:.2f}")
-    
-except ImportError:
-    print("❌ Pydantic not available - install pydantic for schema validation")
+complexity_schema = complexity_metrics.get_metrics()  # Returns ComplexityMetricsSchema
+
+print("\n✅ ComplexityMetrics Schema:")
+print(f"  Enhanced Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume:.2f}")
+print(f"  Gate Density: {complexity_schema.standardized_metrics.gate_density:.3f}")
+print(f"  Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_efficiency:.3f}")
+print(f"  T-gate Count: {complexity_schema.gate_based_metrics.t_count}")
+print(f"  Multi-qubit Ratio: {complexity_schema.gate_based_metrics.multi_qubit_ratio:.3f}")
+print(f"  QV Enhancement Factor: {complexity_schema.quantum_volume.factors.enhancement_factor:.2f}")
 
 # CircuitPerformance with schema validation
 circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=success_if_00)
-try:
-    # Single job analysis
-    job_schema = circuit_performance.get_structured_single_job_metrics()
-    
-    print("\n✅ CircuitPerformanceMetrics Schema Validation:")
-    print(f"  Job ID: {job_schema.job_id}")
-    print(f"  Success Rate: {job_schema.success_rate:.3f}")
-    print(f"  Error Rate: {job_schema.error_rate:.3f}")  # Automatically validated
-    print(f"  Fidelity: {job_schema.fidelity:.3f}")
-    print(f"  Successful Shots: {job_schema.successful_shots}/{job_schema.total_shots}")
-    
-except ImportError:
-    print("❌ Pydantic not available - install pydantic for schema validation")
+performance_schema = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
+
+print("\n✅ CircuitPerformanceMetrics Schema:")
+print(f"  Success Rate: {performance_schema.success_metrics.success_rate:.3f}")
+print(f"  Error Rate: {performance_schema.success_metrics.error_rate:.3f}")  # Automatically validated
+print(f"  Fidelity: {performance_schema.fidelity_metrics.fidelity:.3f}")
+print(f"  Total Shots: {performance_schema.success_metrics.total_shots}")
+print(f"  Successful Shots: {performance_schema.success_metrics.successful_shots}")
 
 # Demonstrate validation in action
 try:
-    from qward.metrics.schemas import CircuitPerformanceJobSchema
+    from qward.metrics.schemas import CircuitPerformanceSchema
     
     print("\n🔍 Schema Validation Demo:")
     # This will raise ValidationError because success_rate > 1.0
-    invalid_data = CircuitPerformanceJobSchema(
-        job_id="test",
-        success_rate=1.5,  # Invalid!
-        error_rate=0.25,
-        fidelity=0.8,
-        total_shots=1000,
-        successful_shots=800
+    invalid_data = CircuitPerformanceSchema(
+        success_metrics={
+            "success_rate": 1.5,  # Invalid!
+            "error_rate": 0.25,
+            "total_shots": 1000,
+            "successful_shots": 800
+        },
+        fidelity_metrics={
+            "fidelity": 0.8,
+            "method": "theoretical_comparison",
+            "confidence": "high"
+        },
+        statistical_metrics={
+            "entropy": 0.5,
+            "uniformity": 0.6,
+            "concentration": 0.4,
+            "dominant_outcome_probability": 0.7,
+            "num_unique_outcomes": 2
+        }
     )
 except Exception as e:
     print(f"✅ Validation caught error: {type(e).__name__} - Success rate cannot exceed 1.0")
@@ -299,7 +289,12 @@ To create your own metric calculator, inherit from `qward.metrics.base_metric.Me
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
 from qiskit import QuantumCircuit
-from typing import Dict, Any
+from pydantic import BaseModel
+
+class MyCustomMetricsSchema(BaseModel):
+    custom_depth_plus_width: float
+    gates_per_qubit: float
+    circuit_signature: str
 
 class MySimpleCustomCalculator(MetricCalculator):
     def __init__(self, circuit: QuantumCircuit):
@@ -315,12 +310,12 @@ class MySimpleCustomCalculator(MetricCalculator):
     def is_ready(self) -> bool:
         return self.circuit is not None
 
-    def get_metrics(self) -> Dict[str, Any]:
-        return {
-            "custom_depth_plus_width": self.circuit.depth() + self.circuit.width(),
-            "gates_per_qubit": self.circuit.size() / self.circuit.num_qubits if self.circuit.num_qubits > 0 else 0,
-            "circuit_signature": f"{self.circuit.num_qubits}q_{self.circuit.depth()}d_{self.circuit.size()}g"
-        }
+    def get_metrics(self) -> MyCustomMetricsSchema:
+        return MyCustomMetricsSchema(
+            custom_depth_plus_width=self.circuit.depth() + self.circuit.width(),
+            gates_per_qubit=self.circuit.size() / self.circuit.num_qubits if self.circuit.num_qubits > 0 else 0,
+            circuit_signature=f"{self.circuit.num_qubits}q_{self.circuit.depth()}d_{self.circuit.size()}g"
+        )
 
 # Usage:
 custom_calculator = MySimpleCustomCalculator(qc)
@@ -328,8 +323,9 @@ scanner.add_strategy(custom_calculator)
 results = scanner.calculate_metrics() 
 print(results['MySimpleCustomCalculator'])
 
-# You can also add schema validation to your custom calculator
-# by creating Pydantic schemas and implementing get_structured_metrics()
+# Access schema object directly
+custom_metrics = custom_calculator.get_metrics()
+print(f"Custom complexity: {custom_metrics.custom_depth_plus_width}")
 ```
 
 ## Key Metrics Provided
@@ -340,7 +336,7 @@ Qward, through its built-in metric calculator classes, offers insights into:
    - **Basic metrics**: Depth, width, number of qubits/clbits, operations count
    - **Instruction metrics**: Multi-qubit gate count, connectivity analysis
    - **Scheduling metrics**: Timing and resource information
-   - **Schema support**: Type-safe access with `get_structured_basic_metrics()`, `get_structured_instruction_metrics()`, etc.
+   - **Schema support**: Type-safe access with full IDE autocomplete
 
 ### 2. Circuit Complexity (`ComplexityMetrics`)
    - **Gate-based metrics**: Gate counts, T-count, CNOT count, multi-qubit ratios
@@ -364,7 +360,7 @@ Qward, through its built-in metric calculator classes, offers insights into:
 
 ## Schema Benefits
 
-The new schema-based validation system provides:
+The schema-based validation system provides:
 
 1. **Type Safety**: Automatic validation of data types and constraints
 2. **Business Rules**: Cross-field validation (e.g., successful_shots ≤ total_shots)
@@ -378,12 +374,12 @@ The new schema-based validation system provides:
 Generate API documentation automatically:
 
 ```python
-from qward.metrics.schemas import ComplexityMetricsSchema, CircuitPerformanceJobSchema
+from qward.metrics.schemas import ComplexityMetricsSchema, CircuitPerformanceSchema
 import json
 
 # Generate JSON schemas for documentation
 complexity_json_schema = ComplexityMetricsSchema.model_json_schema()
-circuit_performance_json_schema = CircuitPerformanceJobSchema.model_json_schema()
+circuit_performance_json_schema = CircuitPerformanceSchema.model_json_schema()
 
 print("Complexity Metrics JSON Schema:")
 print(json.dumps(complexity_json_schema, indent=2))
@@ -394,20 +390,18 @@ print(json.dumps(complexity_json_schema, indent=2))
 ## Best Practices
 
 1. **Choose the Right Approach**:
-   - Use schema-based methods for new code requiring type safety
-   - Use traditional dictionary methods for backward compatibility
+   - Use schema objects for type safety and validation (recommended)
+   - Use Scanner DataFrames for analysis and visualization
    - Combine both approaches as needed
 
 2. **Error Handling**:
    ```python
    try:
-       structured_metrics = calculator.get_structured_metrics()
+       metrics = calculator.get_metrics()
        # Use validated data with confidence
-   except ImportError:
-       # Fallback to traditional approach if Pydantic not available
-       traditional_metrics = calculator.get_metrics()
+       depth = metrics.basic_metrics.depth
    except Exception as e:
-       print(f"Validation error: {e}")
+       print(f"Metric calculation failed: {e}")
    ```
 
 3. **Performance**: Schema validation adds minimal overhead but provides significant benefits

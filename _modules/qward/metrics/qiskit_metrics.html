@@ -201,7 +201,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -255,15 +255,13 @@
 <span class="sd">Qiskit metrics implementation for QWARD.</span>
 
 <span class="sd">This module provides the QiskitMetrics class for extracting various metrics</span>
-<span class="sd">from QuantumCircuit objects, supporting both traditional dictionary output</span>
-<span class="sd">and structured schema-based output with validation.</span>
+<span class="sd">from QuantumCircuit objects using structured schema-based output with validation.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.utils.flatten</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten_dict</span>
 
 <span class="c1"># Import schemas for structured data validation</span>
 <span class="k">try</span><span class="p">:</span>
@@ -286,8 +284,8 @@
 <span class="sd">    Extract metrics from QuantumCircuit objects.</span>
 
 <span class="sd">    This class analyzes quantum circuits and extracts various metrics that are</span>
-<span class="sd">    directly available from the QuantumCircuit class. It supports both traditional</span>
-<span class="sd">    dictionary-based output and structured schema-based output with validation.</span>
+<span class="sd">    directly available from the QuantumCircuit class using structured schema-based</span>
+<span class="sd">    output with validation.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        circuit: The quantum circuit to analyze (inherited from MetricCalculator)</span>
@@ -321,41 +319,7 @@
 
 <div class="viewcode-block" id="QiskitMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get metrics as a flattened dictionary for DataFrame compatibility.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Flattened dictionary containing all metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">basic_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">()</span>
-        <span class="n">instruction_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_instruction_metrics</span><span class="p">()</span>
-        <span class="n">scheduling_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_scheduling_metrics</span><span class="p">()</span>
-
-        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;basic_metrics&quot;</span><span class="p">:</span> <span class="n">basic_metrics</span><span class="p">,</span>
-            <span class="s2">&quot;instruction_metrics&quot;</span><span class="p">:</span> <span class="n">instruction_metrics</span><span class="p">,</span>
-            <span class="s2">&quot;scheduling_metrics&quot;</span><span class="p">:</span> <span class="n">scheduling_metrics</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="c1"># Flatten nested dictionaries for DataFrame compatibility</span>
-        <span class="n">to_flatten</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="s2">&quot;count_ops&quot;</span> <span class="ow">in</span> <span class="n">basic_metrics</span><span class="p">:</span>
-            <span class="n">count_ops</span> <span class="o">=</span> <span class="n">basic_metrics</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;count_ops&quot;</span><span class="p">)</span>
-            <span class="n">to_flatten</span><span class="p">[</span><span class="s2">&quot;basic_metrics.count_ops&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_ops</span>
-        <span class="k">if</span> <span class="s2">&quot;instructions&quot;</span> <span class="ow">in</span> <span class="n">instruction_metrics</span><span class="p">:</span>
-            <span class="n">instructions</span> <span class="o">=</span> <span class="n">instruction_metrics</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;instructions&quot;</span><span class="p">)</span>
-            <span class="n">to_flatten</span><span class="p">[</span><span class="s2">&quot;instruction_metrics.instructions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instructions</span>
-
-        <span class="c1"># Flatten and merge</span>
-        <span class="n">flat_metrics</span> <span class="o">=</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
-        <span class="n">flat_metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flatten_dict</span><span class="p">(</span><span class="n">to_flatten</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">flat_metrics</span></div>
-
-
-<div class="viewcode-block" id="QiskitMetrics.get_structured_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QiskitMetricsSchema</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QiskitMetricsSchema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get metrics as a structured, validated schema object.</span>
 
@@ -369,25 +333,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">QiskitMetricsSchema</span><span class="p">(</span>
-            <span class="n">basic_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_basic_metrics</span><span class="p">(),</span>
-            <span class="n">instruction_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_instruction_metrics</span><span class="p">(),</span>
-            <span class="n">scheduling_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_scheduling_metrics</span><span class="p">(),</span>
+            <span class="n">basic_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">(),</span>
+            <span class="n">instruction_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_instruction_metrics</span><span class="p">(),</span>
+            <span class="n">scheduling_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_scheduling_metrics</span><span class="p">(),</span>
         <span class="p">)</span></div>
 
 
     <span class="c1"># =============================================================================</span>
-    <span class="c1"># Basic Metrics</span>
+    <span class="c1"># Primary Structured API Methods</span>
     <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="QiskitMetrics.get_basic_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_basic_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_basic_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasicMetricsSchema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get basic circuit metrics.</span>
+<span class="sd">        Get basic circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Basic metrics including depth, width, size, counts, etc.</span>
+<span class="sd">            BasicMetricsSchema: Validated basic metrics including depth, width, size, counts, etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
 
         <span class="c1"># Check if calibrations attribute exists (removed in Qiskit 2.0)</span>
@@ -400,7 +366,7 @@
         <span class="c1"># Check if layout attribute exists</span>
         <span class="n">has_layout</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">{</span>
+        <span class="n">basic_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">(),</span>
             <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span>
             <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
@@ -411,35 +377,22 @@
             <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">,</span>
             <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="n">has_calibrations</span><span class="p">,</span>
             <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="n">has_layout</span><span class="p">,</span>
-        <span class="p">}</span></div>
+        <span class="p">}</span>
 
+        <span class="k">return</span> <span class="n">BasicMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">basic_data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QiskitMetrics.get_structured_basic_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_basic_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_basic_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasicMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get basic metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            BasicMetricsSchema: Validated basic metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">BasicMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_basic_metrics</span><span class="p">())</span></div>
-
-
-    <span class="c1"># =============================================================================</span>
-    <span class="c1"># Instruction Metrics</span>
-    <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="QiskitMetrics.get_instruction_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_instruction_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_instruction_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_instruction_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstructionMetricsSchema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get instruction-related circuit metrics.</span>
+<span class="sd">        Get instruction-related circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Instruction metrics including connectivity and factors</span>
+<span class="sd">            InstructionMetricsSchema: Validated instruction metrics including connectivity and factors</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
 
         <span class="c1"># Group instructions by operation name</span>
@@ -447,41 +400,28 @@
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">instructions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">get_instructions</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">{</span>
+        <span class="n">instruction_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="n">instructions</span><span class="p">,</span>
             <span class="s2">&quot;num_connected_components&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_connected_components</span><span class="p">(),</span>
             <span class="s2">&quot;num_nonlocal_gates&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_nonlocal_gates</span><span class="p">(),</span>
             <span class="s2">&quot;num_tensor_factors&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_tensor_factors</span><span class="p">(),</span>
             <span class="s2">&quot;num_unitary_factors&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_unitary_factors</span><span class="p">(),</span>
-        <span class="p">}</span></div>
+        <span class="p">}</span>
 
+        <span class="k">return</span> <span class="n">InstructionMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">instruction_data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QiskitMetrics.get_structured_instruction_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_instruction_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_instruction_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstructionMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get instruction metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            InstructionMetricsSchema: Validated instruction metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">InstructionMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_instruction_metrics</span><span class="p">())</span></div>
-
-
-    <span class="c1"># =============================================================================</span>
-    <span class="c1"># Scheduling Metrics</span>
-    <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="QiskitMetrics.get_scheduling_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_scheduling_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_scheduling_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_scheduling_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchedulingMetricsSchema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get scheduling-related circuit metrics.</span>
+<span class="sd">        Get scheduling-related circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Scheduling metrics (empty if circuit not scheduled)</span>
+<span class="sd">            SchedulingMetricsSchema: Validated scheduling metrics (empty if circuit not scheduled)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
         <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
 
@@ -513,20 +453,7 @@
                     <span class="p">}</span>
                 <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">metrics</span></div>
-
-
-<div class="viewcode-block" id="QiskitMetrics.get_structured_scheduling_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_structured_scheduling_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_scheduling_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchedulingMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get scheduling metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SchedulingMetricsSchema: Validated scheduling metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">SchedulingMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_scheduling_metrics</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="n">SchedulingMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">metrics</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
