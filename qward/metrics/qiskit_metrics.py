@@ -2,15 +2,13 @@
 Qiskit metrics implementation for QWARD.
 
 This module provides the QiskitMetrics class for extracting various metrics
-from QuantumCircuit objects, supporting both traditional dictionary output
-and structured schema-based output with validation.
+from QuantumCircuit objects using structured schema-based output with validation.
 """
 
 from typing import Any, Dict
 
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
-from qward.utils.flatten import flatten_dict
 
 # Import schemas for structured data validation
 try:
@@ -31,8 +29,8 @@ class QiskitMetrics(MetricCalculator):
     Extract metrics from QuantumCircuit objects.
 
     This class analyzes quantum circuits and extracts various metrics that are
-    directly available from the QuantumCircuit class. It supports both traditional
-    dictionary-based output and structured schema-based output with validation.
+    directly available from the QuantumCircuit class using structured schema-based
+    output with validation.
 
     Attributes:
         circuit: The quantum circuit to analyze (inherited from MetricCalculator)
@@ -61,38 +59,7 @@ class QiskitMetrics(MetricCalculator):
     # Main API Methods
     # =============================================================================
 
-    def get_metrics(self) -> Dict[str, Any]:
-        """
-        Get metrics as a flattened dictionary for DataFrame compatibility.
-
-        Returns:
-            Dict[str, Any]: Flattened dictionary containing all metrics
-        """
-        basic_metrics = self.get_basic_metrics()
-        instruction_metrics = self.get_instruction_metrics()
-        scheduling_metrics = self.get_scheduling_metrics()
-
-        metrics = {
-            "basic_metrics": basic_metrics,
-            "instruction_metrics": instruction_metrics,
-            "scheduling_metrics": scheduling_metrics,
-        }
-
-        # Flatten nested dictionaries for DataFrame compatibility
-        to_flatten: Dict[str, Any] = {}
-        if "count_ops" in basic_metrics:
-            count_ops = basic_metrics.pop("count_ops")
-            to_flatten["basic_metrics.count_ops"] = count_ops
-        if "instructions" in instruction_metrics:
-            instructions = instruction_metrics.pop("instructions")
-            to_flatten["instruction_metrics.instructions"] = instructions
-
-        # Flatten and merge
-        flat_metrics = flatten_dict(metrics)
-        flat_metrics.update(flatten_dict(to_flatten))
-        return flat_metrics
-
-    def get_structured_metrics(self) -> QiskitMetricsSchema:
+    def get_metrics(self) -> QiskitMetricsSchema:
         """
         Get metrics as a structured, validated schema object.
 
@@ -106,22 +73,24 @@ class QiskitMetrics(MetricCalculator):
         self._ensure_schemas_available()
 
         return QiskitMetricsSchema(
-            basic_metrics=self.get_structured_basic_metrics(),
-            instruction_metrics=self.get_structured_instruction_metrics(),
-            scheduling_metrics=self.get_structured_scheduling_metrics(),
+            basic_metrics=self.get_basic_metrics(),
+            instruction_metrics=self.get_instruction_metrics(),
+            scheduling_metrics=self.get_scheduling_metrics(),
         )
 
     # =============================================================================
-    # Basic Metrics
+    # Primary Structured API Methods
     # =============================================================================
 
-    def get_basic_metrics(self) -> Dict[str, Any]:
+    def get_basic_metrics(self) -> BasicMetricsSchema:
         """
-        Get basic circuit metrics.
+        Get basic circuit metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Basic metrics including depth, width, size, counts, etc.
+            BasicMetricsSchema: Validated basic metrics including depth, width, size, counts, etc.
         """
+        self._ensure_schemas_available()
+        
         circuit = self.circuit
 
         # Check if calibrations attribute exists (removed in Qiskit 2.0)
@@ -134,7 +103,7 @@ class QiskitMetrics(MetricCalculator):
         # Check if layout attribute exists
         has_layout = hasattr(circuit, "layout") and bool(circuit.layout)
 
-        return {
+        basic_data = {
             "depth": circuit.depth(),
             "width": circuit.width(),
             "size": circuit.size(),
@@ -146,28 +115,18 @@ class QiskitMetrics(MetricCalculator):
             "has_calibrations": has_calibrations,
             "has_layout": has_layout,
         }
+        
+        return BasicMetricsSchema(**basic_data)
 
-    def get_structured_basic_metrics(self) -> BasicMetricsSchema:
+    def get_instruction_metrics(self) -> InstructionMetricsSchema:
         """
-        Get basic metrics as a validated schema object.
+        Get instruction-related circuit metrics as a validated schema object.
 
         Returns:
-            BasicMetricsSchema: Validated basic metrics
+            InstructionMetricsSchema: Validated instruction metrics including connectivity and factors
         """
         self._ensure_schemas_available()
-        return BasicMetricsSchema(**self.get_basic_metrics())
-
-    # =============================================================================
-    # Instruction Metrics
-    # =============================================================================
-
-    def get_instruction_metrics(self) -> Dict[str, Any]:
-        """
-        Get instruction-related circuit metrics.
-
-        Returns:
-            Dict[str, Any]: Instruction metrics including connectivity and factors
-        """
+        
         circuit = self.circuit
 
         # Group instructions by operation name
@@ -175,35 +134,25 @@ class QiskitMetrics(MetricCalculator):
         for name in circuit.count_ops().keys():
             instructions[name] = circuit.get_instructions(name)
 
-        return {
+        instruction_data = {
             "instructions": instructions,
             "num_connected_components": circuit.num_connected_components(),
             "num_nonlocal_gates": circuit.num_nonlocal_gates(),
             "num_tensor_factors": circuit.num_tensor_factors(),
             "num_unitary_factors": circuit.num_unitary_factors(),
         }
+        
+        return InstructionMetricsSchema(**instruction_data)
 
-    def get_structured_instruction_metrics(self) -> InstructionMetricsSchema:
+    def get_scheduling_metrics(self) -> SchedulingMetricsSchema:
         """
-        Get instruction metrics as a validated schema object.
+        Get scheduling-related circuit metrics as a validated schema object.
 
         Returns:
-            InstructionMetricsSchema: Validated instruction metrics
+            SchedulingMetricsSchema: Validated scheduling metrics (empty if circuit not scheduled)
         """
         self._ensure_schemas_available()
-        return InstructionMetricsSchema(**self.get_instruction_metrics())
-
-    # =============================================================================
-    # Scheduling Metrics
-    # =============================================================================
-
-    def get_scheduling_metrics(self) -> Dict[str, Any]:
-        """
-        Get scheduling-related circuit metrics.
-
-        Returns:
-            Dict[str, Any]: Scheduling metrics (empty if circuit not scheduled)
-        """
+        
         circuit = self.circuit
         metrics: Dict[str, Any] = {"is_scheduled": False}
 
@@ -235,14 +184,4 @@ class QiskitMetrics(MetricCalculator):
                     }
                 )
 
-        return metrics
-
-    def get_structured_scheduling_metrics(self) -> SchedulingMetricsSchema:
-        """
-        Get scheduling metrics as a validated schema object.
-
-        Returns:
-            SchedulingMetricsSchema: Validated scheduling metrics
-        """
-        self._ensure_schemas_available()
-        return SchedulingMetricsSchema(**self.get_scheduling_metrics())
+        return SchedulingMetricsSchema(**metrics)

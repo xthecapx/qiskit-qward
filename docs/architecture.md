@@ -29,11 +29,13 @@ classDiagram
 
     class QiskitMetrics {
         <<Concrete Strategy>>
+        +circuit: QuantumCircuit
         +get_metrics() Dict[str, Any]
         +get_structured_metrics() QiskitMetricsSchema
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +get_basic_metrics() BasicMetricsSchema
+        +get_instruction_metrics() InstructionMetricsSchema
+        +get_scheduling_metrics() SchedulingMetricsSchema
+        +is_ready() bool
     }
 
     class ComplexityMetrics {
@@ -221,12 +223,9 @@ classDiagram
         +is_ready() bool
         +get_metrics() Dict[str, Any]
         +get_structured_metrics() QiskitMetricsSchema
-        +get_basic_metrics() Dict[str, Any]
-        +get_instruction_metrics() Dict[str, Any]
-        +get_scheduling_metrics() Dict[str, Any]
-        +get_structured_basic_metrics() BasicMetricsSchema
-        +get_structured_instruction_metrics() InstructionMetricsSchema
-        +get_structured_scheduling_metrics() SchedulingMetricsSchema
+        +get_basic_metrics() BasicMetricsSchema
+        +get_instruction_metrics() InstructionMetricsSchema
+        +get_scheduling_metrics() SchedulingMetricsSchema
     }
 
     class ComplexityMetrics {

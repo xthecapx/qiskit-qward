@@ -40,8 +40,11 @@ def demo_traditional_approach() -> Dict[str, Any]:
     circuit = create_example_circuit()
     qiskit_metrics = QiskitMetrics(circuit)
 
-    # Traditional approach - returns flattened dictionary
-    traditional_metrics = qiskit_metrics.get_metrics()
+    # New API - get_metrics() returns schema object
+    schema_metrics = qiskit_metrics.get_metrics()
+    
+    # Convert to traditional flattened dictionary for backward compatibility
+    traditional_metrics = schema_metrics.to_flat_dict()
 
     print("✅ Traditional metrics (flattened dictionary):")
     print(f"   Type: {type(traditional_metrics)}")
@@ -72,8 +75,8 @@ def demo_schema_approach() -> "QiskitMetricsSchema":
     qiskit_metrics = QiskitMetrics(circuit)
 
     try:
-        # Schema-based approach - returns structured, validated object
-        schema_metrics = qiskit_metrics.get_structured_metrics()
+        # Schema-based approach - get_metrics() now returns structured, validated object
+        schema_metrics = qiskit_metrics.get_metrics()
 
         print("✓ Schema-based metrics (structured object):")
         print(f"   Type: {type(schema_metrics)}")
@@ -135,7 +138,7 @@ def demo_conversion_capabilities() -> None:
     qiskit_metrics = QiskitMetrics(circuit)
 
     try:
-        schema_metrics = qiskit_metrics.get_structured_metrics()
+        schema_metrics = qiskit_metrics.get_metrics()
 
         # Convert to flat dictionary (for DataFrame compatibility)
         flat_dict = schema_metrics.to_flat_dict()

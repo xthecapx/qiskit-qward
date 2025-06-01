@@ -151,23 +151,7 @@ class ComplexityMetrics(MetricCalculator):
     # Main API Methods
     # =============================================================================
 
-    def get_metrics(self) -> Dict[str, Any]:
-        """
-        Get all complexity metrics for the circuit.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing all complexity metrics organized by category
-        """
-        return {
-            "gate_based_metrics": self.get_gate_based_metrics(),
-            "entanglement_metrics": self.get_entanglement_metrics(),
-            "standardized_metrics": self.get_standardized_metrics(),
-            "advanced_metrics": self.get_advanced_metrics(),
-            "derived_metrics": self.get_derived_metrics(),
-            "quantum_volume": self.estimate_quantum_volume(),
-        }
-
-    def get_structured_metrics(self) -> "ComplexityMetricsSchema":
+    def get_metrics(self) -> "ComplexityMetricsSchema":
         """
         Get all complexity metrics as a structured, validated schema object.
 
@@ -291,22 +275,26 @@ class ComplexityMetrics(MetricCalculator):
         """
         depth = self.circuit.depth()
         width = self.circuit.num_qubits
-        gate_count = self.circuit.size()
         op_counts = self.circuit.count_ops()
+        
+        # Use sum of operation counts instead of circuit.size() to handle all operations consistently
+        total_operations = sum(op_counts.values())
 
         # Circuit volume (depth × width)
         circuit_volume = depth * width
 
         # Gate density (gates per qubit-time-step)
-        gate_density = gate_count / circuit_volume if circuit_volume > 0 else 0
+        gate_density = total_operations / circuit_volume if circuit_volume > 0 else 0
 
-        # Clifford vs non-Clifford ratio
+        # Clifford vs non-Clifford ratio (only considering computational gates)
         clifford_count = self._count_gates_by_type(op_counts, CLIFFORD_GATES)
         non_computational_count = self._count_gates_by_type(op_counts, NON_COMPUTATIONAL_GATES)
-        non_clifford_count = gate_count - clifford_count - non_computational_count
+        computational_gate_count = total_operations - non_computational_count
+        non_clifford_count = max(0, computational_gate_count - clifford_count)
 
-        clifford_ratio = clifford_count / gate_count if gate_count > 0 else 0
-        non_clifford_ratio = non_clifford_count / gate_count if gate_count > 0 else 0
+        # Calculate ratios based on computational gates only
+        clifford_ratio = clifford_count / computational_gate_count if computational_gate_count > 0 else 0
+        non_clifford_ratio = non_clifford_count / computational_gate_count if computational_gate_count > 0 else 0
 
         return {
             "circuit_volume": circuit_volume,

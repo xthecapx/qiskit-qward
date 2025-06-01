@@ -138,7 +138,7 @@ try:
     print(f"  Multi-qubit Gates: {qiskit_schema.instruction_metrics.multi_qubit_gate_count}")
     
     # Access granular schemas
-    basic_metrics = qiskit_metrics.get_structured_basic_metrics()
+    basic_metrics = qiskit_metrics.get_basic_metrics()
     print(f"  Width: {basic_metrics.width}")
     
 except ImportError:
@@ -340,7 +340,7 @@ Qward, through its built-in metric calculator classes, offers insights into:
    - **Basic metrics**: Depth, width, number of qubits/clbits, operations count
    - **Instruction metrics**: Multi-qubit gate count, connectivity analysis
    - **Scheduling metrics**: Timing and resource information
-   - **Schema support**: Type-safe access with `get_structured_basic_metrics()`, `get_structured_instruction_metrics()`, etc.
+   - **Schema support**: Type-safe access with `get_basic_metrics()`, `get_instruction_metrics()`, etc.
 
 ### 2. Circuit Complexity (`ComplexityMetrics`)
    - **Gate-based metrics**: Gate counts, T-count, CNOT count, multi-qubit ratios

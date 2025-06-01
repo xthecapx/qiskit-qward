@@ -2,7 +2,7 @@
 Example demonstrating the new unified Visualizer system for QWARD.
 """
 
-from qward.examples.utils import get_display, create_example_circuit
+from .utils import get_display, create_example_circuit
 from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.visualization import Visualizer, PlotConfig
