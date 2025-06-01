@@ -90,7 +90,7 @@ class QiskitMetrics(MetricCalculator):
             BasicMetricsSchema: Validated basic metrics including depth, width, size, counts, etc.
         """
         self._ensure_schemas_available()
-        
+
         circuit = self.circuit
 
         # Check if calibrations attribute exists (removed in Qiskit 2.0)
@@ -115,7 +115,7 @@ class QiskitMetrics(MetricCalculator):
             "has_calibrations": has_calibrations,
             "has_layout": has_layout,
         }
-        
+
         return BasicMetricsSchema(**basic_data)
 
     def get_instruction_metrics(self) -> InstructionMetricsSchema:
@@ -126,7 +126,7 @@ class QiskitMetrics(MetricCalculator):
             InstructionMetricsSchema: Validated instruction metrics including connectivity and factors
         """
         self._ensure_schemas_available()
-        
+
         circuit = self.circuit
 
         # Group instructions by operation name
@@ -141,7 +141,7 @@ class QiskitMetrics(MetricCalculator):
             "num_tensor_factors": circuit.num_tensor_factors(),
             "num_unitary_factors": circuit.num_unitary_factors(),
         }
-        
+
         return InstructionMetricsSchema(**instruction_data)
 
     def get_scheduling_metrics(self) -> SchedulingMetricsSchema:
@@ -152,7 +152,7 @@ class QiskitMetrics(MetricCalculator):
             SchedulingMetricsSchema: Validated scheduling metrics (empty if circuit not scheduled)
         """
         self._ensure_schemas_available()
-        
+
         circuit = self.circuit
         metrics: Dict[str, Any] = {"is_scheduled": False}
 

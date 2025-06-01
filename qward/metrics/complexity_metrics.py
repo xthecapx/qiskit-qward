@@ -276,7 +276,7 @@ class ComplexityMetrics(MetricCalculator):
         depth = self.circuit.depth()
         width = self.circuit.num_qubits
         op_counts = self.circuit.count_ops()
-        
+
         # Use sum of operation counts instead of circuit.size() to handle all operations consistently
         total_operations = sum(op_counts.values())
 
@@ -293,8 +293,12 @@ class ComplexityMetrics(MetricCalculator):
         non_clifford_count = max(0, computational_gate_count - clifford_count)
 
         # Calculate ratios based on computational gates only
-        clifford_ratio = clifford_count / computational_gate_count if computational_gate_count > 0 else 0
-        non_clifford_ratio = non_clifford_count / computational_gate_count if computational_gate_count > 0 else 0
+        clifford_ratio = (
+            clifford_count / computational_gate_count if computational_gate_count > 0 else 0
+        )
+        non_clifford_ratio = (
+            non_clifford_count / computational_gate_count if computational_gate_count > 0 else 0
+        )
 
         return {
             "circuit_volume": circuit_volume,
