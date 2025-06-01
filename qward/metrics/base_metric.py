@@ -3,7 +3,7 @@ Base metric calculator class for QWARD.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, Union, TYPE_CHECKING
 
 from qiskit import QuantumCircuit
 
@@ -101,11 +101,11 @@ class MetricCalculator(ABC):
         pass
 
     @abstractmethod
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> Union[Dict[str, Any], Any]:
         """
         Get the metrics for this circuit.
 
         Returns:
-            Dict[str, Any]: Dictionary of metric names and values
+            Union[Dict[str, Any], Any]: Dictionary of metric names and values, or a schema object
         """
         pass
