@@ -165,25 +165,27 @@ class ComplexityMetrics(MetricCalculator):
         self._ensure_schemas_available()
 
         return ComplexityMetricsSchema(
-            gate_based_metrics=self.get_structured_gate_based_metrics(),
-            entanglement_metrics=self.get_structured_entanglement_metrics(),
-            standardized_metrics=self.get_structured_standardized_metrics(),
-            advanced_metrics=self.get_structured_advanced_metrics(),
-            derived_metrics=self.get_structured_derived_metrics(),
-            quantum_volume=self.get_structured_quantum_volume(),
+            gate_based_metrics=self.get_gate_based_metrics(),
+            entanglement_metrics=self.get_entanglement_metrics(),
+            standardized_metrics=self.get_standardized_metrics(),
+            advanced_metrics=self.get_advanced_metrics(),
+            derived_metrics=self.get_derived_metrics(),
+            quantum_volume=self.get_quantum_volume(),
         )
 
     # =============================================================================
     # Gate-Based Metrics
     # =============================================================================
 
-    def get_gate_based_metrics(self) -> Dict[str, Any]:
+    def get_gate_based_metrics(self) -> "GateBasedMetricsSchema":
         """
-        Get gate-based complexity metrics.
+        Get gate-based complexity metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Dictionary containing gate counts and ratios
+            GateBasedMetricsSchema: Validated gate-based metrics
         """
+        self._ensure_schemas_available()
+
         op_counts = self.circuit.count_ops()
         gate_count = self.circuit.size()
         circuit_depth = self.circuit.depth()
@@ -204,36 +206,37 @@ class ComplexityMetrics(MetricCalculator):
         )
         multi_qubit_ratio = multi_qubit_count / gate_count if gate_count > 0 else 0
 
-        return {
-            "gate_count": gate_count,
-            "circuit_depth": circuit_depth,
-            "t_count": t_count,
-            "cnot_count": cnot_count,
-            "two_qubit_count": two_qubit_count,
-            "multi_qubit_ratio": round(multi_qubit_ratio, 3),
-        }
+        return GateBasedMetricsSchema(
+            gate_count=gate_count,
+            circuit_depth=circuit_depth,
+            t_count=t_count,
+            cnot_count=cnot_count,
+            two_qubit_count=two_qubit_count,
+            multi_qubit_ratio=round(multi_qubit_ratio, 3),
+        )
 
-    def get_structured_gate_based_metrics(self) -> "GateBasedMetricsSchema":
+    def get_gate_based_metrics_dict(self) -> Dict[str, Any]:
         """
-        Get gate-based metrics as a validated schema object.
+        Get gate-based complexity metrics as a dictionary.
 
         Returns:
-            GateBasedMetricsSchema: Validated gate-based metrics
+            Dict[str, Any]: Dictionary containing gate counts and ratios
         """
-        self._ensure_schemas_available()
-        return GateBasedMetricsSchema(**self.get_gate_based_metrics())
+        return self.get_gate_based_metrics().model_dump()
 
     # =============================================================================
     # Entanglement Metrics
     # =============================================================================
 
-    def get_entanglement_metrics(self) -> Dict[str, Any]:
+    def get_entanglement_metrics(self) -> "EntanglementMetricsSchema":
         """
-        Get entanglement-based complexity metrics.
+        Get entanglement-based complexity metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Dictionary containing entanglement-related metrics
+            EntanglementMetricsSchema: Validated entanglement metrics
         """
+        self._ensure_schemas_available()
+
         op_counts = self.circuit.count_ops()
         gate_count = self.circuit.size()
         width = self.circuit.num_qubits
@@ -247,32 +250,33 @@ class ComplexityMetrics(MetricCalculator):
         # Entangling width (estimate of qubits involved in entanglement)
         entangling_width = min(width, two_qubit_count + 1) if two_qubit_count > 0 else 1
 
-        return {
-            "entangling_gate_density": round(entangling_gate_density, 3),
-            "entangling_width": entangling_width,
-        }
+        return EntanglementMetricsSchema(
+            entangling_gate_density=round(entangling_gate_density, 3),
+            entangling_width=entangling_width,
+        )
 
-    def get_structured_entanglement_metrics(self) -> "EntanglementMetricsSchema":
+    def get_entanglement_metrics_dict(self) -> Dict[str, Any]:
         """
-        Get entanglement metrics as a validated schema object.
+        Get entanglement-based complexity metrics as a dictionary.
 
         Returns:
-            EntanglementMetricsSchema: Validated entanglement metrics
+            Dict[str, Any]: Dictionary containing entanglement-related metrics
         """
-        self._ensure_schemas_available()
-        return EntanglementMetricsSchema(**self.get_entanglement_metrics())
+        return self.get_entanglement_metrics().model_dump()
 
     # =============================================================================
     # Standardized Metrics
     # =============================================================================
 
-    def get_standardized_metrics(self) -> Dict[str, Any]:
+    def get_standardized_metrics(self) -> "StandardizedMetricsSchema":
         """
-        Get standardized complexity metrics.
+        Get standardized complexity metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Dictionary containing standardized circuit metrics
+            StandardizedMetricsSchema: Validated standardized metrics
         """
+        self._ensure_schemas_available()
+
         depth = self.circuit.depth()
         width = self.circuit.num_qubits
         op_counts = self.circuit.count_ops()
@@ -300,34 +304,35 @@ class ComplexityMetrics(MetricCalculator):
             non_clifford_count / computational_gate_count if computational_gate_count > 0 else 0
         )
 
-        return {
-            "circuit_volume": circuit_volume,
-            "gate_density": round(gate_density, 3),
-            "clifford_ratio": round(clifford_ratio, 3),
-            "non_clifford_ratio": round(non_clifford_ratio, 3),
-        }
+        return StandardizedMetricsSchema(
+            circuit_volume=circuit_volume,
+            gate_density=round(gate_density, 3),
+            clifford_ratio=round(clifford_ratio, 3),
+            non_clifford_ratio=round(non_clifford_ratio, 3),
+        )
 
-    def get_structured_standardized_metrics(self) -> "StandardizedMetricsSchema":
+    def get_standardized_metrics_dict(self) -> Dict[str, Any]:
         """
-        Get standardized metrics as a validated schema object.
+        Get standardized complexity metrics as a dictionary.
 
         Returns:
-            StandardizedMetricsSchema: Validated standardized metrics
+            Dict[str, Any]: Dictionary containing standardized circuit metrics
         """
-        self._ensure_schemas_available()
-        return StandardizedMetricsSchema(**self.get_standardized_metrics())
+        return self.get_standardized_metrics().model_dump()
 
     # =============================================================================
     # Advanced Metrics
     # =============================================================================
 
-    def get_advanced_metrics(self) -> Dict[str, Any]:
+    def get_advanced_metrics(self) -> "AdvancedMetricsSchema":
         """
-        Get advanced complexity metrics.
+        Get advanced complexity metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Dictionary containing advanced circuit analysis metrics
+            AdvancedMetricsSchema: Validated advanced metrics
         """
+        self._ensure_schemas_available()
+
         depth = self.circuit.depth()
         width = self.circuit.num_qubits
         gate_count = self.circuit.size()
@@ -345,34 +350,35 @@ class ComplexityMetrics(MetricCalculator):
             gate_count / (width * width) if width > 0 else 0
         ) + 0.5 * (gate_count / (depth * depth) if depth > 0 else 0)
 
-        return {
-            "parallelism_factor": round(parallelism_factor, 3),
-            "parallelism_efficiency": round(parallelism_efficiency, 3),
-            "circuit_efficiency": round(circuit_efficiency, 3),
-            "quantum_resource_utilization": round(quantum_resource_utilization, 3),
-        }
+        return AdvancedMetricsSchema(
+            parallelism_factor=round(parallelism_factor, 3),
+            parallelism_efficiency=round(parallelism_efficiency, 3),
+            circuit_efficiency=round(circuit_efficiency, 3),
+            quantum_resource_utilization=round(quantum_resource_utilization, 3),
+        )
 
-    def get_structured_advanced_metrics(self) -> "AdvancedMetricsSchema":
+    def get_advanced_metrics_dict(self) -> Dict[str, Any]:
         """
-        Get advanced metrics as a validated schema object.
+        Get advanced complexity metrics as a dictionary.
 
         Returns:
-            AdvancedMetricsSchema: Validated advanced metrics
+            Dict[str, Any]: Dictionary containing advanced circuit analysis metrics
         """
-        self._ensure_schemas_available()
-        return AdvancedMetricsSchema(**self.get_advanced_metrics())
+        return self.get_advanced_metrics().model_dump()
 
     # =============================================================================
     # Derived Metrics
     # =============================================================================
 
-    def get_derived_metrics(self) -> Dict[str, Any]:
+    def get_derived_metrics(self) -> "DerivedMetricsSchema":
         """
-        Get derived complexity metrics.
+        Get derived complexity metrics as a validated schema object.
 
         Returns:
-            Dict[str, Any]: Dictionary containing derived circuit metrics
+            DerivedMetricsSchema: Validated derived metrics
         """
+        self._ensure_schemas_available()
+
         depth = self.circuit.depth()
         width = self.circuit.num_qubits
         op_counts = self.circuit.count_ops()
@@ -388,29 +394,44 @@ class ComplexityMetrics(MetricCalculator):
         # Normalized weighted complexity (per qubit)
         normalized_weighted_complexity = weighted_complexity / width if width > 0 else 0
 
-        return {
-            "square_ratio": round(square_ratio, 3),
-            "weighted_complexity": weighted_complexity,
-            "normalized_weighted_complexity": round(normalized_weighted_complexity, 3),
-        }
+        return DerivedMetricsSchema(
+            square_ratio=round(square_ratio, 3),
+            weighted_complexity=weighted_complexity,
+            normalized_weighted_complexity=round(normalized_weighted_complexity, 3),
+        )
 
-    def get_structured_derived_metrics(self) -> "DerivedMetricsSchema":
+    def get_derived_metrics_dict(self) -> Dict[str, Any]:
         """
-        Get derived metrics as a validated schema object.
+        Get derived complexity metrics as a dictionary.
 
         Returns:
-            DerivedMetricsSchema: Validated derived metrics
+            Dict[str, Any]: Dictionary containing derived circuit metrics
         """
-        self._ensure_schemas_available()
-        return DerivedMetricsSchema(**self.get_derived_metrics())
+        return self.get_derived_metrics().model_dump()
 
     # =============================================================================
     # Quantum Volume Estimation
     # =============================================================================
 
-    def estimate_quantum_volume(self) -> Dict[str, Any]:
+    def get_quantum_volume(self) -> "QuantumVolumeSchema":
         """
-        Estimate the quantum volume of the circuit.
+        Get quantum volume estimation as a validated schema object.
+
+        Returns:
+            QuantumVolumeSchema: Validated quantum volume metrics
+        """
+        self._ensure_schemas_available()
+        qv_data = self.estimate_quantum_volume_dict()
+
+        # Convert nested dictionaries to schema objects
+        qv_data["factors"] = QuantumVolumeFactorsSchema(**qv_data["factors"])
+        qv_data["circuit_metrics"] = QuantumVolumeCircuitMetricsSchema(**qv_data["circuit_metrics"])
+
+        return QuantumVolumeSchema(**qv_data)
+
+    def estimate_quantum_volume_dict(self) -> Dict[str, Any]:
+        """
+        Estimate the quantum volume of the circuit as a dictionary.
 
         This provides a circuit complexity metric based on the circuit's
         characteristics rather than the formal IBM Quantum Volume protocol.
@@ -451,21 +472,24 @@ class ComplexityMetrics(MetricCalculator):
             },
         }
 
-    def get_structured_quantum_volume(self) -> "QuantumVolumeSchema":
+    # =============================================================================
+    # Backward Compatibility Methods (Deprecated)
+    # =============================================================================
+
+    def estimate_quantum_volume(self) -> Dict[str, Any]:
         """
-        Get quantum volume estimation as a validated schema object.
+        DEPRECATED: Use estimate_quantum_volume_dict() instead.
 
-        Returns:
-            QuantumVolumeSchema: Validated quantum volume metrics
+        Estimate the quantum volume of the circuit as a dictionary.
         """
-        self._ensure_schemas_available()
-        qv_data = self.estimate_quantum_volume()
+        import warnings
 
-        # Convert nested dictionaries to schema objects
-        qv_data["factors"] = QuantumVolumeFactorsSchema(**qv_data["factors"])
-        qv_data["circuit_metrics"] = QuantumVolumeCircuitMetricsSchema(**qv_data["circuit_metrics"])
-
-        return QuantumVolumeSchema(**qv_data)
+        warnings.warn(
+            "estimate_quantum_volume() is deprecated. Use estimate_quantum_volume_dict() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.estimate_quantum_volume_dict()
 
     # =============================================================================
     # Helper Methods
