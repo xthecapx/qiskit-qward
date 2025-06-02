@@ -439,8 +439,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">¶</a></h2>
-<p>Create beautiful visualizations of your analysis:</p>
+<p>Create beautiful visualizations of your analysis with the new type-safe API:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metrics</span><span class="p">,</span> <span class="n">Plots</span>
 
 <span class="c1"># Calculate metrics first</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
@@ -451,15 +452,66 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="c1"># Create unified visualizer</span>
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_analysis&quot;</span><span class="p">)</span>
 
-<span class="c1"># Create comprehensive dashboards</span>
+<span class="c1"># NEW API: Generate specific plots with type-safe constants</span>
+<span class="n">selected_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">GATE_DISTRIBUTION</span>
+    <span class="p">],</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span>
+    <span class="p">]</span>
+<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Generate all plots for specific metrics</span>
+<span class="n">all_qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># None = all plots</span>
+<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Generate single plot</span>
+<span class="n">single_plot</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span> 
+    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span> 
+    <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+
+<span class="c1"># Create comprehensive dashboards (unchanged)</span>
 <span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1"># Create all individual plots</span>
-<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># NEW API: Explore available plots and metadata</span>
+<span class="n">available_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">plot_names</span> <span class="ow">in</span> <span class="n">available_plots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">plot_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> plots):&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="n">plot_names</span><span class="p">:</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">get_plot_metadata</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dashboards</span><span class="p">)</span><span class="si">}</span><span class="s2"> dashboards and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> individual plots&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dashboards</span><span class="p">)</span><span class="si">}</span><span class="s2"> dashboards and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> plot collections&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="memory-efficient-visualization">
+<h3>Memory-Efficient Visualization<a class="headerlink" href="#memory-efficient-visualization" title="Link to this heading">¶</a></h3>
+<p>The new API defaults to memory-efficient settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># NEW: Default save=False, show=False for memory efficiency</span>
+<span class="k">for</span> <span class="n">circuit_variant</span> <span class="ow">in</span> <span class="n">circuit_variants</span><span class="p">:</span>
+    <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit_variant</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
+    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;analysis_</span><span class="si">{</span><span class="n">circuit_variant</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Generate all plots without displaying (memory efficient)</span>
+    <span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="kc">None</span>
+    <span class="p">})</span>  <span class="c1"># Default: save=False, show=False</span>
+    
+    <span class="c1"># Only save specific plots of interest</span>
+    <span class="n">important_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">],</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">]</span>
+    <span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="error-handling">
 <h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h2>
@@ -571,7 +623,10 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </li>
 <li><a class="reference internal" href="#custom-success-criteria">Custom Success Criteria</a></li>
-<li><a class="reference internal" href="#visualization">Visualization</a></li>
+<li><a class="reference internal" href="#visualization">Visualization</a><ul>
+<li><a class="reference internal" href="#memory-efficient-visualization">Memory-Efficient Visualization</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#error-handling">Error Handling</a></li>
 <li><a class="reference internal" href="#next-steps">Next Steps</a></li>
 <li><a class="reference internal" href="#key-benefits">Key Benefits</a></li>
