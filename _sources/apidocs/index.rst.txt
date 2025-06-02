@@ -3,10 +3,10 @@
 .. module:: qiskit_qward
 
 =============================
-Qward API References
+QWARD API References
 =============================
 
-Qward API Reference
+QWARD API Reference
 ===================
 
 .. toctree::

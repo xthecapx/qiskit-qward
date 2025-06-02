@@ -60,35 +60,30 @@ Complexity Metrics Schemas
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: qward.metrics.schemas.QuantumVolumeFactorsSchema
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: qward.metrics.schemas.QuantumVolumeCircuitMetricsSchema
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: qward.metrics.schemas.QuantumVolumeSchema
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. autoclass:: qward.metrics.schemas.ComplexityMetricsSchema
    :members:
    :undoc-members:
    :show-inheritance:
 
-Success Rate Schemas
----------------------
+Circuit Performance Schemas
+----------------------------
 
-.. autoclass:: qward.metrics.schemas.SuccessRateJobSchema
+.. autoclass:: qward.metrics.schemas.SuccessMetricsSchema
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: qward.metrics.schemas.SuccessRateAggregateSchema
+.. autoclass:: qward.metrics.schemas.FidelityMetricsSchema
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: qward.metrics.schemas.StatisticalMetricsSchema
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: qward.metrics.schemas.CircuitPerformanceSchema
    :members:
    :undoc-members:
    :show-inheritance: 

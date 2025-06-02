@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Result" href="result.html" /><link rel="prev" title="Qward API References" href="index.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Metrics Base &amp; Types" href="metrics_base.html" /><link rel="prev" title="QWARD API References" href="index.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Scanner - Qward 0.1.0</title>
@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -256,8 +255,54 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="module-qward.scanner">
-<span id="scanner"></span><h1>Scanner<a class="headerlink" href="#module-qward.scanner" title="Link to this heading">¶</a></h1>
+          <section id="scanner">
+<h1>Scanner<a class="headerlink" href="#scanner" title="Link to this heading">¶</a></h1>
+<p>The Scanner class is the main entry point for analyzing quantum circuits in QWARD. It orchestrates metric calculation and automatically converts schema objects to DataFrames for analysis and visualization.</p>
+<p><strong>Key Features:</strong>
+- <strong>Unified Interface</strong>: Works seamlessly with all metric calculators
+- <strong>Automatic Conversion</strong>: Converts schema objects to DataFrames via <cite>to_flat_dict()</cite>
+- <strong>Flexible Input</strong>: Accepts circuits, jobs, and metric calculator instances or classes
+- <strong>DataFrame Output</strong>: Returns dictionary of pandas DataFrames for analysis</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
+
+<span class="c1"># Create circuit and execute</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Create scanner and add metrics</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+
+<span class="c1"># Calculate metrics (returns DataFrames)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Access DataFrames for analysis</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available metrics:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;QiskitMetrics shape:&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics shape:&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Integration with Schema API:</strong></p>
+<p>The Scanner automatically detects when metric calculators return schema objects and converts them to flat dictionaries for DataFrame creation, while preserving all the benefits of schema validation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Schema objects are automatically converted</span>
+<span class="c1"># QiskitMetrics.get_metrics() → QiskitMetricsSchema → DataFrame</span>
+<span class="c1"># ComplexityMetrics.get_metrics() → ComplexityMetricsSchema → DataFrame</span>
+<span class="c1"># CircuitPerformanceMetrics.get_metrics() → CircuitPerformanceSchema → DataFrame</span>
+</pre></div>
+</div>
+<section id="module-qward.scanner">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.scanner" title="Link to this heading">¶</a></h2>
 <p>Scanner class for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.scanner.Scanner">
@@ -502,18 +547,19 @@ For CircuitPerformance metrics, returns two DataFrames:
 </dd></dl>
 
 </section>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="result.html">
+          <a class="next-page" href="metrics_base.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Result</div>
+                <div class="title">Metrics Base &amp; Types</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -524,7 +570,7 @@ For CircuitPerformance metrics, returns two DataFrames:
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Qward API References</div>
+                <div class="title">QWARD API References</div>
                 
               </div>
             </a>
@@ -559,6 +605,7 @@ For CircuitPerformance metrics, returns two DataFrames:
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Scanner</a><ul>
+<li><a class="reference internal" href="#module-qward.scanner">API Reference</a><ul>
 <li><a class="reference internal" href="#qward.scanner.Scanner"><code class="docutils literal notranslate"><span class="pre">Scanner</span></code></a><ul>
 <li><a class="reference internal" href="#qward.scanner.Scanner.add_strategy"><code class="docutils literal notranslate"><span class="pre">Scanner.add_strategy()</span></code></a></li>
 <li><a class="reference internal" href="#qward.scanner.Scanner.calculate_metrics"><code class="docutils literal notranslate"><span class="pre">Scanner.calculate_metrics()</span></code></a></li>
@@ -577,6 +624,8 @@ For CircuitPerformance metrics, returns two DataFrames:
 <li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Scanner.set_circuit()</span></code></a></li>
 <li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Scanner.set_job()</span></code></a></li>
 <li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">Scanner.strategies</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

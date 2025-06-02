@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -485,9 +484,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">CircuitPerformanceSchema</span><span class="p">(</span>
-            <span class="n">success_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_success_metrics</span><span class="p">(),</span>
-            <span class="n">fidelity_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_fidelity_metrics</span><span class="p">(),</span>
-            <span class="n">statistical_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_structured_statistical_metrics</span><span class="p">(),</span>
+            <span class="n">success_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_metrics</span><span class="p">(),</span>
+            <span class="n">fidelity_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics</span><span class="p">(),</span>
+            <span class="n">statistical_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_statistical_metrics</span><span class="p">(),</span>
         <span class="p">)</span></div>
 
 
@@ -497,9 +496,27 @@
 
 <div class="viewcode-block" id="CircuitPerformanceMetrics.get_success_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SuccessMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get success rate analysis metrics.</span>
+<span class="sd">        Get success rate analysis metrics as a validated schema object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SuccessMetricsSchema: Validated success metrics schema</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Pydantic schemas are not available</span>
+<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">success_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_success_metrics_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">SuccessMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">success_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_success_metrics_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_success_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get success rate analysis metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing success rate, error rate, and shot analysis</span>
@@ -512,28 +529,33 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate success metrics&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_success_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_success_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SuccessMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get success metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            SuccessMetricsSchema: Validated success metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">SuccessMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_metrics</span><span class="p">())</span></div>
-
-
     <span class="c1"># =============================================================================</span>
     <span class="c1"># Fidelity Metrics</span>
     <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FidelityMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get quantum fidelity analysis metrics.</span>
+<span class="sd">        Get quantum fidelity analysis metrics as a validated schema object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            FidelityMetricsSchema: Validated fidelity metrics schema</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Pydantic schemas are not available</span>
+<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">fidelity_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">FidelityMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">fidelity_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get quantum fidelity analysis metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing fidelity measurements and analysis</span>
@@ -546,28 +568,33 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate fidelity metrics&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_fidelity_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_fidelity_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FidelityMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get fidelity metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            FidelityMetricsSchema: Validated fidelity metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">FidelityMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics</span><span class="p">())</span></div>
-
-
     <span class="c1"># =============================================================================</span>
     <span class="c1"># Statistical Metrics</span>
     <span class="c1"># =============================================================================</span>
 
 <div class="viewcode-block" id="CircuitPerformanceMetrics.get_statistical_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StatisticalMetricsSchema&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get statistical analysis metrics.</span>
+<span class="sd">        Get statistical analysis metrics as a validated schema object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            StatisticalMetricsSchema: Validated statistical metrics schema</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Pydantic schemas are not available</span>
+<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">statistical_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_statistical_metrics_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">StatisticalMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">statistical_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_statistical_metrics_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_statistical_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get statistical analysis metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing entropy, uniformity, and concentration metrics</span>
@@ -578,19 +605,6 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate statistical metrics&quot;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="CircuitPerformanceMetrics.get_structured_statistical_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_statistical_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_structured_statistical_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StatisticalMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get statistical metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            StatisticalMetricsSchema: Validated statistical metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">StatisticalMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_statistical_metrics</span><span class="p">())</span></div>
 
 
     <span class="c1"># =============================================================================</span>

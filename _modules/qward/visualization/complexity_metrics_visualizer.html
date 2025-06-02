@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -464,58 +463,6 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ComplexityVisualizer.plot_quantum_volume_analysis">
-<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_quantum_volume_analysis">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot_quantum_volume_analysis</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot quantum volume analysis.&quot;&quot;&quot;</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">is_override</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_plot_axes</span><span class="p">(</span><span class="n">fig_ax_override</span><span class="p">)</span>
-
-        <span class="c1"># Extract quantum volume metrics using base class utility</span>
-        <span class="n">qv_cols</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;quantum_volume.standard_quantum_volume&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;quantum_volume.enhanced_quantum_volume&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;quantum_volume.effective_depth&quot;</span><span class="p">,</span>
-        <span class="p">]</span>
-
-        <span class="n">qv_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metrics_from_columns</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="p">,</span> <span class="n">qv_cols</span><span class="p">,</span> <span class="n">prefix_to_remove</span><span class="o">=</span><span class="s2">&quot;quantum_volume.&quot;</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">qv_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span>
-                <span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;Quantum Volume Analysis&quot;</span><span class="p">,</span> <span class="s2">&quot;No quantum volume data available&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
-                <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
-                <span class="n">is_override</span><span class="o">=</span><span class="n">is_override</span><span class="p">,</span>
-                <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span>
-                <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
-                <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_quantum_volume&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">qv_data</span><span class="p">,</span>
-            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Quantum Volume Analysis&quot;</span><span class="p">,</span>
-            <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;Metrics&quot;</span><span class="p">,</span>
-            <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span>
-            <span class="n">value_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
-            <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
-            <span class="n">is_override</span><span class="o">=</span><span class="n">is_override</span><span class="p">,</span>
-            <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span>
-            <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
-            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_quantum_volume&quot;</span><span class="p">,</span>
-        <span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="ComplexityVisualizer.plot_efficiency_metrics">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_efficiency_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_efficiency_metrics</span><span class="p">(</span>
@@ -575,32 +522,30 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.create_dashboard">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a comprehensive dashboard with all ComplexityMetrics plots.&quot;&quot;&quot;</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics Analysis Dashboard&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
-        <span class="c1"># Create a 2x3 grid with the radar chart taking up more space</span>
-        <span class="n">gs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        <span class="c1"># Create a 2x2 grid</span>
+        <span class="n">gs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
         <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
         <span class="n">ax2</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">projection</span><span class="o">=</span><span class="s2">&quot;polar&quot;</span><span class="p">)</span>  <span class="c1"># Radar chart</span>
-        <span class="n">ax3</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-        <span class="n">ax4</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">])</span>  <span class="c1"># Efficiency metrics span 2 columns</span>
-        <span class="n">ax5</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">ax3</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># Efficiency metrics</span>
+        <span class="n">ax4</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># Summary</span>
 
         <span class="c1"># Create each plot on its designated axes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_gate_based_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax1</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_complexity_radar</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax2</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plot_quantum_volume_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax3</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plot_efficiency_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax4</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_efficiency_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig_ax_override</span><span class="o">=</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax3</span><span class="p">))</span>
 
         <span class="c1"># Add a summary text box in the last subplot</span>
-        <span class="n">ax5</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
         <span class="n">summary_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_summary_text</span><span class="p">()</span>
-        <span class="n">ax5</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
             <span class="mf">0.1</span><span class="p">,</span>
             <span class="mf">0.9</span><span class="p">,</span>
             <span class="n">summary_text</span><span class="p">,</span>
-            <span class="n">transform</span><span class="o">=</span><span class="n">ax5</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">ax4</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
             <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
             <span class="n">verticalalignment</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span>
             <span class="n">bbox</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;boxstyle&quot;</span><span class="p">:</span> <span class="s2">&quot;round,pad=0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;facecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;lightgray&quot;</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
@@ -619,25 +564,21 @@
             <span class="n">gate_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.gate_count&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.circuit_depth&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="c1"># Get quantum volume if available</span>
-            <span class="n">qv_standard</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s2">&quot;quantum_volume.standard_quantum_volume&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">qv_enhanced</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s2">&quot;quantum_volume.enhanced_quantum_volume&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
             <span class="c1"># Get efficiency if available</span>
             <span class="n">efficiency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s2">&quot;advanced_metrics.circuit_efficiency&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Get parallelism factor if available</span>
+            <span class="n">parallelism</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;advanced_metrics.parallelism_factor&quot;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
             <span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
             <span class="n">summary</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Circuit Complexity Summary</span>
 <span class="s2">            </span>
 <span class="s2">Gate Count: </span><span class="si">{</span><span class="n">gate_count</span><span class="si">}</span>
 <span class="s2">Circuit Depth: </span><span class="si">{</span><span class="n">depth</span><span class="si">}</span>
-<span class="s2">Standard QV: </span><span class="si">{</span><span class="n">qv_standard</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span>
-<span class="s2">Enhanced QV: </span><span class="si">{</span><span class="n">qv_enhanced</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span>
+<span class="s2">Parallelism Factor: </span><span class="si">{</span><span class="n">parallelism</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
 <span class="s2">Circuit Efficiency: </span><span class="si">{</span><span class="n">efficiency</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span>
 
 <span class="s2">This dashboard shows various</span>
@@ -674,7 +615,6 @@
 
         <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_gate_based_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
         <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_complexity_radar</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_quantum_volume_analysis</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
         <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_efficiency_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">save</span><span class="p">:</span>

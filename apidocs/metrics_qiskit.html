@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Qiskit Metrics</a></li>
@@ -256,8 +255,34 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="module-qward.metrics.qiskit_metrics">
-<span id="qiskit-metrics"></span><h1>Qiskit Metrics<a class="headerlink" href="#module-qward.metrics.qiskit_metrics" title="Link to this heading">¶</a></h1>
+          <section id="qiskit-metrics">
+<h1>Qiskit Metrics<a class="headerlink" href="#qiskit-metrics" title="Link to this heading">¶</a></h1>
+<p>QiskitMetrics extracts basic circuit properties directly from QuantumCircuit objects using the unified schema-based API.</p>
+<p><strong>Key Features:</strong>
+- <strong>Unified API</strong>: Single <cite>get_metrics()</cite> method returns <cite>QiskitMetricsSchema</cite>
+- <strong>Type Safety</strong>: Full IDE support with automatic validation
+- <strong>Comprehensive Coverage</strong>: Basic metrics, instruction analysis, and scheduling information</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span>
+
+<span class="c1"># Create circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Analyze with type-safe API</span>
+<span class="n">qiskit_metrics</span> <span class="o">=</span> <span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">qiskit_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns QiskitMetricsSchema</span>
+
+<span class="c1"># Access validated data</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Depth: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate count: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qubits: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="module-qward.metrics.qiskit_metrics">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.qiskit_metrics" title="Link to this heading">¶</a></h2>
 <p>Qiskit metrics implementation for QWARD.</p>
 <p>This module provides the QiskitMetrics class for extracting various metrics
 from QuantumCircuit objects using structured schema-based output with validation.</p>
@@ -508,6 +533,7 @@ output with validation.</p>
 </dd></dl>
 
 </section>
+</section>
 
         </article>
       </div>
@@ -565,6 +591,7 @@ output with validation.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Qiskit Metrics</a><ul>
+<li><a class="reference internal" href="#module-qward.metrics.qiskit_metrics">API Reference</a><ul>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code></a><ul>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.circuit"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.circuit</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.get_basic_metrics()</span></code></a></li>
@@ -585,6 +612,8 @@ output with validation.</p>
 <li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.is_ready()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.metric_type</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.qiskit_metrics.QiskitMetrics.name"><code class="docutils literal notranslate"><span class="pre">QiskitMetrics.name</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

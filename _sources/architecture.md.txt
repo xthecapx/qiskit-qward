@@ -115,7 +115,6 @@ classDiagram
         +standardized_metrics: StandardizedMetricsSchema
         +advanced_metrics: AdvancedMetricsSchema
         +derived_metrics: DerivedMetricsSchema
-        +quantum_volume: QuantumVolumeSchema
         +to_flat_dict() Dict[str, Any]
         +from_flat_dict() ComplexityMetricsSchema
     }
@@ -193,6 +192,9 @@ classDiagram
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() QiskitMetricsSchema
+        +get_basic_metrics() BasicMetricsSchema
+        +get_instruction_metrics() InstructionMetricsSchema
+        +get_scheduling_metrics() SchedulingMetricsSchema
     }
 
     class ComplexityMetrics {
@@ -202,31 +204,27 @@ classDiagram
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() ComplexityMetricsSchema
-        +get_gate_based_metrics() Dict[str, Any]
-        +get_entanglement_metrics() Dict[str, Any]
-        +get_standardized_metrics() Dict[str, Any]
-        +get_advanced_metrics() Dict[str, Any]
-        +get_derived_metrics() Dict[str, Any]
-        +estimate_quantum_volume() Dict[str, Any]
+        +get_gate_based_metrics() GateBasedMetricsSchema
+        +get_entanglement_metrics() EntanglementMetricsSchema
+        +get_standardized_metrics() StandardizedMetricsSchema
+        +get_advanced_metrics() AdvancedMetricsSchema
+        +get_derived_metrics() DerivedMetricsSchema
     }
 
     class CircuitPerformanceMetrics {
         <<Concrete Strategy>>
         #_job: Optional[JobType]
         #_jobs: List[JobType]
-        #_result: Optional[Dict]
         #success_criteria: Callable[[str], bool]
-        +__init__(circuit, job, jobs, result, success_criteria)
+        +__init__(circuit, job, jobs, success_criteria)
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() CircuitPerformanceSchema
-        +get_single_job_metrics(job) Dict[str, Any]
-        +get_multiple_jobs_metrics() Dict[str, Any]
+        +get_success_metrics() SuccessMetricsSchema
+        +get_fidelity_metrics() FidelityMetricsSchema
+        +get_statistical_metrics() StatisticalMetricsSchema
         +add_job(job)
-        +_calculate_success_metrics(counts, job_id) Dict[str, Any]
-        +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
-        +_extract_job_id(job) str
         +_default_success_criteria() Callable[[str], bool]
     }
 
@@ -325,7 +323,7 @@ This structure provides a clean organization for the code, with:
 The Scanner class is the main entry point for analyzing quantum circuits. It can be initialized with a quantum circuit, job, and an optional list of metric classes or instances. It allows users to add further metrics and calculate them, returning results as a dictionary of DataFrames for easy analysis.
 
 ### MetricCalculator
-The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now return validated schema objects directly through `get_metrics()`. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
+The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations return validated schema objects directly through `get_metrics()`. Default metric classes can be obtained using the `get_default_strategies()` function from the `qward.metrics.defaults` module.
 
 ### Schema Validation
 The schema validation system provides:
@@ -339,7 +337,7 @@ The schema validation system provides:
 The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, including basic metrics (depth, width, gate counts), instruction metrics (connectivity, factors), and scheduling metrics (timing information). It returns a validated `QiskitMetricsSchema` object with type-safe access to all metric categories.
 
 ### ComplexityMetrics
-The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
+The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
 
 ### CircuitPerformanceMetrics
 The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
@@ -397,7 +395,7 @@ results = scanner.calculate_metrics()
 complexity_metrics = ComplexityMetrics(circuit)
 complexity_schema = complexity_metrics.get_metrics()
 
-print(f"Quantum Volume: {complexity_schema.quantum_volume.enhanced_quantum_volume}")
+print(f"Gate Count: {complexity_schema.gate_based_metrics.gate_count}")
 print(f"Gate Density: {complexity_schema.standardized_metrics.gate_density}")
 print(f"Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_efficiency}")
 ```
@@ -495,10 +493,10 @@ results = scanner.calculate_metrics()
    - Use the Scanner class for all circuit analysis
    - Add metrics before calculating results
    - Consider using multiple metrics for comprehensive analysis
-   - All metrics now return validated schema objects by default
+   - All metrics return validated schema objects by default
 
 2. **Schema Usage**
-   - All metric classes now return schema objects directly via `get_metrics()`
+   - All metric classes return schema objects directly via `get_metrics()`
    - Take advantage of IDE autocomplete with schema objects
    - Use `to_flat_dict()` when you need dictionary format for DataFrames
    - Leverage JSON schema generation for API documentation
@@ -586,7 +584,6 @@ classDiagram
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
-        +plot_quantum_volume_analysis()
         +plot_efficiency_metrics()
         +create_dashboard()
         +plot_all()
@@ -651,7 +648,6 @@ Three specialized visualizers for different metric types:
 2. **`ComplexityVisualizer`**: Handles complexity analysis visualization
    - Gate-based complexity metrics
    - Radar chart for normalized complexity indicators
-   - Quantum Volume analysis and estimation
    - Efficiency metrics and parallelism analysis
    - Comprehensive dashboard with complexity overview
 
