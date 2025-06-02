@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -258,9 +257,42 @@
         <article role="main" id="furo-main-content">
           <section id="visualization-strategies">
 <h1>Visualization Strategies<a class="headerlink" href="#visualization-strategies" title="Link to this heading">¶</a></h1>
-<section id="module-qward.visualization.qiskit_metrics_visualizer">
-<span id="qiskitvisualizer"></span><h2>QiskitVisualizer<a class="headerlink" href="#module-qward.visualization.qiskit_metrics_visualizer" title="Link to this heading">¶</a></h2>
-<p>Qiskit visualization strategy for QWARD.</p>
+<p>QWARD provides specialized visualization strategies for different types of quantum circuit analysis. Each visualizer is designed to create meaningful plots for specific metric categories while maintaining a consistent interface.</p>
+<section id="qiskitvisualizer">
+<h2>QiskitVisualizer<a class="headerlink" href="#qiskitvisualizer" title="Link to this heading">¶</a></h2>
+<p>The <cite>QiskitVisualizer</cite> creates visualizations for basic quantum circuit properties extracted by <cite>QiskitMetrics</cite>. It focuses on fundamental circuit characteristics and instruction analysis.</p>
+<p><strong>Visualization Types:</strong>
+- <strong>Basic Metrics Overview</strong>: Circuit depth, size, qubits, and classical bits
+- <strong>Instruction Analysis</strong>: Gate type distribution and frequency analysis
+- <strong>Scheduling Information</strong>: Circuit timing and parallelization insights
+- <strong>Comprehensive Dashboard</strong>: Combined view of all QiskitMetrics data</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span>
+
+<span class="c1"># Create and analyze circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Create visualizations</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;qiskit_plots&quot;</span><span class="p">)</span>
+
+<span class="c1"># Generate dashboard</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Generate individual plots</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p id="module-qward.visualization.qiskit_metrics_visualizer">Qiskit visualization strategy for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">QiskitVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/qiskit_metrics_visualizer.html#QiskitVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer" title="Link to this definition">¶</a></dt>
@@ -480,9 +512,44 @@ Expected key: “QiskitMetrics”.</p></li>
 </dd></dl>
 
 </section>
-<section id="module-qward.visualization.complexity_metrics_visualizer">
-<span id="complexityvisualizer"></span><h2>ComplexityVisualizer<a class="headerlink" href="#module-qward.visualization.complexity_metrics_visualizer" title="Link to this heading">¶</a></h2>
-<p>Complexity visualization strategy for QWARD.</p>
+<section id="complexityvisualizer">
+<h2>ComplexityVisualizer<a class="headerlink" href="#complexityvisualizer" title="Link to this heading">¶</a></h2>
+<p>The <cite>ComplexityVisualizer</cite> creates sophisticated visualizations for circuit complexity analysis from <cite>ComplexityMetrics</cite>. It provides insights into various complexity dimensions and their relationships.</p>
+<p><strong>Visualization Types:</strong>
+- <strong>Gate-Based Analysis</strong>: Gate counts, T-gates, CNOT gates, multi-qubit ratios
+- <strong>Entanglement Metrics</strong>: Entangling gate density and circuit width analysis
+- <strong>Standardized Metrics</strong>: Circuit volume, gate density, and Clifford ratios
+- <strong>Advanced Analysis</strong>: Parallelism factors and circuit efficiency
+- <strong>Derived Complexity</strong>: Weighted complexity scores and comparative analysis
+- <strong>Comprehensive Dashboard</strong>: Multi-dimensional complexity overview</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexityMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexityVisualizer</span>
+
+<span class="c1"># Create complex circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Create complexity visualizations</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">ComplexityVisualizer</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;complexity_plots&quot;</span><span class="p">)</span>
+
+<span class="c1"># Generate comprehensive analysis</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p id="module-qward.visualization.complexity_metrics_visualizer">Complexity visualization strategy for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ComplexityVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/complexity_metrics_visualizer.html#ComplexityVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer" title="Link to this definition">¶</a></dt>
@@ -556,17 +623,6 @@ Expected key: “ComplexityMetrics”.</p></li>
 <dt class="sig sig-object py" id="qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_gate_based_metrics">
 <span class="sig-name descname"><span class="pre">plot_gate_based_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/complexity_metrics_visualizer.html#ComplexityVisualizer.plot_gate_based_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_gate_based_metrics" title="Link to this definition">¶</a></dt>
 <dd><p>Plot gate-based complexity metrics.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_quantum_volume_analysis">
-<span class="sig-name descname"><span class="pre">plot_quantum_volume_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/complexity_metrics_visualizer.html#ComplexityVisualizer.plot_quantum_volume_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_quantum_volume_analysis" title="Link to this definition">¶</a></dt>
-<dd><p>Plot quantum volume analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
@@ -657,17 +713,6 @@ Expected key: “ComplexityMetrics”.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id13">
-<span class="sig-name descname"><span class="pre">plot_quantum_volume_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/complexity_metrics_visualizer.html#ComplexityVisualizer.plot_quantum_volume_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition">¶</a></dt>
-<dd><p>Plot quantum volume analysis.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.save_plot">
 <span class="sig-name descname"><span class="pre">save_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.save_plot" title="Link to this definition">¶</a></dt>
 <dd><p>Save a plot with consistent settings.</p>
@@ -702,9 +747,57 @@ Expected key: “ComplexityMetrics”.</p></li>
 </dd></dl>
 
 </section>
-<section id="module-qward.visualization.circuit_performance_visualizer">
-<span id="circuitperformancevisualizer"></span><h2>CircuitPerformanceVisualizer<a class="headerlink" href="#module-qward.visualization.circuit_performance_visualizer" title="Link to this heading">¶</a></h2>
-<p>CircuitPerformance visualization strategy for QWARD.</p>
+<section id="circuitperformancevisualizer">
+<h2>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h2>
+<p>The <cite>CircuitPerformanceVisualizer</cite> creates performance analysis visualizations from <cite>CircuitPerformanceMetrics</cite>. It handles both single job and multiple job scenarios with support for custom success criteria.</p>
+<p><strong>Visualization Types:</strong>
+- <strong>Success Analysis</strong>: Success rates, error rates, and performance trends
+- <strong>Fidelity Analysis</strong>: Quantum fidelity measurements and distributions
+- <strong>Statistical Analysis</strong>: Entropy, uniformity, and concentration metrics
+- <strong>Multi-Job Comparison</strong>: Comparative analysis across multiple executions
+- <strong>Performance Dashboard</strong>: Comprehensive performance overview</p>
+<p><strong>Key Features:</strong>
+- <strong>Flexible Data Handling</strong>: Automatically detects single vs. multiple job scenarios
+- <strong>Custom Success Criteria</strong>: Visualizes user-defined success conditions
+- <strong>Statistical Insights</strong>: Advanced statistical analysis of quantum measurements
+- <strong>Performance Trends</strong>: Identifies patterns in circuit execution performance</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceVisualizer</span>
+
+<span class="c1"># Create and execute circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
+<span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Define success criteria</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bell_state_success</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;00&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">]</span>
+
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
+    <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span>
+    <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+    <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
+<span class="p">))</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+<span class="c1"># Create performance visualizations</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;performance_plots&quot;</span><span class="p">)</span>
+
+<span class="c1"># Generate performance analysis</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p id="module-qward.visualization.circuit_performance_visualizer">CircuitPerformance visualization strategy for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer" title="Link to this definition">¶</a></dt>
@@ -799,8 +892,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="id14">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id14" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id13">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="visualization_base.html#id0" title="qward.visualization.base.VisualizationStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></a></p>
 <p>Visualization strategy for CircuitPerformance metrics with performance analysis.</p>
 <p>Initialize the CircuitPerformance visualization strategy.</p>
@@ -815,8 +908,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="id15">
-<span class="sig-name descname"><span class="pre">create_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.create_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">create_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.create_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id14" title="Link to this definition">¶</a></dt>
 <dd><p>Create a comprehensive dashboard with all CircuitPerformance plots.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -826,8 +919,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id16">
-<span class="sig-name descname"><span class="pre">plot_aggregate_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_aggregate_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id16" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">plot_aggregate_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_aggregate_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition">¶</a></dt>
 <dd><p>Plot aggregate statistics summary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -837,8 +930,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id17">
-<span class="sig-name descname"><span class="pre">plot_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">plot_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id16" title="Link to this definition">¶</a></dt>
 <dd><p>Generate all individual plots.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -857,8 +950,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id18">
-<span class="sig-name descname"><span class="pre">plot_fidelity_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_fidelity_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id18" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">plot_fidelity_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_fidelity_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition">¶</a></dt>
 <dd><p>Plot fidelity comparison across jobs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -868,8 +961,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id19">
-<span class="sig-name descname"><span class="pre">plot_shot_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_shot_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">plot_shot_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_shot_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id18" title="Link to this definition">¶</a></dt>
 <dd><p>Plot shot distribution (successful vs failed) as stacked bars.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -879,8 +972,8 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id20">
-<span class="sig-name descname"><span class="pre">plot_success_error_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_success_error_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id20" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">plot_success_error_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_success_error_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition">¶</a></dt>
 <dd><p>Plot success vs error rates for individual jobs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -982,7 +1075,7 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Visualization Strategies</a><ul>
-<li><a class="reference internal" href="#module-qward.visualization.qiskit_metrics_visualizer">QiskitVisualizer</a><ul>
+<li><a class="reference internal" href="#qiskitvisualizer">QiskitVisualizer</a><ul>
 <li><a class="reference internal" href="#qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer"><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></a><ul>
 <li><a class="reference internal" href="#qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer.create_dashboard"><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer.create_dashboard()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer.plot_all"><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer.plot_all()</span></code></a></li>
@@ -1005,14 +1098,13 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-qward.visualization.complexity_metrics_visualizer">ComplexityVisualizer</a><ul>
+<li><a class="reference internal" href="#complexityvisualizer">ComplexityVisualizer</a><ul>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></a><ul>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.create_dashboard"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.create_dashboard()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_all"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_all()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_complexity_radar"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_complexity_radar()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_efficiency_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_efficiency_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_gate_based_metrics"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_gate_based_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_quantum_volume_analysis"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_quantum_volume_analysis()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></a><ul>
@@ -1021,14 +1113,13 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 <li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_complexity_radar()</span></code></a></li>
 <li><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_efficiency_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_gate_based_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.plot_quantum_volume_analysis()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.save_plot"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.save_plot()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.show_plot"><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer.show_plot()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-qward.visualization.circuit_performance_visualizer">CircuitPerformanceVisualizer</a><ul>
+<li><a class="reference internal" href="#circuitperformancevisualizer">CircuitPerformanceVisualizer</a><ul>
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></a><ul>
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.create_dashboard"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.create_dashboard()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_aggregate_summary"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_aggregate_summary()</span></code></a></li>
@@ -1038,13 +1129,13 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_success_error_comparison"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_success_error_comparison()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></a><ul>
-<li><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.create_dashboard()</span></code></a></li>
-<li><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_aggregate_summary()</span></code></a></li>
-<li><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_all()</span></code></a></li>
-<li><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_fidelity_comparison()</span></code></a></li>
-<li><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_shot_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_success_error_comparison()</span></code></a></li>
+<li><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></a><ul>
+<li><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.create_dashboard()</span></code></a></li>
+<li><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_aggregate_summary()</span></code></a></li>
+<li><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_all()</span></code></a></li>
+<li><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_fidelity_comparison()</span></code></a></li>
+<li><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_shot_distribution()</span></code></a></li>
+<li><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_success_error_comparison()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.save_plot"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.save_plot()</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.show_plot"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.show_plot()</span></code></a></li>
 </ul>

@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -371,7 +370,6 @@
         +standardized_metrics: StandardizedMetricsSchema
         +advanced_metrics: AdvancedMetricsSchema
         +derived_metrics: DerivedMetricsSchema
-        +quantum_volume: QuantumVolumeSchema
         +to_flat_dict() Dict[str, Any]
         +from_flat_dict() ComplexityMetricsSchema
     }
@@ -449,6 +447,9 @@
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() QiskitMetricsSchema
+        +get_basic_metrics() BasicMetricsSchema
+        +get_instruction_metrics() InstructionMetricsSchema
+        +get_scheduling_metrics() SchedulingMetricsSchema
     }
 
     class ComplexityMetrics {
@@ -458,31 +459,27 @@
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() ComplexityMetricsSchema
-        +get_gate_based_metrics() Dict[str, Any]
-        +get_entanglement_metrics() Dict[str, Any]
-        +get_standardized_metrics() Dict[str, Any]
-        +get_advanced_metrics() Dict[str, Any]
-        +get_derived_metrics() Dict[str, Any]
-        +estimate_quantum_volume() Dict[str, Any]
+        +get_gate_based_metrics() GateBasedMetricsSchema
+        +get_entanglement_metrics() EntanglementMetricsSchema
+        +get_standardized_metrics() StandardizedMetricsSchema
+        +get_advanced_metrics() AdvancedMetricsSchema
+        +get_derived_metrics() DerivedMetricsSchema
     }
 
     class CircuitPerformanceMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
         #_job: Optional[JobType]
         #_jobs: List[JobType]
-        #_result: Optional[Dict]
         #success_criteria: Callable[[str], bool]
-        +__init__(circuit, job, jobs, result, success_criteria)
+        +__init__(circuit, job, jobs, success_criteria)
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
         +get_metrics() CircuitPerformanceSchema
-        +get_single_job_metrics(job) Dict[str, Any]
-        +get_multiple_jobs_metrics() Dict[str, Any]
+        +get_success_metrics() SuccessMetricsSchema
+        +get_fidelity_metrics() FidelityMetricsSchema
+        +get_statistical_metrics() StatisticalMetricsSchema
         +add_job(job)
-        +_calculate_success_metrics(counts, job_id) Dict[str, Any]
-        +_calculate_aggregate_metrics(rates, fidelities, shots) Dict[str, Any]
-        +_extract_job_id(job) str
         +_default_success_criteria() Callable[[str], bool]
     }
 
@@ -581,7 +578,7 @@
 </section>
 <section id="metriccalculator">
 <h3>MetricCalculator<a class="headerlink" href="#metriccalculator" title="Link to this heading">¶</a></h3>
-<p>The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations now return validated schema objects directly through <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code>. Default metric classes can be obtained using the <code class="docutils literal notranslate"><span class="pre">get_default_strategies()</span></code> function from the <code class="docutils literal notranslate"><span class="pre">qward.metrics.defaults</span></code> module.</p>
+<p>The MetricCalculator class is an abstract base class that defines the interface for all metrics. It includes the circuit attribute, properties for metric type and ID, and abstract methods for metric calculation. All concrete implementations return validated schema objects directly through <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code>. Default metric classes can be obtained using the <code class="docutils literal notranslate"><span class="pre">get_default_strategies()</span></code> function from the <code class="docutils literal notranslate"><span class="pre">qward.metrics.defaults</span></code> module.</p>
 </section>
 <section id="schema-validation">
 <h3>Schema Validation<a class="headerlink" href="#schema-validation" title="Link to this heading">¶</a></h3>
@@ -600,7 +597,7 @@
 </section>
 <section id="complexitymetrics">
 <h3>ComplexityMetrics<a class="headerlink" href="#complexitymetrics" title="Link to this heading">¶</a></h3>
-<p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, derived metrics, and quantum volume estimation. All metrics are validated through a <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> with appropriate constraints and cross-field validation.</p>
+<p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> with appropriate constraints and cross-field validation.</p>
 </section>
 <section id="circuitperformancemetrics">
 <h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
@@ -661,7 +658,7 @@
 <span class="n">complexity_metrics</span> <span class="o">=</span> <span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">complexity_schema</span> <span class="o">=</span> <span class="n">complexity_metrics</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Quantum Volume: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">quantum_volume</span><span class="o">.</span><span class="n">enhanced_quantum_volume</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate Count: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">gate_based_metrics</span><span class="o">.</span><span class="n">gate_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gate Density: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">standardized_metrics</span><span class="o">.</span><span class="n">gate_density</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parallelism Efficiency: </span><span class="si">{</span><span class="n">complexity_schema</span><span class="o">.</span><span class="n">advanced_metrics</span><span class="o">.</span><span class="n">parallelism_efficiency</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -766,12 +763,12 @@
 <li><p>Use the Scanner class for all circuit analysis</p></li>
 <li><p>Add metrics before calculating results</p></li>
 <li><p>Consider using multiple metrics for comprehensive analysis</p></li>
-<li><p>All metrics now return validated schema objects by default</p></li>
+<li><p>All metrics return validated schema objects by default</p></li>
 </ul>
 </li>
 <li><p><strong>Schema Usage</strong></p>
 <ul class="simple">
-<li><p>All metric classes now return schema objects directly via <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></p></li>
+<li><p>All metric classes return schema objects directly via <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></p></li>
 <li><p>Take advantage of IDE autocomplete with schema objects</p></li>
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> when you need dictionary format for DataFrames</p></li>
 <li><p>Leverage JSON schema generation for API documentation</p></li>
@@ -872,7 +869,6 @@
         +metrics_dict: Dict[str, DataFrame]
         +plot_gate_based_metrics()
         +plot_complexity_radar()
-        +plot_quantum_volume_analysis()
         +plot_efficiency_metrics()
         +create_dashboard()
         +plot_all()
@@ -943,7 +939,6 @@
 <ul class="simple">
 <li><p>Gate-based complexity metrics</p></li>
 <li><p>Radar chart for normalized complexity indicators</p></li>
-<li><p>Quantum Volume analysis and estimation</p></li>
 <li><p>Efficiency metrics and parallelism analysis</p></li>
 <li><p>Comprehensive dashboard with complexity overview</p></li>
 </ul>

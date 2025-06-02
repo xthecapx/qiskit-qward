@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -387,61 +386,59 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_circuit_performance_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process CircuitPerformanceMetrics with backward compatibility.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process CircuitPerformanceMetrics using schema-based API.&quot;&quot;&quot;</span>
         <span class="n">display_name</span> <span class="o">=</span> <span class="s2">&quot;CircuitPerformance&quot;</span>
 
-        <span class="c1"># Check for legacy API methods</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_legacy_api</span><span class="p">(</span><span class="n">strategy</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_process_legacy_circuit_performance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">display_name</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="c1"># Check for new schema-based API</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
-            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
-            <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
-            <span class="k">return</span>
-
-        <span class="c1"># Check for legacy structure with individual_jobs</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;individual_jobs&quot;</span> <span class="ow">in</span> <span class="n">metric_results</span><span class="p">:</span>
-            <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">metric_results</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">])</span>
-            <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">metric_results</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">]])</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
-            <span class="k">return</span>
-
-        <span class="c1"># Fallback - flatten manually</span>
-        <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
-        <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
-        <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_has_legacy_api</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if strategy has legacy API methods.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;get_single_job_metrics&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
-            <span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;get_multiple_jobs_metrics&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_process_legacy_circuit_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">display_name</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process legacy CircuitPerformance metrics.&quot;&quot;&quot;</span>
+        <span class="c1"># Check if we have multiple jobs</span>
         <span class="n">jobs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]))</span>
 
-        <span class="k">if</span> <span class="n">jobs_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">legacy_metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_multiple_jobs_metrics</span><span class="p">()</span>
-            <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">legacy_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">])</span>
-            <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">legacy_metrics</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">]])</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">jobs_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># For multiple jobs, we need to create both individual_jobs and aggregate DataFrames</span>
+                <span class="c1"># The schema contains aggregate data, so we use it for the aggregate DataFrame</span>
+                <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
+                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+
+                <span class="c1"># For individual jobs, we need to create schema-based individual job entries</span>
+                <span class="c1"># Get individual job metrics using the new schema API</span>
+                <span class="n">individual_jobs_data</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="c1"># Create a temporary single-job strategy to get schema-based metrics</span>
+                    <span class="n">temp_strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+                        <span class="n">strategy</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
+                        <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+                        <span class="n">success_criteria</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">,</span>
+                        <span class="n">expected_distribution</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">expected_distribution</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">job_metrics</span> <span class="o">=</span> <span class="n">temp_strategy</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+                    <span class="n">job_flat</span> <span class="o">=</span> <span class="n">job_metrics</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
+                    <span class="n">individual_jobs_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_flat</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">individual_jobs_data</span><span class="p">:</span>
+                    <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">individual_jobs_data</span><span class="p">)</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Fallback: create individual_jobs from aggregate</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Single job case - only create individual_jobs DataFrame</span>
+                <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
+                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">single_metrics</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_single_job_metrics</span><span class="p">()</span>
-            <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">single_metrics</span><span class="p">])</span>
+            <span class="c1"># Fallback for any remaining edge cases</span>
+            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+            <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
             <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_standard_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process standard (non-CircuitPerformance) metrics.&quot;&quot;&quot;</span>
-        <span class="c1"># Check if it&#39;s a schema object with to_flat_dict method</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process standard metrics using schema-based API.&quot;&quot;&quot;</span>
+        <span class="c1"># All metrics should return schema objects with to_flat_dict()</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
             <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fallback for any remaining edge cases</span>
             <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>

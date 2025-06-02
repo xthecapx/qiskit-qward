@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Metrics Schemas" href="metrics_schemas.html" /><link rel="prev" title="Result" href="result.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Metrics Schemas" href="metrics_schemas.html" /><link rel="prev" title="Scanner" href="scanner.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Metrics Base &amp; Types - Qward 0.1.0</title>
@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -258,8 +257,43 @@
         <article role="main" id="furo-main-content">
           <section id="metrics-base-types">
 <h1>Metrics Base &amp; Types<a class="headerlink" href="#metrics-base-types" title="Link to this heading">¶</a></h1>
+<section id="base-metric-calculator-class">
+<h2>Base Metric Calculator Class<a class="headerlink" href="#base-metric-calculator-class" title="Link to this heading">¶</a></h2>
+<p>The <cite>MetricCalculator</cite> class is the abstract base class for all metric calculators in QWARD. It defines the unified interface that all metric implementations follow.</p>
+<p><strong>Key Features:</strong>
+- <strong>Unified Interface</strong>: All metric calculators implement <cite>get_metrics()</cite> returning schema objects
+- <strong>Type Safety</strong>: Schema-based validation with automatic error checking
+- <strong>Extensible</strong>: Easy to create custom metric calculators</p>
+<p><strong>Usage Pattern:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetricsSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">custom_value</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">circuit_signature</span><span class="p">:</span> <span class="nb">str</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomMetric</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">QISKIT</span>  <span class="c1"># Or define new ID</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyCustomMetricsSchema</span><span class="p">:</span>
+        <span class="c1"># Custom calculation logic</span>
+        <span class="k">return</span> <span class="n">MyCustomMetricsSchema</span><span class="p">(</span>
+            <span class="n">custom_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
+            <span class="n">circuit_signature</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">q_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span><span class="si">}</span><span class="s2">d&quot;</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="module-qward.metrics.base_metric">
-<span id="base-metric-calculator-class"></span><h2>Base Metric Calculator Class<a class="headerlink" href="#module-qward.metrics.base_metric" title="Link to this heading">¶</a></h2>
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.base_metric" title="Link to this heading">¶</a></h2>
 <p>Base metric calculator class for QWARD.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.base_metric.MetricCalculator">
@@ -554,14 +588,14 @@ providing methods for metric calculation and type identification.</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="result.html">
+          <a class="prev-page" href="scanner.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Result</div>
+                <div class="title">Scanner</div>
                 
               </div>
             </a>
@@ -596,7 +630,8 @@ providing methods for metric calculation and type identification.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Metrics Base &amp; Types</a><ul>
-<li><a class="reference internal" href="#module-qward.metrics.base_metric">Base Metric Calculator Class</a><ul>
+<li><a class="reference internal" href="#base-metric-calculator-class">Base Metric Calculator Class</a></li>
+<li><a class="reference internal" href="#module-qward.metrics.base_metric">API Reference</a><ul>
 <li><a class="reference internal" href="#qward.metrics.base_metric.MetricCalculator"><code class="docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a><ul>
 <li><a class="reference internal" href="#qward.metrics.base_metric.MetricCalculator.circuit"><code class="docutils literal notranslate"><span class="pre">MetricCalculator.circuit</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.base_metric.MetricCalculator.get_metrics"><code class="docutils literal notranslate"><span class="pre">MetricCalculator.get_metrics()</span></code></a></li>

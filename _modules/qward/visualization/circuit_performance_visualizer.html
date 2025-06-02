@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -307,12 +306,13 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that required columns exist in the data.&quot;&quot;&quot;</span>
+        <span class="c1"># Validate individual jobs data</span>
         <span class="n">required_individual_cols</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;success_rate&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error_rate&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;fidelity&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;total_shots&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;successful_shots&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fidelity_metrics.fidelity&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;success_metrics.total_shots&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;success_metrics.successful_shots&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate_required_columns</span><span class="p">(</span>
@@ -322,12 +322,12 @@
         <span class="c1"># Validate aggregate data if it exists</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="n">required_aggregate_cols</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="s2">&quot;mean_success_rate&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;std_success_rate&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;min_success_rate&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;max_success_rate&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;mean_fidelity&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;error_rate&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_metrics.mean_success_rate&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_metrics.std_success_rate&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_metrics.min_success_rate&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_metrics.max_success_rate&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;fidelity_metrics.mean_fidelity&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">,</span>
             <span class="p">]</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_validate_required_columns</span><span class="p">(</span>
@@ -350,7 +350,13 @@
         <span class="n">plot_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">plot_df</span><span class="p">))]</span>
 
         <span class="c1"># Create grouped bar chart</span>
-        <span class="n">plot_df</span><span class="p">[[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;error_rate&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">success_error_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">success_error_data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
             <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span>
             <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color_palette</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color_palette</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
@@ -384,7 +390,7 @@
 
         <span class="c1"># Extract fidelity data</span>
         <span class="n">fidelity_data</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fidelity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fidelity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;fidelity_metrics.fidelity&quot;</span><span class="p">]):</span>
             <span class="n">fidelity_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fidelity</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>
@@ -418,8 +424,9 @@
 
         <span class="n">shot_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
             <span class="p">{</span>
-                <span class="s2">&quot;Successful Shots&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;Failed Shots&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;total_shots&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;successful_shots&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;Successful Shots&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.successful_shots&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;Failed Shots&quot;</span><span class="p">:</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.total_shots&quot;</span><span class="p">]</span>
+                <span class="o">-</span> <span class="n">plot_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.successful_shots&quot;</span><span class="p">],</span>
             <span class="p">}</span>
         <span class="p">)</span>
 
@@ -463,24 +470,26 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="c1"># Use existing aggregate data</span>
             <span class="n">aggregate_data</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;Mean Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;mean_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Std Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;std_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Min Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;min_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Max Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;max_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Mean Fidelity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;mean_fidelity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Mean Error Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;error_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Mean Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.mean_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Std Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.std_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Min Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.min_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Max Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.max_success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Mean Fidelity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;fidelity_metrics.mean_fidelity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Mean Error Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
             <span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Compute aggregate from individual jobs</span>
             <span class="n">aggregate_data</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;Mean Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;Mean Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
                 <span class="s2">&quot;Std Success Rate&quot;</span><span class="p">:</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                    <span class="k">else</span> <span class="mi">0</span>
                 <span class="p">),</span>
-                <span class="s2">&quot;Min Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
-                <span class="s2">&quot;Max Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
-                <span class="s2">&quot;Mean Fidelity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
-                <span class="s2">&quot;Mean Error Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;error_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;Min Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                <span class="s2">&quot;Max Success Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                <span class="s2">&quot;Mean Fidelity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;fidelity_metrics.fidelity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;Mean Error Rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">individual_df</span><span class="p">[</span><span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
             <span class="p">}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>

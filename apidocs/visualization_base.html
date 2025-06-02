@@ -198,15 +198,14 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">Quickstart Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">Qward Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../beginners_guide.html">QWARD Beginner’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../technical_docs.html">Technical Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../project_overview.html">QWARD Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">QWARD Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization_guide.html">QWARD Visualization Guide</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="scanner.html">Scanner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_base.html">Metrics Base &amp; Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_schemas.html">Metrics Schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metrics_qiskit.html">Qiskit Metrics</a></li>
@@ -258,8 +257,45 @@
         <article role="main" id="furo-main-content">
           <section id="visualization-base-classes">
 <h1>Visualization Base Classes<a class="headerlink" href="#visualization-base-classes" title="Link to this heading">¶</a></h1>
+<p>The visualization system in QWARD provides a structured approach to creating beautiful, informative plots of quantum circuit analysis results. The base classes define the common interface and utilities used by all visualization strategies.</p>
+<p><strong>Key Features:</strong>
+- <strong>Strategy Pattern</strong>: Extensible design for different visualization types
+- <strong>Consistent Styling</strong>: Unified plot configuration and appearance
+- <strong>Automatic Integration</strong>: Seamless integration with Scanner and metric results
+- <strong>Flexible Output</strong>: Support for saving, showing, and customizing plots</p>
+<section id="base-visualization-strategy">
+<h2>Base Visualization Strategy<a class="headerlink" href="#base-visualization-strategy" title="Link to this heading">¶</a></h2>
+<p>The <cite>VisualizationStrategy</cite> class is the abstract base class for all visualizers in QWARD. It provides common functionality and defines the interface that all concrete visualizers must implement.</p>
+<p><strong>Core Responsibilities:</strong>
+- <strong>Output Management</strong>: Handles directory creation and file path management
+- <strong>Plot Configuration</strong>: Integrates with <cite>PlotConfig</cite> for consistent styling
+- <strong>Common Utilities</strong>: Provides reusable methods for data validation and plot creation
+- <strong>Abstract Interface</strong>: Defines <cite>create_dashboard()</cite> and <cite>plot_all()</cite> methods</p>
+<p><strong>Usage Pattern:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span><span class="p">,</span> <span class="n">PlotConfig</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyCustomVisualizer</span><span class="p">(</span><span class="n">VisualizationStrategy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;plots&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">metrics_dict</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Create comprehensive dashboard</span>
+        <span class="n">dashboard_plots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Implementation here...</span>
+        <span class="k">return</span> <span class="n">dashboard_plots</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Create all individual plots</span>
+        <span class="n">all_plots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Implementation here...</span>
+        <span class="k">return</span> <span class="n">all_plots</span>
+</pre></div>
+</div>
+</section>
 <section id="module-qward.visualization.base">
-<span id="base-visualization-strategy"></span><h2>Base Visualization Strategy<a class="headerlink" href="#module-qward.visualization.base" title="Link to this heading">¶</a></h2>
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.visualization.base" title="Link to this heading">¶</a></h2>
 <p>Base classes for QWARD visualization system.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.visualization.base.PlotConfig">
@@ -448,6 +484,31 @@
 </section>
 <section id="plot-configuration">
 <h2>Plot Configuration<a class="headerlink" href="#plot-configuration" title="Link to this heading">¶</a></h2>
+<p>The <cite>PlotConfig</cite> class provides comprehensive configuration options for plot appearance and behavior.</p>
+<p><strong>Configuration Options:</strong>
+- <strong>Appearance</strong>: Figure size, DPI, color palettes, transparency
+- <strong>Styling</strong>: Plot styles (default, quantum, minimal)
+- <strong>Output</strong>: Save format (PNG, SVG), grid settings
+- <strong>Extensible</strong>: Easy to customize for different visualization needs</p>
+<p><strong>Usage Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlotConfig</span>
+
+<span class="c1"># Create custom plot configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PlotConfig</span><span class="p">(</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>           <span class="c1"># Larger figures</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>                   <span class="c1"># High quality</span>
+    <span class="n">style</span><span class="o">=</span><span class="s2">&quot;quantum&quot;</span><span class="p">,</span>           <span class="c1"># Quantum-themed styling</span>
+    <span class="n">color_palette</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">,</span> <span class="s2">&quot;#d62728&quot;</span><span class="p">],</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">,</span>         <span class="c1"># Vector graphics</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                 <span class="c1"># Show grid lines</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span>                  <span class="c1"># Transparency level</span>
+<span class="p">)</span>
+
+<span class="c1"># Use with any visualizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py class">
 <dt class="sig sig-object py" id="id5">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PlotConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'png'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/base.html#PlotConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
@@ -549,7 +610,8 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Visualization Base Classes</a><ul>
-<li><a class="reference internal" href="#module-qward.visualization.base">Base Visualization Strategy</a><ul>
+<li><a class="reference internal" href="#base-visualization-strategy">Base Visualization Strategy</a></li>
+<li><a class="reference internal" href="#module-qward.visualization.base">API Reference</a><ul>
 <li><a class="reference internal" href="#qward.visualization.base.PlotConfig"><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></a><ul>
 <li><a class="reference internal" href="#qward.visualization.base.PlotConfig.alpha"><code class="docutils literal notranslate"><span class="pre">PlotConfig.alpha</span></code></a></li>
 <li><a class="reference internal" href="#qward.visualization.base.PlotConfig.color_palette"><code class="docutils literal notranslate"><span class="pre">PlotConfig.color_palette</span></code></a></li>
