@@ -74,32 +74,6 @@ def validate_new_api():
 
         print()
 
-    # Test quantum volume (special case)
-    print("Testing Quantum Volume metrics...")
-    schema_qv = metrics.get_quantum_volume()
-    dict_qv = metrics.estimate_quantum_volume_dict()
-
-    # Compare by converting schema to dict format
-    schema_qv_dict = {
-        "standard_quantum_volume": schema_qv.standard_quantum_volume,
-        "enhanced_quantum_volume": schema_qv.enhanced_quantum_volume,
-        "effective_depth": schema_qv.effective_depth,
-        "factors": schema_qv.factors.model_dump(),
-        "circuit_metrics": schema_qv.circuit_metrics.model_dump(),
-    }
-
-    qv_matches = schema_qv_dict == dict_qv
-    status = "✓ PASS" if qv_matches else "✗ FAIL"
-    print(f"  {status}: Quantum Volume consistency check")
-    print(f"  Schema type: {type(schema_qv)}")
-
-    if not qv_matches:
-        all_passed = False
-        print(f"  Schema data: {schema_qv_dict}")
-        print(f"  Dict data:   {dict_qv}")
-
-    print()
-
     # Test complete metrics schema
     print("Testing Complete metrics schema...")
     complete_metrics = metrics.get_metrics()
@@ -111,7 +85,6 @@ def validate_new_api():
         "standardized_metrics",
         "advanced_metrics",
         "derived_metrics",
-        "quantum_volume",
     ]
 
     has_all_sections = all(hasattr(complete_metrics, section) for section in expected_sections)
@@ -126,79 +99,6 @@ def validate_new_api():
 
     print()
 
-    return all_passed
-
-
-def validate_backward_compatibility():
-    """Validate that deprecated methods still work with warnings."""
-    print("=== Backward Compatibility Validation ===\n")
-
-    qc = create_test_circuit()
-    metrics = ComplexityMetrics(qc)
-
-    import warnings
-
-    # Test deprecated structured methods
-    deprecated_methods = [
-        ("get_structured_gate_based_metrics", "get_gate_based_metrics"),
-        ("get_structured_entanglement_metrics", "get_entanglement_metrics"),
-        ("get_structured_standardized_metrics", "get_standardized_metrics"),
-        ("get_structured_advanced_metrics", "get_advanced_metrics"),
-        ("get_structured_derived_metrics", "get_derived_metrics"),
-        ("get_structured_quantum_volume", "get_quantum_volume"),
-    ]
-
-    all_passed = True
-
-    for deprecated_method, new_method in deprecated_methods:
-        print(f"Testing {deprecated_method}...")
-
-        # Capture warnings
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-
-            # Call deprecated method
-            deprecated_result = getattr(metrics, deprecated_method)()
-
-            # Call new method
-            new_result = getattr(metrics, new_method)()
-
-            # Check if warning was issued
-            warning_issued = len(w) > 0 and issubclass(w[0].category, DeprecationWarning)
-
-            # Check if results are identical
-            results_match = deprecated_result.model_dump() == new_result.model_dump()
-
-            status = "✓ PASS" if warning_issued and results_match else "✗ FAIL"
-            print(f"  {status}: Warning issued: {warning_issued}, Results match: {results_match}")
-
-            if not (warning_issued and results_match):
-                all_passed = False
-                if not warning_issued:
-                    print(f"  ERROR: No deprecation warning issued")
-                if not results_match:
-                    print(f"  ERROR: Results don't match")
-
-        print()
-
-    # Test deprecated estimate_quantum_volume
-    print("Testing estimate_quantum_volume...")
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-
-        deprecated_qv = metrics.estimate_quantum_volume()
-        new_qv = metrics.estimate_quantum_volume_dict()
-
-        warning_issued = len(w) > 0 and issubclass(w[0].category, DeprecationWarning)
-        results_match = deprecated_qv == new_qv
-
-        status = "✓ PASS" if warning_issued and results_match else "✗ FAIL"
-        print(f"  {status}: Warning issued: {warning_issued}, Results match: {results_match}")
-
-        if not (warning_issued and results_match):
-            all_passed = False
-
-    print()
     return all_passed
 
 
@@ -249,23 +149,16 @@ if __name__ == "__main__":
     # Test new API
     new_api_success = validate_new_api()
 
-    # Test backward compatibility
-    backward_compat_success = validate_backward_compatibility()
-
-    if new_api_success and backward_compat_success:
+    if new_api_success:
         # Demonstrate new features
         demonstrate_new_api_features()
 
         print("\n=== CONCLUSION ===")
-        print("✓ REFACTORING SUCCESSFUL!")
+        print("✓ API VALIDATION SUCCESSFUL!")
         print("✓ New API: Main methods return validated schema objects")
         print("✓ Dict methods: Available for users who need raw dictionaries")
-        print("✓ Backward compatibility: Deprecated methods work with warnings")
         print("✓ All functionality preserved with improved type safety")
     else:
         print("\n=== CONCLUSION ===")
-        print("✗ REFACTORING ISSUES DETECTED!")
-        if not new_api_success:
-            print("✗ New API has consistency issues")
-        if not backward_compat_success:
-            print("✗ Backward compatibility is broken")
+        print("✗ API VALIDATION ISSUES DETECTED!")
+        print("✗ New API has consistency issues")

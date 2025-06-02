@@ -27,9 +27,6 @@ try:
         StandardizedMetricsSchema,
         AdvancedMetricsSchema,
         DerivedMetricsSchema,
-        QuantumVolumeSchema,
-        QuantumVolumeFactorsSchema,
-        QuantumVolumeCircuitMetricsSchema,
     )
 
     SCHEMAS_AVAILABLE = True
@@ -170,7 +167,6 @@ class ComplexityMetrics(MetricCalculator):
             standardized_metrics=self.get_standardized_metrics(),
             advanced_metrics=self.get_advanced_metrics(),
             derived_metrics=self.get_derived_metrics(),
-            quantum_volume=self.get_quantum_volume(),
         )
 
     # =============================================================================
@@ -410,88 +406,6 @@ class ComplexityMetrics(MetricCalculator):
         return self.get_derived_metrics().model_dump()
 
     # =============================================================================
-    # Quantum Volume Estimation
-    # =============================================================================
-
-    def get_quantum_volume(self) -> "QuantumVolumeSchema":
-        """
-        Get quantum volume estimation as a validated schema object.
-
-        Returns:
-            QuantumVolumeSchema: Validated quantum volume metrics
-        """
-        self._ensure_schemas_available()
-        qv_data = self.estimate_quantum_volume_dict()
-
-        # Convert nested dictionaries to schema objects
-        qv_data["factors"] = QuantumVolumeFactorsSchema(**qv_data["factors"])
-        qv_data["circuit_metrics"] = QuantumVolumeCircuitMetricsSchema(**qv_data["circuit_metrics"])
-
-        return QuantumVolumeSchema(**qv_data)
-
-    def estimate_quantum_volume_dict(self) -> Dict[str, Any]:
-        """
-        Estimate the quantum volume of the circuit as a dictionary.
-
-        This provides a circuit complexity metric based on the circuit's
-        characteristics rather than the formal IBM Quantum Volume protocol.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing quantum volume estimates and factors
-        """
-        # Get circuit metrics
-        depth = self.circuit.depth()
-        width = self.circuit.width()
-        num_qubits = self.circuit.num_qubits
-        size = self.circuit.size()
-        op_counts = self.circuit.count_ops()
-
-        # Calculate effective depth for QV calculation
-        effective_depth = min(depth, num_qubits)
-
-        # Standard QV base calculation: 2^n where n is effective depth
-        standard_qv = 2**effective_depth
-
-        # Calculate complexity factors
-        factors = self._calculate_qv_factors(depth, width, size, op_counts)
-
-        # Enhanced QV: apply enhancement factor to standard QV
-        enhanced_qv = standard_qv * (1 + factors["enhancement_factor"])
-
-        return {
-            "standard_quantum_volume": standard_qv,
-            "enhanced_quantum_volume": round(enhanced_qv, 2),
-            "effective_depth": effective_depth,
-            "factors": factors,
-            "circuit_metrics": {
-                "depth": depth,
-                "width": width,
-                "size": size,
-                "num_qubits": num_qubits,
-                "operation_counts": op_counts,
-            },
-        }
-
-    # =============================================================================
-    # Backward Compatibility Methods (Deprecated)
-    # =============================================================================
-
-    def estimate_quantum_volume(self) -> Dict[str, Any]:
-        """
-        DEPRECATED: Use estimate_quantum_volume_dict() instead.
-
-        Estimate the quantum volume of the circuit as a dictionary.
-        """
-        import warnings
-
-        warnings.warn(
-            "estimate_quantum_volume() is deprecated. Use estimate_quantum_volume_dict() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.estimate_quantum_volume_dict()
-
-    # =============================================================================
     # Helper Methods
     # =============================================================================
 
@@ -505,39 +419,3 @@ class ComplexityMetrics(MetricCalculator):
         """Calculate the number of multi-qubit gates."""
         non_computational_count = self._count_gates_by_type(op_counts, NON_COMPUTATIONAL_GATES)
         return gate_count - single_qubit_count - non_computational_count
-
-    def _calculate_qv_factors(
-        self, depth: int, width: int, size: int, op_counts: Dict[str, int]
-    ) -> Dict[str, float]:
-        """Calculate factors for quantum volume estimation."""
-        # Square circuit factor - how close is it to a square circuit?
-        square_ratio = min(depth, width) / max(depth, width) if max(depth, width) > 0 else 1.0
-
-        # Circuit density - how many operations per qubit-timestep?
-        max_possible_ops = depth * width
-        density = size / max_possible_ops if max_possible_ops > 0 else 0.0
-
-        # Gate complexity - multi-qubit operations are more complex
-        single_qubit_ops = self._count_gates_by_type(op_counts, SINGLE_QUBIT_GATES)
-        non_computational_ops = self._count_gates_by_type(op_counts, NON_COMPUTATIONAL_GATES)
-        multi_qubit_ops = size - single_qubit_ops - non_computational_ops
-        multi_qubit_ratio = multi_qubit_ops / size if size > 0 else 0.0
-
-        # Connectivity factor - for current circuit
-        connectivity_factor = 0.5 + 0.5 * (multi_qubit_ratio > 0)
-
-        # Calculate the enhancement factor
-        enhancement_factor = (
-            0.4 * square_ratio  # Square circuits are foundational to QV
-            + 0.3 * density  # Dense circuits are more complex
-            + 0.2 * multi_qubit_ratio  # Multi-qubit operations increase complexity
-            + 0.1 * connectivity_factor  # Connectivity affects feasibility
-        )
-
-        return {
-            "square_ratio": round(square_ratio, 2),
-            "circuit_density": round(density, 2),
-            "multi_qubit_ratio": round(multi_qubit_ratio, 2),
-            "connectivity_factor": round(connectivity_factor, 2),
-            "enhancement_factor": round(enhancement_factor, 2),
-        }

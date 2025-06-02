@@ -78,7 +78,7 @@ class TestIntegration(unittest.TestCase):
 
         complexity_df = results["ComplexityMetrics"]
         self.assertEqual(complexity_df["gate_based_metrics.cnot_count"].iloc[0], 1)
-        self.assertGreater(complexity_df["quantum_volume.standard_quantum_volume"].iloc[0], 0)
+        self.assertGreater(complexity_df["advanced_metrics.parallelism_factor"].iloc[0], 0)
 
         performance_df = results["CircuitPerformance.individual_jobs"]
         success_rate = performance_df["success_rate"].iloc[0]
@@ -138,7 +138,7 @@ class TestIntegration(unittest.TestCase):
 
         # 4. Verify type-safe access
         self.assertEqual(qiskit_schema.basic_metrics.num_qubits, 2)
-        self.assertGreater(complexity_schema.quantum_volume.standard_quantum_volume, 0)
+        self.assertGreater(complexity_schema.advanced_metrics.parallelism_factor, 0)
         self.assertGreaterEqual(performance_schema.success_metrics.success_rate, 0.0)
         self.assertLessEqual(performance_schema.success_metrics.success_rate, 1.0)
 
@@ -171,7 +171,7 @@ class TestIntegration(unittest.TestCase):
                 "num_qubits": qiskit_schema.basic_metrics.num_qubits,
                 "depth": qiskit_schema.basic_metrics.depth,
                 "gate_count": complexity_schema.gate_based_metrics.gate_count,
-                "quantum_volume": complexity_schema.quantum_volume.standard_quantum_volume,
+                "weighted_complexity": complexity_schema.derived_metrics.weighted_complexity,
             }
 
         # Verify results make sense
@@ -185,7 +185,7 @@ class TestIntegration(unittest.TestCase):
         for name, metrics in results.items():
             self.assertGreater(metrics["depth"], 0)
             self.assertGreater(metrics["gate_count"], 0)
-            self.assertGreater(metrics["quantum_volume"], 0)
+            self.assertGreater(metrics["weighted_complexity"], 0)
 
     def test_visualization_integration(self):
         """Test integration with visualization system."""
@@ -361,7 +361,7 @@ class TestIntegration(unittest.TestCase):
         self.assertIn("basic_metrics.depth", qiskit_flat)
         self.assertIn("basic_metrics.num_qubits", qiskit_flat)
         self.assertIn("gate_based_metrics.gate_count", complexity_flat)
-        self.assertIn("quantum_volume.standard_quantum_volume", complexity_flat)
+        self.assertIn("advanced_metrics.parallelism_factor", complexity_flat)
 
         # Verify values match schema access
         self.assertEqual(qiskit_flat["basic_metrics.depth"], qiskit_schema.basic_metrics.depth)
