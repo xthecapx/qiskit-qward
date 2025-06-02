@@ -126,61 +126,59 @@ class Scanner:
         return metric_dataframes
 
     def _process_circuit_performance_metrics(self, strategy, metric_results, metric_dataframes):
-        """Process CircuitPerformanceMetrics with backward compatibility."""
+        """Process CircuitPerformanceMetrics using schema-based API."""
         display_name = "CircuitPerformance"
 
-        # Check for legacy API methods
-        if self._has_legacy_api(strategy):
-            self._process_legacy_circuit_performance(strategy, display_name, metric_dataframes)
-            return
-
-        # Check for new schema-based API
-        if hasattr(metric_results, "to_flat_dict"):
-            flattened_metrics = metric_results.to_flat_dict()
-            single_job_df = pd.DataFrame([flattened_metrics])
-            metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-            return
-
-        # Check for legacy structure with individual_jobs
-        if isinstance(metric_results, dict) and "individual_jobs" in metric_results:
-            individual_jobs_df = pd.DataFrame(metric_results["individual_jobs"])
-            aggregate_df = pd.DataFrame([metric_results["aggregate"]])
-            metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
-            metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
-            return
-
-        # Fallback - flatten manually
-        flattened_metrics = self._flatten_metrics(metric_results)
-        single_job_df = pd.DataFrame([flattened_metrics])
-        metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
-
-    def _has_legacy_api(self, strategy):
-        """Check if strategy has legacy API methods."""
-        return hasattr(strategy, "get_single_job_metrics") and hasattr(
-            strategy, "get_multiple_jobs_metrics"
-        )
-
-    def _process_legacy_circuit_performance(self, strategy, display_name, metric_dataframes):
-        """Process legacy CircuitPerformance metrics."""
+        # Check if we have multiple jobs
         jobs_count = len(getattr(strategy, "_jobs", []))
 
-        if jobs_count > 1:
-            legacy_metrics = strategy.get_multiple_jobs_metrics()
-            individual_jobs_df = pd.DataFrame(legacy_metrics["individual_jobs"])
-            aggregate_df = pd.DataFrame([legacy_metrics["aggregate"]])
-            metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
-            metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
+        if hasattr(metric_results, "to_flat_dict"):
+            flattened_metrics = metric_results.to_flat_dict()
+
+            if jobs_count > 1:
+                # For multiple jobs, we need to create both individual_jobs and aggregate DataFrames
+                # The schema contains aggregate data, so we use it for the aggregate DataFrame
+                aggregate_df = pd.DataFrame([flattened_metrics])
+                metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
+
+                # For individual jobs, we need to create schema-based individual job entries
+                # Get individual job metrics using the new schema API
+                individual_jobs_data = []
+                for job in getattr(strategy, "_jobs", []):
+                    # Create a temporary single-job strategy to get schema-based metrics
+                    temp_strategy = strategy.__class__(
+                        strategy.circuit,
+                        job=job,
+                        success_criteria=strategy.success_criteria,
+                        expected_distribution=strategy.expected_distribution,
+                    )
+                    job_metrics = temp_strategy.get_metrics()
+                    job_flat = job_metrics.to_flat_dict()
+                    individual_jobs_data.append(job_flat)
+
+                if individual_jobs_data:
+                    individual_jobs_df = pd.DataFrame(individual_jobs_data)
+                    metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
+                else:
+                    # Fallback: create individual_jobs from aggregate
+                    metric_dataframes[f"{display_name}.individual_jobs"] = aggregate_df
+            else:
+                # Single job case - only create individual_jobs DataFrame
+                single_job_df = pd.DataFrame([flattened_metrics])
+                metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
         else:
-            single_metrics = strategy.get_single_job_metrics()
-            single_job_df = pd.DataFrame([single_metrics])
+            # Fallback for any remaining edge cases
+            flattened_metrics = self._flatten_metrics(metric_results)
+            single_job_df = pd.DataFrame([flattened_metrics])
             metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
 
     def _process_standard_metrics(self, metric_name, metric_results, metric_dataframes):
-        """Process standard (non-CircuitPerformance) metrics."""
-        # Check if it's a schema object with to_flat_dict method
+        """Process standard metrics using schema-based API."""
+        # All metrics should return schema objects with to_flat_dict()
         if hasattr(metric_results, "to_flat_dict"):
             flattened_metrics = metric_results.to_flat_dict()
         else:
+            # Fallback for any remaining edge cases
             flattened_metrics = self._flatten_metrics(metric_results)
 
         df = pd.DataFrame([flattened_metrics])

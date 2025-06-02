@@ -154,9 +154,14 @@ class TestScanner(unittest.TestCase):
         self.assertIn("CircuitPerformance.individual_jobs", results)
         self.assertIsInstance(results["CircuitPerformance.individual_jobs"], pd.DataFrame)
 
-        # Verify DataFrame has expected columns (legacy format)
+        # Verify DataFrame has expected columns (schema-based format)
         df = results["CircuitPerformance.individual_jobs"]
-        expected_columns = ["success_rate", "error_rate", "total_shots", "fidelity"]
+        expected_columns = [
+            "success_metrics.success_rate",
+            "success_metrics.error_rate",
+            "success_metrics.total_shots",
+            "fidelity_metrics.fidelity",
+        ]
         for col in expected_columns:
             self.assertIn(col, df.columns, f"Expected column {col} not found")
 

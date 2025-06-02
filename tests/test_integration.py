@@ -81,7 +81,7 @@ class TestIntegration(unittest.TestCase):
         self.assertGreater(complexity_df["advanced_metrics.parallelism_factor"].iloc[0], 0)
 
         performance_df = results["CircuitPerformance.individual_jobs"]
-        success_rate = performance_df["success_rate"].iloc[0]
+        success_rate = performance_df["success_metrics.success_rate"].iloc[0]
         self.assertGreaterEqual(success_rate, 0.8)  # Bell state should have high success rate
 
     def test_complete_workflow_ghz_state(self):
