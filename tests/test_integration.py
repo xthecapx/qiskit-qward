@@ -4,7 +4,7 @@ import unittest
 import tempfile
 import os
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QFT, EfficientSU2
+from qiskit.circuit.library.basis_change import QFTGate
 from qiskit_aer import AerSimulator
 import pandas as pd
 
@@ -150,11 +150,23 @@ class TestIntegration(unittest.TestCase):
 
     def test_multiple_circuits_comparison(self):
         """Test comparing metrics across multiple circuits."""
+        # Create QFT circuit
+        qft_circuit = QuantumCircuit(3)
+        qft_circuit.append(QFTGate(3), range(3))
+
+        # Create a simple variational circuit
+        variational_circuit = QuantumCircuit(2)
+        variational_circuit.ry(0.5, 0)
+        variational_circuit.ry(0.3, 1)
+        variational_circuit.cx(0, 1)
+        variational_circuit.ry(0.7, 0)
+        variational_circuit.ry(0.2, 1)
+
         circuits = {
             "Bell": self.bell_circuit,
             "GHZ": self.ghz_circuit,
-            "QFT": QFT(3),
-            "EfficientSU2": EfficientSU2(2, reps=1),
+            "QFT": qft_circuit,
+            "Variational": variational_circuit,
         }
 
         results = {}
@@ -178,7 +190,7 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(results["Bell"]["num_qubits"], 2)
         self.assertEqual(results["GHZ"]["num_qubits"], 3)
         self.assertEqual(results["QFT"]["num_qubits"], 3)
-        self.assertEqual(results["EfficientSU2"]["num_qubits"], 2)
+        self.assertEqual(results["Variational"]["num_qubits"], 2)
 
         # Different circuits have different complexities - just verify they're reasonable
         # QFT might be optimized differently, so just check that all have positive values

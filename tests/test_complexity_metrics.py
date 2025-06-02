@@ -3,7 +3,7 @@
 import unittest
 import math
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QFT, EfficientSU2
+from qiskit.circuit.library.basis_change import QFTGate
 
 from qward.metrics import ComplexityMetrics
 from qward.metrics.schemas import ComplexityMetricsSchema
@@ -184,8 +184,9 @@ class TestComplexityMetrics(unittest.TestCase):
 
     def test_different_circuit_types(self):
         """Test with different types of circuits."""
-        # QFT circuit
-        qft_circuit = QFT(3)
+        # QFT circuit using QFTGate
+        qft_circuit = QuantumCircuit(3)
+        qft_circuit.append(QFTGate(3), range(3))
         metrics = ComplexityMetrics(qft_circuit)
         result = metrics.get_metrics()
 
@@ -193,9 +194,15 @@ class TestComplexityMetrics(unittest.TestCase):
         # QFT might not have two-qubit gates depending on implementation
         self.assertGreaterEqual(result.gate_based_metrics.two_qubit_count, 0)
 
-        # EfficientSU2 circuit
-        efficient_circuit = EfficientSU2(2, reps=1)
-        metrics = ComplexityMetrics(efficient_circuit)
+        # Custom variational circuit (avoiding deprecated EfficientSU2)
+        variational_circuit = QuantumCircuit(2)
+        variational_circuit.ry(0.5, 0)
+        variational_circuit.ry(0.3, 1)
+        variational_circuit.cx(0, 1)
+        variational_circuit.ry(0.7, 0)
+        variational_circuit.ry(0.2, 1)
+
+        metrics = ComplexityMetrics(variational_circuit)
         result = metrics.get_metrics()
 
         self.assertGreater(result.gate_based_metrics.gate_count, 0)

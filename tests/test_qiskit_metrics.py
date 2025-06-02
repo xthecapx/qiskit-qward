@@ -2,7 +2,7 @@
 
 import unittest
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QFT, EfficientSU2
+from qiskit.circuit.library.basis_change import QFTGate
 
 from qward.metrics.qiskit_metrics import QiskitMetrics
 from qward.metrics.schemas import QiskitMetricsSchema
@@ -92,16 +92,23 @@ class TestQiskitMetrics(unittest.TestCase):
 
     def test_different_circuit_types(self):
         """Test with different types of circuits."""
-        # QFT circuit
-        qft_circuit = QFT(3)
+        # QFT circuit using QFTGate
+        qft_circuit = QuantumCircuit(3)
+        qft_circuit.append(QFTGate(3), range(3))
         metrics = QiskitMetrics(qft_circuit)
         result = metrics.get_metrics()
         self.assertEqual(result.basic_metrics.num_qubits, 3)
         self.assertGreater(result.basic_metrics.size, 0)
 
-        # EfficientSU2 circuit
-        efficient_circuit = EfficientSU2(2, reps=1)
-        metrics = QiskitMetrics(efficient_circuit)
+        # Simple variational circuit
+        variational_circuit = QuantumCircuit(2)
+        variational_circuit.ry(0.5, 0)
+        variational_circuit.ry(0.3, 1)
+        variational_circuit.cx(0, 1)
+        variational_circuit.ry(0.7, 0)
+        variational_circuit.ry(0.2, 1)
+
+        metrics = QiskitMetrics(variational_circuit)
         result = metrics.get_metrics()
         self.assertEqual(result.basic_metrics.num_qubits, 2)
         self.assertGreater(result.basic_metrics.size, 0)
