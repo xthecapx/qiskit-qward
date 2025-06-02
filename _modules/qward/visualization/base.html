@@ -257,10 +257,47 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+
+<div class="viewcode-block" id="PlotType">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.PlotType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlotType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of plot types for metadata.&quot;&quot;&quot;</span>
+    
+    <span class="n">BAR_CHART</span> <span class="o">=</span> <span class="s2">&quot;bar_chart&quot;</span>
+    <span class="n">PIE_CHART</span> <span class="o">=</span> <span class="s2">&quot;pie_chart&quot;</span>
+    <span class="n">RADAR_CHART</span> <span class="o">=</span> <span class="s2">&quot;radar_chart&quot;</span>
+    <span class="n">STACKED_BAR</span> <span class="o">=</span> <span class="s2">&quot;stacked_bar&quot;</span>
+    <span class="n">GROUPED_BAR</span> <span class="o">=</span> <span class="s2">&quot;grouped_bar&quot;</span>
+    <span class="n">LINE_CHART</span> <span class="o">=</span> <span class="s2">&quot;line_chart&quot;</span>
+    <span class="n">SCATTER_PLOT</span> <span class="o">=</span> <span class="s2">&quot;scatter_plot&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PlotMetadata">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.PlotMetadata">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlotMetadata</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Metadata for individual plots.&quot;&quot;&quot;</span>
+    
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">plot_type</span><span class="p">:</span> <span class="n">PlotType</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># Type definitions for the new schema</span>
+<span class="n">PlotResult</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]</span>
+<span class="n">PlotRegistry</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PlotMetadata</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="PlotConfig">
@@ -618,19 +655,102 @@
             <span class="n">display_name</span> <span class="o">=</span> <span class="n">display_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">display_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
 
+<div class="viewcode-block" id="VisualizationStrategy.get_available_plots">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.get_available_plots">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_plots</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of available plot names for this strategy.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="VisualizationStrategy.get_plot_metadata">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.get_plot_metadata">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plot_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotMetadata</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get metadata for a specific plot.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="VisualizationStrategy.generate_plot">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.generate_plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a single plot by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            plot_name: Name of the plot to generate</span>
+<span class="sd">            save: Whether to save the plot</span>
+<span class="sd">            show: Whether to display the plot</span>
+<span class="sd">            **kwargs: Additional arguments passed to the plot method</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib Figure object</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If plot_name is not available</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">():</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot &#39;</span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">&#39; not available. Available plots: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_plot_metadata</span><span class="p">(</span><span class="n">plot_name</span><span class="p">)</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">method_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="VisualizationStrategy.generate_plots">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.generate_plots">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate multiple plots and return as dictionary.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            plot_names: List of plot names to generate. If None, generates all available plots.</span>
+<span class="sd">            save: Whether to save the plots</span>
+<span class="sd">            show: Whether to display the plots</span>
+<span class="sd">            **kwargs: Additional arguments passed to plot methods</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary mapping plot names to Figure objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plot_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">()</span>
+        
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="n">plot_names</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span><span class="n">plot_name</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Failed to generate plot &#39;</span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+        
+        <span class="k">return</span> <span class="n">results</span></div>
+
+    
+<div class="viewcode-block" id="VisualizationStrategy.generate_all_plots">
+<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.generate_all_plots">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_all_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate all available plots.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            save: Whether to save the plots</span>
+<span class="sd">            show: Whether to display the plots</span>
+<span class="sd">            **kwargs: Additional arguments passed to plot methods</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary mapping plot names to Figure objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="VisualizationStrategy.create_dashboard">
 <a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.create_dashboard">[docs]</a>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a comprehensive dashboard for this strategy&#39;s metrics.&quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="VisualizationStrategy.plot_all">
-<a class="viewcode-back" href="../../../apidocs/visualization_base.html#qward.visualization.base.VisualizationStrategy.plot_all">[docs]</a>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate all individual plots for this strategy.&quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 </div>
 

@@ -259,13 +259,73 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span><span class="p">,</span> <span class="n">PlotConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span><span class="p">,</span> <span class="n">PlotConfig</span><span class="p">,</span> <span class="n">PlotMetadata</span><span class="p">,</span> <span class="n">PlotType</span><span class="p">,</span> <span class="n">PlotRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plots</span>
 
 
 <div class="viewcode-block" id="CircuitPerformanceVisualizer">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">VisualizationStrategy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Visualization strategy for CircuitPerformance metrics with performance analysis.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Class-level plot registry</span>
+    <span class="n">PLOT_REGISTRY</span><span class="p">:</span> <span class="n">PlotRegistry</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_success_error_comparison&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Success vs error rates comparison across jobs&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">GROUPED_BAR</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;success_error_rates&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;success_metrics.error_rate&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;performance&quot;</span>
+        <span class="p">),</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_fidelity_comparison&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Fidelity comparison across different jobs&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;fidelity_comparison&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fidelity_metrics.fidelity&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;performance&quot;</span>
+        <span class="p">),</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SHOT_DISTRIBUTION</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SHOT_DISTRIBUTION</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_shot_distribution&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Distribution of successful vs failed shots&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">STACKED_BAR</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;shot_distribution&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;success_metrics.total_shots&quot;</span><span class="p">,</span> <span class="s2">&quot;success_metrics.successful_shots&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;shots&quot;</span>
+        <span class="p">),</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">AGGREGATE_SUMMARY</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">AGGREGATE_SUMMARY</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_aggregate_summary&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Statistical summary of performance metrics across jobs&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;aggregate_statistics&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;success_metrics.mean_success_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;fidelity_metrics.mean_fidelity&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;summary&quot;</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="CircuitPerformanceVisualizer.get_available_plots">
+<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_available_plots">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_plots</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of available plot names for this strategy.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="CircuitPerformanceVisualizer.get_plot_metadata">
+<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_plot_metadata">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plot_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotMetadata</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get metadata for a specific plot.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="p">:</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot &#39;</span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">&#39; not found. Available plots: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -338,8 +398,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_success_error_comparison">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_success_error_comparison</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot success vs error rates for individual jobs.&quot;&quot;&quot;</span>
@@ -381,8 +441,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_fidelity_comparison">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_fidelity_comparison</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot fidelity comparison across jobs.&quot;&quot;&quot;</span>
@@ -411,8 +471,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_shot_distribution">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_shot_distribution</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot shot distribution (successful vs failed) as stacked bars.&quot;&quot;&quot;</span>
@@ -459,8 +519,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_aggregate_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_aggregate_summary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot aggregate statistics summary.&quot;&quot;&quot;</span>
@@ -513,7 +573,7 @@
 
 <div class="viewcode-block" id="CircuitPerformanceVisualizer.create_dashboard">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.create_dashboard">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a comprehensive dashboard with all CircuitPerformance plots.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="c1"># Full dashboard with 4 plots</span>
@@ -577,34 +637,7 @@
                                 <span class="n">color</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
                                 <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span>
                             <span class="p">)</span>
-                    <span class="n">cumulative_height</span> <span class="o">+=</span> <span class="n">value</span>
-
-<div class="viewcode-block" id="CircuitPerformanceVisualizer.plot_all">
-<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_all">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate all individual plots.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            save: Whether to save the plots.</span>
-<span class="sd">            show: Whether to display the plots.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            List of matplotlib figures.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating CircuitPerformance visualizations...&quot;</span><span class="p">)</span>
-
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_success_error_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_fidelity_comparison</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_shot_distribution</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_aggregate_summary</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ All CircuitPerformance plots saved to &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/&#39; directory.&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">figures</span></div>
-</div>
+                    <span class="n">cumulative_height</span> <span class="o">+=</span> <span class="n">value</span></div>
 
 </pre></div>
         </article>

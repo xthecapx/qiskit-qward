@@ -260,13 +260,70 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span><span class="p">,</span> <span class="n">PlotConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisualizationStrategy</span><span class="p">,</span> <span class="n">PlotConfig</span><span class="p">,</span> <span class="n">PlotMetadata</span><span class="p">,</span> <span class="n">PlotType</span><span class="p">,</span> <span class="n">PlotRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plots</span>
 
 
 <div class="viewcode-block" id="ComplexityVisualizer">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ComplexityVisualizer</span><span class="p">(</span><span class="n">VisualizationStrategy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Visualization strategy for ComplexityMetrics with comprehensive complexity analysis.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Class-level plot registry</span>
+    <span class="n">PLOT_REGISTRY</span><span class="p">:</span> <span class="n">PlotRegistry</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_gate_based_metrics&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gate-based complexity metrics (gate count, depth, T-count, CNOT count)&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_gate_based_metrics&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.gate_count&quot;</span><span class="p">,</span> <span class="s2">&quot;gate_based_metrics.circuit_depth&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;gate_based_metrics.t_count&quot;</span><span class="p">,</span> <span class="s2">&quot;gate_based_metrics.cnot_count&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;complexity&quot;</span>
+        <span class="p">),</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_complexity_radar&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Normalized complexity metrics displayed as a radar chart&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">RADAR_CHART</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_radar_chart&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.multi_qubit_ratio&quot;</span><span class="p">,</span> 
+                         <span class="s2">&quot;entanglement_metrics.entangling_gate_density&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;standardized_metrics.gate_density&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;advanced_metrics.parallelism_efficiency&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;complexity&quot;</span>
+        <span class="p">),</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">,</span>
+            <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_efficiency_metrics&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit efficiency and resource utilization metrics&quot;</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_efficiency_metrics&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;standardized_metrics.gate_density&quot;</span><span class="p">,</span> 
+                         <span class="s2">&quot;advanced_metrics.parallelism_factor&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;advanced_metrics.circuit_efficiency&quot;</span><span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;efficiency&quot;</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="ComplexityVisualizer.get_available_plots">
+<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.get_available_plots">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_plots</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of available plot names for this strategy.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="ComplexityVisualizer.get_plot_metadata">
+<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.get_plot_metadata">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plot_metadata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotMetadata</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get metadata for a specific plot.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="p">:</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot &#39;</span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">&#39; not found. Available plots: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -311,8 +368,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_gate_based_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_gate_based_metrics</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot gate-based complexity metrics.&quot;&quot;&quot;</span>
@@ -363,8 +420,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_complexity_radar">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_complexity_radar</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot complexity metrics as a radar chart.&quot;&quot;&quot;</span>
@@ -467,8 +524,8 @@
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_efficiency_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_efficiency_metrics</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot circuit efficiency and utilization metrics.&quot;&quot;&quot;</span>
@@ -520,7 +577,7 @@
 
 <div class="viewcode-block" id="ComplexityVisualizer.create_dashboard">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.create_dashboard">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a comprehensive dashboard with all ComplexityMetrics plots.&quot;&quot;&quot;</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics Analysis Dashboard&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
@@ -595,33 +652,7 @@
 <span class="s2">Please check that all required</span>
 <span class="s2">complexity metrics are available.&quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="n">summary</span>
-
-<div class="viewcode-block" id="ComplexityVisualizer.plot_all">
-<a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.plot_all">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">plot_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generates all individual plots.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            save: Whether to save the plots.</span>
-<span class="sd">            show: Whether to display the plots.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            List of matplotlib figures.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating ComplexityMetrics visualizations...&quot;</span><span class="p">)</span>
-
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_gate_based_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_complexity_radar</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-        <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_efficiency_metrics</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ All ComplexityMetrics plots saved to &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/&#39; directory.&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">figures</span></div>
-</div>
+        <span class="k">return</span> <span class="n">summary</span></div>
 
 </pre></div>
         </article>
