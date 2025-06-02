@@ -14,7 +14,7 @@ import pandas as pd
 
 class PlotType(Enum):
     """Enumeration of plot types for metadata."""
-    
+
     BAR_CHART = "bar_chart"
     PIE_CHART = "pie_chart"
     RADAR_CHART = "radar_chart"
@@ -27,7 +27,7 @@ class PlotType(Enum):
 @dataclass
 class PlotMetadata:
     """Metadata for individual plots."""
-    
+
     name: str
     method_name: str
     description: str
@@ -391,53 +391,57 @@ class VisualizationStrategy(ABC):
     def get_available_plots(cls) -> List[str]:
         """Return list of available plot names for this strategy."""
         pass
-    
+
     @classmethod
     @abstractmethod
     def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
         """Get metadata for a specific plot."""
         pass
-    
-    def generate_plot(self, plot_name: str, save: bool = False, show: bool = False, **kwargs) -> plt.Figure:
+
+    def generate_plot(
+        self, plot_name: str, save: bool = False, show: bool = False, **kwargs
+    ) -> plt.Figure:
         """
         Generate a single plot by name.
-        
+
         Args:
             plot_name: Name of the plot to generate
             save: Whether to save the plot
             show: Whether to display the plot
             **kwargs: Additional arguments passed to the plot method
-            
+
         Returns:
             matplotlib Figure object
-            
+
         Raises:
             ValueError: If plot_name is not available
         """
         if plot_name not in self.get_available_plots():
             available = self.get_available_plots()
             raise ValueError(f"Plot '{plot_name}' not available. Available plots: {available}")
-        
+
         metadata = self.get_plot_metadata(plot_name)
         method = getattr(self, metadata.method_name)
         return method(save=save, show=show, **kwargs)
-    
-    def generate_plots(self, plot_names: List[str] = None, save: bool = False, show: bool = False, **kwargs) -> PlotResult:
+
+    def generate_plots(
+        self, plot_names: List[str] = None, save: bool = False, show: bool = False, **kwargs
+    ) -> PlotResult:
         """
         Generate multiple plots and return as dictionary.
-        
+
         Args:
             plot_names: List of plot names to generate. If None, generates all available plots.
             save: Whether to save the plots
             show: Whether to display the plots
             **kwargs: Additional arguments passed to plot methods
-            
+
         Returns:
             Dictionary mapping plot names to Figure objects
         """
         if plot_names is None:
             plot_names = self.get_available_plots()
-        
+
         results = {}
         for plot_name in plot_names:
             try:
@@ -445,18 +449,18 @@ class VisualizationStrategy(ABC):
             except Exception as e:
                 print(f"Warning: Failed to generate plot '{plot_name}': {e}")
                 continue
-        
+
         return results
-    
+
     def generate_all_plots(self, save: bool = False, show: bool = False, **kwargs) -> PlotResult:
         """
         Generate all available plots.
-        
+
         Args:
             save: Whether to save the plots
             show: Whether to display the plots
             **kwargs: Additional arguments passed to plot methods
-            
+
         Returns:
             Dictionary mapping plot names to Figure objects
         """

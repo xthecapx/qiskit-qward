@@ -94,14 +94,18 @@ def example_custom_config():
 
     # Generate specific QiskitMetrics plots with custom config
     print("Creating QiskitMetrics visualizations with custom config...")
-    figures = visualizer.generate_plots({
-        Metrics.QISKIT: [
-            Plots.QISKIT.CIRCUIT_STRUCTURE,
-            Plots.QISKIT.GATE_DISTRIBUTION,
-            Plots.QISKIT.CIRCUIT_SUMMARY
-        ]
-    }, save=True, show=False)
-    
+    figures = visualizer.generate_plots(
+        {
+            Metrics.QISKIT: [
+                Plots.Qiskit.CIRCUIT_STRUCTURE,
+                Plots.Qiskit.GATE_DISTRIBUTION,
+                Plots.Qiskit.CIRCUIT_SUMMARY,
+            ]
+        },
+        save=True,
+        show=False,
+    )
+
     qiskit_plot_count = len(figures[Metrics.QISKIT])
     print(f"Created {qiskit_plot_count} QiskitMetrics plots")
 
@@ -142,9 +146,9 @@ def example_custom_data():
 
     # Create visualizations using new API
     print("Creating visualizations from custom data...")
-    all_figures = visualizer.generate_plots({
-        Metrics.QISKIT: None  # None = all plots
-    }, save=True, show=False)
+    all_figures = visualizer.generate_plots(
+        {Metrics.QISKIT: None}, save=True, show=False  # None = all plots
+    )
     print(f"Created visualizations for {len(all_figures)} metric types")
 
 
@@ -222,14 +226,14 @@ def example_custom_strategy():
                 plot_type=PlotType.BAR_CHART,
                 filename="custom_metric_plot",
                 dependencies=["custom.metric"],
-                category="custom"
+                category="custom",
             )
         }
 
         @classmethod
         def get_available_plots(cls):
             return list(cls.PLOT_REGISTRY.keys())
-        
+
         @classmethod
         def get_plot_metadata(cls, plot_name):
             if plot_name not in cls.PLOT_REGISTRY:
@@ -240,7 +244,7 @@ def example_custom_strategy():
             fig, ax = plt.subplots(figsize=self.config.figsize)
             ax.text(0.5, 0.5, "Custom Dashboard", ha="center", va="center", fontsize=16)
             ax.set_title("Custom Metrics Dashboard")
-            
+
             if save:
                 self.save_plot(fig, "custom_dashboard")
             if show:
@@ -251,7 +255,7 @@ def example_custom_strategy():
             fig, ax = plt.subplots(figsize=self.config.figsize)
             ax.bar(["A", "B", "C"], [1, 2, 3], color=self.config.color_palette[:3])
             ax.set_title("Custom Metric Plot")
-            
+
             if save:
                 self.save_plot(fig, "custom_metric")
             if show:
@@ -270,9 +274,9 @@ def example_custom_strategy():
 
     # Use the custom strategy
     print("Creating custom visualizations...")
-    custom_figures = visualizer.generate_plots({
-        "CustomMetrics": None  # Generate all plots for custom metrics
-    }, save=True, show=False)
+    custom_figures = visualizer.generate_plots(
+        {"CustomMetrics": None}, save=True, show=False  # Generate all plots for custom metrics
+    )
     print(f"Created {len(custom_figures['CustomMetrics'])} custom plots")
 
 
@@ -299,7 +303,7 @@ def example_metric_summary():
     # Get available plots and their metadata
     print("\nAvailable Plots and Metadata:")
     available_plots = visualizer.get_available_plots()
-    
+
     for metric_name, plot_names in available_plots.items():
         print(f"\n{metric_name} ({len(plot_names)} plots):")
         for plot_name in plot_names:
@@ -311,7 +315,7 @@ def example_metric_summary():
 
     # Generate specific plots based on metadata
     print("\nGenerating plots by category...")
-    
+
     # Generate all structure-related plots
     structure_plots = {}
     for metric_name, plot_names in available_plots.items():
@@ -320,10 +324,10 @@ def example_metric_summary():
             metadata = visualizer.get_plot_metadata(metric_name, plot_name)
             if metadata.category == "structure":
                 metric_structure_plots.append(plot_name)
-        
+
         if metric_structure_plots:
             structure_plots[metric_name] = metric_structure_plots
-    
+
     if structure_plots:
         structure_figures = visualizer.generate_plots(structure_plots, save=True, show=False)
         total_structure_plots = sum(len(plots) for plots in structure_figures.values())
@@ -347,7 +351,7 @@ def main():
     print("All examples completed!")
     print("Check qward/examples/img/ for generated plots")
     print("\nNew API Benefits Demonstrated:")
-    print("- Type-safe constants (Metrics.QISKIT, Plots.QISKIT.CIRCUIT_STRUCTURE)")
+    print("- Type-safe constants (Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE)")
     print("- Granular plot control with selections")
     print("- Rich metadata for each plot")
     print("- Memory-efficient defaults")

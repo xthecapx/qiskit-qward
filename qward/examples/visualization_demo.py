@@ -69,7 +69,7 @@ def demo_circuit_performance_visualization():
     strategy1 = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/demo_plots_default"
     )
-    
+
     # Use new API to generate all plots
     figures1 = strategy1.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(figures1)} plots with default settings")
@@ -90,7 +90,7 @@ def demo_circuit_performance_visualization():
     strategy2 = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/demo_plots_custom", config=custom_config
     )
-    
+
     # Use new API to generate all plots with custom config
     figures2 = strategy2.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(figures2)} plots with custom configuration")
@@ -106,16 +106,16 @@ def demo_circuit_performance_visualization():
 
     # Create specific plots using new API
     print("Creating success vs error comparison...")
-    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, save=True, show=False)
-
-    print("Creating fidelity comparison...")
-    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON, save=True, show=False)
-
-    print("Creating shot distribution...")
-    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION, save=True, show=False)
-
-    print("Creating aggregate summary...")
-    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY, save=True, show=False)
+    strategy3.generate_plot(
+        Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON, save=True, show=False
+    )
+    print("   ✓ Success vs error comparison plot created")
+    strategy3.generate_plot(Plots.CircuitPerformance.FIDELITY_COMPARISON, save=True, show=False)
+    print("   ✓ Fidelity comparison plot created")
+    strategy3.generate_plot(Plots.CircuitPerformance.SHOT_DISTRIBUTION, save=True, show=False)
+    print("   ✓ Shot distribution plot created")
+    strategy3.generate_plot(Plots.CircuitPerformance.AGGREGATE_SUMMARY, save=True, show=False)
+    print("   ✓ Aggregate summary plot created")
 
     print("✅ Created 4 individual plots")
 
@@ -148,9 +148,9 @@ def demo_circuit_performance_visualization():
     print(f"✅ Created {len(dashboards)} unified dashboards")
 
     # Create all individual plots using new API
-    all_figures = visualizer.generate_plots({
-        Metrics.CIRCUIT_PERFORMANCE: None  # None = all plots
-    }, save=True, show=False)
+    all_figures = visualizer.generate_plots(
+        {Metrics.CIRCUIT_PERFORMANCE: None}, save=True, show=False  # None = all plots
+    )
     print(f"✅ Created visualizations for {len(all_figures)} metric types")
 
     # Demo 6: Granular plot selection with new API
@@ -158,16 +158,18 @@ def demo_circuit_performance_visualization():
     print("Demo 6: Granular Plot Selection (New API)")
     print("=" * 40)
 
-    # Generate only specific plots
-    selected_plots = visualizer.generate_plots({
-        Metrics.CIRCUIT_PERFORMANCE: [
-            Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-            Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
-        ]
-    }, save=True, show=False)
-    
-    circuit_perf_plots = selected_plots[Metrics.CIRCUIT_PERFORMANCE]
-    print(f"✅ Created {len(circuit_perf_plots)} selected CircuitPerformance plots")
+    # Generate specific plots using new API
+    selected_plots = strategy3.generate_plots(
+        [
+            Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+            Plots.CircuitPerformance.FIDELITY_COMPARISON,
+        ],
+        save=True,
+        show=False,
+    )
+
+    # When calling generate_plots() on an individual visualizer, it returns a dict of plot_name -> figure
+    print(f"✅ Created {len(selected_plots)} selected CircuitPerformance plots")
 
     # Show plot metadata
     print("\nAvailable CircuitPerformance plots and their metadata:")

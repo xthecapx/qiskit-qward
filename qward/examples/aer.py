@@ -396,13 +396,17 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     all_figures = visualizer.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(all_figures)} individual plots")
 
-    # Demonstrate granular plot selection
-    print("Creating selected CircuitPerformance plots...")
-    selected_plots = visualizer.generate_plots([
-        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
-    ], save=True, show=False)
-    print(f"✅ Created {len(selected_plots)} selected plots")
+    # Generate specific performance plots using new API
+    performance_plots = visualizer.generate_plots(
+        {
+            Metrics.CIRCUIT_PERFORMANCE: [
+                Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+                Plots.CircuitPerformance.FIDELITY_COMPARISON,
+            ]
+        },
+        save=True,
+        show=False,
+    )
 
     # Show available plots and metadata
     print("\nAvailable CircuitPerformance plots:")

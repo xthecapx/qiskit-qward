@@ -54,17 +54,23 @@ def main():
     visualizer = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/quickstart"
     )
-    
+
     # Generate all plots using new API
     all_plots = visualizer.generate_all_plots(save=True, show=False)
     print(f"Generated {len(all_plots)} CircuitPerformance plots")
 
-    # Alternative: Generate specific plots
-    specific_plots = visualizer.generate_plots([
-        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
-    ], save=True, show=False)
-    print(f"Generated {len(specific_plots)} specific plots")
+    # Generate specific performance plots using new API
+    performance_plots = visualizer.generate_plots(
+        {
+            Metrics.CIRCUIT_PERFORMANCE: [
+                Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+                Plots.CircuitPerformance.FIDELITY_COMPARISON,
+            ]
+        },
+        save=True,
+        show=False,
+    )
+    print(f"Generated {len(performance_plots)} specific plots")
 
     # Create dashboard
     dashboard = visualizer.create_dashboard(save=True, show=False)
