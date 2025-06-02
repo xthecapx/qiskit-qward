@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from qward.scanner import Scanner
-from .base import VisualizationStrategy, PlotConfig
+from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotResult
 
 
 class Visualizer:
@@ -103,6 +103,111 @@ class Visualizer:
                 available.append(metric_name)
         return available
 
+    def get_available_plots(self, metric_name: str = None) -> Dict[str, List[str]]:
+        """
+        Get available plots for each metric or specific metric.
+        
+        Args:
+            metric_name: Optional specific metric name to get plots for
+            
+        Returns:
+            Dictionary mapping metric names to lists of available plot names
+        """
+        if metric_name:
+            if metric_name not in self.registered_strategies:
+                raise ValueError(f"Metric '{metric_name}' not registered")
+            if not self._has_metric_data(metric_name):
+                raise ValueError(f"No data available for metric '{metric_name}'")
+            strategy_class = self.registered_strategies[metric_name]
+            return {metric_name: strategy_class.get_available_plots()}
+        
+        # Return all available plots
+        result = {}
+        for name, strategy_class in self.registered_strategies.items():
+            if self._has_metric_data(name):
+                result[name] = strategy_class.get_available_plots()
+        return result
+
+    def get_plot_metadata(self, metric_name: str, plot_name: str) -> PlotMetadata:
+        """
+        Get metadata for a specific plot.
+        
+        Args:
+            metric_name: Name of the metric
+            plot_name: Name of the plot
+            
+        Returns:
+            PlotMetadata object with plot information
+        """
+        if metric_name not in self.registered_strategies:
+            raise ValueError(f"Metric '{metric_name}' not registered")
+        
+        strategy_class = self.registered_strategies[metric_name]
+        return strategy_class.get_plot_metadata(plot_name)
+
+    def generate_plot(self, metric_name: str, plot_name: str, save: bool = False, show: bool = False, **kwargs) -> plt.Figure:
+        """
+        Generate a single specific plot.
+        
+        Args:
+            metric_name: Name of the metric
+            plot_name: Name of the plot to generate
+            save: Whether to save the plot
+            show: Whether to display the plot
+            **kwargs: Additional arguments passed to the plot method
+            
+        Returns:
+            matplotlib Figure object
+        """
+        if not self._has_metric_data(metric_name):
+            raise ValueError(f"No data available for metric '{metric_name}'")
+        
+        strategy_class = self.registered_strategies[metric_name]
+        metric_data = self._get_metric_data(metric_name)
+        
+        strategy = strategy_class(
+            metrics_dict=metric_data, output_dir=self.output_dir, config=self.config
+        )
+        
+        return strategy.generate_plot(plot_name, save=save, show=show, **kwargs)
+
+    def generate_plots(self, selections: Dict[str, List[str]], save: bool = False, show: bool = False, **kwargs) -> Dict[str, PlotResult]:
+        """
+        Generate selected plots for each metric.
+        
+        Args:
+            selections: Dictionary mapping metric names to lists of plot names.
+                       Use None as plot list to generate all plots for a metric.
+            save: Whether to save the plots
+            show: Whether to display the plots
+            **kwargs: Additional arguments passed to plot methods
+            
+        Returns:
+            Dictionary mapping metric names to PlotResult dictionaries
+        """
+        results = {}
+        
+        for metric_name, plot_names in selections.items():
+            if not self._has_metric_data(metric_name):
+                print(f"Warning: No data available for metric '{metric_name}'")
+                continue
+            
+            try:
+                strategy_class = self.registered_strategies[metric_name]
+                metric_data = self._get_metric_data(metric_name)
+                
+                strategy = strategy_class(
+                    metrics_dict=metric_data, output_dir=self.output_dir, config=self.config
+                )
+                
+                results[metric_name] = strategy.generate_plots(plot_names, save=save, show=show, **kwargs)
+                
+            except Exception as e:
+                print(f"Warning: Failed to generate plots for {metric_name}: {e}")
+                continue
+        
+        return results
+
     def _has_metric_data(self, metric_name: str) -> bool:
         """Check if data is available for a specific metric."""
         if metric_name == "CircuitPerformance":
@@ -121,42 +226,6 @@ class Visualizer:
         else:
             # Return single metric data
             return {metric_name: self.metrics_data[metric_name]}
-
-    def visualize_metric(
-        self, metric_name: str, save: bool = False, show: bool = False, **kwargs
-    ) -> List[plt.Figure]:
-        """
-        Visualize a specific metric using its registered strategy.
-
-        Args:
-            metric_name: Name of the metric to visualize
-            save: Whether to save the plots
-            show: Whether to display the plots
-            **kwargs: Additional arguments passed to the strategy
-
-        Returns:
-            List[plt.Figure]: List of generated figures
-
-        Raises:
-            ValueError: If metric is not available or not registered
-        """
-        if metric_name not in self.registered_strategies:
-            raise ValueError(f"No strategy registered for metric '{metric_name}'")
-
-        if not self._has_metric_data(metric_name):
-            raise ValueError(f"No data available for metric '{metric_name}'")
-
-        # Get the strategy class and create instance
-        strategy_class = self.registered_strategies[metric_name]
-        metric_data = self._get_metric_data(metric_name)
-
-        # Create strategy instance
-        strategy = strategy_class(
-            metrics_dict=metric_data, output_dir=self.output_dir, config=self.config
-        )
-
-        # Generate all plots for this metric
-        return strategy.plot_all(save=save, show=show, **kwargs)
 
     def create_dashboard(
         self, save: bool = False, show: bool = False, **kwargs
@@ -202,39 +271,6 @@ class Visualizer:
 
         return dashboards
 
-    def visualize_all(
-        self, save: bool = False, show: bool = False, **kwargs
-    ) -> Dict[str, List[plt.Figure]]:
-        """
-        Create individual plots for all available metrics.
-
-        Args:
-            save: Whether to save the plots
-            show: Whether to display the plots
-            **kwargs: Additional arguments passed to strategies
-
-        Returns:
-            Dict[str, List[plt.Figure]]: Dictionary mapping metric names to lists of figures
-        """
-        all_figures: Dict[str, List[plt.Figure]] = {}
-        available_metrics = self.get_available_metrics()
-
-        if not available_metrics:
-            print("No metrics available for visualization")
-            return all_figures
-
-        print(f"Creating visualizations for metrics: {', '.join(available_metrics)}")
-
-        for metric_name in available_metrics:
-            try:
-                figures = self.visualize_metric(metric_name, save=save, show=show, **kwargs)
-                all_figures[metric_name] = figures
-            except Exception as e:
-                print(f"Warning: Failed to create visualizations for {metric_name}: {e}")
-                continue
-
-        return all_figures
-
     def get_metric_summary(self) -> Dict[str, Dict[str, Any]]:
         """
         Get a summary of available metrics and their key statistics.
@@ -266,7 +302,8 @@ class Visualizer:
         for metric_name in available_metrics:
             metric_data = self._get_metric_data(metric_name)
             total_rows = sum(df.shape[0] for df in metric_data.values())
-            print(f"  - {metric_name}: {len(metric_data)} dataset(s), {total_rows} total rows")
+            available_plots = self.get_available_plots(metric_name)[metric_name]
+            print(f"  - {metric_name}: {len(metric_data)} dataset(s), {total_rows} total rows, {len(available_plots)} plots")
 
         if not available_metrics:
             print("  No visualizations available. Register strategies or check data.")

@@ -7,11 +7,65 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .base import VisualizationStrategy, PlotConfig
+from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotType, PlotRegistry
+from .constants import Plots
 
 
 class CircuitPerformanceVisualizer(VisualizationStrategy):
     """Visualization strategy for CircuitPerformance metrics with performance analysis."""
+
+    # Class-level plot registry
+    PLOT_REGISTRY: PlotRegistry = {
+        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON: PlotMetadata(
+            name=Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
+            method_name="plot_success_error_comparison",
+            description="Success vs error rates comparison across jobs",
+            plot_type=PlotType.GROUPED_BAR,
+            filename="success_error_rates",
+            dependencies=["success_metrics.success_rate", "success_metrics.error_rate"],
+            category="performance"
+        ),
+        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON: PlotMetadata(
+            name=Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON,
+            method_name="plot_fidelity_comparison",
+            description="Fidelity comparison across different jobs",
+            plot_type=PlotType.BAR_CHART,
+            filename="fidelity_comparison",
+            dependencies=["fidelity_metrics.fidelity"],
+            category="performance"
+        ),
+        Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION: PlotMetadata(
+            name=Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION,
+            method_name="plot_shot_distribution",
+            description="Distribution of successful vs failed shots",
+            plot_type=PlotType.STACKED_BAR,
+            filename="shot_distribution",
+            dependencies=["success_metrics.total_shots", "success_metrics.successful_shots"],
+            category="shots"
+        ),
+        Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY: PlotMetadata(
+            name=Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY,
+            method_name="plot_aggregate_summary",
+            description="Statistical summary of performance metrics across jobs",
+            plot_type=PlotType.BAR_CHART,
+            filename="aggregate_statistics",
+            dependencies=["success_metrics.mean_success_rate", "fidelity_metrics.mean_fidelity"],
+            category="summary"
+        )
+    }
+
+    @classmethod
+    def get_available_plots(cls) -> List[str]:
+        """Return list of available plot names for this strategy."""
+        return list(cls.PLOT_REGISTRY.keys())
+    
+    @classmethod
+    def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
+        """Get metadata for a specific plot."""
+        if plot_name not in cls.PLOT_REGISTRY:
+            available = list(cls.PLOT_REGISTRY.keys())
+            raise ValueError(f"Plot '{plot_name}' not found. Available plots: {available}")
+        return cls.PLOT_REGISTRY[plot_name]
 
     def __init__(
         self,
@@ -309,27 +363,3 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
                                 fontweight="bold",
                             )
                     cumulative_height += value
-
-    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
-        """
-        Generate all individual plots.
-
-        Args:
-            save: Whether to save the plots.
-            show: Whether to display the plots.
-
-        Returns:
-            List of matplotlib figures.
-        """
-        figures = []
-        print("Creating CircuitPerformance visualizations...")
-
-        figures.append(self.plot_success_error_comparison(save=save, show=show))
-        figures.append(self.plot_fidelity_comparison(save=save, show=show))
-        figures.append(self.plot_shot_distribution(save=save, show=show))
-        figures.append(self.plot_aggregate_summary(save=save, show=show))
-
-        if save:
-            print(f"✅ All CircuitPerformance plots saved to '{self.output_dir}/' directory.")
-
-        return figures

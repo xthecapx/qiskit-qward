@@ -9,6 +9,7 @@ from qiskit_aer import AerSimulator
 from qward import Scanner
 from qward.metrics import CircuitPerformanceMetrics
 from qward.visualization import CircuitPerformanceVisualizer
+from qward.visualization.constants import Metrics, Plots
 
 
 def main():
@@ -49,19 +50,40 @@ def main():
 
     metrics_dict["CircuitPerformance.aggregate"].plot()
 
-    # Create visualizations
+    # Create visualizations using new API
     visualizer = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/quickstart"
     )
-    visualizer.plot_all(save=True, show=False)
+    
+    # Generate all plots using new API
+    all_plots = visualizer.generate_all_plots(save=True, show=False)
+    print(f"Generated {len(all_plots)} CircuitPerformance plots")
+
+    # Alternative: Generate specific plots
+    specific_plots = visualizer.generate_plots([
+        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
+        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+    ], save=True, show=False)
+    print(f"Generated {len(specific_plots)} specific plots")
+
+    # Create dashboard
+    dashboard = visualizer.create_dashboard(save=True, show=False)
+    print("Dashboard created")
 
     print("Visualizations saved to qward/examples/img/quickstart/")
 
     # Print summary
     aggregate_data = metrics_dict.get("CircuitPerformance.aggregate")
     if aggregate_data is not None and not aggregate_data.empty:
-        mean_success = aggregate_data.iloc[0]["mean_success_rate"]
+        mean_success = aggregate_data.iloc[0]["success_metrics.mean_success_rate"]
         print(f"Mean success rate: {mean_success:.3f}")
+
+    # Show available plots and metadata
+    print("\nAvailable CircuitPerformance plots:")
+    available_plots = visualizer.get_available_plots()
+    for plot_name in available_plots:
+        metadata = visualizer.get_plot_metadata(plot_name)
+        print(f"  - {plot_name}: {metadata.description}")
 
 
 if __name__ == "__main__":

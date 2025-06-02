@@ -7,6 +7,7 @@ from qiskit_aer import AerSimulator
 from qward import Scanner
 from qward.metrics import CircuitPerformanceMetrics
 from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
+from qward.visualization.constants import Metrics, Plots
 
 
 def demo_circuit_performance_visualization():
@@ -68,7 +69,9 @@ def demo_circuit_performance_visualization():
     strategy1 = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/demo_plots_default"
     )
-    figures1 = strategy1.plot_all(save=True, show=False)
+    
+    # Use new API to generate all plots
+    figures1 = strategy1.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(figures1)} plots with default settings")
 
     # Demo 2: Custom configuration using strategy directly
@@ -87,7 +90,9 @@ def demo_circuit_performance_visualization():
     strategy2 = CircuitPerformanceVisualizer(
         metrics_dict, output_dir="qward/examples/img/demo_plots_custom", config=custom_config
     )
-    figures2 = strategy2.plot_all(save=True, show=False)
+    
+    # Use new API to generate all plots with custom config
+    figures2 = strategy2.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(figures2)} plots with custom configuration")
 
     # Demo 3: Individual plot methods using strategy directly
@@ -99,18 +104,18 @@ def demo_circuit_performance_visualization():
         metrics_dict, output_dir="qward/examples/img/demo_plots_individual"
     )
 
-    # Create specific plots
+    # Create specific plots using new API
     print("Creating success vs error comparison...")
-    strategy3.plot_success_error_comparison(save=True, show=False)
+    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, save=True, show=False)
 
     print("Creating fidelity comparison...")
-    strategy3.plot_fidelity_comparison(save=True, show=False)
+    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON, save=True, show=False)
 
     print("Creating shot distribution...")
-    strategy3.plot_shot_distribution(save=True, show=False)
+    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION, save=True, show=False)
 
     print("Creating aggregate summary...")
-    strategy3.plot_aggregate_summary(save=True, show=False)
+    strategy3.generate_plot(Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY, save=True, show=False)
 
     print("✅ Created 4 individual plots")
 
@@ -142,9 +147,34 @@ def demo_circuit_performance_visualization():
     dashboards = visualizer.create_dashboard(save=True, show=False)
     print(f"✅ Created {len(dashboards)} unified dashboards")
 
-    # Create all individual plots
-    all_figures = visualizer.visualize_all(save=True, show=False)
+    # Create all individual plots using new API
+    all_figures = visualizer.generate_plots({
+        Metrics.CIRCUIT_PERFORMANCE: None  # None = all plots
+    }, save=True, show=False)
     print(f"✅ Created visualizations for {len(all_figures)} metric types")
+
+    # Demo 6: Granular plot selection with new API
+    print("\n" + "=" * 40)
+    print("Demo 6: Granular Plot Selection (New API)")
+    print("=" * 40)
+
+    # Generate only specific plots
+    selected_plots = visualizer.generate_plots({
+        Metrics.CIRCUIT_PERFORMANCE: [
+            Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
+            Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+        ]
+    }, save=True, show=False)
+    
+    circuit_perf_plots = selected_plots[Metrics.CIRCUIT_PERFORMANCE]
+    print(f"✅ Created {len(circuit_perf_plots)} selected CircuitPerformance plots")
+
+    # Show plot metadata
+    print("\nAvailable CircuitPerformance plots and their metadata:")
+    available_plots = visualizer.get_available_plots(Metrics.CIRCUIT_PERFORMANCE)
+    for plot_name in available_plots[Metrics.CIRCUIT_PERFORMANCE]:
+        metadata = visualizer.get_plot_metadata(Metrics.CIRCUIT_PERFORMANCE, plot_name)
+        print(f"  - {plot_name}: {metadata.description} ({metadata.plot_type.value})")
 
     print("\n" + "=" * 40)
     print("Demo Complete!")
@@ -157,6 +187,11 @@ def demo_circuit_performance_visualization():
     print("- qward/examples/img/demo_plots_unified/")
     print("\nRecommended approach: Use the unified Visualizer class (Demo 5)")
     print("Direct strategy usage (Demos 1-4) is useful for advanced customization.")
+    print("\nNew API Benefits:")
+    print("- Type-safe constants prevent typos")
+    print("- Granular control over plot selection")
+    print("- Rich metadata for each plot")
+    print("- IDE autocompletion support")
 
 
 if __name__ == "__main__":
