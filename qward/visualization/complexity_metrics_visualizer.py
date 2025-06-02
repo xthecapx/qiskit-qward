@@ -55,8 +55,8 @@ class ComplexityVisualizer(VisualizationStrategy):
 
     def plot_gate_based_metrics(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot gate-based complexity metrics."""
@@ -104,8 +104,8 @@ class ComplexityVisualizer(VisualizationStrategy):
 
     def plot_complexity_radar(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot complexity metrics as a radar chart."""
@@ -205,8 +205,8 @@ class ComplexityVisualizer(VisualizationStrategy):
 
     def plot_efficiency_metrics(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot circuit efficiency and utilization metrics."""
@@ -255,7 +255,7 @@ class ComplexityVisualizer(VisualizationStrategy):
             filename="complexity_efficiency_metrics",
         )
 
-    def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
+    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
         """Creates a comprehensive dashboard with all ComplexityMetrics plots."""
         fig = plt.figure(figsize=(14, 10))
         fig.suptitle("ComplexityMetrics Analysis Dashboard", fontsize=16)
@@ -331,7 +331,7 @@ complexity metrics are available."""
 
         return summary
 
-    def plot_all(self, save: bool = True, show: bool = True) -> List[plt.Figure]:
+    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
         """
         Generates all individual plots.
 
