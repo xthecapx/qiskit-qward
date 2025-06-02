@@ -182,10 +182,11 @@ print(f"Bell state success rate: {metrics.success_metrics.success_rate:.3f}")
 
 ## Visualization
 
-Create beautiful visualizations of your analysis:
+Create beautiful visualizations of your analysis with the new type-safe API:
 
 ```python
 from qward.visualization import Visualizer
+from qward.visualization.constants import Metrics, Plots
 
 # Calculate metrics first
 scanner = Scanner(circuit=circuit, job=job)
@@ -196,13 +197,65 @@ scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
 # Create unified visualizer
 visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
 
-# Create comprehensive dashboards
+# NEW API: Generate specific plots with type-safe constants
+selected_plots = visualizer.generate_plots({
+    Metrics.QISKIT: [
+        Plots.QISKIT.CIRCUIT_STRUCTURE,
+        Plots.QISKIT.GATE_DISTRIBUTION
+    ],
+    Metrics.COMPLEXITY: [
+        Plots.COMPLEXITY.COMPLEXITY_RADAR
+    ]
+}, save=True, show=False)
+
+# NEW API: Generate all plots for specific metrics
+all_qiskit_plots = visualizer.generate_plots({
+    Metrics.QISKIT: None  # None = all plots
+}, save=True, show=False)
+
+# NEW API: Generate single plot
+single_plot = visualizer.generate_plot(
+    Metrics.CIRCUIT_PERFORMANCE, 
+    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, 
+    save=True, 
+    show=False
+)
+
+# Create comprehensive dashboards (unchanged)
 dashboards = visualizer.create_dashboard(save=True, show=False)
 
-# Create all individual plots
-all_plots = visualizer.visualize_all(save=True, show=False)
+# NEW API: Explore available plots and metadata
+available_plots = visualizer.get_available_plots()
+for metric_name, plot_names in available_plots.items():
+    print(f"\n{metric_name} ({len(plot_names)} plots):")
+    for plot_name in plot_names:
+        metadata = visualizer.get_plot_metadata(metric_name, plot_name)
+        print(f"  - {plot_name}: {metadata.description}")
 
-print(f"Created {len(dashboards)} dashboards and {len(all_plots)} individual plots")
+print(f"Created {len(dashboards)} dashboards and {len(selected_plots)} plot collections")
+```
+
+### Memory-Efficient Visualization
+
+The new API defaults to memory-efficient settings:
+
+```python
+# NEW: Default save=False, show=False for memory efficiency
+for circuit_variant in circuit_variants:
+    scanner = Scanner(circuit=circuit_variant, strategies=[QiskitMetrics, ComplexityMetrics])
+    visualizer = Visualizer(scanner=scanner, output_dir=f"analysis_{circuit_variant.name}")
+    
+    # Generate all plots without displaying (memory efficient)
+    all_plots = visualizer.generate_plots({
+        Metrics.QISKIT: None,
+        Metrics.COMPLEXITY: None
+    })  # Default: save=False, show=False
+    
+    # Only save specific plots of interest
+    important_plots = visualizer.generate_plots({
+        Metrics.QISKIT: [Plots.QISKIT.CIRCUIT_STRUCTURE],
+        Metrics.COMPLEXITY: [Plots.COMPLEXITY.COMPLEXITY_RADAR]
+    }, save=True)
 ```
 
 ## Error Handling

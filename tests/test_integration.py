@@ -16,6 +16,7 @@ from qward.visualization import (
     ComplexityVisualizer,
     CircuitPerformanceVisualizer,
 )
+from qward.visualization.constants import Metrics, Plots
 
 
 class TestIntegration(unittest.TestCase):
@@ -213,30 +214,30 @@ class TestIntegration(unittest.TestCase):
 
         results = scanner.calculate_metrics()
 
-        # 2. Test individual visualizers
+        # 2. Test individual visualizers with new API
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Test QiskitVisualizer
+            # Test QiskitVisualizer with new API
             qiskit_viz = QiskitVisualizer(
                 metrics_dict={"QiskitMetrics": results["QiskitMetrics"]}, output_dir=temp_dir
             )
-            qiskit_plots = qiskit_viz.plot_all(save=True, show=False)
-            self.assertIsInstance(qiskit_plots, list)
+            qiskit_plots = qiskit_viz.generate_all_plots(save=True, show=False)
+            self.assertIsInstance(qiskit_plots, dict)
             self.assertGreater(len(qiskit_plots), 0)
 
-            # Test ComplexityVisualizer
+            # Test ComplexityVisualizer with new API
             complexity_viz = ComplexityVisualizer(
                 metrics_dict={"ComplexityMetrics": results["ComplexityMetrics"]},
                 output_dir=temp_dir,
             )
-            complexity_plots = complexity_viz.plot_all(save=True, show=False)
-            self.assertIsInstance(complexity_plots, list)
+            complexity_plots = complexity_viz.generate_all_plots(save=True, show=False)
+            self.assertIsInstance(complexity_plots, dict)
             self.assertGreater(len(complexity_plots), 0)
 
-            # Test CircuitPerformanceVisualizer
+            # Test CircuitPerformanceVisualizer with new API
             perf_data = {k: v for k, v in results.items() if k.startswith("CircuitPerformance")}
             perf_viz = CircuitPerformanceVisualizer(metrics_dict=perf_data, output_dir=temp_dir)
-            perf_plots = perf_viz.plot_all(save=True, show=False)
-            self.assertIsInstance(perf_plots, list)
+            perf_plots = perf_viz.generate_all_plots(save=True, show=False)
+            self.assertIsInstance(perf_plots, dict)
             self.assertGreater(len(perf_plots), 0)
 
             # Verify files were created
@@ -244,7 +245,7 @@ class TestIntegration(unittest.TestCase):
             self.assertGreater(len(files_created), 0)
 
     def test_unified_visualizer_integration(self):
-        """Test integration with unified Visualizer."""
+        """Test integration with unified Visualizer using new API."""
         # 1. Calculate metrics
         scanner = Scanner(circuit=self.bell_circuit, job=self.bell_job)
         scanner.add_strategy(QiskitMetrics(self.bell_circuit))
@@ -255,24 +256,62 @@ class TestIntegration(unittest.TestCase):
             )
         )
 
-        # 2. Test unified visualizer
+        # 2. Test unified visualizer with new API
         with tempfile.TemporaryDirectory() as temp_dir:
             visualizer = Visualizer(scanner=scanner, output_dir=temp_dir)
 
-            # Test dashboard creation
+            # Test dashboard creation (unchanged)
             dashboards = visualizer.create_dashboard(save=True, show=False)
             self.assertIsInstance(dashboards, dict)
             self.assertGreater(len(dashboards), 0)
 
-            # Test individual metric visualization
-            qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=False)
-            self.assertIsInstance(qiskit_plots, list)
-            self.assertGreater(len(qiskit_plots), 0)
+            # Test new API: generate_plots with type-safe constants
+            selected_plots = visualizer.generate_plots(
+                {
+                    Metrics.QISKIT: [
+                        Plots.Qiskit.CIRCUIT_STRUCTURE,
+                        Plots.Qiskit.GATE_DISTRIBUTION,
+                    ],
+                    Metrics.COMPLEXITY: [Plots.Complexity.COMPLEXITY_RADAR],
+                },
+                save=True,
+                show=False,
+            )
 
-            # Test available metrics
+            self.assertIsInstance(selected_plots, dict)
+            self.assertIn(Metrics.QISKIT, selected_plots)
+            self.assertIn(Metrics.COMPLEXITY, selected_plots)
+            self.assertGreater(len(selected_plots[Metrics.QISKIT]), 0)
+            self.assertGreater(len(selected_plots[Metrics.COMPLEXITY]), 0)
+
+            # Test new API: generate all plots for specific metric
+            all_qiskit_plots = visualizer.generate_plots(
+                {Metrics.QISKIT: None}, save=True, show=False  # None = all plots
+            )
+
+            self.assertIsInstance(all_qiskit_plots, dict)
+            self.assertIn(Metrics.QISKIT, all_qiskit_plots)
+            self.assertGreater(len(all_qiskit_plots[Metrics.QISKIT]), 0)
+
+            # Test new API: single plot generation
+            single_plot = visualizer.generate_plot(
+                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=True, show=False
+            )
+            self.assertIsNotNone(single_plot)
+
+            # Test available metrics and plots
             available_metrics = visualizer.get_available_metrics()
-            self.assertIn("QiskitMetrics", available_metrics)
-            self.assertIn("ComplexityMetrics", available_metrics)
+            self.assertIn(Metrics.QISKIT, available_metrics)
+            self.assertIn(Metrics.COMPLEXITY, available_metrics)
+
+            # Test plot metadata
+            available_plots = visualizer.get_available_plots()
+            self.assertIn(Metrics.QISKIT, available_plots)
+
+            for plot_name in available_plots[Metrics.QISKIT]:
+                metadata = visualizer.get_plot_metadata(Metrics.QISKIT, plot_name)
+                self.assertIsNotNone(metadata.description)
+                self.assertIsNotNone(metadata.plot_type)
 
     def test_error_handling_integration(self):
         """Test error handling in integrated workflow."""

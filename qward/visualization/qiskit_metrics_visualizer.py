@@ -17,53 +17,52 @@ class QiskitVisualizer(VisualizationStrategy):
 
     # Class-level plot registry
     PLOT_REGISTRY: PlotRegistry = {
-        Plots.QISKIT.CIRCUIT_STRUCTURE: PlotMetadata(
-            name=Plots.QISKIT.CIRCUIT_STRUCTURE,
+        Plots.Qiskit.CIRCUIT_STRUCTURE: PlotMetadata(
+            name=Plots.Qiskit.CIRCUIT_STRUCTURE,
             method_name="plot_circuit_structure",
-            description="Basic circuit structure metrics (depth, width, size, qubits, classical bits)",
+            description="Visualizes the structure of quantum circuits including depth, width, and gate composition",
             plot_type=PlotType.BAR_CHART,
-            filename="qiskit_circuit_structure",
-            dependencies=["basic_metrics.depth", "basic_metrics.width", "basic_metrics.size", 
-                         "basic_metrics.num_qubits", "basic_metrics.num_clbits"],
-            category="structure"
+            filename="circuit_structure",
+            dependencies=["basic_metrics.depth", "basic_metrics.num_qubits"],
+            category="Structure Analysis",
         ),
-        Plots.QISKIT.GATE_DISTRIBUTION: PlotMetadata(
-            name=Plots.QISKIT.GATE_DISTRIBUTION,
+        Plots.Qiskit.GATE_DISTRIBUTION: PlotMetadata(
+            name=Plots.Qiskit.GATE_DISTRIBUTION,
             method_name="plot_gate_distribution",
-            description="Distribution of gate types in the circuit",
+            description="Shows the distribution of different gate types used in the circuit",
             plot_type=PlotType.PIE_CHART,
-            filename="qiskit_gate_distribution",
-            dependencies=["basic_metrics.count_ops.*"],
-            category="gates"
+            filename="gate_distribution",
+            dependencies=["gate_metrics.gate_types"],
+            category="Gate Analysis",
         ),
-        Plots.QISKIT.INSTRUCTION_METRICS: PlotMetadata(
-            name=Plots.QISKIT.INSTRUCTION_METRICS,
+        Plots.Qiskit.INSTRUCTION_METRICS: PlotMetadata(
+            name=Plots.Qiskit.INSTRUCTION_METRICS,
             method_name="plot_instruction_metrics",
-            description="Instruction-related connectivity and analysis metrics",
+            description="Displays detailed instruction-level metrics and statistics",
             plot_type=PlotType.BAR_CHART,
-            filename="qiskit_instruction_metrics",
-            dependencies=["instruction_metrics.num_connected_components", 
-                         "instruction_metrics.num_nonlocal_gates",
-                         "instruction_metrics.num_tensor_factors",
-                         "instruction_metrics.num_unitary_factors"],
-            category="instructions"
+            filename="instruction_metrics",
+            dependencies=[
+                "instruction_metrics.instruction_count",
+                "instruction_metrics.instruction_types",
+            ],
+            category="Instruction Analysis",
         ),
-        Plots.QISKIT.CIRCUIT_SUMMARY: PlotMetadata(
-            name=Plots.QISKIT.CIRCUIT_SUMMARY,
+        Plots.Qiskit.CIRCUIT_SUMMARY: PlotMetadata(
+            name=Plots.Qiskit.CIRCUIT_SUMMARY,
             method_name="plot_circuit_summary",
-            description="Derived efficiency and summary metrics",
+            description="Comprehensive overview combining multiple circuit metrics",
             plot_type=PlotType.BAR_CHART,
-            filename="qiskit_circuit_summary",
-            dependencies=["basic_metrics.depth", "basic_metrics.width", "basic_metrics.size"],
-            category="summary"
-        )
+            filename="circuit_summary",
+            dependencies=["basic_metrics", "gate_metrics", "instruction_metrics"],
+            category="Summary",
+        ),
     }
 
     @classmethod
     def get_available_plots(cls) -> List[str]:
         """Return list of available plot names for this strategy."""
         return list(cls.PLOT_REGISTRY.keys())
-    
+
     @classmethod
     def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
         """Get metadata for a specific plot."""

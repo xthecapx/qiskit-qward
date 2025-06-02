@@ -16,49 +16,49 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     # Class-level plot registry
     PLOT_REGISTRY: PlotRegistry = {
-        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON: PlotMetadata(
-            name=Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
+        Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON: PlotMetadata(
+            name=Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
             method_name="plot_success_error_comparison",
-            description="Success vs error rates comparison across jobs",
+            description="Compares success rates and error rates across different circuit executions",
             plot_type=PlotType.GROUPED_BAR,
-            filename="success_error_rates",
+            filename="success_error_comparison",
             dependencies=["success_metrics.success_rate", "success_metrics.error_rate"],
-            category="performance"
+            category="Performance Analysis",
         ),
-        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON: PlotMetadata(
-            name=Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON,
+        Plots.CircuitPerformance.FIDELITY_COMPARISON: PlotMetadata(
+            name=Plots.CircuitPerformance.FIDELITY_COMPARISON,
             method_name="plot_fidelity_comparison",
-            description="Fidelity comparison across different jobs",
+            description="Visualizes fidelity metrics and quantum state quality measures",
             plot_type=PlotType.BAR_CHART,
             filename="fidelity_comparison",
-            dependencies=["fidelity_metrics.fidelity"],
-            category="performance"
+            dependencies=["fidelity_metrics.state_fidelity", "fidelity_metrics.process_fidelity"],
+            category="Fidelity Analysis",
         ),
-        Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION: PlotMetadata(
-            name=Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION,
+        Plots.CircuitPerformance.SHOT_DISTRIBUTION: PlotMetadata(
+            name=Plots.CircuitPerformance.SHOT_DISTRIBUTION,
             method_name="plot_shot_distribution",
-            description="Distribution of successful vs failed shots",
+            description="Shows the distribution of measurement outcomes across shots",
             plot_type=PlotType.STACKED_BAR,
             filename="shot_distribution",
-            dependencies=["success_metrics.total_shots", "success_metrics.successful_shots"],
-            category="shots"
+            dependencies=["execution_metrics.total_shots", "execution_metrics.unique_outcomes"],
+            category="Execution Analysis",
         ),
-        Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY: PlotMetadata(
-            name=Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY,
+        Plots.CircuitPerformance.AGGREGATE_SUMMARY: PlotMetadata(
+            name=Plots.CircuitPerformance.AGGREGATE_SUMMARY,
             method_name="plot_aggregate_summary",
-            description="Statistical summary of performance metrics across jobs",
+            description="Comprehensive summary of all performance metrics in a dashboard format",
             plot_type=PlotType.BAR_CHART,
-            filename="aggregate_statistics",
-            dependencies=["success_metrics.mean_success_rate", "fidelity_metrics.mean_fidelity"],
-            category="summary"
-        )
+            filename="aggregate_summary",
+            dependencies=["success_metrics", "fidelity_metrics", "execution_metrics"],
+            category="Summary",
+        ),
     }
 
     @classmethod
     def get_available_plots(cls) -> List[str]:
         """Return list of available plot names for this strategy."""
         return list(cls.PLOT_REGISTRY.keys())
-    
+
     @classmethod
     def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
         """Get metadata for a specific plot."""
