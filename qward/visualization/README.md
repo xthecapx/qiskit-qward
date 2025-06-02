@@ -2,6 +2,8 @@
 
 The QWARD visualization system provides a unified interface for creating comprehensive visualizations of quantum circuit metrics. It supports automatic detection of available metrics and provides appropriate visualizations for each metric type.
 
+**Note**: By default, plots are not saved or displayed (`save=False`, `show=False`) to optimize memory usage when generating multiple visualizations. Explicitly set these parameters to `True` when you want to save or display plots.
+
 ## Overview
 
 The visualization system consists of:
@@ -38,12 +40,12 @@ scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics, circ
 # Create visualizer
 visualizer = Visualizer(scanner=scanner)
 
-# Create dashboard for all available metrics
-dashboards = visualizer.create_dashboard()
+# Create dashboard for all available metrics (explicitly save and show)
+dashboards = visualizer.create_dashboard(save=True, show=True)
 
 # Or visualize specific metrics
-qiskit_plots = visualizer.visualize_metric("QiskitMetrics")
-performance_plots = visualizer.visualize_metric("CircuitPerformance")
+qiskit_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=True)
+performance_plots = visualizer.visualize_metric("CircuitPerformance", save=True, show=True)
 ```
 
 ### Custom Configuration
@@ -172,7 +174,7 @@ class MyCustomVisualizer(BaseVisualizer):
         # Required method - create default plot
         return self.plot_my_metric()
     
-    def plot_my_metric(self, save=True, show=True):
+    def plot_my_metric(self, save=False, show=False):
         fig, ax, is_override = self._setup_plot_axes()
         
         # Use base class utilities
@@ -191,7 +193,7 @@ class MyCustomVisualizer(BaseVisualizer):
         
         return self._finalize_plot(fig, is_override, save, show, "my_custom_plot")
     
-    def plot_all(self, save=True, show=True):
+    def plot_all(self, save=False, show=False):
         return [self.plot_my_metric(save=save, show=show)]
 
 # Register your custom visualizer
@@ -335,4 +337,22 @@ You can customize the output directory using the `output_dir` parameter.
 - Check the data format using `visualizer.get_metric_summary()`
 - Use `visualizer.print_available_metrics()` to see what's available
 - Look at the example files in `qward/examples/` for reference implementations
-- For CircuitPerformance, ensure you have either a single job or multiple jobs properly configured 
+- For CircuitPerformance, ensure you have either a single job or multiple jobs properly configured
+
+### Memory-Efficient Workflow
+
+```python
+# For batch processing or when generating many plots, use default settings
+# This avoids memory issues from displaying plots and only saves when needed
+
+# Generate plots without displaying (memory efficient)
+dashboards = visualizer.create_dashboard()  # save=False, show=False by default
+all_plots = visualizer.visualize_all()      # save=False, show=False by default
+
+# Only save specific plots you need
+important_dashboard = visualizer.create_dashboard(save=True)  # Save but don't show
+specific_plots = visualizer.visualize_metric("QiskitMetrics", save=True, show=True)  # Save and show
+
+# For interactive analysis, explicitly show plots
+interactive_dashboard = visualizer.create_dashboard(show=True)  # Show but don't save
+``` 

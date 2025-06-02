@@ -123,7 +123,7 @@ class Visualizer:
             return {metric_name: self.metrics_data[metric_name]}
 
     def visualize_metric(
-        self, metric_name: str, save: bool = True, show: bool = True, **kwargs
+        self, metric_name: str, save: bool = False, show: bool = False, **kwargs
     ) -> List[plt.Figure]:
         """
         Visualize a specific metric using its registered strategy.
@@ -159,7 +159,7 @@ class Visualizer:
         return strategy.plot_all(save=save, show=show, **kwargs)
 
     def create_dashboard(
-        self, save: bool = True, show: bool = True, **kwargs
+        self, save: bool = False, show: bool = False, **kwargs
     ) -> Dict[str, plt.Figure]:
         """
         Create a comprehensive dashboard with all available metrics.
@@ -203,7 +203,7 @@ class Visualizer:
         return dashboards
 
     def visualize_all(
-        self, save: bool = True, show: bool = True, **kwargs
+        self, save: bool = False, show: bool = False, **kwargs
     ) -> Dict[str, List[plt.Figure]]:
         """
         Create individual plots for all available metrics.

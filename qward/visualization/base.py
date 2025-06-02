@@ -356,11 +356,11 @@ class VisualizationStrategy(ABC):
         return display_name.replace("_", " ").title()
 
     @abstractmethod
-    def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
+    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
         """Create a comprehensive dashboard for this strategy's metrics."""
         pass
 
     @abstractmethod
-    def plot_all(self, save: bool = True, show: bool = True) -> List[plt.Figure]:
+    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
         """Generate all individual plots for this strategy."""
         pass

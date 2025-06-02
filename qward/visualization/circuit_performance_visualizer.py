@@ -82,8 +82,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     def plot_success_error_comparison(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot success vs error rates for individual jobs."""
@@ -122,8 +122,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     def plot_fidelity_comparison(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot fidelity comparison across jobs."""
@@ -149,8 +149,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     def plot_shot_distribution(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot shot distribution (successful vs failed) as stacked bars."""
@@ -194,8 +194,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     def plot_aggregate_summary(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot aggregate statistics summary."""
@@ -245,7 +245,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             fig=fig, is_override=is_override, save=save, show=show, filename="aggregate_statistics"
         )
 
-    def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
+    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
         """Create a comprehensive dashboard with all CircuitPerformance plots."""
         if self.aggregate_df is not None and not self.aggregate_df.empty:
             # Full dashboard with 4 plots
@@ -310,7 +310,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
                             )
                     cumulative_height += value
 
-    def plot_all(self, save: bool = True, show: bool = True) -> List[plt.Figure]:
+    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
         """
         Generate all individual plots.
 

@@ -56,8 +56,8 @@ class QiskitVisualizer(VisualizationStrategy):
 
     def plot_circuit_structure(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot basic circuit structure metrics."""
@@ -91,8 +91,8 @@ class QiskitVisualizer(VisualizationStrategy):
 
     def plot_gate_distribution(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot distribution of gate types."""
@@ -146,8 +146,8 @@ class QiskitVisualizer(VisualizationStrategy):
 
     def plot_instruction_metrics(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot instruction-related metrics."""
@@ -196,8 +196,8 @@ class QiskitVisualizer(VisualizationStrategy):
 
     def plot_circuit_summary(
         self,
-        save: bool = True,
-        show: bool = True,
+        save: bool = False,
+        show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
     ) -> plt.Figure:
         """Plot a summary view of key circuit characteristics."""
@@ -240,7 +240,7 @@ class QiskitVisualizer(VisualizationStrategy):
             filename="qiskit_circuit_summary",
         )
 
-    def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
+    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
         """Creates a comprehensive dashboard with all QiskitMetrics plots."""
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
         fig.suptitle("QiskitMetrics Analysis Dashboard", fontsize=16)
@@ -259,7 +259,7 @@ class QiskitVisualizer(VisualizationStrategy):
             self.show_plot(fig)
         return fig
 
-    def plot_all(self, save: bool = True, show: bool = True) -> List[plt.Figure]:
+    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
         """
         Generates all individual plots.
 
