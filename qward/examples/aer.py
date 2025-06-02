@@ -369,6 +369,7 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
 
     # Create visualizations using QWARD's visualization module
     from qward.visualization import CircuitPerformanceVisualizer, PlotConfig
+    from qward.visualization.constants import Metrics, Plots
 
     print("\nCreating visualizations using QWARD CircuitPerformanceVisualizer...")
 
@@ -390,10 +391,25 @@ def example_multiple_jobs_success_rate(circuit: QuantumCircuit):
     dashboard_fig = visualizer.create_dashboard(save=True, show=False)
     print("✅ Dashboard saved to qward/examples/img/")
 
-    # Create all individual plots
+    # Create all individual plots using new API
     print("Creating individual CircuitPerformance plots...")
-    all_figures = visualizer.plot_all(save=True, show=False)
+    all_figures = visualizer.generate_all_plots(save=True, show=False)
     print(f"✅ Created {len(all_figures)} individual plots")
+
+    # Demonstrate granular plot selection
+    print("Creating selected CircuitPerformance plots...")
+    selected_plots = visualizer.generate_plots([
+        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
+        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+    ], save=True, show=False)
+    print(f"✅ Created {len(selected_plots)} selected plots")
+
+    # Show available plots and metadata
+    print("\nAvailable CircuitPerformance plots:")
+    available_plots = visualizer.get_available_plots()
+    for plot_name in available_plots:
+        metadata = visualizer.get_plot_metadata(plot_name)
+        print(f"  - {plot_name}: {metadata.description} ({metadata.plot_type.value})")
 
     return scanner, jobs
 

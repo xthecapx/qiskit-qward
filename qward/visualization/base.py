@@ -5,10 +5,41 @@ Base classes for QWARD visualization system.
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
+
+class PlotType(Enum):
+    """Enumeration of plot types for metadata."""
+    
+    BAR_CHART = "bar_chart"
+    PIE_CHART = "pie_chart"
+    RADAR_CHART = "radar_chart"
+    STACKED_BAR = "stacked_bar"
+    GROUPED_BAR = "grouped_bar"
+    LINE_CHART = "line_chart"
+    SCATTER_PLOT = "scatter_plot"
+
+
+@dataclass
+class PlotMetadata:
+    """Metadata for individual plots."""
+    
+    name: str
+    method_name: str
+    description: str
+    plot_type: PlotType
+    filename: str
+    dependencies: List[str] = None
+    category: str = None
+
+
+# Type definitions for the new schema
+PlotResult = Dict[str, plt.Figure]
+PlotRegistry = Dict[str, PlotMetadata]
 
 
 @dataclass
@@ -355,12 +386,83 @@ class VisualizationStrategy(ABC):
             display_name = display_name.split(".")[-1]
         return display_name.replace("_", " ").title()
 
+    @classmethod
+    @abstractmethod
+    def get_available_plots(cls) -> List[str]:
+        """Return list of available plot names for this strategy."""
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
+        """Get metadata for a specific plot."""
+        pass
+    
+    def generate_plot(self, plot_name: str, save: bool = False, show: bool = False, **kwargs) -> plt.Figure:
+        """
+        Generate a single plot by name.
+        
+        Args:
+            plot_name: Name of the plot to generate
+            save: Whether to save the plot
+            show: Whether to display the plot
+            **kwargs: Additional arguments passed to the plot method
+            
+        Returns:
+            matplotlib Figure object
+            
+        Raises:
+            ValueError: If plot_name is not available
+        """
+        if plot_name not in self.get_available_plots():
+            available = self.get_available_plots()
+            raise ValueError(f"Plot '{plot_name}' not available. Available plots: {available}")
+        
+        metadata = self.get_plot_metadata(plot_name)
+        method = getattr(self, metadata.method_name)
+        return method(save=save, show=show, **kwargs)
+    
+    def generate_plots(self, plot_names: List[str] = None, save: bool = False, show: bool = False, **kwargs) -> PlotResult:
+        """
+        Generate multiple plots and return as dictionary.
+        
+        Args:
+            plot_names: List of plot names to generate. If None, generates all available plots.
+            save: Whether to save the plots
+            show: Whether to display the plots
+            **kwargs: Additional arguments passed to plot methods
+            
+        Returns:
+            Dictionary mapping plot names to Figure objects
+        """
+        if plot_names is None:
+            plot_names = self.get_available_plots()
+        
+        results = {}
+        for plot_name in plot_names:
+            try:
+                results[plot_name] = self.generate_plot(plot_name, save=save, show=show, **kwargs)
+            except Exception as e:
+                print(f"Warning: Failed to generate plot '{plot_name}': {e}")
+                continue
+        
+        return results
+    
+    def generate_all_plots(self, save: bool = False, show: bool = False, **kwargs) -> PlotResult:
+        """
+        Generate all available plots.
+        
+        Args:
+            save: Whether to save the plots
+            show: Whether to display the plots
+            **kwargs: Additional arguments passed to plot methods
+            
+        Returns:
+            Dictionary mapping plot names to Figure objects
+        """
+        return self.generate_plots(save=save, show=show, **kwargs)
+
     @abstractmethod
     def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
         """Create a comprehensive dashboard for this strategy's metrics."""
-        pass
-
-    @abstractmethod
-    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
-        """Generate all individual plots for this strategy."""
         pass

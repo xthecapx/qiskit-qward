@@ -8,11 +8,69 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from .base import VisualizationStrategy, PlotConfig
+from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotType, PlotRegistry
+from .constants import Plots
 
 
 class QiskitVisualizer(VisualizationStrategy):
     """Visualization strategy for QiskitMetrics with circuit structure and instruction analysis."""
+
+    # Class-level plot registry
+    PLOT_REGISTRY: PlotRegistry = {
+        Plots.QISKIT.CIRCUIT_STRUCTURE: PlotMetadata(
+            name=Plots.QISKIT.CIRCUIT_STRUCTURE,
+            method_name="plot_circuit_structure",
+            description="Basic circuit structure metrics (depth, width, size, qubits, classical bits)",
+            plot_type=PlotType.BAR_CHART,
+            filename="qiskit_circuit_structure",
+            dependencies=["basic_metrics.depth", "basic_metrics.width", "basic_metrics.size", 
+                         "basic_metrics.num_qubits", "basic_metrics.num_clbits"],
+            category="structure"
+        ),
+        Plots.QISKIT.GATE_DISTRIBUTION: PlotMetadata(
+            name=Plots.QISKIT.GATE_DISTRIBUTION,
+            method_name="plot_gate_distribution",
+            description="Distribution of gate types in the circuit",
+            plot_type=PlotType.PIE_CHART,
+            filename="qiskit_gate_distribution",
+            dependencies=["basic_metrics.count_ops.*"],
+            category="gates"
+        ),
+        Plots.QISKIT.INSTRUCTION_METRICS: PlotMetadata(
+            name=Plots.QISKIT.INSTRUCTION_METRICS,
+            method_name="plot_instruction_metrics",
+            description="Instruction-related connectivity and analysis metrics",
+            plot_type=PlotType.BAR_CHART,
+            filename="qiskit_instruction_metrics",
+            dependencies=["instruction_metrics.num_connected_components", 
+                         "instruction_metrics.num_nonlocal_gates",
+                         "instruction_metrics.num_tensor_factors",
+                         "instruction_metrics.num_unitary_factors"],
+            category="instructions"
+        ),
+        Plots.QISKIT.CIRCUIT_SUMMARY: PlotMetadata(
+            name=Plots.QISKIT.CIRCUIT_SUMMARY,
+            method_name="plot_circuit_summary",
+            description="Derived efficiency and summary metrics",
+            plot_type=PlotType.BAR_CHART,
+            filename="qiskit_circuit_summary",
+            dependencies=["basic_metrics.depth", "basic_metrics.width", "basic_metrics.size"],
+            category="summary"
+        )
+    }
+
+    @classmethod
+    def get_available_plots(cls) -> List[str]:
+        """Return list of available plot names for this strategy."""
+        return list(cls.PLOT_REGISTRY.keys())
+    
+    @classmethod
+    def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
+        """Get metadata for a specific plot."""
+        if plot_name not in cls.PLOT_REGISTRY:
+            available = list(cls.PLOT_REGISTRY.keys())
+            raise ValueError(f"Plot '{plot_name}' not found. Available plots: {available}")
+        return cls.PLOT_REGISTRY[plot_name]
 
     def __init__(
         self,
@@ -258,27 +316,3 @@ class QiskitVisualizer(VisualizationStrategy):
         if show:
             self.show_plot(fig)
         return fig
-
-    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
-        """
-        Generates all individual plots.
-
-        Args:
-            save: Whether to save the plots.
-            show: Whether to display the plots.
-
-        Returns:
-            List of matplotlib figures.
-        """
-        figures = []
-        print("Creating QiskitMetrics visualizations...")
-
-        figures.append(self.plot_circuit_structure(save=save, show=show))
-        figures.append(self.plot_gate_distribution(save=save, show=show))
-        figures.append(self.plot_instruction_metrics(save=save, show=show))
-        figures.append(self.plot_circuit_summary(save=save, show=show))
-
-        if save:
-            print(f"✅ All QiskitMetrics plots saved to '{self.output_dir}/' directory.")
-
-        return figures

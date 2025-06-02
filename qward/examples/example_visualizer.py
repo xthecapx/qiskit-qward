@@ -6,6 +6,7 @@ from .utils import get_display, create_example_circuit
 from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.visualization import Visualizer, PlotConfig
+from qward.visualization.constants import Metrics, Plots
 from qiskit_aer import AerSimulator
 
 display = get_display()
@@ -91,10 +92,18 @@ def example_custom_config():
         scanner=scanner, config=custom_config, output_dir="qward/examples/custom_plots"
     )
 
-    # Visualize specific metric
+    # Generate specific QiskitMetrics plots with custom config
     print("Creating QiskitMetrics visualizations with custom config...")
-    figures = visualizer.visualize_metric("QiskitMetrics", save=True, show=False)
-    print(f"Created {len(figures)} QiskitMetrics plots")
+    figures = visualizer.generate_plots({
+        Metrics.QISKIT: [
+            Plots.QISKIT.CIRCUIT_STRUCTURE,
+            Plots.QISKIT.GATE_DISTRIBUTION,
+            Plots.QISKIT.CIRCUIT_SUMMARY
+        ]
+    }, save=True, show=False)
+    
+    qiskit_plot_count = len(figures[Metrics.QISKIT])
+    print(f"Created {qiskit_plot_count} QiskitMetrics plots")
 
 
 def example_custom_data():
@@ -123,7 +132,7 @@ def example_custom_data():
         ]
     )
 
-    custom_metrics_dict = {"QiskitMetrics": custom_qiskit_data}
+    custom_metrics_dict = {Metrics.QISKIT: custom_qiskit_data}
 
     # Create visualizer with custom data
     visualizer = Visualizer(metrics_data=custom_metrics_dict, output_dir="qward/examples/img")
@@ -131,9 +140,11 @@ def example_custom_data():
     # Show what's available
     visualizer.print_available_metrics()
 
-    # Create visualizations
+    # Create visualizations using new API
     print("Creating visualizations from custom data...")
-    all_figures = visualizer.visualize_all(save=True, show=False)
+    all_figures = visualizer.generate_plots({
+        Metrics.QISKIT: None  # None = all plots
+    }, save=True, show=False)
     print(f"Created visualizations for {len(all_figures)} metric types")
 
 
@@ -158,23 +169,23 @@ def example_individual_strategies():
     metrics_data = scanner.calculate_metrics()
 
     # Use QiskitVisualizer strategy directly
-    if "QiskitMetrics" in metrics_data:
+    if Metrics.QISKIT in metrics_data:
         print("Creating QiskitMetrics visualizations using QiskitVisualizer strategy...")
         qiskit_strategy = QiskitVisualizer(
-            metrics_dict={"QiskitMetrics": metrics_data["QiskitMetrics"]},
+            metrics_dict={Metrics.QISKIT: metrics_data[Metrics.QISKIT]},
             output_dir="qward/examples/img",
         )
-        qiskit_figures = qiskit_strategy.plot_all(save=True, show=False)
+        qiskit_figures = qiskit_strategy.generate_all_plots(save=True, show=False)
         print(f"Created {len(qiskit_figures)} QiskitMetrics plots")
 
     # Use ComplexityVisualizer strategy directly
-    if "ComplexityMetrics" in metrics_data:
+    if Metrics.COMPLEXITY in metrics_data:
         print("Creating ComplexityMetrics visualizations using ComplexityVisualizer strategy...")
         complexity_strategy = ComplexityVisualizer(
-            metrics_dict={"ComplexityMetrics": metrics_data["ComplexityMetrics"]},
+            metrics_dict={Metrics.COMPLEXITY: metrics_data[Metrics.COMPLEXITY]},
             output_dir="qward/examples/img",
         )
-        complexity_figures = complexity_strategy.plot_all(save=True, show=False)
+        complexity_figures = complexity_strategy.generate_all_plots(save=True, show=False)
         print(f"Created {len(complexity_figures)} ComplexityMetrics plots")
 
     # Use CircuitPerformanceVisualizer strategy directly
@@ -188,7 +199,7 @@ def example_individual_strategies():
         perf_strategy = CircuitPerformanceVisualizer(
             metrics_dict=circuit_perf_data, output_dir="qward/examples/img"
         )
-        perf_figures = perf_strategy.plot_all(save=True, show=False)
+        perf_figures = perf_strategy.generate_all_plots(save=True, show=False)
         print(f"Created {len(perf_figures)} CircuitPerformance plots")
 
 
@@ -196,74 +207,78 @@ def example_custom_strategy():
     """Example: Creating and registering a custom visualization strategy."""
     print("\n=== Example: Custom Visualization Strategy ===")
 
-    from qward.visualization import VisualizationStrategy
+    from qward.visualization import VisualizationStrategy, PlotMetadata, PlotType
     import matplotlib.pyplot as plt
-    import pandas as pd
 
-    # Define a custom strategy
     class CustomMetricsStrategy(VisualizationStrategy):
-        """Custom visualization strategy for demonstration."""
+        """Custom visualization strategy example."""
 
-        def create_dashboard(self, save=True, show=True):
-            """Create a custom dashboard."""
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
-            fig.suptitle("Custom Metrics Dashboard", fontsize=16)
-
-            # Plot 1: Sample bar chart
-            ax1.bar(["A", "B", "C"], [1, 2, 3], color=self.config.color_palette[:3])
-            ax1.set_title("Sample Bar Chart")
-
-            # Plot 2: Sample line plot
-            ax2.plot([1, 2, 3, 4], [1, 4, 2, 3], color=self.config.color_palette[0])
-            ax2.set_title("Sample Line Plot")
-
-            # Plot 3: Sample scatter plot
-            ax3.scatter([1, 2, 3], [3, 1, 2], color=self.config.color_palette[1])
-            ax3.set_title("Sample Scatter Plot")
-
-            # Plot 4: Text summary
-            ax4.text(
-                0.5, 0.5, "Custom Strategy\nDemonstration", ha="center", va="center", fontsize=14
+        # Class-level plot registry
+        PLOT_REGISTRY = {
+            "custom_plot": PlotMetadata(
+                name="custom_plot",
+                method_name="plot_custom_metric",
+                description="Custom metric visualization",
+                plot_type=PlotType.BAR_CHART,
+                filename="custom_metric_plot",
+                dependencies=["custom.metric"],
+                category="custom"
             )
-            ax4.set_title("Summary")
-            ax4.set_xlim(0, 1)
-            ax4.set_ylim(0, 1)
+        }
 
-            plt.tight_layout()
+        @classmethod
+        def get_available_plots(cls):
+            return list(cls.PLOT_REGISTRY.keys())
+        
+        @classmethod
+        def get_plot_metadata(cls, plot_name):
+            if plot_name not in cls.PLOT_REGISTRY:
+                raise ValueError(f"Plot '{plot_name}' not found")
+            return cls.PLOT_REGISTRY[plot_name]
 
+        def create_dashboard(self, save=False, show=False):
+            fig, ax = plt.subplots(figsize=self.config.figsize)
+            ax.text(0.5, 0.5, "Custom Dashboard", ha="center", va="center", fontsize=16)
+            ax.set_title("Custom Metrics Dashboard")
+            
             if save:
-                self.save_plot(fig, "custom_strategy_dashboard")
+                self.save_plot(fig, "custom_dashboard")
             if show:
                 self.show_plot(fig)
             return fig
 
-        def plot_all(self, save=True, show=True):
-            """Generate all plots for this strategy."""
-            return [self.create_dashboard(save, show)]
+        def plot_custom_metric(self, save=False, show=False):
+            fig, ax = plt.subplots(figsize=self.config.figsize)
+            ax.bar(["A", "B", "C"], [1, 2, 3], color=self.config.color_palette[:3])
+            ax.set_title("Custom Metric Plot")
+            
+            if save:
+                self.save_plot(fig, "custom_metric")
+            if show:
+                self.show_plot(fig)
+            return fig
 
-    # Create some dummy data for the custom strategy
-    custom_data = pd.DataFrame({"metric_a": [1, 2, 3], "metric_b": [4, 5, 6]})
+    # Create custom data
+    import pandas as pd
+
+    custom_data = pd.DataFrame([{"custom.metric": 42}])
+    custom_metrics_dict = {"CustomMetrics": custom_data}
 
     # Create visualizer and register custom strategy
-    visualizer = Visualizer(
-        metrics_data={"CustomMetrics": custom_data}, output_dir="qward/examples/img"
-    )
-
-    # Register the custom strategy
+    visualizer = Visualizer(metrics_data=custom_metrics_dict, output_dir="qward/examples/img")
     visualizer.register_strategy("CustomMetrics", CustomMetricsStrategy)
 
-    print("Registered custom strategy!")
-    print(f"Available strategies: {list(visualizer.list_registered_strategies().keys())}")
-
     # Use the custom strategy
-    print("Creating visualizations with custom strategy...")
-    custom_figures = visualizer.visualize_metric("CustomMetrics", save=True, show=False)
-    print(f"Created {len(custom_figures)} custom plots")
+    print("Creating custom visualizations...")
+    custom_figures = visualizer.generate_plots({
+        "CustomMetrics": None  # Generate all plots for custom metrics
+    }, save=True, show=False)
+    print(f"Created {len(custom_figures['CustomMetrics'])} custom plots")
 
 
 def example_metric_summary():
-    """Example: Getting metric summaries."""
-    print("\n=== Example: Metric Summary ===")
+    """Example: Getting metric summaries and metadata."""
+    print("\n=== Example: Metric Summary and Metadata ===")
 
     # Create circuit and scanner
     circuit = create_example_circuit()
@@ -272,26 +287,54 @@ def example_metric_summary():
     # Create visualizer
     visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
 
-    # Get summary
+    # Get metric summary
+    print("Metric Summary:")
     summary = visualizer.get_metric_summary()
-
-    print("Metrics Summary:")
     for metric_name, info in summary.items():
-        print(f"\n{metric_name}:")
-        print(f"  Shape: {info['shape']}")
-        print(f"  Has Data: {info['has_data']}")
-        print(f"  Columns: {len(info['columns'])} total")
-        if info["sample_values"]:
-            print("  Sample values:")
-            for key, value in list(info["sample_values"].items())[:3]:  # Show first 3
-                print(f"    {key}: {value}")
+        print(f"  {metric_name}:")
+        print(f"    Shape: {info['shape']}")
+        print(f"    Columns: {len(info['columns'])}")
+        print(f"    Has Data: {info['has_data']}")
+
+    # Get available plots and their metadata
+    print("\nAvailable Plots and Metadata:")
+    available_plots = visualizer.get_available_plots()
+    
+    for metric_name, plot_names in available_plots.items():
+        print(f"\n{metric_name} ({len(plot_names)} plots):")
+        for plot_name in plot_names:
+            metadata = visualizer.get_plot_metadata(metric_name, plot_name)
+            print(f"  - {plot_name}:")
+            print(f"    Description: {metadata.description}")
+            print(f"    Type: {metadata.plot_type.value}")
+            print(f"    Category: {metadata.category}")
+
+    # Generate specific plots based on metadata
+    print("\nGenerating plots by category...")
+    
+    # Generate all structure-related plots
+    structure_plots = {}
+    for metric_name, plot_names in available_plots.items():
+        metric_structure_plots = []
+        for plot_name in plot_names:
+            metadata = visualizer.get_plot_metadata(metric_name, plot_name)
+            if metadata.category == "structure":
+                metric_structure_plots.append(plot_name)
+        
+        if metric_structure_plots:
+            structure_plots[metric_name] = metric_structure_plots
+    
+    if structure_plots:
+        structure_figures = visualizer.generate_plots(structure_plots, save=True, show=False)
+        total_structure_plots = sum(len(plots) for plots in structure_figures.values())
+        print(f"Created {total_structure_plots} structure-related plots")
 
 
-if __name__ == "__main__":
-    print("QWARD Visualizer Examples")
-    print("=" * 50)
+def main():
+    """Run all examples."""
+    print("QWARD Visualization Examples")
+    print("=" * 40)
 
-    # Run examples
     example_basic_visualizer()
     example_with_circuit_performance()
     example_custom_config()
@@ -300,7 +343,17 @@ if __name__ == "__main__":
     example_custom_strategy()
     example_metric_summary()
 
-    print("\n" + "=" * 50)
-    print(
-        "All examples completed! Check the 'qward/examples/img/' and 'qward/examples/custom_plots/' directories for generated plots."
-    )
+    print("\n" + "=" * 40)
+    print("All examples completed!")
+    print("Check qward/examples/img/ for generated plots")
+    print("\nNew API Benefits Demonstrated:")
+    print("- Type-safe constants (Metrics.QISKIT, Plots.QISKIT.CIRCUIT_STRUCTURE)")
+    print("- Granular plot control with selections")
+    print("- Rich metadata for each plot")
+    print("- Memory-efficient defaults")
+    print("- IDE autocompletion support")
+    print("- Flexible plot generation strategies")
+
+
+if __name__ == "__main__":
+    main()

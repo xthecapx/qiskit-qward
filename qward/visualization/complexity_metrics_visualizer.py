@@ -8,11 +8,62 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from .base import VisualizationStrategy, PlotConfig
+from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotType, PlotRegistry
+from .constants import Plots
 
 
 class ComplexityVisualizer(VisualizationStrategy):
     """Visualization strategy for ComplexityMetrics with comprehensive complexity analysis."""
+
+    # Class-level plot registry
+    PLOT_REGISTRY: PlotRegistry = {
+        Plots.COMPLEXITY.GATE_BASED_METRICS: PlotMetadata(
+            name=Plots.COMPLEXITY.GATE_BASED_METRICS,
+            method_name="plot_gate_based_metrics",
+            description="Gate-based complexity metrics (gate count, depth, T-count, CNOT count)",
+            plot_type=PlotType.BAR_CHART,
+            filename="complexity_gate_based_metrics",
+            dependencies=["gate_based_metrics.gate_count", "gate_based_metrics.circuit_depth",
+                         "gate_based_metrics.t_count", "gate_based_metrics.cnot_count"],
+            category="complexity"
+        ),
+        Plots.COMPLEXITY.COMPLEXITY_RADAR: PlotMetadata(
+            name=Plots.COMPLEXITY.COMPLEXITY_RADAR,
+            method_name="plot_complexity_radar",
+            description="Normalized complexity metrics displayed as a radar chart",
+            plot_type=PlotType.RADAR_CHART,
+            filename="complexity_radar_chart",
+            dependencies=["gate_based_metrics.multi_qubit_ratio", 
+                         "entanglement_metrics.entangling_gate_density",
+                         "standardized_metrics.gate_density",
+                         "advanced_metrics.parallelism_efficiency"],
+            category="complexity"
+        ),
+        Plots.COMPLEXITY.EFFICIENCY_METRICS: PlotMetadata(
+            name=Plots.COMPLEXITY.EFFICIENCY_METRICS,
+            method_name="plot_efficiency_metrics",
+            description="Circuit efficiency and resource utilization metrics",
+            plot_type=PlotType.BAR_CHART,
+            filename="complexity_efficiency_metrics",
+            dependencies=["standardized_metrics.gate_density", 
+                         "advanced_metrics.parallelism_factor",
+                         "advanced_metrics.circuit_efficiency"],
+            category="efficiency"
+        )
+    }
+
+    @classmethod
+    def get_available_plots(cls) -> List[str]:
+        """Return list of available plot names for this strategy."""
+        return list(cls.PLOT_REGISTRY.keys())
+    
+    @classmethod
+    def get_plot_metadata(cls, plot_name: str) -> PlotMetadata:
+        """Get metadata for a specific plot."""
+        if plot_name not in cls.PLOT_REGISTRY:
+            available = list(cls.PLOT_REGISTRY.keys())
+            raise ValueError(f"Plot '{plot_name}' not found. Available plots: {available}")
+        return cls.PLOT_REGISTRY[plot_name]
 
     def __init__(
         self,
@@ -330,26 +381,3 @@ Please check that all required
 complexity metrics are available."""
 
         return summary
-
-    def plot_all(self, save: bool = False, show: bool = False) -> List[plt.Figure]:
-        """
-        Generates all individual plots.
-
-        Args:
-            save: Whether to save the plots.
-            show: Whether to display the plots.
-
-        Returns:
-            List of matplotlib figures.
-        """
-        figures = []
-        print("Creating ComplexityMetrics visualizations...")
-
-        figures.append(self.plot_gate_based_metrics(save=save, show=show))
-        figures.append(self.plot_complexity_radar(save=save, show=show))
-        figures.append(self.plot_efficiency_metrics(save=save, show=show))
-
-        if save:
-            print(f"✅ All ComplexityMetrics plots saved to '{self.output_dir}/' directory.")
-
-        return figures

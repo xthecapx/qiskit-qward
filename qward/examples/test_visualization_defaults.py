@@ -7,6 +7,7 @@ This demonstrates the memory-efficient usage of the visualization system.
 from qward import Scanner, Visualizer
 from qward.metrics import QiskitMetrics, ComplexityMetrics
 from qward.visualization import PlotConfig
+from qward.visualization.constants import Metrics, Plots
 from qiskit import QuantumCircuit
 import matplotlib.pyplot as plt
 
@@ -35,7 +36,12 @@ def test_visualization_defaults():
     
     # These should not save files or display plots
     dashboards = visualizer.create_dashboard()  # Default: save=False, show=False
-    all_plots = visualizer.visualize_all()     # Default: save=False, show=False
+    
+    # Generate all plots for all metrics using new API
+    all_plots = visualizer.generate_plots({
+        Metrics.QISKIT: None,  # None = all plots
+        Metrics.COMPLEXITY: None
+    })  # Default: save=False, show=False
     
     print(f"   Created {len(dashboards)} dashboards (not saved)")
     print(f"   Created {sum(len(plots) for plots in all_plots.values())} individual plots (not saved)")
@@ -44,9 +50,17 @@ def test_visualization_defaults():
     print("\n2. Testing explicit save=True...")
     
     saved_dashboard = visualizer.create_dashboard(save=True)
-    saved_plots = visualizer.visualize_metric("QiskitMetrics", save=True)
     
-    print(f"   Saved 1 dashboard and {len(saved_plots)} plots to {visualizer.output_dir}")
+    # Generate specific QiskitMetrics plots with save=True
+    saved_plots = visualizer.generate_plots({
+        Metrics.QISKIT: [
+            Plots.QISKIT.CIRCUIT_STRUCTURE,
+            Plots.QISKIT.GATE_DISTRIBUTION
+        ]
+    }, save=True)
+    
+    qiskit_plot_count = len(saved_plots[Metrics.QISKIT])
+    print(f"   Saved 1 dashboard and {qiskit_plot_count} QiskitMetrics plots to {visualizer.output_dir}")
     
     # Test 3: Memory efficiency demonstration
     print("\n3. Memory efficiency demonstration...")
@@ -79,16 +93,38 @@ def test_visualization_defaults():
     
     custom_visualizer = Visualizer(scanner=scanner, config=config, output_dir="qward/examples/img")
     
-    # Create one plot with custom config and save it
-    custom_plot = custom_visualizer.visualize_metric("ComplexityMetrics", save=True)
-    print(f"   Created custom plot with quantum style (saved)")
+    # Create specific ComplexityMetrics plots with custom config and save them
+    custom_plots = custom_visualizer.generate_plots({
+        Metrics.COMPLEXITY: [
+            Plots.COMPLEXITY.COMPLEXITY_RADAR,
+            Plots.COMPLEXITY.GATE_BASED_METRICS
+        ]
+    }, save=True)
+    
+    complexity_plot_count = len(custom_plots[Metrics.COMPLEXITY])
+    print(f"   Created {complexity_plot_count} custom ComplexityMetrics plots with quantum style (saved)")
+    
+    # Test 5: Single plot generation
+    print("\n5. Testing single plot generation...")
+    
+    single_plot = visualizer.generate_plot(
+        Metrics.QISKIT, 
+        Plots.QISKIT.CIRCUIT_STRUCTURE, 
+        save=False, 
+        show=False
+    )
+    print(f"   Generated single circuit structure plot: {type(single_plot)}")
+    plt.close(single_plot)  # Clean up
     
     print("\n✅ All tests completed successfully!")
-    print("\nKey benefits of new defaults:")
+    print("\nKey benefits of new API:")
+    print("  - Type-safe constants prevent typos")
+    print("  - Granular control over which plots to generate")
     print("  - Reduced memory usage when generating multiple plots")
     print("  - No unwanted file creation during exploration")
     print("  - Explicit control over when to save/show plots")
     print("  - Better for batch processing and automated workflows")
+    print("  - IDE autocompletion for all plot names")
 
 if __name__ == "__main__":
     test_visualization_defaults() 

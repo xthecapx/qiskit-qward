@@ -19,6 +19,7 @@ from qward.visualization import (
     ComplexityVisualizer,
     PlotConfig,
 )
+from qward.visualization.constants import Metrics, Plots
 
 
 def create_sample_circuit():
@@ -43,28 +44,34 @@ def example_qiskit_strategy_direct():
 
     # Use QiskitVisualizer strategy directly
     qiskit_strategy = QiskitVisualizer(
-        metrics_dict={"QiskitMetrics": metrics_data["QiskitMetrics"]},
+        metrics_dict={Metrics.QISKIT: metrics_data[Metrics.QISKIT]},
         output_dir="qward/examples/img/direct_qiskit",
     )
 
-    print("Creating individual QiskitVisualizer plots...")
+    print("Creating individual QiskitVisualizer plots using new API...")
 
-    # Create specific plots
-    qiskit_strategy.plot_circuit_structure(save=True, show=False)
+    # Create specific plots using new API
+    qiskit_strategy.generate_plot(Plots.QISKIT.CIRCUIT_STRUCTURE, save=True, show=False)
     print("  ✅ Circuit structure plot created")
 
-    qiskit_strategy.plot_gate_distribution(save=True, show=False)
+    qiskit_strategy.generate_plot(Plots.QISKIT.GATE_DISTRIBUTION, save=True, show=False)
     print("  ✅ Gate distribution plot created")
 
-    qiskit_strategy.plot_instruction_metrics(save=True, show=False)
+    qiskit_strategy.generate_plot(Plots.QISKIT.INSTRUCTION_METRICS, save=True, show=False)
     print("  ✅ Instruction metrics plot created")
 
-    qiskit_strategy.plot_circuit_summary(save=True, show=False)
+    qiskit_strategy.generate_plot(Plots.QISKIT.CIRCUIT_SUMMARY, save=True, show=False)
     print("  ✅ Circuit summary plot created")
 
     # Create dashboard
     qiskit_strategy.create_dashboard(save=True, show=False)
     print("  ✅ QiskitVisualizer dashboard created")
+
+    # Show available plots and metadata
+    print("  Available QiskitVisualizer plots:")
+    for plot_name in qiskit_strategy.get_available_plots():
+        metadata = qiskit_strategy.get_plot_metadata(plot_name)
+        print(f"    - {plot_name}: {metadata.description}")
 
 
 def example_complexity_strategy_direct():
@@ -85,29 +92,32 @@ def example_complexity_strategy_direct():
     )
 
     complexity_strategy = ComplexityVisualizer(
-        metrics_dict={"ComplexityMetrics": metrics_data["ComplexityMetrics"]},
+        metrics_dict={Metrics.COMPLEXITY: metrics_data[Metrics.COMPLEXITY]},
         output_dir="qward/examples/img/direct_complexity",
         config=custom_config,
     )
 
-    print("Creating individual ComplexityVisualizer plots...")
+    print("Creating individual ComplexityVisualizer plots using new API...")
 
-    # Create specific plots
-    complexity_strategy.plot_gate_based_metrics(save=True, show=False)
+    # Create specific plots using new API
+    complexity_strategy.generate_plot(Plots.COMPLEXITY.GATE_BASED_METRICS, save=True, show=False)
     print("  ✅ Gate-based metrics plot created")
 
-    complexity_strategy.plot_complexity_radar(save=True, show=False)
+    complexity_strategy.generate_plot(Plots.COMPLEXITY.COMPLEXITY_RADAR, save=True, show=False)
     print("  ✅ Complexity radar chart created")
 
-    complexity_strategy.plot_quantum_volume_analysis(save=True, show=False)
-    print("  ✅ Quantum volume analysis plot created")
-
-    complexity_strategy.plot_efficiency_metrics(save=True, show=False)
+    complexity_strategy.generate_plot(Plots.COMPLEXITY.EFFICIENCY_METRICS, save=True, show=False)
     print("  ✅ Efficiency metrics plot created")
 
     # Create dashboard
     complexity_strategy.create_dashboard(save=True, show=False)
     print("  ✅ ComplexityVisualizer dashboard created")
+
+    # Show available plots and metadata
+    print("  Available ComplexityVisualizer plots:")
+    for plot_name in complexity_strategy.get_available_plots():
+        metadata = complexity_strategy.get_plot_metadata(plot_name)
+        print(f"    - {plot_name}: {metadata.description} ({metadata.plot_type.value})")
 
 
 def example_circuit_performance_strategy_direct():
@@ -143,24 +153,30 @@ def example_circuit_performance_strategy_direct():
         metrics_dict=circuit_perf_data, output_dir="qward/examples/img/direct_performance"
     )
 
-    print("Creating individual CircuitPerformanceVisualizer plots...")
+    print("Creating individual CircuitPerformanceVisualizer plots using new API...")
 
-    # Create specific plots
-    perf_strategy.plot_success_error_comparison(save=True, show=False)
+    # Create specific plots using new API
+    perf_strategy.generate_plot(Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, save=True, show=False)
     print("  ✅ Success vs error comparison plot created")
 
-    perf_strategy.plot_fidelity_comparison(save=True, show=False)
+    perf_strategy.generate_plot(Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON, save=True, show=False)
     print("  ✅ Fidelity comparison plot created")
 
-    perf_strategy.plot_shot_distribution(save=True, show=False)
+    perf_strategy.generate_plot(Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION, save=True, show=False)
     print("  ✅ Shot distribution plot created")
 
-    perf_strategy.plot_aggregate_summary(save=True, show=False)
+    perf_strategy.generate_plot(Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY, save=True, show=False)
     print("  ✅ Aggregate summary plot created")
 
     # Create dashboard
     perf_strategy.create_dashboard(save=True, show=False)
     print("  ✅ CircuitPerformanceVisualizer dashboard created")
+
+    # Show available plots and metadata
+    print("  Available CircuitPerformanceVisualizer plots:")
+    for plot_name in perf_strategy.get_available_plots():
+        metadata = perf_strategy.get_plot_metadata(plot_name)
+        print(f"    - {plot_name}: {metadata.description} ({metadata.plot_type.value})")
 
 
 def example_custom_strategy_workflow():
@@ -186,100 +202,102 @@ def example_custom_strategy_workflow():
 
     # Use QiskitVisualizer strategy with custom config
     qiskit_strategy = QiskitVisualizer(
-        metrics_dict={"QiskitMetrics": metrics_data["QiskitMetrics"]},
+        metrics_dict={Metrics.QISKIT: metrics_data[Metrics.QISKIT]},
         output_dir="qward/examples/img/custom_workflow",
         config=custom_config,
     )
 
-    # Create only specific plots we want
-    qiskit_strategy.plot_circuit_structure(save=True, show=False)
-    qiskit_strategy.plot_gate_distribution(save=True, show=False)
-    print("  ✅ Selected QiskitVisualizer plots created as PDF")
+    # Create only specific plots we want using new API
+    selected_qiskit_plots = qiskit_strategy.generate_plots([
+        Plots.QISKIT.CIRCUIT_STRUCTURE,
+        Plots.QISKIT.GATE_DISTRIBUTION
+    ], save=True, show=False)
+    print(f"  ✅ {len(selected_qiskit_plots)} selected QiskitVisualizer plots created as PDF")
 
     # Use ComplexityVisualizer strategy with same config
     complexity_strategy = ComplexityVisualizer(
-        metrics_dict={"ComplexityMetrics": metrics_data["ComplexityMetrics"]},
+        metrics_dict={Metrics.COMPLEXITY: metrics_data[Metrics.COMPLEXITY]},
         output_dir="qward/examples/img/custom_workflow",
         config=custom_config,
     )
 
     # Create only the radar chart and efficiency metrics
-    complexity_strategy.plot_complexity_radar(save=True, show=False)
-    complexity_strategy.plot_efficiency_metrics(save=True, show=False)
-    print("  ✅ Selected ComplexityVisualizer plots created as PDF")
+    selected_complexity_plots = complexity_strategy.generate_plots([
+        Plots.COMPLEXITY.COMPLEXITY_RADAR,
+        Plots.COMPLEXITY.EFFICIENCY_METRICS
+    ], save=True, show=False)
+    print(f"  ✅ {len(selected_complexity_plots)} selected ComplexityVisualizer plots created as PDF")
+
+    # Create combined dashboard-style figure
+    print("  ✅ Custom workflow completed with granular plot selection")
 
 
 def example_strategy_with_custom_data():
-    """Example: Using strategies with completely custom data."""
+    """Example: Using strategies with custom data instead of Scanner."""
     print("\n=== Example: Strategy with Custom Data ===")
 
-    # Create custom metrics data (simulating external data source)
-    custom_qiskit_data = pd.DataFrame(
-        [
-            {
-                "basic_metrics.depth": 12,
-                "basic_metrics.width": 6,
-                "basic_metrics.size": 24,
-                "basic_metrics.num_qubits": 6,
-                "basic_metrics.num_clbits": 6,
-                "basic_metrics.count_ops.h": 6,
-                "basic_metrics.count_ops.cx": 10,
-                "basic_metrics.count_ops.rz": 8,
-                "instruction_metrics.num_connected_components": 1,
-                "instruction_metrics.num_nonlocal_gates": 10,
-                "instruction_metrics.num_tensor_factors": 1,
-                "instruction_metrics.num_unitary_factors": 1,
-            }
-        ]
-    )
+    # Create custom QiskitMetrics data
+    custom_qiskit_data = pd.DataFrame([{
+        "basic_metrics.depth": 8,
+        "basic_metrics.width": 4,
+        "basic_metrics.size": 12,
+        "basic_metrics.num_qubits": 4,
+        "basic_metrics.num_clbits": 4,
+        "basic_metrics.count_ops.h": 3,
+        "basic_metrics.count_ops.cx": 4,
+        "basic_metrics.count_ops.rz": 2,
+        "basic_metrics.count_ops.measure": 4,
+        "instruction_metrics.num_connected_components": 1,
+        "instruction_metrics.num_nonlocal_gates": 4,
+        "instruction_metrics.num_tensor_factors": 1,
+        "instruction_metrics.num_unitary_factors": 1,
+    }])
 
-    custom_complexity_data = pd.DataFrame(
-        [
-            {
-                "gate_based_metrics.gate_count": 24,
-                "gate_based_metrics.circuit_depth": 12,
-                "gate_based_metrics.t_count": 0,
-                "gate_based_metrics.cnot_count": 10,
-                "gate_based_metrics.two_qubit_count": 10,
-                "standardized_metrics.circuit_volume": 72,
-                "standardized_metrics.gate_density": 0.33,
-                "quantum_volume.standard_quantum_volume": 64,
-                "quantum_volume.enhanced_quantum_volume": 68,
-                "quantum_volume.effective_depth": 10,
-                "advanced_metrics.parallelism_efficiency": 0.75,
-                "advanced_metrics.circuit_efficiency": 0.8,
-            }
-        ]
-    )
+    # Create custom ComplexityMetrics data
+    custom_complexity_data = pd.DataFrame([{
+        "gate_based_metrics.gate_count": 12,
+        "gate_based_metrics.circuit_depth": 8,
+        "gate_based_metrics.t_count": 0,
+        "gate_based_metrics.cnot_count": 4,
+        "gate_based_metrics.two_qubit_count": 4,
+        "gate_based_metrics.multi_qubit_ratio": 0.33,
+        "standardized_metrics.circuit_volume": 32,
+        "standardized_metrics.gate_density": 0.375,
+        "entanglement_metrics.entangling_gate_density": 0.33,
+        "advanced_metrics.parallelism_factor": 1.5,
+        "advanced_metrics.parallelism_efficiency": 0.75,
+        "advanced_metrics.circuit_efficiency": 0.85,
+        "derived_metrics.square_ratio": 0.5,
+    }])
 
-    print("Using strategies with custom external data...")
+    print("Creating visualizations from custom data...")
 
-    # Use strategies with custom data
+    # Use QiskitVisualizer with custom data
     qiskit_strategy = QiskitVisualizer(
-        metrics_dict={"QiskitMetrics": custom_qiskit_data},
+        metrics_dict={Metrics.QISKIT: custom_qiskit_data},
         output_dir="qward/examples/img/custom_data",
     )
 
+    # Generate all QiskitVisualizer plots
+    qiskit_plots = qiskit_strategy.generate_all_plots(save=True, show=False)
+    print(f"  ✅ Created {len(qiskit_plots)} QiskitVisualizer plots from custom data")
+
+    # Use ComplexityVisualizer with custom data
     complexity_strategy = ComplexityVisualizer(
-        metrics_dict={"ComplexityMetrics": custom_complexity_data},
+        metrics_dict={Metrics.COMPLEXITY: custom_complexity_data},
         output_dir="qward/examples/img/custom_data",
     )
 
-    # Create dashboards
-    qiskit_strategy.create_dashboard(save=True, show=False)
-    complexity_strategy.create_dashboard(save=True, show=False)
-
-    print("  ✅ Dashboards created from custom data")
+    # Generate all ComplexityVisualizer plots
+    complexity_plots = complexity_strategy.generate_all_plots(save=True, show=False)
+    print(f"  ✅ Created {len(complexity_plots)} ComplexityVisualizer plots from custom data")
 
 
 def main():
     """Run all direct strategy examples."""
-    print("🎯 QWARD Direct Strategy Usage Examples")
+    print("QWARD Direct Visualization Strategy Examples")
     print("=" * 50)
-    print("These examples show how to use visualization strategies directly,")
-    print("without the unified Visualizer class, for maximum flexibility.")
 
-    # Run all examples
     example_qiskit_strategy_direct()
     example_complexity_strategy_direct()
     example_circuit_performance_strategy_direct()
@@ -287,19 +305,21 @@ def main():
     example_strategy_with_custom_data()
 
     print("\n" + "=" * 50)
-    print("🎉 All direct strategy examples completed!")
+    print("All direct strategy examples completed!")
     print("\nGenerated plots in:")
     print("- qward/examples/img/direct_qiskit/")
     print("- qward/examples/img/direct_complexity/")
     print("- qward/examples/img/direct_performance/")
     print("- qward/examples/img/custom_workflow/")
     print("- qward/examples/img/custom_data/")
-    print("\n💡 Key benefits of direct strategy usage:")
-    print("• Fine-grained control over individual plots")
-    print("• Custom configurations per strategy")
-    print("• Integration with external data sources")
-    print("• Flexible output formats and locations")
-    print("• Perfect for custom workflows and pipelines")
+    
+    print("\nNew API Benefits Demonstrated:")
+    print("- Type-safe constants prevent typos")
+    print("- Granular plot control with generate_plots()")
+    print("- Rich metadata for each plot")
+    print("- Memory-efficient defaults")
+    print("- IDE autocompletion support")
+    print("- Flexible plot selection strategies")
 
 
 if __name__ == "__main__":
