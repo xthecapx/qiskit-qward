@@ -12,7 +12,6 @@ from qward.metrics.schemas import (
     CircuitPerformanceSchema,
     BasicMetricsSchema,
     GateBasedMetricsSchema,
-    QuantumVolumeSchema,
     SuccessMetricsSchema,
     FidelityMetricsSchema,
     StatisticalMetricsSchema,
@@ -201,36 +200,6 @@ class TestSchemaValidation(unittest.TestCase):
         self.assertEqual(schema.dominant_outcome_probability, 0.6)
         self.assertEqual(schema.num_unique_outcomes, 4)
 
-    def test_quantum_volume_schema_valid(self):
-        """Test QuantumVolumeSchema with valid data."""
-        valid_data = {
-            "standard_quantum_volume": 16,
-            "enhanced_quantum_volume": 20.5,
-            "effective_depth": 4,
-            "factors": {
-                "square_ratio": 0.8,
-                "circuit_density": 1.2,
-                "multi_qubit_ratio": 0.6,
-                "connectivity_factor": 1.0,
-                "enhancement_factor": 1.28,
-            },
-            "circuit_metrics": {
-                "depth": 5,
-                "width": 6,
-                "size": 10,
-                "num_qubits": 3,
-                "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-            },
-        }
-
-        schema = QuantumVolumeSchema(**valid_data)
-
-        self.assertEqual(schema.standard_quantum_volume, 16)
-        self.assertEqual(schema.enhanced_quantum_volume, 20.5)
-        self.assertEqual(schema.effective_depth, 4)
-        self.assertEqual(schema.factors.square_ratio, 0.8)
-        self.assertEqual(schema.factors.enhancement_factor, 1.28)
-
     def test_qiskit_metrics_schema_complete(self):
         """Test complete QiskitMetricsSchema."""
         valid_data = {
@@ -297,25 +266,6 @@ class TestSchemaValidation(unittest.TestCase):
                 "square_ratio": 0.8,
                 "weighted_complexity": 15,
                 "normalized_weighted_complexity": 5.5,
-            },
-            "quantum_volume": {
-                "standard_quantum_volume": 16,
-                "enhanced_quantum_volume": 20.5,
-                "effective_depth": 4,
-                "factors": {
-                    "square_ratio": 0.8,
-                    "circuit_density": 1.2,
-                    "multi_qubit_ratio": 0.6,
-                    "connectivity_factor": 1.0,
-                    "enhancement_factor": 1.28,
-                },
-                "circuit_metrics": {
-                    "depth": 5,
-                    "width": 6,
-                    "size": 10,
-                    "num_qubits": 3,
-                    "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-                },
             },
         }
 
@@ -424,25 +374,6 @@ class TestSchemaValidation(unittest.TestCase):
                 "weighted_complexity": 15,
                 "normalized_weighted_complexity": 5.5,
             },
-            "quantum_volume": {
-                "standard_quantum_volume": 16,
-                "enhanced_quantum_volume": 20.5,
-                "effective_depth": 4,
-                "factors": {
-                    "square_ratio": 0.8,
-                    "circuit_density": 1.2,
-                    "multi_qubit_ratio": 0.6,
-                    "connectivity_factor": 1.0,
-                    "enhancement_factor": 1.28,
-                },
-                "circuit_metrics": {
-                    "depth": 5,
-                    "width": 6,
-                    "size": 10,
-                    "num_qubits": 3,
-                    "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-                },
-            },
         }
 
         schema = ComplexityMetricsSchema(**valid_data)
@@ -451,7 +382,6 @@ class TestSchemaValidation(unittest.TestCase):
         self.assertIsInstance(flat_dict, dict)
         self.assertIn("gate_based_metrics.gate_count", flat_dict)
         self.assertIn("entanglement_metrics.entangling_gate_density", flat_dict)
-        self.assertIn("quantum_volume.standard_quantum_volume", flat_dict)
 
     def test_edge_case_zero_values(self):
         """Test edge cases with zero values."""

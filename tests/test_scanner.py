@@ -126,8 +126,8 @@ class TestScanner(unittest.TestCase):
         expected_columns = [
             "gate_based_metrics.gate_count",
             "gate_based_metrics.circuit_depth",
-            "quantum_volume.standard_quantum_volume",
-            "quantum_volume.enhanced_quantum_volume",
+            "advanced_metrics.parallelism_factor",
+            "derived_metrics.weighted_complexity",
         ]
         for col in expected_columns:
             self.assertIn(col, df.columns, f"Expected column {col} not found")

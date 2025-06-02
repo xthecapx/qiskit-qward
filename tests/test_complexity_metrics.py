@@ -142,53 +142,6 @@ class TestComplexityMetrics(unittest.TestCase):
         # Test derived metrics
         self.assertGreater(result.derived_metrics.weighted_complexity, 0)
 
-    def test_quantum_volume_simple_circuit(self):
-        """Test quantum volume estimation for simple circuit."""
-        metrics = ComplexityMetrics(self.simple_circuit)
-
-        result = metrics.get_metrics()
-
-        # Test quantum volume
-        self.assertGreater(result.quantum_volume.standard_quantum_volume, 0)
-        self.assertGreater(result.quantum_volume.enhanced_quantum_volume, 0)
-        self.assertGreaterEqual(result.quantum_volume.effective_depth, 0)
-
-        # Test QV factors
-        factors = result.quantum_volume.factors
-        self.assertGreaterEqual(factors.square_ratio, 0.0)
-        self.assertLessEqual(factors.square_ratio, 1.0)
-        self.assertGreaterEqual(factors.circuit_density, 0.0)
-        self.assertGreaterEqual(factors.multi_qubit_ratio, 0.0)
-        self.assertLessEqual(factors.multi_qubit_ratio, 1.0)
-        self.assertGreaterEqual(factors.enhancement_factor, 0.0)
-
-    def test_quantum_volume_calculation(self):
-        """Test quantum volume calculation."""
-        metrics = ComplexityMetrics(self.simple_circuit)
-        result = metrics.get_metrics()
-
-        # Test quantum volume
-        self.assertGreaterEqual(result.quantum_volume.standard_quantum_volume, 1)
-        self.assertGreaterEqual(result.quantum_volume.enhanced_quantum_volume, 1.0)
-        self.assertGreaterEqual(result.quantum_volume.effective_depth, 0)
-
-        # Enhanced QV should be >= standard QV
-        self.assertGreaterEqual(
-            result.quantum_volume.enhanced_quantum_volume,
-            result.quantum_volume.standard_quantum_volume,
-        )
-
-        # Test factors
-        factors = result.quantum_volume.factors
-        self.assertGreaterEqual(factors.square_ratio, 0.0)
-        self.assertLessEqual(factors.square_ratio, 1.0)
-        self.assertGreaterEqual(factors.circuit_density, 0.0)
-        self.assertGreaterEqual(factors.multi_qubit_ratio, 0.0)
-        self.assertLessEqual(factors.multi_qubit_ratio, 1.0)
-        self.assertGreaterEqual(factors.connectivity_factor, 0.0)
-        self.assertLessEqual(factors.connectivity_factor, 1.0)
-        self.assertGreaterEqual(factors.enhancement_factor, 0.0)
-
     def test_to_flat_dict(self):
         """Test conversion to flat dictionary."""
         metrics = ComplexityMetrics(self.simple_circuit)
@@ -206,8 +159,8 @@ class TestComplexityMetrics(unittest.TestCase):
             "gate_based_metrics.t_count",
             "entanglement_metrics.entangling_gate_density",
             "standardized_metrics.circuit_volume",
-            "quantum_volume.standard_quantum_volume",
-            "quantum_volume.enhanced_quantum_volume",
+            "advanced_metrics.parallelism_factor",
+            "derived_metrics.weighted_complexity",
         ]
 
         for key in expected_keys:
@@ -226,8 +179,8 @@ class TestComplexityMetrics(unittest.TestCase):
         self.assertGreaterEqual(result.gate_based_metrics.t_count, 0)
         self.assertGreaterEqual(result.entanglement_metrics.entangling_gate_density, 0)
         self.assertGreaterEqual(result.standardized_metrics.circuit_volume, 0)
-        self.assertGreaterEqual(result.quantum_volume.standard_quantum_volume, 0)
-        self.assertGreaterEqual(result.quantum_volume.enhanced_quantum_volume, 0)
+        self.assertGreaterEqual(result.advanced_metrics.parallelism_factor, 0)
+        self.assertGreaterEqual(result.derived_metrics.weighted_complexity, 0)
 
     def test_different_circuit_types(self):
         """Test with different types of circuits."""
@@ -319,12 +272,12 @@ class TestComplexityMetrics(unittest.TestCase):
             result1.gate_based_metrics.gate_count, result2.gate_based_metrics.gate_count
         )
         self.assertEqual(
-            result1.quantum_volume.standard_quantum_volume,
-            result2.quantum_volume.standard_quantum_volume,
+            result1.advanced_metrics.parallelism_factor,
+            result2.advanced_metrics.parallelism_factor,
         )
         self.assertAlmostEqual(
-            result1.quantum_volume.enhanced_quantum_volume,
-            result2.quantum_volume.enhanced_quantum_volume,
+            result1.advanced_metrics.circuit_efficiency,
+            result2.advanced_metrics.circuit_efficiency,
             places=5,
         )
 
@@ -358,8 +311,8 @@ class TestComplexityMetrics(unittest.TestCase):
 
         # Should handle larger circuits without issues
         self.assertEqual(result.gate_based_metrics.gate_count, 15)  # 8 H + 7 CX
-        self.assertGreater(result.quantum_volume.standard_quantum_volume, 0)
-        self.assertGreater(result.quantum_volume.enhanced_quantum_volume, 0)
+        self.assertGreater(result.advanced_metrics.parallelism_factor, 0)
+        self.assertGreater(result.derived_metrics.weighted_complexity, 0)
 
 
 if __name__ == "__main__":

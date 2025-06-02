@@ -203,55 +203,6 @@ class ComplexityVisualizer(VisualizationStrategy):
             filename="complexity_radar_chart",
         )
 
-    def plot_quantum_volume_analysis(
-        self,
-        save: bool = True,
-        show: bool = True,
-        fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
-    ) -> plt.Figure:
-        """Plot quantum volume analysis."""
-        fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
-
-        # Extract quantum volume metrics using base class utility
-        qv_cols = [
-            "quantum_volume.standard_quantum_volume",
-            "quantum_volume.enhanced_quantum_volume",
-            "quantum_volume.effective_depth",
-        ]
-
-        qv_data = self._extract_metrics_from_columns(
-            self.complexity_df, qv_cols, prefix_to_remove="quantum_volume."
-        )
-
-        if not qv_data:
-            self._show_no_data_message(
-                ax, "Quantum Volume Analysis", "No quantum volume data available"
-            )
-            return self._finalize_plot(
-                fig=fig,
-                is_override=is_override,
-                save=save,
-                show=show,
-                filename="complexity_quantum_volume",
-            )
-
-        self._create_bar_plot_with_labels(
-            data=qv_data,
-            ax=ax,
-            title="Quantum Volume Analysis",
-            xlabel="Metrics",
-            ylabel="Value",
-            value_format="{:.1f}",
-        )
-
-        return self._finalize_plot(
-            fig=fig,
-            is_override=is_override,
-            save=save,
-            show=show,
-            filename="complexity_quantum_volume",
-        )
-
     def plot_efficiency_metrics(
         self,
         save: bool = True,
@@ -306,32 +257,30 @@ class ComplexityVisualizer(VisualizationStrategy):
 
     def create_dashboard(self, save: bool = True, show: bool = True) -> plt.Figure:
         """Creates a comprehensive dashboard with all ComplexityMetrics plots."""
-        fig = plt.figure(figsize=(16, 12))
+        fig = plt.figure(figsize=(14, 10))
         fig.suptitle("ComplexityMetrics Analysis Dashboard", fontsize=16)
 
-        # Create a 2x3 grid with the radar chart taking up more space
-        gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.3)
+        # Create a 2x2 grid
+        gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
 
         ax1 = fig.add_subplot(gs[0, 0])
         ax2 = fig.add_subplot(gs[0, 1], projection="polar")  # Radar chart
-        ax3 = fig.add_subplot(gs[0, 2])
-        ax4 = fig.add_subplot(gs[1, :2])  # Efficiency metrics span 2 columns
-        ax5 = fig.add_subplot(gs[1, 2])
+        ax3 = fig.add_subplot(gs[1, 0])  # Efficiency metrics
+        ax4 = fig.add_subplot(gs[1, 1])  # Summary
 
         # Create each plot on its designated axes
         self.plot_gate_based_metrics(save=False, show=False, fig_ax_override=(fig, ax1))
         self.plot_complexity_radar(save=False, show=False, fig_ax_override=(fig, ax2))
-        self.plot_quantum_volume_analysis(save=False, show=False, fig_ax_override=(fig, ax3))
-        self.plot_efficiency_metrics(save=False, show=False, fig_ax_override=(fig, ax4))
+        self.plot_efficiency_metrics(save=False, show=False, fig_ax_override=(fig, ax3))
 
         # Add a summary text box in the last subplot
-        ax5.axis("off")
+        ax4.axis("off")
         summary_text = self._generate_summary_text()
-        ax5.text(
+        ax4.text(
             0.1,
             0.9,
             summary_text,
-            transform=ax5.transAxes,
+            transform=ax4.transAxes,
             fontsize=10,
             verticalalignment="top",
             bbox={"boxstyle": "round,pad=0.3", "facecolor": "lightgray", "alpha": 0.8},
@@ -349,25 +298,21 @@ class ComplexityVisualizer(VisualizationStrategy):
             gate_count = self.complexity_df["gate_based_metrics.gate_count"].iloc[0]
             depth = self.complexity_df["gate_based_metrics.circuit_depth"].iloc[0]
 
-            # Get quantum volume if available
-            qv_standard = self.complexity_df.get(
-                "quantum_volume.standard_quantum_volume", pd.Series([0])
-            ).iloc[0]
-            qv_enhanced = self.complexity_df.get(
-                "quantum_volume.enhanced_quantum_volume", pd.Series([0])
-            ).iloc[0]
-
             # Get efficiency if available
             efficiency = self.complexity_df.get(
                 "advanced_metrics.circuit_efficiency", pd.Series([0])
+            ).iloc[0]
+
+            # Get parallelism factor if available
+            parallelism = self.complexity_df.get(
+                "advanced_metrics.parallelism_factor", pd.Series([0])
             ).iloc[0]
 
             summary = f"""Circuit Complexity Summary
             
 Gate Count: {gate_count}
 Circuit Depth: {depth}
-Standard QV: {qv_standard:.1f}
-Enhanced QV: {qv_enhanced:.1f}
+Parallelism Factor: {parallelism:.2f}
 Circuit Efficiency: {efficiency:.3f}
 
 This dashboard shows various
@@ -402,7 +347,6 @@ complexity metrics are available."""
 
         figures.append(self.plot_gate_based_metrics(save=save, show=show))
         figures.append(self.plot_complexity_radar(save=save, show=show))
-        figures.append(self.plot_quantum_volume_analysis(save=save, show=show))
         figures.append(self.plot_efficiency_metrics(save=save, show=show))
 
         if save:

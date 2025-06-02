@@ -470,130 +470,6 @@ class DerivedMetricsSchema(BaseModel):
         return v
 
 
-class QuantumVolumeFactorsSchema(BaseModel):
-    """
-    Schema for quantum volume calculation factors.
-
-    This schema validates the factors used in quantum volume estimation.
-    """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "square_ratio": 0.8,
-                "circuit_density": 0.5,
-                "multi_qubit_ratio": 0.3,
-                "connectivity_factor": 0.9,
-                "enhancement_factor": 1.2,
-            }
-        }
-    )
-
-    square_ratio: float = Field(..., ge=0.0, le=1.0, description="Square circuit factor")
-    circuit_density: float = Field(..., ge=0.0, description="Circuit density factor")
-    multi_qubit_ratio: float = Field(..., ge=0.0, le=1.0, description="Multi-qubit gate ratio")
-    connectivity_factor: float = Field(..., ge=0.0, le=1.0, description="Connectivity factor")
-    enhancement_factor: float = Field(..., ge=0.0, description="Overall enhancement factor")
-
-    @field_validator("square_ratio", "multi_qubit_ratio", "connectivity_factor")
-    @classmethod
-    def validate_ratio_bounds(cls, v):
-        """Validate that ratio factors are between 0 and 1."""
-        if not 0.0 <= v <= 1.0:
-            raise ValueError(f"Ratio factor must be between 0.0 and 1.0, got {v}")
-        return v
-
-
-class QuantumVolumeCircuitMetricsSchema(BaseModel):
-    """
-    Schema for circuit metrics used in quantum volume calculation.
-
-    This schema validates the basic circuit metrics used as input
-    for quantum volume estimation.
-    """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "depth": 5,
-                "width": 6,
-                "size": 10,
-                "num_qubits": 3,
-                "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-            }
-        }
-    )
-
-    depth: int = Field(..., ge=0, description="Circuit depth")
-    width: int = Field(..., ge=0, description="Circuit width")
-    size: int = Field(..., ge=0, description="Circuit size (number of operations)")
-    num_qubits: int = Field(..., ge=0, description="Number of qubits")
-    operation_counts: Dict[str, int] = Field(..., description="Count of each operation type")
-
-    @field_validator("operation_counts")
-    @classmethod
-    def validate_operation_counts(cls, v):
-        """Validate that all operation counts are non-negative."""
-        for op_name, count in v.items():
-            if count < 0:
-                raise ValueError(
-                    f"Operation count for '{op_name}' must be non-negative, got {count}"
-                )
-        return v
-
-
-class QuantumVolumeSchema(BaseModel):
-    """
-    Schema for quantum volume estimation metrics.
-
-    This schema validates quantum volume estimates and related
-    calculation factors.
-    """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "standard_quantum_volume": 8,
-                "enhanced_quantum_volume": 9.6,
-                "effective_depth": 3,
-                "factors": {
-                    "square_ratio": 0.8,
-                    "circuit_density": 0.5,
-                    "multi_qubit_ratio": 0.3,
-                    "connectivity_factor": 0.9,
-                    "enhancement_factor": 1.2,
-                },
-                "circuit_metrics": {
-                    "depth": 5,
-                    "width": 6,
-                    "size": 10,
-                    "num_qubits": 3,
-                    "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-                },
-            }
-        }
-    )
-
-    standard_quantum_volume: int = Field(..., ge=1, description="Standard quantum volume (2^n)")
-    enhanced_quantum_volume: float = Field(
-        ..., ge=1.0, description="Enhanced quantum volume estimate"
-    )
-    effective_depth: int = Field(..., ge=0, description="Effective depth for QV calculation")
-    factors: QuantumVolumeFactorsSchema = Field(..., description="QV calculation factors")
-    circuit_metrics: QuantumVolumeCircuitMetricsSchema = Field(
-        ..., description="Circuit metrics used in QV calculation"
-    )
-
-    @field_validator("enhanced_quantum_volume")
-    @classmethod
-    def validate_enhanced_qv(cls, v, info):
-        """Validate that enhanced QV is >= standard QV."""
-        if "standard_quantum_volume" in info.data:
-            if v < info.data["standard_quantum_volume"]:
-                raise ValueError("Enhanced quantum volume must be >= standard quantum volume")
-        return v
-
-
 class ComplexityMetricsSchema(BaseModel):
     """
     Complete schema for all complexity metrics.
@@ -631,25 +507,6 @@ class ComplexityMetricsSchema(BaseModel):
                     "weighted_complexity": 25,
                     "normalized_weighted_complexity": 5.5,
                 },
-                "quantum_volume": {
-                    "standard_quantum_volume": 8,
-                    "enhanced_quantum_volume": 9.6,
-                    "effective_depth": 3,
-                    "factors": {
-                        "square_ratio": 0.8,
-                        "circuit_density": 0.5,
-                        "multi_qubit_ratio": 0.3,
-                        "connectivity_factor": 0.9,
-                        "enhancement_factor": 1.2,
-                    },
-                    "circuit_metrics": {
-                        "depth": 5,
-                        "width": 6,
-                        "size": 10,
-                        "num_qubits": 3,
-                        "operation_counts": {"h": 2, "cx": 3, "measure": 3},
-                    },
-                },
             }
         }
     )
@@ -665,7 +522,6 @@ class ComplexityMetricsSchema(BaseModel):
     )
     advanced_metrics: AdvancedMetricsSchema = Field(..., description="Advanced analysis metrics")
     derived_metrics: DerivedMetricsSchema = Field(..., description="Derived composite metrics")
-    quantum_volume: QuantumVolumeSchema = Field(..., description="Quantum volume estimation")
 
     def to_flat_dict(self) -> Dict[str, Any]:
         """
@@ -690,21 +546,6 @@ class ComplexityMetricsSchema(BaseModel):
             for key, value in category_dict.items():
                 result[f"{category_name}.{key}"] = value
 
-        # Flatten quantum volume (more complex structure)
-        qv_dict = self.quantum_volume.model_dump()  # pylint: disable=no-member
-        for key, value in qv_dict.items():
-            if key in ["factors", "circuit_metrics"]:
-                # Flatten nested objects
-                for nested_key, nested_value in value.items():
-                    if key == "circuit_metrics" and nested_key == "operation_counts":
-                        # Flatten operation counts
-                        for op_name, count in nested_value.items():
-                            result[f"quantum_volume.{key}.{nested_key}.{op_name}"] = count
-                    else:
-                        result[f"quantum_volume.{key}.{nested_key}"] = nested_value
-            else:
-                result[f"quantum_volume.{key}"] = value
-
         return result
 
     @classmethod
@@ -727,40 +568,14 @@ class ComplexityMetricsSchema(BaseModel):
             "derived_metrics": {},
         }
 
-        # Initialize quantum volume components
-        qv_base: Dict[str, Any] = {}
-        qv_factors: Dict[str, Any] = {}
-        qv_circuit_metrics: Dict[str, Any] = {}
-        operation_counts: Dict[str, int] = {}
-
         # Parse flattened keys
         for key, value in flat_dict.items():
-            if key.startswith("quantum_volume."):
-                qv_key = key.replace("quantum_volume.", "")
-                if qv_key.startswith("factors."):
-                    factor_key = qv_key.replace("factors.", "")
-                    qv_factors[factor_key] = value
-                elif qv_key.startswith("circuit_metrics."):
-                    cm_key = qv_key.replace("circuit_metrics.", "")
-                    if cm_key.startswith("operation_counts."):
-                        op_name = cm_key.replace("operation_counts.", "")
-                        operation_counts[op_name] = value
-                    else:
-                        qv_circuit_metrics[cm_key] = value
-                else:
-                    qv_base[qv_key] = value
-            else:
-                # Handle other categories
-                for category_name in categories:  # pylint: disable=consider-using-dict-items
-                    if key.startswith(f"{category_name}."):
-                        metric_name = key.replace(f"{category_name}.", "")
-                        categories[category_name][metric_name] = value
-                        break
-
-        # Reconstruct quantum volume structure
-        qv_circuit_metrics["operation_counts"] = operation_counts
-        qv_base["factors"] = QuantumVolumeFactorsSchema(**qv_factors)
-        qv_base["circuit_metrics"] = QuantumVolumeCircuitMetricsSchema(**qv_circuit_metrics)
+            # Handle metric categories
+            for category_name in categories:  # pylint: disable=consider-using-dict-items
+                if key.startswith(f"{category_name}."):
+                    metric_name = key.replace(f"{category_name}.", "")
+                    categories[category_name][metric_name] = value
+                    break
 
         return cls(
             gate_based_metrics=GateBasedMetricsSchema(**categories["gate_based_metrics"]),
@@ -768,7 +583,6 @@ class ComplexityMetricsSchema(BaseModel):
             standardized_metrics=StandardizedMetricsSchema(**categories["standardized_metrics"]),
             advanced_metrics=AdvancedMetricsSchema(**categories["advanced_metrics"]),
             derived_metrics=DerivedMetricsSchema(**categories["derived_metrics"]),
-            quantum_volume=QuantumVolumeSchema(**qv_base),
         )
 
 
