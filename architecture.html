@@ -808,21 +808,51 @@
 </section>
 <section id="visualization-system">
 <h2>Visualization System<a class="headerlink" href="#visualization-system" title="Link to this heading">¶</a></h2>
-<p>QWARD includes a comprehensive visualization system for analyzing and presenting quantum circuit metrics. The visualization module follows a structured approach that integrates seamlessly with the metric calculation system.</p>
+<p>QWARD includes a comprehensive visualization system for analyzing and presenting quantum circuit metrics. The visualization module follows a structured approach that integrates seamlessly with the metric calculation system and provides a modern, type-safe API.</p>
+<section id="new-api-features-v0-9-0">
+<h3>New API Features (v0.9.0)<a class="headerlink" href="#new-api-features-v0-9-0" title="Link to this heading">¶</a></h3>
+<section id="type-safe-constants-system">
+<h4>🎯 <strong>Type-Safe Constants System</strong><a class="headerlink" href="#type-safe-constants-system" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Metrics.QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.CIRCUIT_PERFORMANCE</span></code></p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Plots</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Plots.QISKIT.CIRCUIT_STRUCTURE</span></code>, <code class="docutils literal notranslate"><span class="pre">Plots.COMPLEXITY.COMPLEXITY_RADAR</span></code>, etc.</p></li>
+<li><p><strong>IDE Autocompletion</strong>: Full IntelliSense support for all plot names</p></li>
+<li><p><strong>Error Prevention</strong>: Compile-time detection of typos in metric and plot names</p></li>
+</ul>
+</section>
+<section id="rich-plot-metadata-system">
+<h4>🔍 <strong>Rich Plot Metadata System</strong><a class="headerlink" href="#rich-plot-metadata-system" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Plot Descriptions</strong>: Detailed information about what each plot shows</p></li>
+<li><p><strong>Plot Types</strong>: Categorized as bar charts, radar charts, line plots, etc.</p></li>
+<li><p><strong>Dependencies</strong>: Information about required data columns</p></li>
+<li><p><strong>Categories</strong>: Organized by analysis type (structure, performance, complexity)</p></li>
+</ul>
+</section>
+<section id="granular-plot-control">
+<h4>⚡ <strong>Granular Plot Control</strong><a class="headerlink" href="#granular-plot-control" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Single Plot Generation</strong>: <code class="docutils literal notranslate"><span class="pre">generate_plot(metric,</span> <span class="pre">plot_name)</span></code></p></li>
+<li><p><strong>Selected Plots</strong>: <code class="docutils literal notranslate"><span class="pre">generate_plots({metric:</span> <span class="pre">[plot1,</span> <span class="pre">plot2]})</span></code></p></li>
+<li><p><strong>All Plots</strong>: <code class="docutils literal notranslate"><span class="pre">generate_plots({metric:</span> <span class="pre">None})</span></code></p></li>
+<li><p><strong>Memory Efficient</strong>: Default <code class="docutils literal notranslate"><span class="pre">save=False,</span> <span class="pre">show=False</span></code> for batch processing</p></li>
+</ul>
+</section>
+</section>
 <section id="architecture-overview">
 <h3>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading">¶</a></h3>
 <p>The visualization system is built on the following key components:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></strong>: A dataclass holding all plot appearance and saving configurations.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></strong>: An abstract base class for all visualizers. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides utility methods like <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code>, data validation, and plot creation helpers. Subclasses must implement <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_all()</span></code> for their specific visualization logic.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></strong>: An abstract base class for all visualizers with plot registry system. It handles common setup (output directory, styling via <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code>) and provides utility methods like <code class="docutils literal notranslate"><span class="pre">save_plot</span></code>/<code class="docutils literal notranslate"><span class="pre">show_plot</span></code>, data validation, and plot creation helpers. Subclasses must implement plot registry and new API methods.</p></li>
 <li><p><strong>Individual Visualizers</strong>: Three concrete visualizers inheriting from <code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code>:</p>
 <ul>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Visualizes circuit structure and instruction metrics</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Visualizes complexity analysis with radar charts and efficiency metrics</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Visualizes performance metrics with success rates, fidelity, and shot distributions</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Visualizes circuit structure and instruction metrics (4 plots)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Visualizes complexity analysis with radar charts and efficiency metrics (3 plots)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Visualizes performance metrics with success rates, fidelity, and shot distributions (4 plots)</p></li>
 </ul>
 </li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></strong>: A unified entry point that automatically detects available metrics and provides appropriate visualizations.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></strong>: A unified entry point that automatically detects available metrics and provides type-safe visualization capabilities.</p></li>
 </ul>
 <pre  class="mermaid">
         classDiagram
@@ -830,18 +860,20 @@
         &lt;&lt;abstract&gt;&gt;
         +output_dir: str
         +config: PlotConfig
+        +PLOT_REGISTRY: Dict[str, PlotMetadata]
         +save_plot(fig, filename)
         +show_plot(fig)
-        +create_dashboard()*
-        +plot_all()*
+        +get_available_plots()* List[str]
+        +get_plot_metadata(plot_name)* PlotMetadata
+        +generate_plot(plot_name, save, show)* Figure
+        +generate_plots(plot_names, save, show)* List[Figure]
+        +generate_all_plots(save, show) List[Figure]
+        +create_dashboard(save, show)*
         +_validate_required_columns()
         +_extract_metrics_from_columns()
         +_create_bar_plot_with_labels()
-        +_add_value_labels_to_bars()
-        +_show_no_data_message()
         +_setup_plot_axes()
         +_finalize_plot()
-        +_format_column_name_for_display()
     }
     
     class PlotConfig {
@@ -855,44 +887,62 @@
         +__post_init__()
     }
     
+    class PlotMetadata {
+        +name: str
+        +method_name: str
+        +description: str
+        +plot_type: PlotType
+        +filename: str
+        +dependencies: List[str]
+        +category: str
+    }
+    
     class QiskitVisualizer {
-        +metrics_dict: Dict[str, DataFrame]
+        +PLOT_REGISTRY: Dict[str, PlotMetadata]
+        +generate_plot(plot_name, save, show)
+        +get_available_plots() List[str]
+        +get_plot_metadata(plot_name) PlotMetadata
         +plot_circuit_structure()
         +plot_gate_distribution()
         +plot_instruction_metrics()
         +plot_circuit_summary()
         +create_dashboard()
-        +plot_all()
     }
     
     class ComplexityVisualizer {
-        +metrics_dict: Dict[str, DataFrame]
+        +PLOT_REGISTRY: Dict[str, PlotMetadata]
+        +generate_plot(plot_name, save, show)
+        +get_available_plots() List[str]
+        +get_plot_metadata(plot_name) PlotMetadata
         +plot_gate_based_metrics()
         +plot_complexity_radar()
         +plot_efficiency_metrics()
         +create_dashboard()
-        +plot_all()
     }
     
     class CircuitPerformanceVisualizer {
-        +metrics_dict: Dict[str, DataFrame]
+        +PLOT_REGISTRY: Dict[str, PlotMetadata]
+        +generate_plot(plot_name, save, show)
+        +get_available_plots() List[str]
+        +get_plot_metadata(plot_name) PlotMetadata
         +plot_success_error_comparison()
         +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
-        +plot_all()
     }
     
     class Visualizer {
         +scanner: Optional[Scanner]
         +metrics_data: Dict[str, DataFrame]
         +registered_strategies: Dict[str, Type[VisualizationStrategy]]
+        +get_available_plots() Dict[str, List[str]]
+        +get_plot_metadata(metric, plot_name) PlotMetadata
+        +generate_plot(metric, plot_name, save, show) Figure
+        +generate_plots(selections, save, show) Dict[str, List[Figure]]
+        +create_dashboard(save, show) Dict[str, Figure]
         +register_strategy()
         +get_available_metrics()
-        +visualize_metric()
-        +create_dashboard()
-        +visualize_all()
         +get_metric_summary()
         +print_available_metrics()
     }
@@ -901,67 +951,70 @@
     VisualizationStrategy &lt;|-- ComplexityVisualizer
     VisualizationStrategy &lt;|-- CircuitPerformanceVisualizer
     VisualizationStrategy --&gt; PlotConfig : uses
+    VisualizationStrategy --&gt; PlotMetadata : defines
     Visualizer --&gt; VisualizationStrategy : manages
     Visualizer --&gt; Scanner : optional integration
     
-    note for VisualizationStrategy &quot;Abstract base class with common utilities for data validation, plot creation, and styling&quot;
-    note for QiskitVisualizer &quot;Visualizes circuit structure, gate distribution, and instruction metrics&quot;
-    note for ComplexityVisualizer &quot;Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis&quot;
-    note for CircuitPerformanceVisualizer &quot;Visualizes performance metrics with success rates, fidelity, and shot distributions&quot;
-    note for Visualizer &quot;Unified entry point that auto-detects metrics and provides comprehensive visualization capabilities&quot;
+    note for VisualizationStrategy &quot;Abstract base class with plot registry and metadata system&quot;
+    note for QiskitVisualizer &quot;4 plots: circuit_structure, gate_distribution, instruction_metrics, circuit_summary&quot;
+    note for ComplexityVisualizer &quot;3 plots: gate_based_metrics, complexity_radar, efficiency_metrics&quot;
+    note for CircuitPerformanceVisualizer &quot;4 plots: success_error_comparison, fidelity_comparison, shot_distribution, aggregate_summary&quot;
+    note for Visualizer &quot;Unified entry point with type-safe constants and granular control&quot;
     </pre></section>
 <section id="key-components">
 <h3>Key Components<a class="headerlink" href="#key-components" title="Link to this heading">¶</a></h3>
 <section id="visualizationstrategy">
 <h4><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code><a class="headerlink" href="#visualizationstrategy" title="Link to this heading">¶</a></h4>
-<p>Abstract base class providing core visualization functionality:</p>
+<p>Abstract base class providing core visualization functionality with new API:</p>
 <ul class="simple">
 <li><p><strong>Output Management</strong>: Handles output directory creation and file path management</p></li>
 <li><p><strong>Plot Configuration</strong>: Integrates with <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code> for consistent styling</p></li>
+<li><p><strong>Plot Registry</strong>: Each visualizer defines a <code class="docutils literal notranslate"><span class="pre">PLOT_REGISTRY</span></code> with rich metadata</p></li>
+<li><p><strong>New API Methods</strong>: <code class="docutils literal notranslate"><span class="pre">get_available_plots()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_plot_metadata()</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_plot()</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_plots()</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_all_plots()</span></code></p></li>
 <li><p><strong>Common Utilities</strong>: Provides reusable methods for data validation, plot creation, and formatting</p></li>
 <li><p><strong>Save/Show Operations</strong>: Provides <code class="docutils literal notranslate"><span class="pre">save_plot()</span></code> and <code class="docutils literal notranslate"><span class="pre">show_plot()</span></code> methods</p></li>
-<li><p><strong>Abstract Interface</strong>: Defines <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> and <code class="docutils literal notranslate"><span class="pre">plot_all()</span></code> methods that subclasses must implement</p></li>
+<li><p><strong>Abstract Interface</strong>: Defines <code class="docutils literal notranslate"><span class="pre">create_dashboard()</span></code> method that subclasses must implement</p></li>
 </ul>
 </section>
 <section id="individual-visualizers">
 <h4>Individual Visualizers<a class="headerlink" href="#individual-visualizers" title="Link to this heading">¶</a></h4>
-<p>Three specialized visualizers for different metric types:</p>
+<p>Three specialized visualizers for different metric types with plot registries:</p>
 <ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Handles circuit structure and instruction analysis</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Handles circuit structure and instruction analysis (4 plots)</p>
 <ul class="simple">
-<li><p>Circuit structure metrics (depth, width, size, qubits)</p></li>
-<li><p>Gate distribution and type analysis</p></li>
-<li><p>Instruction metrics and connectivity analysis</p></li>
-<li><p>Comprehensive dashboard with all QiskitMetrics visualizations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_structure</span></code>: Basic circuit metrics (depth, width, size, qubits)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gate_distribution</span></code>: Gate type analysis and instruction distribution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction_metrics</span></code>: Instruction-related metrics and connectivity analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_summary</span></code>: Derived metrics and summary information</p></li>
 </ul>
 </li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Handles complexity analysis visualization</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Handles complexity analysis visualization (3 plots)</p>
 <ul class="simple">
-<li><p>Gate-based complexity metrics</p></li>
-<li><p>Radar chart for normalized complexity indicators</p></li>
-<li><p>Efficiency metrics and parallelism analysis</p></li>
-<li><p>Comprehensive dashboard with complexity overview</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gate_based_metrics</span></code>: Gate counts, depth, T-gates, and CNOT gates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">complexity_radar</span></code>: Radar chart for normalized complexity indicators</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">efficiency_metrics</span></code>: Parallelism efficiency and circuit efficiency analysis</p></li>
 </ul>
 </li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Handles execution performance visualization</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Handles execution performance visualization (4 plots)</p>
 <ul class="simple">
-<li><p>Success vs error rate comparisons</p></li>
-<li><p>Fidelity analysis across jobs</p></li>
-<li><p>Shot distribution (successful vs failed)</p></li>
-<li><p>Aggregate statistics summary</p></li>
-<li><p>Supports both single job and multiple job scenarios</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">success_error_comparison</span></code>: Success vs error rate comparisons across jobs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fidelity_comparison</span></code>: Fidelity analysis across different executions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shot_distribution</span></code>: Distribution of successful vs failed shots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aggregate_summary</span></code>: Statistical summary across multiple jobs</p></li>
 </ul>
 </li>
 </ol>
 </section>
 <section id="visualizer-unified-entry-point">
 <h4><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> (Unified Entry Point)<a class="headerlink" href="#visualizer-unified-entry-point" title="Link to this heading">¶</a></h4>
-<p>Main class that provides a single interface for all visualizations:</p>
+<p>Main class that provides a single interface for all visualizations with new API:</p>
 <ul class="simple">
+<li><p><strong>Type-Safe Constants</strong>: Works with <code class="docutils literal notranslate"><span class="pre">Metrics</span></code> and <code class="docutils literal notranslate"><span class="pre">Plots</span></code> constants for error prevention</p></li>
 <li><p><strong>Auto-Detection</strong>: Automatically detects available metrics and registers appropriate visualizers</p></li>
-<li><p><strong>Unified Interface</strong>: Single entry point for creating all visualizations</p></li>
+<li><p><strong>Granular Control</strong>: Generate single plots, selected plots, or all plots with precise control</p></li>
+<li><p><strong>Rich Metadata</strong>: Access detailed information about each plot’s purpose and requirements</p></li>
 <li><p><strong>Flexible Input</strong>: Works with Scanner instances or custom metrics data</p></li>
-<li><p><strong>Comprehensive Output</strong>: Can create individual plots, dashboards, or complete visualization suites</p></li>
+<li><p><strong>Memory Efficient</strong>: Default <code class="docutils literal notranslate"><span class="pre">save=False,</span> <span class="pre">show=False</span></code> for batch processing</p></li>
 </ul>
 </section>
 <section id="plotconfig">
@@ -975,44 +1028,103 @@
 </ul>
 </section>
 </section>
-<section id="integration-with-scanner">
-<h3>Integration with Scanner<a class="headerlink" href="#integration-with-scanner" title="Link to this heading">¶</a></h3>
-<p>The visualization system seamlessly integrates with the Scanner output:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate metrics</span>
+<section id="integration-with-scanner-new-api">
+<h3>Integration with Scanner (New API)<a class="headerlink" href="#integration-with-scanner-new-api" title="Link to this heading">¶</a></h3>
+<p>The visualization system seamlessly integrates with the Scanner output using the new type-safe API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metrics</span><span class="p">,</span> <span class="n">Plots</span>
+
+<span class="c1"># Calculate metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-<span class="c1"># Option 1: Use unified Visualizer (recommended)</span>
+<span class="c1"># Option 1: Use unified Visualizer with type-safe constants (recommended)</span>
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">)</span>
-<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># Option 2: Use individual visualizers directly</span>
+<span class="c1"># NEW API: Generate specific plots with type-safe constants</span>
+<span class="n">selected_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">GATE_DISTRIBUTION</span>
+    <span class="p">],</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span>
+    <span class="p">]</span>
+<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Generate all plots for specific metrics</span>
+<span class="n">all_qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># None = all plots</span>
+<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Generate single plot</span>
+<span class="n">single_plot</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span> 
+    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span> 
+    <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+
+<span class="c1"># NEW API: Explore available plots and metadata</span>
+<span class="n">available_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">plot_names</span> <span class="ow">in</span> <span class="n">available_plots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">plot_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> plots):&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="n">plot_names</span><span class="p">:</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">get_plot_metadata</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">plot_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create comprehensive dashboards (unchanged)</span>
+<span class="n">dashboards</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Use individual visualizers directly with new API</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">,</span> <span class="n">CircuitPerformanceVisualizer</span>
 
-<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">({</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">]})</span>
-<span class="n">qiskit_plots</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">qiskit_viz</span> <span class="o">=</span> <span class="n">QiskitVisualizer</span><span class="p">({</span><span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">]})</span>
 
-<span class="n">complexity_viz</span> <span class="o">=</span> <span class="n">ComplexityVisualizer</span><span class="p">({</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">:</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">]})</span>
-<span class="n">complexity_plots</span> <span class="o">=</span> <span class="n">complexity_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># NEW API: Generate specific plots</span>
+<span class="n">qiskit_viz</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="n">circuit_perf_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)}</span>
-<span class="n">perf_viz</span> <span class="o">=</span> <span class="n">CircuitPerformanceVisualizer</span><span class="p">(</span><span class="n">circuit_perf_data</span><span class="p">)</span>
-<span class="n">perf_plots</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># NEW API: Generate selected plots</span>
+<span class="n">selected_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">([</span>
+    <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span>
+    <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">GATE_DISTRIBUTION</span>
+<span class="p">],</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Generate all plots</span>
+<span class="n">all_figures</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">generate_all_plots</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># NEW API: Get plot metadata</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">qiskit_viz</span><span class="o">.</span><span class="n">get_plot_metadata</span><span class="p">(</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot description: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plot type: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">plot_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dependencies: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">dependencies</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="extensibility">
 <h3>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading">¶</a></h3>
-<p>The visualization system is designed for easy extension:</p>
+<p>The visualization system is designed for easy extension with the new plot registry system:</p>
 <ol class="arabic simple">
-<li><p><strong>Custom Visualizers</strong>: Create new visualizers by inheriting from <code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></p></li>
-<li><p><strong>Custom Plot Types</strong>: Add new visualization methods to existing visualizers</p></li>
+<li><p><strong>Custom Visualizers</strong>: Create new visualizers by inheriting from <code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code> and defining a <code class="docutils literal notranslate"><span class="pre">PLOT_REGISTRY</span></code></p></li>
+<li><p><strong>Plot Metadata</strong>: Rich metadata system provides detailed information about each plot</p></li>
+<li><p><strong>Type Safety</strong>: Constants system prevents errors and provides IDE autocompletion</p></li>
+<li><p><strong>Custom Plot Types</strong>: Add new visualization methods with proper metadata registration</p></li>
 <li><p><strong>Custom Styling</strong>: Define new <code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code> presets for different use cases</p></li>
 <li><p><strong>Registration System</strong>: Register custom visualizers with the unified <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> class</p></li>
+</ol>
+</section>
+<section id="benefits-of-new-api">
+<h3>Benefits of New API<a class="headerlink" href="#benefits-of-new-api" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Type Safety</strong>: Constants prevent typos and provide IDE autocompletion</p></li>
+<li><p><strong>Rich Metadata</strong>: Detailed information about each plot’s purpose and requirements</p></li>
+<li><p><strong>Granular Control</strong>: Generate exactly the plots you need</p></li>
+<li><p><strong>Memory Efficient</strong>: Default parameters optimized for batch processing</p></li>
+<li><p><strong>Error Prevention</strong>: Validation of metric and plot combinations</p></li>
+<li><p><strong>Discoverability</strong>: Easy exploration of available plots and their capabilities</p></li>
+<li><p><strong>Future-Proof</strong>: Extensible design for adding new visualization types</p></li>
 </ol>
 <p>For detailed usage and examples, see the <a class="reference internal" href="visualization_guide.html"><span class="std std-doc">Visualization Guide</span></a> and explore the comprehensive examples in <a class="reference internal" href="#../qward/examples/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">qward/examples/</span></code></span></a>.</p>
 </section>
@@ -1105,6 +1217,12 @@
 </li>
 <li><a class="reference internal" href="#best-practices">Best Practices</a></li>
 <li><a class="reference internal" href="#visualization-system">Visualization System</a><ul>
+<li><a class="reference internal" href="#new-api-features-v0-9-0">New API Features (v0.9.0)</a><ul>
+<li><a class="reference internal" href="#type-safe-constants-system">🎯 <strong>Type-Safe Constants System</strong></a></li>
+<li><a class="reference internal" href="#rich-plot-metadata-system">🔍 <strong>Rich Plot Metadata System</strong></a></li>
+<li><a class="reference internal" href="#granular-plot-control">⚡ <strong>Granular Plot Control</strong></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#architecture-overview">Architecture Overview</a></li>
 <li><a class="reference internal" href="#key-components">Key Components</a><ul>
 <li><a class="reference internal" href="#visualizationstrategy"><code class="docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></a></li>
@@ -1113,8 +1231,9 @@
 <li><a class="reference internal" href="#plotconfig"><code class="docutils literal notranslate"><span class="pre">PlotConfig</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#integration-with-scanner">Integration with Scanner</a></li>
+<li><a class="reference internal" href="#integration-with-scanner-new-api">Integration with Scanner (New API)</a></li>
 <li><a class="reference internal" href="#extensibility">Extensibility</a></li>
+<li><a class="reference internal" href="#benefits-of-new-api">Benefits of New API</a></li>
 </ul>
 </li>
 </ul>

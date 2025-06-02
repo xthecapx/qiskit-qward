@@ -271,39 +271,45 @@
 
     <span class="c1"># Class-level plot registry</span>
     <span class="n">PLOT_REGISTRY</span><span class="p">:</span> <span class="n">PlotRegistry</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">,</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">GATE_BASED_METRICS</span><span class="p">,</span>
             <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_gate_based_metrics&quot;</span><span class="p">,</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gate-based complexity metrics (gate count, depth, T-count, CNOT count)&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Visualizes gate-based complexity metrics including gate counts and distributions&quot;</span><span class="p">,</span>
             <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
-            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_gate_based_metrics&quot;</span><span class="p">,</span>
-            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.gate_count&quot;</span><span class="p">,</span> <span class="s2">&quot;gate_based_metrics.circuit_depth&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;gate_based_metrics.t_count&quot;</span><span class="p">,</span> <span class="s2">&quot;gate_based_metrics.cnot_count&quot;</span><span class="p">],</span>
-            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;complexity&quot;</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;gate_based_metrics&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;gate_based_metrics.gate_count&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gate_based_metrics.cnot_count&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gate_based_metrics.single_qubit_gate_count&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gate_based_metrics.multi_qubit_gate_count&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Gate Analysis&quot;</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">,</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">,</span>
             <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_complexity_radar&quot;</span><span class="p">,</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Normalized complexity metrics displayed as a radar chart&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radar chart showing multiple complexity dimensions for comprehensive analysis&quot;</span><span class="p">,</span>
             <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">RADAR_CHART</span><span class="p">,</span>
-            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_radar_chart&quot;</span><span class="p">,</span>
-            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gate_based_metrics.multi_qubit_ratio&quot;</span><span class="p">,</span> 
-                         <span class="s2">&quot;entanglement_metrics.entangling_gate_density&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;standardized_metrics.gate_density&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;advanced_metrics.parallelism_efficiency&quot;</span><span class="p">],</span>
-            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;complexity&quot;</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_radar&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;advanced_metrics.parallelism_factor&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;derived_metrics.weighted_complexity&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;derived_metrics.efficiency_ratio&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Comprehensive Analysis&quot;</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">,</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">:</span> <span class="n">PlotMetadata</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span><span class="p">,</span>
             <span class="n">method_name</span><span class="o">=</span><span class="s2">&quot;plot_efficiency_metrics&quot;</span><span class="p">,</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Circuit efficiency and resource utilization metrics&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Shows efficiency-related metrics and derived complexity measures&quot;</span><span class="p">,</span>
             <span class="n">plot_type</span><span class="o">=</span><span class="n">PlotType</span><span class="o">.</span><span class="n">BAR_CHART</span><span class="p">,</span>
-            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;complexity_efficiency_metrics&quot;</span><span class="p">,</span>
-            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;standardized_metrics.gate_density&quot;</span><span class="p">,</span> 
-                         <span class="s2">&quot;advanced_metrics.parallelism_factor&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;advanced_metrics.circuit_efficiency&quot;</span><span class="p">],</span>
-            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;efficiency&quot;</span>
-        <span class="p">)</span>
+            <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;efficiency_metrics&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;derived_metrics.efficiency_ratio&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;derived_metrics.weighted_complexity&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Efficiency Analysis&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">}</span>
 
 <div class="viewcode-block" id="ComplexityVisualizer.get_available_plots">
@@ -313,7 +319,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of available plot names for this strategy.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PLOT_REGISTRY</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
-    
+
 <div class="viewcode-block" id="ComplexityVisualizer.get_plot_metadata">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.get_plot_metadata">[docs]</a>
     <span class="nd">@classmethod</span>
