@@ -222,18 +222,33 @@ class CircuitPerformanceMetrics(MetricCalculator):
         self._ensure_schemas_available()
 
         return CircuitPerformanceSchema(
-            success_metrics=self.get_structured_success_metrics(),
-            fidelity_metrics=self.get_structured_fidelity_metrics(),
-            statistical_metrics=self.get_structured_statistical_metrics(),
+            success_metrics=self.get_success_metrics(),
+            fidelity_metrics=self.get_fidelity_metrics(),
+            statistical_metrics=self.get_statistical_metrics(),
         )
 
     # =============================================================================
     # Success Metrics
     # =============================================================================
 
-    def get_success_metrics(self) -> Dict[str, Any]:
+    def get_success_metrics(self) -> "SuccessMetricsSchema":
         """
-        Get success rate analysis metrics.
+        Get success rate analysis metrics as a validated schema object.
+
+        Returns:
+            SuccessMetricsSchema: Validated success metrics schema
+
+        Raises:
+            ImportError: If Pydantic schemas are not available
+            ValidationError: If metrics data doesn't match schema constraints
+        """
+        self._ensure_schemas_available()
+        success_dict = self.get_success_metrics_dict()
+        return SuccessMetricsSchema(**success_dict)
+
+    def get_success_metrics_dict(self) -> Dict[str, Any]:
+        """
+        Get success rate analysis metrics as a dictionary.
 
         Returns:
             Dict[str, Any]: Dictionary containing success rate, error rate, and shot analysis
@@ -245,23 +260,28 @@ class CircuitPerformanceMetrics(MetricCalculator):
         else:
             raise ValueError("No jobs available to calculate success metrics")
 
-    def get_structured_success_metrics(self) -> "SuccessMetricsSchema":
-        """
-        Get success metrics as a validated schema object.
-
-        Returns:
-            SuccessMetricsSchema: Validated success metrics
-        """
-        self._ensure_schemas_available()
-        return SuccessMetricsSchema(**self.get_success_metrics())
-
     # =============================================================================
     # Fidelity Metrics
     # =============================================================================
 
-    def get_fidelity_metrics(self) -> Dict[str, Any]:
+    def get_fidelity_metrics(self) -> "FidelityMetricsSchema":
         """
-        Get quantum fidelity analysis metrics.
+        Get quantum fidelity analysis metrics as a validated schema object.
+
+        Returns:
+            FidelityMetricsSchema: Validated fidelity metrics schema
+
+        Raises:
+            ImportError: If Pydantic schemas are not available
+            ValidationError: If metrics data doesn't match schema constraints
+        """
+        self._ensure_schemas_available()
+        fidelity_dict = self.get_fidelity_metrics_dict()
+        return FidelityMetricsSchema(**fidelity_dict)
+
+    def get_fidelity_metrics_dict(self) -> Dict[str, Any]:
+        """
+        Get quantum fidelity analysis metrics as a dictionary.
 
         Returns:
             Dict[str, Any]: Dictionary containing fidelity measurements and analysis
@@ -273,23 +293,28 @@ class CircuitPerformanceMetrics(MetricCalculator):
         else:
             raise ValueError("No jobs available to calculate fidelity metrics")
 
-    def get_structured_fidelity_metrics(self) -> "FidelityMetricsSchema":
-        """
-        Get fidelity metrics as a validated schema object.
-
-        Returns:
-            FidelityMetricsSchema: Validated fidelity metrics
-        """
-        self._ensure_schemas_available()
-        return FidelityMetricsSchema(**self.get_fidelity_metrics())
-
     # =============================================================================
     # Statistical Metrics
     # =============================================================================
 
-    def get_statistical_metrics(self) -> Dict[str, Any]:
+    def get_statistical_metrics(self) -> "StatisticalMetricsSchema":
         """
-        Get statistical analysis metrics.
+        Get statistical analysis metrics as a validated schema object.
+
+        Returns:
+            StatisticalMetricsSchema: Validated statistical metrics schema
+
+        Raises:
+            ImportError: If Pydantic schemas are not available
+            ValidationError: If metrics data doesn't match schema constraints
+        """
+        self._ensure_schemas_available()
+        statistical_dict = self.get_statistical_metrics_dict()
+        return StatisticalMetricsSchema(**statistical_dict)
+
+    def get_statistical_metrics_dict(self) -> Dict[str, Any]:
+        """
+        Get statistical analysis metrics as a dictionary.
 
         Returns:
             Dict[str, Any]: Dictionary containing entropy, uniformity, and concentration metrics
@@ -300,16 +325,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             return self._get_single_job_statistical_metrics(self._jobs[0])
         else:
             raise ValueError("No jobs available to calculate statistical metrics")
-
-    def get_structured_statistical_metrics(self) -> "StatisticalMetricsSchema":
-        """
-        Get statistical metrics as a validated schema object.
-
-        Returns:
-            StatisticalMetricsSchema: Validated statistical metrics
-        """
-        self._ensure_schemas_available()
-        return StatisticalMetricsSchema(**self.get_statistical_metrics())
 
     # =============================================================================
     # Single Job Metrics

@@ -52,12 +52,13 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
     def _validate_data(self) -> None:
         """Validate that required columns exist in the data."""
+        # Validate individual jobs data
         required_individual_cols = [
-            "success_rate",
-            "error_rate",
-            "fidelity",
-            "total_shots",
-            "successful_shots",
+            "success_metrics.success_rate",
+            "success_metrics.error_rate",
+            "fidelity_metrics.fidelity",
+            "success_metrics.total_shots",
+            "success_metrics.successful_shots",
         ]
 
         self._validate_required_columns(
@@ -67,12 +68,12 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         # Validate aggregate data if it exists
         if self.aggregate_df is not None and not self.aggregate_df.empty:
             required_aggregate_cols = [
-                "mean_success_rate",
-                "std_success_rate",
-                "min_success_rate",
-                "max_success_rate",
-                "mean_fidelity",
-                "error_rate",
+                "success_metrics.mean_success_rate",
+                "success_metrics.std_success_rate",
+                "success_metrics.min_success_rate",
+                "success_metrics.max_success_rate",
+                "fidelity_metrics.mean_fidelity",
+                "success_metrics.error_rate",
             ]
 
             self._validate_required_columns(
@@ -93,7 +94,13 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         plot_df.index = [f"Job {i+1}" for i in range(len(plot_df))]
 
         # Create grouped bar chart
-        plot_df[["success_rate", "error_rate"]].plot(
+        success_error_data = pd.DataFrame(
+            {
+                "success_rate": plot_df["success_metrics.success_rate"],
+                "error_rate": plot_df["success_metrics.error_rate"],
+            }
+        )
+        success_error_data.plot(
             kind="bar",
             ax=ax,
             color=[self.config.color_palette[0], self.config.color_palette[1]],
@@ -124,7 +131,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
         # Extract fidelity data
         fidelity_data = {}
-        for i, fidelity in enumerate(self.individual_df["fidelity"]):
+        for i, fidelity in enumerate(self.individual_df["fidelity_metrics.fidelity"]):
             fidelity_data[f"Job {i+1}"] = fidelity
 
         self._create_bar_plot_with_labels(
@@ -155,8 +162,9 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
         shot_data = pd.DataFrame(
             {
-                "Successful Shots": plot_df["successful_shots"],
-                "Failed Shots": plot_df["total_shots"] - plot_df["successful_shots"],
+                "Successful Shots": plot_df["success_metrics.successful_shots"],
+                "Failed Shots": plot_df["success_metrics.total_shots"]
+                - plot_df["success_metrics.successful_shots"],
             }
         )
 
@@ -197,24 +205,26 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         if self.aggregate_df is not None and not self.aggregate_df.empty:
             # Use existing aggregate data
             aggregate_data = {
-                "Mean Success Rate": self.aggregate_df["mean_success_rate"].iloc[0],
-                "Std Success Rate": self.aggregate_df["std_success_rate"].iloc[0],
-                "Min Success Rate": self.aggregate_df["min_success_rate"].iloc[0],
-                "Max Success Rate": self.aggregate_df["max_success_rate"].iloc[0],
-                "Mean Fidelity": self.aggregate_df["mean_fidelity"].iloc[0],
-                "Mean Error Rate": self.aggregate_df["error_rate"].iloc[0],
+                "Mean Success Rate": self.aggregate_df["success_metrics.mean_success_rate"].iloc[0],
+                "Std Success Rate": self.aggregate_df["success_metrics.std_success_rate"].iloc[0],
+                "Min Success Rate": self.aggregate_df["success_metrics.min_success_rate"].iloc[0],
+                "Max Success Rate": self.aggregate_df["success_metrics.max_success_rate"].iloc[0],
+                "Mean Fidelity": self.aggregate_df["fidelity_metrics.mean_fidelity"].iloc[0],
+                "Mean Error Rate": self.aggregate_df["success_metrics.error_rate"].iloc[0],
             }
         else:
             # Compute aggregate from individual jobs
             aggregate_data = {
-                "Mean Success Rate": self.individual_df["success_rate"].mean(),
+                "Mean Success Rate": self.individual_df["success_metrics.success_rate"].mean(),
                 "Std Success Rate": (
-                    self.individual_df["success_rate"].std() if len(self.individual_df) > 1 else 0
+                    self.individual_df["success_metrics.success_rate"].std()
+                    if len(self.individual_df) > 1
+                    else 0
                 ),
-                "Min Success Rate": self.individual_df["success_rate"].min(),
-                "Max Success Rate": self.individual_df["success_rate"].max(),
-                "Mean Fidelity": self.individual_df["fidelity"].mean(),
-                "Mean Error Rate": self.individual_df["error_rate"].mean(),
+                "Min Success Rate": self.individual_df["success_metrics.success_rate"].min(),
+                "Max Success Rate": self.individual_df["success_metrics.success_rate"].max(),
+                "Mean Fidelity": self.individual_df["fidelity_metrics.fidelity"].mean(),
+                "Mean Error Rate": self.individual_df["success_metrics.error_rate"].mean(),
             }
 
         self._create_bar_plot_with_labels(
