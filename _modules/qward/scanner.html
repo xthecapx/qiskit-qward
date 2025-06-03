@@ -386,26 +386,25 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_circuit_performance_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process CircuitPerformanceMetrics using schema-based API.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process CircuitPerformanceMetrics using schema-based API with proper column separation.&quot;&quot;&quot;</span>
         <span class="n">display_name</span> <span class="o">=</span> <span class="s2">&quot;CircuitPerformance&quot;</span>
 
         <span class="c1"># Check if we have multiple jobs</span>
         <span class="n">jobs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]))</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
-            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
-
             <span class="k">if</span> <span class="n">jobs_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="c1"># For multiple jobs, we need to create both individual_jobs and aggregate DataFrames</span>
-                <span class="c1"># The schema contains aggregate data, so we use it for the aggregate DataFrame</span>
-                <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
+                <span class="c1"># For multiple jobs, create separate DataFrames with only relevant columns</span>
+
+                <span class="c1"># Create aggregate DataFrame with only aggregate-relevant fields</span>
+                <span class="n">aggregate_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_aggregate_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+                <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">aggregate_data</span><span class="p">])</span>
                 <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
 
-                <span class="c1"># For individual jobs, we need to create schema-based individual job entries</span>
-                <span class="c1"># Get individual job metrics using the new schema API</span>
+                <span class="c1"># Create individual jobs DataFrame with only individual-relevant fields</span>
                 <span class="n">individual_jobs_data</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                    <span class="c1"># Create a temporary single-job strategy to get schema-based metrics</span>
+                    <span class="c1"># Create a temporary single-job strategy to get individual metrics</span>
                     <span class="n">temp_strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
                         <span class="n">strategy</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
                         <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
@@ -413,24 +412,68 @@
                         <span class="n">expected_distribution</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">expected_distribution</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="n">job_metrics</span> <span class="o">=</span> <span class="n">temp_strategy</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
-                    <span class="n">job_flat</span> <span class="o">=</span> <span class="n">job_metrics</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
-                    <span class="n">individual_jobs_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job_flat</span><span class="p">)</span>
+                    <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">job_metrics</span><span class="p">)</span>
+                    <span class="n">individual_jobs_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_data</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">individual_jobs_data</span><span class="p">:</span>
                     <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">individual_jobs_data</span><span class="p">)</span>
                     <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Fallback: create individual_jobs from aggregate</span>
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+                    <span class="c1"># Fallback: create empty DataFrame with individual columns</span>
+                    <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">individual_data</span><span class="p">]</span>
+                    <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Single job case - only create individual_jobs DataFrame</span>
-                <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
+                <span class="c1"># Single job case - only create individual_jobs DataFrame with individual fields</span>
+                <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+                <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">individual_data</span><span class="p">])</span>
                 <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Fallback for any remaining edge cases</span>
             <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
             <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
             <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_individual_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract only fields relevant for individual job metrics.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+
+        <span class="c1"># Define individual job relevant fields (exclude aggregate fields)</span>
+        <span class="n">individual_fields</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Include fields that are NOT aggregate-specific</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="n">key</span>
+                <span class="k">for</span> <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean_&quot;</span><span class="p">,</span> <span class="s2">&quot;std_&quot;</span><span class="p">,</span> <span class="s2">&quot;min_&quot;</span><span class="p">,</span> <span class="s2">&quot;max_&quot;</span><span class="p">,</span> <span class="s2">&quot;total_trials&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">individual_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">individual_fields</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_aggregate_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract only fields relevant for aggregate metrics.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
+
+        <span class="c1"># Define aggregate relevant fields (exclude individual-specific fields)</span>
+        <span class="n">aggregate_fields</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Include aggregate fields OR common fields like error_rate, method, confidence</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="n">key</span>
+                <span class="k">for</span> <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean_&quot;</span><span class="p">,</span> <span class="s2">&quot;std_&quot;</span><span class="p">,</span> <span class="s2">&quot;min_&quot;</span><span class="p">,</span> <span class="s2">&quot;max_&quot;</span><span class="p">,</span> <span class="s2">&quot;total_trials&quot;</span><span class="p">]</span>
+            <span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">common_field</span> <span class="ow">in</span> <span class="n">key</span> <span class="k">for</span> <span class="n">common_field</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;error_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;confidence&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">aggregate_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">aggregate_fields</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_standard_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process standard metrics using schema-based API.&quot;&quot;&quot;</span>
@@ -492,7 +535,120 @@
 <span class="sd">            job: The job that executed the circuit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span></div>
-</div>
+
+
+<div class="viewcode-block" id="Scanner.display_summary">
+<a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.display_summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">display_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display a summary of the calculated metrics.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            metrics_dict: Optional metrics dictionary. If None, will calculate metrics first.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">metrics_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🎯 QWARD ANALYSIS SUMMARY&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_display_circuit_performance_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_display_aggregate_performance_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_display_other_metrics_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_circuit_performance_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display circuit performance analysis summary.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;CircuitPerformance.individual_jobs&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">individual_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;CircuitPerformance.individual_jobs&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📋 Circuit Performance Analysis:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Jobs analyzed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">individual_df</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Show individual job results</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">individual_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">success_rate</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">fidelity</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fidelity_metrics.fidelity&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">total_shots</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.total_shots&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;   Job </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> success, </span><span class="si">{</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> fidelity (</span><span class="si">{</span><span class="n">total_shots</span><span class="si">}</span><span class="s2"> shots)&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_aggregate_performance_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display aggregate performance summary.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;CircuitPerformance.aggregate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;CircuitPerformance.aggregate&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">aggregate_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">row</span> <span class="o">=</span> <span class="n">aggregate_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">mean_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.mean_success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">std_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.std_success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">total_trials</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.total_trials&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 Overall Performance:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Average success rate: </span><span class="si">{</span><span class="n">mean_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Total measurements: </span><span class="si">{</span><span class="n">total_trials</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Performance analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_display_performance_analysis</span><span class="p">(</span><span class="n">mean_success</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_performance_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean_success</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display performance analysis based on success rate.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ✅ Excellent performance&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.80</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ⚠️  Good performance with some noise impact&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.50</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ⚠️  Moderate performance - significant noise detected&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ❌ Poor performance - high noise or errors&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_other_metrics_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display summary of other metrics.&quot;&quot;&quot;</span>
+        <span class="n">other_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">other_metrics</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📈 Additional Metrics:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="n">other_metrics</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> metrics calculated&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_display_metric_preview</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_metric_preview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display a preview of the first 5 metrics.&quot;&quot;&quot;</span>
+        <span class="n">first_row</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">columns_to_show</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>  <span class="c1"># First 5 columns</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     Preview (first 5):&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">first_row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">formatted_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_metric_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;       </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">formatted_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Show &quot;...&quot; if there are more columns</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">remaining</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">5</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;       ... and </span><span class="si">{</span><span class="n">remaining</span><span class="si">}</span><span class="s2"> more metrics&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_metric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format a metric value for display.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
