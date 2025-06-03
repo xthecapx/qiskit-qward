@@ -112,7 +112,10 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Test generating single plot
             fig = visualizer.generate_plot(
-                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=False, show=False
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=False,
+                show=False,
             )
 
             self.assertIsNotNone(fig)
@@ -129,7 +132,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
                 Metrics.COMPLEXITY: [Plots.Complexity.GATE_BASED_METRICS],
             }
 
-            results = visualizer.generate_plots(selections, save=False, show=False)
+            results = visualizer.generate_plots(selections=selections, save=False, show=False)
 
             self.assertIsInstance(results, dict)
             self.assertIn(Metrics.QISKIT, results)
@@ -158,7 +161,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Test generating all plots for QiskitMetrics
             results = visualizer.generate_plots(
-                {Metrics.QISKIT: None}, save=False, show=False  # None = all plots
+                selections={Metrics.QISKIT: None}, save=False, show=False  # None = all plots
             )
 
             self.assertIsInstance(results, dict)
@@ -235,7 +238,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Generate plots with default parameters (should not save)
             visualizer.generate_plots(
-                {Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE]}
+                selections={Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE]}
             )  # Default: save=False, show=False
 
             # Check that no files were created
@@ -243,7 +246,9 @@ class TestNewVisualizationAPI(unittest.TestCase):
             self.assertEqual(initial_files, final_files)
 
             # Generate plots with explicit save=True
-            visualizer.generate_plots({Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE]}, save=True)
+            visualizer.generate_plots(
+                selections={Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE]}, save=True
+            )
 
             # Check that files were created
             final_files_with_save = len(os.listdir(temp_dir))
@@ -254,14 +259,14 @@ class TestNewVisualizationAPI(unittest.TestCase):
         visualizer = Visualizer(scanner=self.scanner)
 
         with self.assertRaises(ValueError):
-            visualizer.generate_plot("InvalidMetric", "invalid_plot")
+            visualizer.generate_plot(metric_name="InvalidMetric", plot_name="invalid_plot")
 
     def test_error_handling_invalid_plot(self):
         """Test error handling for invalid plot names."""
         visualizer = Visualizer(scanner=self.scanner)
 
         with self.assertRaises(ValueError):
-            visualizer.generate_plot(Metrics.QISKIT, "invalid_plot")
+            visualizer.generate_plot(metric_name=Metrics.QISKIT, plot_name="invalid_plot")
 
     def test_error_handling_mismatched_metric_plot(self):
         """Test error handling for mismatched metric and plot combinations."""
@@ -269,7 +274,9 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
         # Try to use ComplexityMetrics plot with QiskitMetrics
         with self.assertRaises(ValueError):
-            visualizer.generate_plot(Metrics.QISKIT, Plots.Complexity.COMPLEXITY_RADAR)
+            visualizer.generate_plot(
+                metric_name=Metrics.QISKIT, plot_name=Plots.Complexity.COMPLEXITY_RADAR
+            )
 
     def test_custom_plot_config(self):
         """Test visualization with custom PlotConfig."""
@@ -286,7 +293,10 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Generate plot with custom config
             fig = visualizer.generate_plot(
-                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=False, show=False
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=False,
+                show=False,
             )
 
             self.assertIsNotNone(fig)
@@ -370,7 +380,10 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Generate plot with show=False (default)
             fig = visualizer.generate_plot(
-                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=False, show=False
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=False,
+                show=False,
             )
             plt.close(fig)
 
@@ -379,7 +392,10 @@ class TestNewVisualizationAPI(unittest.TestCase):
 
             # Generate plot with show=True
             fig = visualizer.generate_plot(
-                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=False, show=True
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=False,
+                show=True,
             )
             plt.close(fig)
 

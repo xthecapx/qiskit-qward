@@ -267,7 +267,7 @@ class TestIntegration(unittest.TestCase):
 
             # Test new API: generate_plots with type-safe constants
             selected_plots = visualizer.generate_plots(
-                {
+                selections={
                     Metrics.QISKIT: [
                         Plots.Qiskit.CIRCUIT_STRUCTURE,
                         Plots.Qiskit.GATE_DISTRIBUTION,
@@ -286,7 +286,7 @@ class TestIntegration(unittest.TestCase):
 
             # Test new API: generate all plots for specific metric
             all_qiskit_plots = visualizer.generate_plots(
-                {Metrics.QISKIT: None}, save=True, show=False  # None = all plots
+                selections={Metrics.QISKIT: None}, save=True, show=False  # None = all plots
             )
 
             self.assertIsInstance(all_qiskit_plots, dict)
@@ -295,7 +295,10 @@ class TestIntegration(unittest.TestCase):
 
             # Test new API: single plot generation
             single_plot = visualizer.generate_plot(
-                Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=True, show=False
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=True,
+                show=False,
             )
             self.assertIsNotNone(single_plot)
 

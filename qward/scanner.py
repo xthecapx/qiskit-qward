@@ -126,26 +126,25 @@ class Scanner:
         return metric_dataframes
 
     def _process_circuit_performance_metrics(self, strategy, metric_results, metric_dataframes):
-        """Process CircuitPerformanceMetrics using schema-based API."""
+        """Process CircuitPerformanceMetrics using schema-based API with proper column separation."""
         display_name = "CircuitPerformance"
 
         # Check if we have multiple jobs
         jobs_count = len(getattr(strategy, "_jobs", []))
 
         if hasattr(metric_results, "to_flat_dict"):
-            flattened_metrics = metric_results.to_flat_dict()
-
             if jobs_count > 1:
-                # For multiple jobs, we need to create both individual_jobs and aggregate DataFrames
-                # The schema contains aggregate data, so we use it for the aggregate DataFrame
-                aggregate_df = pd.DataFrame([flattened_metrics])
+                # For multiple jobs, create separate DataFrames with only relevant columns
+
+                # Create aggregate DataFrame with only aggregate-relevant fields
+                aggregate_data = self._extract_aggregate_fields(metric_results)
+                aggregate_df = pd.DataFrame([aggregate_data])
                 metric_dataframes[f"{display_name}.aggregate"] = aggregate_df
 
-                # For individual jobs, we need to create schema-based individual job entries
-                # Get individual job metrics using the new schema API
+                # Create individual jobs DataFrame with only individual-relevant fields
                 individual_jobs_data = []
                 for job in getattr(strategy, "_jobs", []):
-                    # Create a temporary single-job strategy to get schema-based metrics
+                    # Create a temporary single-job strategy to get individual metrics
                     temp_strategy = strategy.__class__(
                         strategy.circuit,
                         job=job,
@@ -153,24 +152,68 @@ class Scanner:
                         expected_distribution=strategy.expected_distribution,
                     )
                     job_metrics = temp_strategy.get_metrics()
-                    job_flat = job_metrics.to_flat_dict()
-                    individual_jobs_data.append(job_flat)
+                    individual_data = self._extract_individual_fields(job_metrics)
+                    individual_jobs_data.append(individual_data)
 
                 if individual_jobs_data:
                     individual_jobs_df = pd.DataFrame(individual_jobs_data)
                     metric_dataframes[f"{display_name}.individual_jobs"] = individual_jobs_df
                 else:
-                    # Fallback: create individual_jobs from aggregate
-                    metric_dataframes[f"{display_name}.individual_jobs"] = aggregate_df
+                    # Fallback: create empty DataFrame with individual columns
+                    individual_data = self._extract_individual_fields(metric_results)
+                    metric_dataframes[f"{display_name}.individual_jobs"] = pd.DataFrame(
+                        [individual_data]
+                    )
             else:
-                # Single job case - only create individual_jobs DataFrame
-                single_job_df = pd.DataFrame([flattened_metrics])
+                # Single job case - only create individual_jobs DataFrame with individual fields
+                individual_data = self._extract_individual_fields(metric_results)
+                single_job_df = pd.DataFrame([individual_data])
                 metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
         else:
             # Fallback for any remaining edge cases
             flattened_metrics = self._flatten_metrics(metric_results)
             single_job_df = pd.DataFrame([flattened_metrics])
             metric_dataframes[f"{display_name}.individual_jobs"] = single_job_df
+
+    def _extract_individual_fields(self, metric_results):
+        """Extract only fields relevant for individual job metrics."""
+        if hasattr(metric_results, "to_flat_dict"):
+            all_fields = metric_results.to_flat_dict()
+        else:
+            all_fields = self._flatten_metrics(metric_results)
+
+        # Define individual job relevant fields (exclude aggregate fields)
+        individual_fields = {}
+        for key, value in all_fields.items():
+            # Include fields that are NOT aggregate-specific
+            if not any(
+                aggregate_prefix in key
+                for aggregate_prefix in ["mean_", "std_", "min_", "max_", "total_trials"]
+            ):
+                individual_fields[key] = value
+
+        return individual_fields
+
+    def _extract_aggregate_fields(self, metric_results):
+        """Extract only fields relevant for aggregate metrics."""
+        if hasattr(metric_results, "to_flat_dict"):
+            all_fields = metric_results.to_flat_dict()
+        else:
+            all_fields = self._flatten_metrics(metric_results)
+
+        # Define aggregate relevant fields (exclude individual-specific fields)
+        aggregate_fields = {}
+        for key, value in all_fields.items():
+            # Include aggregate fields OR common fields like error_rate, method, confidence
+            if any(
+                aggregate_prefix in key
+                for aggregate_prefix in ["mean_", "std_", "min_", "max_", "total_trials"]
+            ) or any(
+                common_field in key for common_field in ["error_rate", "method", "confidence"]
+            ):
+                aggregate_fields[key] = value
+
+        return aggregate_fields
 
     def _process_standard_metrics(self, metric_name, metric_results, metric_dataframes):
         """Process standard metrics using schema-based API."""
@@ -227,3 +270,113 @@ class Scanner:
             job: The job that executed the circuit
         """
         self._job = job
+
+    def display_summary(self, metrics_dict: Optional[Dict[str, pd.DataFrame]] = None) -> None:
+        """
+        Display a summary of the calculated metrics.
+
+        Args:
+            metrics_dict: Optional metrics dictionary. If None, will calculate metrics first.
+        """
+        if metrics_dict is None:
+            metrics_dict = self.calculate_metrics()
+
+        print("\n" + "=" * 60)
+        print("🎯 QWARD ANALYSIS SUMMARY")
+        print("=" * 60)
+
+        self._display_circuit_performance_summary(metrics_dict)
+        self._display_aggregate_performance_summary(metrics_dict)
+        self._display_other_metrics_summary(metrics_dict)
+
+        print("=" * 60)
+
+    def _display_circuit_performance_summary(self, metrics_dict: Dict[str, pd.DataFrame]) -> None:
+        """Display circuit performance analysis summary."""
+        if "CircuitPerformance.individual_jobs" not in metrics_dict:
+            return
+
+        individual_df = metrics_dict["CircuitPerformance.individual_jobs"]
+        print("\n📋 Circuit Performance Analysis:")
+        print(f"   Jobs analyzed: {len(individual_df)}")
+
+        # Show individual job results
+        for i, row in individual_df.iterrows():
+            success_rate = row.get("success_metrics.success_rate", 0)
+            fidelity = row.get("fidelity_metrics.fidelity", 0)
+            total_shots = row.get("success_metrics.total_shots", 0)
+            print(
+                f"   Job {i+1}: {success_rate:.1%} success, {fidelity:.3f} fidelity ({total_shots} shots)"
+            )
+
+    def _display_aggregate_performance_summary(self, metrics_dict: Dict[str, pd.DataFrame]) -> None:
+        """Display aggregate performance summary."""
+        if "CircuitPerformance.aggregate" not in metrics_dict:
+            return
+
+        aggregate_df = metrics_dict["CircuitPerformance.aggregate"]
+        if aggregate_df.empty:
+            return
+
+        row = aggregate_df.iloc[0]
+        mean_success = row.get("success_metrics.mean_success_rate", 0)
+        std_success = row.get("success_metrics.std_success_rate", 0)
+        total_trials = row.get("success_metrics.total_trials", 0)
+
+        print("\n📊 Overall Performance:")
+        print(f"   Average success rate: {mean_success:.1%} ± {std_success:.1%}")
+        print(f"   Total measurements: {total_trials}")
+
+        # Performance analysis
+        self._display_performance_analysis(mean_success)
+
+    def _display_performance_analysis(self, mean_success: float) -> None:
+        """Display performance analysis based on success rate."""
+        if mean_success >= 0.95:
+            print("   ✅ Excellent performance")
+        elif mean_success >= 0.80:
+            print("   ⚠️  Good performance with some noise impact")
+        elif mean_success >= 0.50:
+            print("   ⚠️  Moderate performance - significant noise detected")
+        else:
+            print("   ❌ Poor performance - high noise or errors")
+
+    def _display_other_metrics_summary(self, metrics_dict: Dict[str, pd.DataFrame]) -> None:
+        """Display summary of other metrics."""
+        other_metrics = [k for k in metrics_dict.keys() if not k.startswith("CircuitPerformance")]
+        if not other_metrics:
+            return
+
+        print("\n📈 Additional Metrics:")
+        for metric_name in other_metrics:
+            df = metrics_dict[metric_name]
+            print(f"   {metric_name}: {df.shape[1]} metrics calculated")
+
+            if not df.empty:
+                self._display_metric_preview(df)
+
+    def _display_metric_preview(self, df: pd.DataFrame) -> None:
+        """Display a preview of the first 5 metrics."""
+        first_row = df.iloc[0]
+        columns_to_show = list(df.columns)[:5]  # First 5 columns
+
+        print("     Preview (first 5):")
+        for col in columns_to_show:
+            value = first_row[col]
+            formatted_value = self._format_metric_value(value)
+            print(f"       {col}: {formatted_value}")
+
+        # Show "..." if there are more columns
+        if len(df.columns) > 5:
+            remaining = len(df.columns) - 5
+            print(f"       ... and {remaining} more metrics")
+
+    def _format_metric_value(self, value) -> str:
+        """Format a metric value for display."""
+        if isinstance(value, float):
+            if 0 < value < 1:
+                return f"{value:.3f}"
+            else:
+                return f"{value:.1f}"
+        else:
+            return str(value)

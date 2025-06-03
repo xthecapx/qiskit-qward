@@ -5,6 +5,11 @@ This module provides the CircuitPerformanceMetrics class for analyzing the perfo
 quantum circuits based on job execution results. It supports both single job
 and multiple job analysis with customizable success criteria.
 
+Supports multiple job types:
+- AerJob: Qiskit Aer simulator jobs
+- QiskitJob (JobV1): Traditional Qiskit jobs
+- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)
+
 The performance metrics help evaluate the success rate, fidelity, and statistical
 properties of quantum circuit executions.
 """
@@ -14,7 +19,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit_aer import AerJob
-from qiskit.providers.job import JobV1 as QiskitJob
+from qiskit_ibm_runtime import RuntimeJobV2
 
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
@@ -32,8 +37,8 @@ try:
 except ImportError:
     SCHEMAS_AVAILABLE = False
 
-# Type alias for job types
-JobType = Union[AerJob, QiskitJob]
+# Type alias for job types - include RuntimeJobV2
+JobType = Union[AerJob, RuntimeJobV2]
 
 
 class CircuitPerformanceMetrics(MetricCalculator):
@@ -43,6 +48,11 @@ class CircuitPerformanceMetrics(MetricCalculator):
     This class provides methods for analyzing the performance of quantum circuits
     based on job execution results. It supports both single job and multiple job
     analysis with customizable success criteria.
+
+    Supports multiple job types:
+    - AerJob: Qiskit Aer simulator jobs
+    - QiskitJob (JobV1): Traditional Qiskit jobs
+    - RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)
 
     The performance metrics include:
     - Success metrics: Success rate, error rate, successful shots analysis
@@ -58,6 +68,13 @@ class CircuitPerformanceMetrics(MetricCalculator):
         # Basic usage with default success criteria (ground state)
         performance = CircuitPerformanceMetrics(circuit, job=job)
         metrics = performance.get_metrics()
+
+        # With RuntimeJobV2 from SamplerV2
+        from qiskit_ibm_runtime import SamplerV2 as Sampler
+        sampler = Sampler(backend)
+        job = sampler.run([circuit])  # Returns RuntimeJobV2
+        performance = CircuitPerformanceMetrics(circuit, job=job)
+        success_metrics = performance.get_success_metrics()
 
         # With custom success criteria and expected distribution
         def custom_success(state): return state == "101"
@@ -142,6 +159,65 @@ class CircuitPerformanceMetrics(MetricCalculator):
     def _extract_job_id(self, job: JobType) -> str:
         """Extract job ID from a job object."""
         return job.job_id() if hasattr(job, "job_id") else "unknown"
+
+    def _extract_counts(self, job: JobType) -> Dict[str, int]:
+        """
+        Extract counts from a job result, handling different job types.
+
+        Args:
+            job: The job object to extract counts from
+
+        Returns:
+            Dict[str, int]: Dictionary of measurement outcomes and their counts
+
+        Raises:
+            ValueError: If counts cannot be extracted from the job result
+        """
+        try:
+            if isinstance(job, RuntimeJobV2):
+                # Handle RuntimeJobV2 (V2 primitives)
+                result = job.result()
+                # V2 primitives return a list of PubResult objects
+                if len(result) > 0:
+                    pub_result = result[0]  # Get first (and typically only) PUB result
+
+                    # Try common classical register names
+                    common_names = ["meas", "c", "cr", "classical"]
+                    for name in common_names:
+                        if hasattr(pub_result.data, name):
+                            register_data = getattr(pub_result.data, name)
+                            if hasattr(register_data, "get_counts"):
+                                return register_data.get_counts()
+
+                    # If common names don't work, try to find any classical register data
+                    data_attrs = [attr for attr in dir(pub_result.data) if not attr.startswith("_")]
+
+                    for attr in data_attrs:
+                        try:
+                            register_data = getattr(pub_result.data, attr)
+                            if hasattr(register_data, "get_counts"):
+                                return register_data.get_counts()
+                        except (AttributeError, TypeError):
+                            continue
+
+                    # If no classical register found, return empty dict
+                    return {}
+                else:
+                    return {}
+            else:
+                # Handle traditional job types (V1 primitives, AerJob, etc.)
+                result = job.result()
+                if hasattr(result, "get_counts"):
+                    return result.get_counts()
+                else:
+                    raise ValueError(
+                        f"Job result of type {type(result)} does not have get_counts method"
+                    )
+
+        except Exception as e:
+            raise ValueError(
+                f"Failed to extract counts from job {self._extract_job_id(job)}: {str(e)}"
+            ) from e
 
     def _calculate_fidelity(self, counts: Dict[str, int]) -> float:
         """
@@ -520,8 +596,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     def _get_single_job_success_metrics(self, job: JobType) -> Dict[str, Any]:
         """Calculate success metrics from a single job result."""
-        result = job.result()
-        counts = result.get_counts()
+        counts = self._extract_counts(job)
         job_id = self._extract_job_id(job)
 
         if not counts:
@@ -605,8 +680,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     def _get_single_job_fidelity_metrics(self, job: JobType) -> Dict[str, Any]:
         """Calculate fidelity metrics from a single job result."""
-        result = job.result()
-        counts = result.get_counts()
+        counts = self._extract_counts(job)
         job_id = self._extract_job_id(job)
 
         fidelity = self._calculate_fidelity(counts)
@@ -667,8 +741,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     def _get_single_job_statistical_metrics(self, job: JobType) -> Dict[str, Any]:
         """Calculate statistical metrics from a single job result."""
-        result = job.result()
-        counts = result.get_counts()
+        counts = self._extract_counts(job)
         job_id = self._extract_job_id(job)
 
         if not counts:
