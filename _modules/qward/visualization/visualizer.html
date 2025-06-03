@@ -414,20 +414,28 @@
 <div class="viewcode-block" id="Visualizer.generate_plot">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.generate_plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_plot</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a single specific plot.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            metric_name: Name of the metric</span>
+<span class="sd">            metric_name: Name of the metric (e.g., &quot;CircuitPerformance&quot;, &quot;QiskitMetrics&quot;)</span>
 <span class="sd">            plot_name: Name of the plot to generate</span>
-<span class="sd">            save: Whether to save the plot</span>
+<span class="sd">            save: Whether to save the plot to file</span>
 <span class="sd">            show: Whether to display the plot</span>
 <span class="sd">            **kwargs: Additional arguments passed to the plot method</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib Figure object</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            fig = visualizer.generate_plot(</span>
+<span class="sd">                metric_name=&quot;CircuitPerformance&quot;,</span>
+<span class="sd">                plot_name=&quot;success_error_comparison&quot;,</span>
+<span class="sd">                save=True,</span>
+<span class="sd">                show=True</span>
+<span class="sd">            )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data available for metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
@@ -445,7 +453,7 @@
 <div class="viewcode-block" id="Visualizer.generate_plots">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.generate_plots">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_plots</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">selections</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">selections</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PlotResult</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate selected plots for each metric.</span>
@@ -453,12 +461,22 @@
 <span class="sd">        Args:</span>
 <span class="sd">            selections: Dictionary mapping metric names to lists of plot names.</span>
 <span class="sd">                       Use None as plot list to generate all plots for a metric.</span>
-<span class="sd">            save: Whether to save the plots</span>
+<span class="sd">            save: Whether to save the plots to files</span>
 <span class="sd">            show: Whether to display the plots</span>
 <span class="sd">            **kwargs: Additional arguments passed to plot methods</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dictionary mapping metric names to PlotResult dictionaries</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            results = visualizer.generate_plots(</span>
+<span class="sd">                selections={</span>
+<span class="sd">                    &quot;CircuitPerformance&quot;: [&quot;success_error_comparison&quot;, &quot;fidelity_distribution&quot;],</span>
+<span class="sd">                    &quot;QiskitMetrics&quot;: [&quot;basic_metrics_bar&quot;]</span>
+<span class="sd">                },</span>
+<span class="sd">                save=True,</span>
+<span class="sd">                show=False</span>
+<span class="sd">            )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -508,18 +526,21 @@
 <div class="viewcode-block" id="Visualizer.create_dashboard">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.create_dashboard">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a comprehensive dashboard with all available metrics.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            save: Whether to save the dashboard</span>
+<span class="sd">            save: Whether to save the dashboard to files</span>
 <span class="sd">            show: Whether to display the dashboard</span>
 <span class="sd">            **kwargs: Additional arguments passed to strategies</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, plt.Figure]: Dictionary mapping metric names to dashboard figures</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            dashboards = visualizer.create_dashboard(save=True, show=True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dashboards</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">available_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_metrics</span><span class="p">()</span>

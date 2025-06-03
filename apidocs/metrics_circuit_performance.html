@@ -307,6 +307,10 @@
 <p>This module provides the CircuitPerformanceMetrics class for analyzing the performance of
 quantum circuits based on job execution results. It supports both single job
 and multiple job analysis with customizable success criteria.</p>
+<p>Supports multiple job types:
+- AerJob: Qiskit Aer simulator jobs
+- QiskitJob (JobV1): Traditional Qiskit jobs
+- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
 <p>The performance metrics help evaluate the success rate, fidelity, and statistical
 properties of quantum circuit executions.</p>
 <dl class="py class">
@@ -317,6 +321,10 @@ properties of quantum circuit executions.</p>
 <p>This class provides methods for analyzing the performance of quantum circuits
 based on job execution results. It supports both single job and multiple job
 analysis with customizable success criteria.</p>
+<p>Supports multiple job types:
+- AerJob: Qiskit Aer simulator jobs
+- QiskitJob (JobV1): Traditional Qiskit jobs
+- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
 <p>The performance metrics include:
 - Success metrics: Success rate, error rate, successful shots analysis
 - Fidelity metrics: Quantum fidelity between measured and expected distributions
@@ -333,6 +341,12 @@ analysis with customizable success criteria.</p>
 <p># Basic usage with default success criteria (ground state)
 performance = CircuitPerformanceMetrics(circuit, job=job)
 metrics = performance.get_metrics()</p>
+<p># With RuntimeJobV2 from SamplerV2
+from qiskit_ibm_runtime import SamplerV2 as Sampler
+sampler = Sampler(backend)
+job = sampler.run([circuit])  # Returns RuntimeJobV2
+performance = CircuitPerformanceMetrics(circuit, job=job)
+success_metrics = performance.get_success_metrics()</p>
 <p># With custom success criteria and expected distribution
 def custom_success(state): return state == “101”
 expected = {“000”: 0.5, “101”: 0.5}  # Bell state expectation</p>
@@ -351,8 +365,8 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
-<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
-<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
+<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
+<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
 <li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
 <li><p><strong>expected_distribution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span>) – Expected probability distribution for fidelity calculation</p></li>
 </ul>
@@ -364,7 +378,7 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <dd><p>Add one or more jobs to the list of jobs for multiple job metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A single job or a list of jobs to add</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A single job or a list of jobs to add</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -496,7 +510,7 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <p>DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Circuit performance metrics for a single job</p>
@@ -641,6 +655,10 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <p>This class provides methods for analyzing the performance of quantum circuits
 based on job execution results. It supports both single job and multiple job
 analysis with customizable success criteria.</p>
+<p>Supports multiple job types:
+- AerJob: Qiskit Aer simulator jobs
+- QiskitJob (JobV1): Traditional Qiskit jobs
+- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
 <p>The performance metrics include:
 - Success metrics: Success rate, error rate, successful shots analysis
 - Fidelity metrics: Quantum fidelity between measured and expected distributions
@@ -657,6 +675,12 @@ analysis with customizable success criteria.</p>
 <p># Basic usage with default success criteria (ground state)
 performance = CircuitPerformanceMetrics(circuit, job=job)
 metrics = performance.get_metrics()</p>
+<p># With RuntimeJobV2 from SamplerV2
+from qiskit_ibm_runtime import SamplerV2 as Sampler
+sampler = Sampler(backend)
+job = sampler.run([circuit])  # Returns RuntimeJobV2
+performance = CircuitPerformanceMetrics(circuit, job=job)
+success_metrics = performance.get_success_metrics()</p>
 <p># With custom success criteria and expected distribution
 def custom_success(state): return state == “101”
 expected = {“000”: 0.5, “101”: 0.5}  # Bell state expectation</p>
@@ -675,8 +699,8 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
-<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
-<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
+<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
+<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
 <li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
 <li><p><strong>expected_distribution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span>) – Expected probability distribution for fidelity calculation</p></li>
 </ul>
@@ -688,7 +712,7 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <dd><p>Add one or more jobs to the list of jobs for multiple job metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>]]]</span>) – A single job or a list of jobs to add</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A single job or a list of jobs to add</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
@@ -834,7 +858,7 @@ fidelity_metrics = performance.get_fidelity_metrics()</p>
 <p>DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">JobV1</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
+<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Circuit performance metrics for a single job</p>
