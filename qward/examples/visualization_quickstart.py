@@ -6,9 +6,8 @@ This script demonstrates the basic visualization capabilities with minimal setup
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qward import Scanner
+from qward import Scanner, Visualizer
 from qward.metrics import CircuitPerformanceMetrics
-from qward.visualization import CircuitPerformanceVisualizer
 from qward.visualization.constants import Metrics, Plots
 
 
@@ -32,36 +31,38 @@ def main():
         job.result()
 
     # Create scanner with CircuitPerformance strategy
-    scanner = Scanner(circuit=circuit)
-
     def bell_state_success(outcome):
         """Success criteria for Bell state: |00⟩ or |11⟩."""
         clean = outcome.replace(" ", "")
         return clean in ["00", "11"]
 
     circuit_performance = CircuitPerformanceMetrics(
-        circuit=circuit, success_criteria=bell_state_success
+        circuit=circuit,
+        jobs=jobs,  # Pass jobs directly to constructor
+        success_criteria=bell_state_success,
     )
-    circuit_performance.add_job(jobs)
+
+    scanner = Scanner(circuit=circuit)
     scanner.add_strategy(circuit_performance)
 
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
 
-    metrics_dict["CircuitPerformance.aggregate"].plot()
+    # Display summary using Scanner method
+    scanner.display_summary(metrics_dict)
 
-    # Create visualizations using new API
-    visualizer = CircuitPerformanceVisualizer(
-        metrics_dict, output_dir="qward/examples/img/quickstart"
-    )
+    # Create unified visualizer
+    visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img/quickstart")
 
     # Generate all plots using new API
-    all_plots = visualizer.generate_all_plots(save=True, show=False)
-    print(f"Generated {len(all_plots)} CircuitPerformance plots")
+    all_plots = visualizer.generate_plots(
+        selections={Metrics.CIRCUIT_PERFORMANCE: None}, save=True, show=False  # None = all plots
+    )
+    print(f"Generated {len(all_plots[Metrics.CIRCUIT_PERFORMANCE])} CircuitPerformance plots")
 
     # Generate specific performance plots using new API
     performance_plots = visualizer.generate_plots(
-        {
+        selections={
             Metrics.CIRCUIT_PERFORMANCE: [
                 Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
                 Plots.CircuitPerformance.FIDELITY_COMPARISON,
@@ -70,7 +71,7 @@ def main():
         save=True,
         show=False,
     )
-    print(f"Generated {len(performance_plots)} specific plots")
+    print(f"Generated {len(performance_plots[Metrics.CIRCUIT_PERFORMANCE])} specific plots")
 
     # Create dashboard
     dashboard = visualizer.create_dashboard(save=True, show=False)
@@ -86,9 +87,9 @@ def main():
 
     # Show available plots and metadata
     print("\nAvailable CircuitPerformance plots:")
-    available_plots = visualizer.get_available_plots()
-    for plot_name in available_plots:
-        metadata = visualizer.get_plot_metadata(plot_name)
+    available_plots = visualizer.get_available_plots(Metrics.CIRCUIT_PERFORMANCE)
+    for plot_name in available_plots[Metrics.CIRCUIT_PERFORMANCE]:
+        metadata = visualizer.get_plot_metadata(Metrics.CIRCUIT_PERFORMANCE, plot_name)
         print(f"  - {plot_name}: {metadata.description}")
 
 

@@ -35,14 +35,14 @@ def main():
     # Example 1: Generate a single specific plot
     print("\n1. Generating single plot...")
     single_plot = visualizer.generate_plot(
-        Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=True, show=False
+        metric_name=Metrics.QISKIT, plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE, save=True, show=False
     )
     print("   ✓ Single circuit structure plot generated")
 
     # Example 2: Generate selected plots for analysis
     print("\n2. Generating selected plots for analysis...")
     selected_plots = visualizer.generate_plots(
-        {
+        selections={
             Metrics.QISKIT: [
                 Plots.Qiskit.CIRCUIT_STRUCTURE,
                 Plots.Qiskit.GATE_DISTRIBUTION,
@@ -63,7 +63,7 @@ def main():
     # Example 3: Generate all plots for a specific metric
     print("\n3. Generating all ComplexityMetrics plots...")
     all_complexity_plots = visualizer.generate_plots(
-        {Metrics.COMPLEXITY: None}, save=True, show=False  # None = all plots
+        selections={Metrics.COMPLEXITY: None}, save=True, show=False  # None = all plots
     )
 
     complexity_plots = all_complexity_plots[Metrics.COMPLEXITY]
@@ -95,7 +95,10 @@ def main():
 
     # Generate a radar chart with custom styling
     radar_fig = custom_visualizer.generate_plot(
-        Metrics.COMPLEXITY, Plots.Complexity.COMPLEXITY_RADAR, save=True, show=False
+        metric_name=Metrics.COMPLEXITY,
+        plot_name=Plots.Complexity.COMPLEXITY_RADAR,
+        save=True,
+        show=False,
     )
     print(f"   ✅ Generated custom-styled radar chart")
 
@@ -128,7 +131,9 @@ def main():
         ]
     }
 
-    variant_results = variant_visualizer.generate_plots(comparison_plots, save=True, show=False)
+    variant_results = variant_visualizer.generate_plots(
+        selections=comparison_plots, save=True, show=False
+    )
 
     print(f"   ✅ Generated comparison plots for circuit variant")
 

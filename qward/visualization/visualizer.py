@@ -146,20 +146,28 @@ class Visualizer:
         return strategy_class.get_plot_metadata(plot_name)
 
     def generate_plot(
-        self, metric_name: str, plot_name: str, save: bool = False, show: bool = False, **kwargs
+        self, *, metric_name: str, plot_name: str, save: bool = False, show: bool = False, **kwargs
     ) -> plt.Figure:
         """
         Generate a single specific plot.
 
         Args:
-            metric_name: Name of the metric
+            metric_name: Name of the metric (e.g., "CircuitPerformance", "QiskitMetrics")
             plot_name: Name of the plot to generate
-            save: Whether to save the plot
+            save: Whether to save the plot to file
             show: Whether to display the plot
             **kwargs: Additional arguments passed to the plot method
 
         Returns:
             matplotlib Figure object
+
+        Example:
+            fig = visualizer.generate_plot(
+                metric_name="CircuitPerformance",
+                plot_name="success_error_comparison",
+                save=True,
+                show=True
+            )
         """
         if not self._has_metric_data(metric_name):
             raise ValueError(f"No data available for metric '{metric_name}'")
@@ -174,7 +182,7 @@ class Visualizer:
         return strategy.generate_plot(plot_name, save=save, show=show, **kwargs)
 
     def generate_plots(
-        self, selections: Dict[str, List[str]], save: bool = False, show: bool = False, **kwargs
+        self, *, selections: Dict[str, List[str]], save: bool = False, show: bool = False, **kwargs
     ) -> Dict[str, PlotResult]:
         """
         Generate selected plots for each metric.
@@ -182,12 +190,22 @@ class Visualizer:
         Args:
             selections: Dictionary mapping metric names to lists of plot names.
                        Use None as plot list to generate all plots for a metric.
-            save: Whether to save the plots
+            save: Whether to save the plots to files
             show: Whether to display the plots
             **kwargs: Additional arguments passed to plot methods
 
         Returns:
             Dictionary mapping metric names to PlotResult dictionaries
+
+        Example:
+            results = visualizer.generate_plots(
+                selections={
+                    "CircuitPerformance": ["success_error_comparison", "fidelity_distribution"],
+                    "QiskitMetrics": ["basic_metrics_bar"]
+                },
+                save=True,
+                show=False
+            )
         """
         results = {}
 
@@ -234,18 +252,21 @@ class Visualizer:
             return {metric_name: self.metrics_data[metric_name]}
 
     def create_dashboard(
-        self, save: bool = False, show: bool = False, **kwargs
+        self, *, save: bool = False, show: bool = False, **kwargs
     ) -> Dict[str, plt.Figure]:
         """
         Create a comprehensive dashboard with all available metrics.
 
         Args:
-            save: Whether to save the dashboard
+            save: Whether to save the dashboard to files
             show: Whether to display the dashboard
             **kwargs: Additional arguments passed to strategies
 
         Returns:
             Dict[str, plt.Figure]: Dictionary mapping metric names to dashboard figures
+
+        Example:
+            dashboards = visualizer.create_dashboard(save=True, show=True)
         """
         dashboards: Dict[str, plt.Figure] = {}
         available_metrics = self.get_available_metrics()
