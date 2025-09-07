@@ -463,3 +463,13 @@ dashboard = visualizer.create_dashboard(save=True, show=True)
 # # Example usage:
 # # result = job.result()  # This gives you PrimitiveResult
 # # extracted_data = extract_sampler_results(result)
+
+
+visualizer.generate_plots(
+    selections={
+        Metrics.CIRCUIT_PERFORMANCE: [
+            Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+            Plots.CircuitPerformance.FIDELITY_COMPARISON
+        ]
+    },
+)
