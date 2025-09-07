@@ -286,7 +286,12 @@ def example_metric_summary():
 
     # Create circuit and scanner
     circuit = create_example_circuit()
-    scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
+    scanner = Scanner(
+        circuit=circuit,
+        strategies=[
+            QiskitMetrics, 
+            ComplexityMetrics
+        ])
 
     # Create visualizer
     visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
