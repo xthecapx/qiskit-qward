@@ -75,15 +75,23 @@ class StandardTeleportationProtocol(BaseTeleportation):
     control flow (if statements in the circuit).
     """
 
-    def __init__(self, use_barriers: bool = True):
+    def __init__(self, use_barriers: bool = True):  # pylint: disable=super-init-not-called
         # Create classical register for Alice's measurements
         self.alice_measurements = ClassicalRegister(2, "alice_meas")
 
-        # Call parent constructor
-        super().__init__(use_barriers)
+        # Initialize base attributes first
+        self.message_qubit = QuantumRegister(1, "M")
+        self.alice_entangled = QuantumRegister(1, "A")
+        self.bob_entangled = QuantumRegister(1, "B")
+        self.use_barriers = use_barriers
 
-        # Add classical register to the circuit
-        self.circuit.add_register(self.alice_measurements)
+        # Create circuit with all registers including classical
+        self.circuit = QuantumCircuit(
+            self.message_qubit, self.alice_entangled, self.bob_entangled, self.alice_measurements
+        )
+
+        # Now create the protocol
+        self._create_protocol()
 
     def _alice_operations(self):
         """Alice's operations including measurements."""
