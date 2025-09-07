@@ -7,7 +7,7 @@ It integrates with qward's metrics system for comprehensive circuit analysis.
 """
 
 import time
-from typing import Dict, Any, Optional, Union, TYPE_CHECKING
+from typing import Dict, Any, Optional, Union, TYPE_CHECKING, cast
 
 import pandas as pd
 from qiskit import QuantumCircuit
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 # qBraid imports (optional, will handle import errors gracefully)
 try:
-    from qbraid import QbraidProvider, QbraidDevice, qbraid_transpile
+    from qbraid import QbraidProvider, qbraid_transpile
 
     QBRAID_AVAILABLE = True
 except ImportError:
@@ -445,10 +445,6 @@ class QuantumCircuitExecutor:
                 )
 
                 if status_str in ["COMPLETED", "DONE"]:
-                    result: Any = job.result()
-                    counts = result.data.get_counts()
-                    print(f"Job completed! Results: {counts}")
-
                     # Get qward metrics for the original circuit
                     metrics_data = self.get_circuit_metrics(
                         circuit, success_criteria=success_criteria
@@ -457,7 +453,6 @@ class QuantumCircuitExecutor:
                     job_info.update(
                         {
                             "status": "completed",
-                            "counts": counts,
                             "transpiled_circuit": transpiled_circuit,
                             "qward_metrics": metrics_data,
                         }
@@ -493,7 +488,6 @@ class QuantumCircuitExecutor:
             print(f"Error running on qBraid: {str(e)}")
             # Fallback to simulator
             job = AerSimulator().run(circuit, shots=self.shots)
-            counts = job.result().get_counts()  # type: ignore[attr-defined]
 
             # Get qward metrics for fallback
             metrics_data = self.get_circuit_metrics(
@@ -503,7 +497,6 @@ class QuantumCircuitExecutor:
             return {
                 "status": "error",
                 "error": str(e),
-                "counts": counts,
                 "qward_metrics": metrics_data,
                 "device": "simulator_fallback",
             }
