@@ -469,7 +469,7 @@ visualizer.generate_plots(
     selections={
         Metrics.CIRCUIT_PERFORMANCE: [
             Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
-            Plots.CircuitPerformance.FIDELITY_COMPARISON
+            Plots.CircuitPerformance.FIDELITY_COMPARISON,
         ]
     },
 )
