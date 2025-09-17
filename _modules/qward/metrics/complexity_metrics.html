@@ -625,6 +625,9 @@
         <span class="n">quantum_resource_utilization</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
             <span class="n">gate_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span> <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">gate_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">depth</span> <span class="o">*</span> <span class="n">depth</span><span class="p">)</span> <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Ensure quantum_resource_utilization doesn&#39;t exceed 1.0 (schema constraint)</span>
+        <span class="n">quantum_resource_utilization</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">quantum_resource_utilization</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">AdvancedMetricsSchema</span><span class="p">(</span>
             <span class="n">parallelism_factor</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">parallelism_factor</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
