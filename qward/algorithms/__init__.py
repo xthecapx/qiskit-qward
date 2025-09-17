@@ -12,6 +12,11 @@ from .v_tp import (
     VariationTeleportationProtocol,
     TeleportationCircuitGenerator,
 )
+from .grover import (
+    Grover,
+    GroverOracle,
+    GroverCircuitGenerator,
+)
 
 __all__ = [
     "QuantumCircuitExecutor",
@@ -20,4 +25,7 @@ __all__ = [
     "StandardTeleportationProtocol",
     "VariationTeleportationProtocol",
     "TeleportationCircuitGenerator",
+    "Grover",
+    "GroverOracle",
+    "GroverCircuitGenerator",
 ]
