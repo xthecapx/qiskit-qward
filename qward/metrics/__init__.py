@@ -7,8 +7,9 @@ from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.qiskit_metrics import QiskitMetrics
 from qward.metrics.complexity_metrics import ComplexityMetrics
 from qward.metrics.circuit_performance import CircuitPerformanceMetrics
+from qward.metrics.loc_metrics import LocMetrics
+from qward.metrics.quantum_halstead_metrics import QuantumHalsteadMetrics
 from qward.metrics.defaults import get_default_strategies
-
 
 __all__ = [
     "MetricsId",
@@ -16,6 +17,8 @@ __all__ = [
     "QiskitMetrics",
     "ComplexityMetrics",
     "CircuitPerformanceMetrics",
+    "LocMetrics",
+    "QuantumHalsteadMetrics",
     "MetricCalculator",
     "get_default_strategies",
 ]
