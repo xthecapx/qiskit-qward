@@ -13,6 +13,8 @@ class MetricsId(Enum):
     QISKIT = "QISKIT"
     COMPLEXITY = "COMPLEXITY"
     CIRCUIT_PERFORMANCE = "CIRCUIT_PERFORMANCE"
+    LOC = "LOC"
+    QUANTUM_HALSTEAD = "QUANTUM_HALSTEAD"
 
 
 class MetricsType(Enum):
