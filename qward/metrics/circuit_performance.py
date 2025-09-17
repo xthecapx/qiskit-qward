@@ -158,7 +158,13 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     def _extract_job_id(self, job: JobType) -> str:
         """Extract job ID from a job object."""
-        return job.job_id() if hasattr(job, "job_id") else "unknown"
+        # Try different job ID extraction methods
+        if hasattr(job, "job_id"):
+            return job.job_id() if callable(job.job_id) else job.job_id
+        elif hasattr(job, "id"):
+            return job.id if callable(job.id) else job.id
+        else:
+            return "unknown"
 
     def _extract_counts(self, job: JobType) -> Dict[str, int]:
         """
@@ -174,50 +180,88 @@ class CircuitPerformanceMetrics(MetricCalculator):
             ValueError: If counts cannot be extracted from the job result
         """
         try:
+            # Try qBraid direct result extraction
+            qbraid_counts = self._try_qbraid_extraction(job)
+            if qbraid_counts is not None:
+                return qbraid_counts
+
+            # Try RuntimeJobV2 extraction
             if isinstance(job, RuntimeJobV2):
-                # Handle RuntimeJobV2 (V2 primitives)
-                result = job.result()
-                # V2 primitives return a list of PubResult objects
-                if len(result) > 0:
-                    pub_result = result[0]  # Get first (and typically only) PUB result
+                return self._extract_runtime_v2_counts(job)
 
-                    # Try common classical register names
-                    common_names = ["meas", "c", "cr", "classical"]
-                    for name in common_names:
-                        if hasattr(pub_result.data, name):
-                            register_data = getattr(pub_result.data, name)
-                            if hasattr(register_data, "get_counts"):
-                                return register_data.get_counts()
-
-                    # If common names don't work, try to find any classical register data
-                    data_attrs = [attr for attr in dir(pub_result.data) if not attr.startswith("_")]
-
-                    for attr in data_attrs:
-                        try:
-                            register_data = getattr(pub_result.data, attr)
-                            if hasattr(register_data, "get_counts"):
-                                return register_data.get_counts()
-                        except (AttributeError, TypeError):
-                            continue
-
-                    # If no classical register found, return empty dict
-                    return {}
-                else:
-                    return {}
-            else:
-                # Handle traditional job types (V1 primitives, AerJob, etc.)
-                result = job.result()
-                if hasattr(result, "get_counts"):
-                    return result.get_counts()
-                else:
-                    raise ValueError(
-                        f"Job result of type {type(result)} does not have get_counts method"
-                    )
+            # Try traditional job extraction
+            return self._extract_traditional_counts(job)
 
         except Exception as e:
             raise ValueError(
                 f"Failed to extract counts from job {self._extract_job_id(job)}: {str(e)}"
             ) from e
+
+    def _try_qbraid_extraction(self, job: JobType) -> Optional[Dict[str, int]]:
+        """Try to extract counts using qBraid patterns."""
+        # Check if this is a qBraid Result object directly
+        if hasattr(job, "data") and hasattr(job.data, "get_counts"):
+            return job.data.get_counts()
+
+        # Check if this is a qBraid job with result() method
+        if hasattr(job, "result"):
+            try:
+                result = job.result()
+                if hasattr(result, "data") and hasattr(result.data, "get_counts"):
+                    return result.data.get_counts()
+            except Exception:
+                pass
+
+        return None
+
+    def _extract_runtime_v2_counts(self, job: RuntimeJobV2) -> Dict[str, int]:
+        """Extract counts from RuntimeJobV2 (V2 primitives)."""
+        result = job.result()
+        if len(result) == 0:
+            return {}
+
+        pub_result = result[0]  # Get first (and typically only) PUB result
+
+        # Try common classical register names first
+        counts = self._try_common_register_names(pub_result)
+        if counts is not None:
+            return counts
+
+        # Try all available data attributes
+        return self._try_all_data_attributes(pub_result)
+
+    def _try_common_register_names(self, pub_result) -> Optional[Dict[str, int]]:
+        """Try common classical register names."""
+        common_names = ["meas", "c", "cr", "classical"]
+        for name in common_names:
+            if hasattr(pub_result.data, name):
+                register_data = getattr(pub_result.data, name)
+                if hasattr(register_data, "get_counts"):
+                    return register_data.get_counts()
+        return None
+
+    def _try_all_data_attributes(self, pub_result) -> Dict[str, int]:
+        """Try all available data attributes to find counts."""
+        data_attrs = [attr for attr in dir(pub_result.data) if not attr.startswith("_")]
+
+        for attr in data_attrs:
+            try:
+                register_data = getattr(pub_result.data, attr)
+                if hasattr(register_data, "get_counts"):
+                    return register_data.get_counts()
+            except (AttributeError, TypeError):
+                continue
+
+        # If no classical register found, return empty dict
+        return {}
+
+    def _extract_traditional_counts(self, job: JobType) -> Dict[str, int]:
+        """Extract counts from traditional job types (V1 primitives, AerJob, etc.)."""
+        result = job.result()
+        if hasattr(result, "get_counts"):
+            return result.get_counts()
+        else:
+            raise ValueError(f"Job result of type {type(result)} does not have get_counts method")
 
     def _calculate_fidelity(self, counts: Dict[str, int]) -> float:
         """

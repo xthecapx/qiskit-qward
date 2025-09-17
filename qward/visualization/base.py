@@ -118,6 +118,13 @@ class VisualizationStrategy(ABC):
                 if "seaborn-v0_8-whitegrid" in plt.style.available
                 else "default"
             )
+        elif self.config.style == "ieee":
+            # IEEE publication style - basic setup, detailed styling applied per axes
+            plt.style.use("default")
+            # Import here to avoid circular imports
+            from .ieee_styling import apply_ieee_rcparams_styling
+
+            apply_ieee_rcparams_styling()
         else:
             plt.style.use("default")
 
@@ -239,12 +246,19 @@ class VisualizationStrategy(ABC):
         )
 
         # Set labels and styling
-        ax.set_title(title)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        if self.config.style == "ieee":
+            # Apply IEEE styling
+            from .ieee_styling import apply_ieee_styling_to_axes
 
-        if self.config.grid:
-            ax.grid(True, alpha=0.3)
+            apply_ieee_styling_to_axes(ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        else:
+            # Default styling
+            ax.set_title(title)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+
+            if self.config.grid:
+                ax.grid(True, alpha=0.3)
 
         ax.tick_params(axis="x", rotation=45)
 
