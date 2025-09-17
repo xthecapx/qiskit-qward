@@ -5,6 +5,7 @@ from typing import List, Type
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.qiskit_metrics import QiskitMetrics
 from qward.metrics.complexity_metrics import ComplexityMetrics
+from qward.metrics.loc_metrics import LocMetrics
 
 
 def get_default_strategies() -> List[Type[MetricCalculator]]:
