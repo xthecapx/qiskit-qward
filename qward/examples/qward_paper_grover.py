@@ -96,7 +96,7 @@ import time
 
 def run_ibm(circuit):
     IBM_QUANTUM_CHANNEL = "ibm_cloud"
-    IBM_QUANTUM_TOKEN = "1wZxUOFtDbbp4JE1C6UYNn_jmG1w1-DBxviKsbc9PgO6"
+    IBM_QUANTUM_TOKEN = "xxxx"
 
     QiskitRuntimeService.save_account(
         channel=IBM_QUANTUM_CHANNEL, token=IBM_QUANTUM_TOKEN, instance="thecap", overwrite=True
