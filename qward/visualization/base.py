@@ -53,6 +53,8 @@ class PlotConfig:
     save_format: str = "png"
     grid: bool = True
     alpha: float = 0.7
+    # Title configuration
+    show_titles: bool = True  # Global flag to show/hide all titles
 
     def __post_init__(self):
         """Set default color palette if not provided."""
@@ -213,7 +215,7 @@ class VisualizationStrategy(ABC):
         *,
         data: Union[pd.Series, Dict[str, Any]],
         ax: plt.Axes,
-        title: str,
+        title: Optional[str] = None,
         xlabel: str = "Metrics",
         ylabel: str = "Value",
         value_format: str = "auto",
@@ -224,7 +226,7 @@ class VisualizationStrategy(ABC):
         Args:
             data: Data to plot (Series or dict)
             ax: Matplotlib axes to plot on
-            title: Plot title
+            title: Plot title (None means no title)
             xlabel: X-axis label
             ylabel: Y-axis label
             value_format: Format for value labels ("auto", "int", "float", or custom format string)
@@ -245,15 +247,19 @@ class VisualizationStrategy(ABC):
             alpha=self.config.alpha,
         )
 
+        # Determine the final title to use
+        final_title = self._get_final_title(title)
+
         # Set labels and styling
         if self.config.style == "ieee":
             # Apply IEEE styling
             from .ieee_styling import apply_ieee_styling_to_axes
 
-            apply_ieee_styling_to_axes(ax, title=title, xlabel=xlabel, ylabel=ylabel)
+            apply_ieee_styling_to_axes(ax, title=final_title, xlabel=xlabel, ylabel=ylabel)
         else:
             # Default styling
-            ax.set_title(title)
+            if final_title is not None:
+                ax.set_title(final_title)
             ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel)
 
@@ -308,13 +314,15 @@ class VisualizationStrategy(ABC):
 
             ax.text(i, v + max_value * 0.01, label, ha="center", va="bottom", fontweight="bold")
 
-    def _show_no_data_message(self, ax: plt.Axes, title: str, message: str = None) -> None:
+    def _show_no_data_message(
+        self, ax: plt.Axes, title: Optional[str] = None, message: str = None
+    ) -> None:
         """
         Show a "no data available" message on the axes.
 
         Args:
             ax: Matplotlib axes
-            title: Plot title
+            title: Plot title (None means no title)
             message: Custom message (default: "No data available")
         """
         if message is None:
@@ -330,7 +338,11 @@ class VisualizationStrategy(ABC):
             fontsize=12,
             bbox={"boxstyle": "round,pad=0.3", "facecolor": "lightgray", "alpha": 0.8},
         )
-        ax.set_title(title)
+
+        # Use the title configuration logic
+        final_title = self._get_final_title(title)
+        if final_title is not None:
+            ax.set_title(final_title)
 
     def _setup_plot_axes(
         self, fig_ax_override: Optional[Tuple[plt.Figure, plt.Axes]] = None
@@ -399,6 +411,23 @@ class VisualizationStrategy(ABC):
         if "." in display_name:
             display_name = display_name.split(".")[-1]
         return display_name.replace("_", " ").title()
+
+    def _get_final_title(self, title: Optional[str]) -> Optional[str]:
+        """
+        Determine the final title to use based on configuration.
+
+        Args:
+            title: The title to display (None means use no title)
+
+        Returns:
+            Final title to use, or None if titles should be hidden
+        """
+        # Check if titles are globally disabled
+        if not self.config.show_titles:
+            return None
+
+        # Return the provided title (could be None, which means no title)
+        return title
 
     @classmethod
     @abstractmethod
