@@ -61,12 +61,12 @@ def apply_ieee_styling_to_axes(ax, title: str = None, xlabel: str = None, ylabel
 
     Args:
         ax: Matplotlib axes object
-        title: Optional title for the plot
+        title: Optional title for the plot (None means no title)
         xlabel: Optional x-axis label
         ylabel: Optional y-axis label
     """
     # Apply font sizes and weights (using IEEE constants)
-    if title:
+    if title is not None:
         ax.set_title(title, fontsize=IEEE_FONT_SIZES["title_size"], fontweight="bold")
     if xlabel:
         ax.set_xlabel(xlabel, fontsize=IEEE_FONT_SIZES["label_size"], fontweight="bold")
