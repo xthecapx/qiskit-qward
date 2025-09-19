@@ -377,6 +377,7 @@
         <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot gate-based complexity metrics.&quot;&quot;&quot;</span>
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">is_override</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_plot_axes</span><span class="p">(</span><span class="n">fig_ax_override</span><span class="p">)</span>
@@ -395,7 +396,9 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">gate_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;Gate-Based Metrics&quot;</span><span class="p">,</span> <span class="s2">&quot;No gate-based metrics available&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Gate-Based Metrics&quot;</span><span class="p">,</span> <span class="s2">&quot;No gate-based metrics available&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
                 <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
                 <span class="n">is_override</span><span class="o">=</span><span class="n">is_override</span><span class="p">,</span>
@@ -407,7 +410,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">gate_data</span><span class="p">,</span>
             <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Gate-Based Complexity Metrics&quot;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Gate-Based Complexity Metrics&quot;</span><span class="p">,</span>
             <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;Metrics&quot;</span><span class="p">,</span>
             <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span>
             <span class="n">value_format</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
@@ -429,6 +432,7 @@
         <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot complexity metrics as a radar chart.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">fig_ax_override</span><span class="p">:</span>
@@ -479,7 +483,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metrics_data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span>
                 <span class="n">ax</span><span class="p">,</span>
-                <span class="s2">&quot;Complexity Radar Chart&quot;</span><span class="p">,</span>
+                <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Complexity Radar Chart&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;Insufficient data for radar chart</span><span class="se">\n</span><span class="s2">(need at least 3 metrics)&quot;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
@@ -512,7 +516,10 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">angles</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Complexity Metrics Radar Chart&quot;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="c1"># Use custom title logic</span>
+        <span class="n">final_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Complexity Metrics Radar Chart&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">final_title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">final_title</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 
         <span class="c1"># Add grid</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -533,6 +540,7 @@
         <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">fig_ax_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot circuit efficiency and utilization metrics.&quot;&quot;&quot;</span>
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">is_override</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_plot_axes</span><span class="p">(</span><span class="n">fig_ax_override</span><span class="p">)</span>
@@ -554,7 +562,9 @@
                 <span class="n">efficiency_data</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexity_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">efficiency_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s2">&quot;Efficiency Metrics&quot;</span><span class="p">,</span> <span class="s2">&quot;No efficiency metrics available&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_no_data_message</span><span class="p">(</span>
+                <span class="n">ax</span><span class="p">,</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Efficiency Metrics&quot;</span><span class="p">,</span> <span class="s2">&quot;No efficiency metrics available&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_plot</span><span class="p">(</span>
                 <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
                 <span class="n">is_override</span><span class="o">=</span><span class="n">is_override</span><span class="p">,</span>
@@ -566,7 +576,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_bar_plot_with_labels</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">efficiency_data</span><span class="p">,</span>
             <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Circuit Efficiency Metrics&quot;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;Circuit Efficiency Metrics&quot;</span><span class="p">,</span>
             <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;Metrics&quot;</span><span class="p">,</span>
             <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span>
             <span class="n">value_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -583,10 +593,16 @@
 
 <div class="viewcode-block" id="ComplexityVisualizer.create_dashboard">
 <a class="viewcode-back" href="../../../apidocs/visualization_strategies.html#qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer.create_dashboard">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a comprehensive dashboard with all ComplexityMetrics plots.&quot;&quot;&quot;</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics Analysis Dashboard&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+        <span class="c1"># Use custom title logic for dashboard</span>
+        <span class="n">final_title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_final_title</span><span class="p">(</span><span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;ComplexityMetrics Analysis Dashboard&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">final_title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">final_title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
         <span class="c1"># Create a 2x2 grid</span>
         <span class="n">gs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
