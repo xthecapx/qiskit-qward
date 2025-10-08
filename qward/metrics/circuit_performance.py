@@ -26,7 +26,7 @@ from qward.metrics.types import MetricsType, MetricsId
 
 # Import schemas for structured data validation
 try:
-    from qward.metrics.schemas import (
+    from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
         SuccessMetricsSchema,
         FidelityMetricsSchema,
