@@ -18,7 +18,7 @@ from qiskit import QuantumCircuit
 from qward.metrics.qiskit_metrics import QiskitMetrics
 
 if TYPE_CHECKING:
-    from qward.metrics.schemas import QiskitMetricsSchema
+    from qward.schemas.qiskit_metrics_schema import QiskitMetricsSchema
 
 
 def create_example_circuit() -> QuantumCircuit:

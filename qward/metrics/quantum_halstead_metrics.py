@@ -36,7 +36,8 @@ from qward.metrics.types import MetricsType, MetricsId
 
 # Import schemas for structured data validation
 try:
-    from qward.metrics.schemas import QuantumHalsteadMetricsSchema
+    from qward.schemas.quantum_halstead_metrics_schema \
+    import QuantumHalsteadMetricsSchema
     SCHEMAS_AVAILABLE = True
 except ImportError:
     SCHEMAS_AVAILABLE = False

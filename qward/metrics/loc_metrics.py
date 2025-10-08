@@ -16,7 +16,7 @@ from typing import Any, Optional, Set
 
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
-from qward.metrics.schemas import LocMetricsSchema
+from qward.schemas.loc_metrics_schema import LocMetricsSchema
 
 
 class LocMetrics(MetricCalculator):

@@ -6,7 +6,7 @@ from qiskit import QuantumCircuit
 from qiskit.circuit.library.basis_change import QFTGate
 
 from qward.metrics import ComplexityMetrics
-from qward.metrics.schemas import ComplexityMetricsSchema
+from qward.schemas.complexity_metrics_schema import ComplexityMetricsSchema
 from qward.metrics.types import MetricsType, MetricsId
 
 
