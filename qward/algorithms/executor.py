@@ -206,6 +206,7 @@ class QuantumCircuitExecutor:
         circuit: QuantumCircuit,
         *,
         success_criteria=None,
+        expected_distribution=None,
         show_results: bool = False,
         noise_model: Union[str, NoiseModel, None] = None,
         noise_level: float = 0.05,
@@ -215,6 +216,7 @@ class QuantumCircuitExecutor:
         Args:
             circuit: The quantum circuit to simulate
             success_criteria: Optional function to define success criteria for CircuitPerformanceMetrics
+            expected_distribution: Optional expected probability distribution for fidelity calculation
             show_results: If True, display visualizations of the results using qward
             noise_model: Noise model configuration. Can be:
                 - None: No noise (default)
@@ -252,7 +254,12 @@ class QuantumCircuitExecutor:
                     data[key] = result_data[key]
 
         # Get comprehensive metrics using qward
-        scanner = self._create_scanner(circuit, job=job, success_criteria=success_criteria)
+        scanner = self._create_scanner(
+            circuit,
+            job=job,
+            success_criteria=success_criteria,
+            expected_distribution=expected_distribution,
+        )
         metrics_data = scanner.calculate_metrics()
         data["qward_metrics"] = metrics_data
 
@@ -263,7 +270,7 @@ class QuantumCircuitExecutor:
         return data
 
     def get_circuit_metrics(
-        self, circuit: QuantumCircuit, job=None, success_criteria=None
+        self, circuit: QuantumCircuit, job=None, success_criteria=None, expected_distribution=None
     ) -> Dict[str, pd.DataFrame]:
         """Extract comprehensive metrics from a quantum circuit using qward.
 
@@ -271,20 +278,29 @@ class QuantumCircuitExecutor:
             circuit: The quantum circuit to analyze
             job: Optional job result for performance metrics
             success_criteria: Optional function to define success criteria
+            expected_distribution: Optional expected probability distribution for fidelity calculation
 
         Returns:
             Dictionary containing qward metric DataFrames
         """
-        scanner = self._create_scanner(circuit, job=job, success_criteria=success_criteria)
+        scanner = self._create_scanner(
+            circuit,
+            job=job,
+            success_criteria=success_criteria,
+            expected_distribution=expected_distribution,
+        )
         return scanner.calculate_metrics()
 
-    def _create_scanner(self, circuit: QuantumCircuit, job=None, success_criteria=None) -> Scanner:
+    def _create_scanner(
+        self, circuit: QuantumCircuit, job=None, success_criteria=None, expected_distribution=None
+    ) -> Scanner:
         """Create a Scanner with appropriate metrics strategies.
 
         Args:
             circuit: The quantum circuit to analyze
             job: Optional job result for performance metrics
             success_criteria: Optional function to define success criteria
+            expected_distribution: Optional expected probability distribution for fidelity calculation
 
         Returns:
             Configured Scanner instance
@@ -299,7 +315,10 @@ class QuantumCircuitExecutor:
         # Add performance metrics if job is available
         if job is not None:
             circuit_performance = CircuitPerformanceMetrics(
-                circuit=circuit, job=job, success_criteria=success_criteria
+                circuit=circuit,
+                job=job,
+                success_criteria=success_criteria,
+                expected_distribution=expected_distribution,
             )
             scanner.add_strategy(circuit_performance)
 
@@ -358,7 +377,7 @@ class QuantumCircuitExecutor:
 
         try:
             # Create visualizer from scanner (following qward examples)
-            visualizer = Visualizer(scanner=scanner, output_dir="qward/examples/img")
+            visualizer = Visualizer(scanner=scanner, output_dir="img")
 
             # Print available metrics (like in the examples)
             visualizer.print_available_metrics()
