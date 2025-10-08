@@ -5,7 +5,7 @@ from qiskit import QuantumCircuit
 from qiskit.circuit.library.basis_change import QFTGate
 
 from qward.metrics.qiskit_metrics import QiskitMetrics
-from qward.metrics.schemas import QiskitMetricsSchema
+from qward.schemas.qiskit_metrics_schema import QiskitMetricsSchema
 from qward.metrics.types import MetricsType, MetricsId
 
 
