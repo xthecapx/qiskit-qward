@@ -127,11 +127,9 @@ class TestIntegration(unittest.TestCase):
         performance_schema = performance_metrics.get_metrics()
 
         # 3. Verify schema types
-        from qward.metrics.schemas import (
-            QiskitMetricsSchema,
-            ComplexityMetricsSchema,
-            CircuitPerformanceSchema,
-        )
+        from qward.schemas.qiskit_metrics_schema import QiskitMetricsSchema
+        from qward.schemas.complexity_metrics_schema import ComplexityMetricsSchema
+        from qward.schemas.circuit_performance_schema import CircuitPerformanceSchema
 
         self.assertIsInstance(qiskit_schema, QiskitMetricsSchema)
         self.assertIsInstance(complexity_schema, ComplexityMetricsSchema)
