@@ -115,6 +115,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot gate-based complexity metrics."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -133,7 +134,9 @@ class ComplexityVisualizer(VisualizationStrategy):
         )
 
         if not gate_data:
-            self._show_no_data_message(ax, "Gate-Based Metrics", "No gate-based metrics available")
+            self._show_no_data_message(
+                ax, title or "Gate-Based Metrics", "No gate-based metrics available"
+            )
             return self._finalize_plot(
                 fig=fig,
                 is_override=is_override,
@@ -145,7 +148,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=gate_data,
             ax=ax,
-            title="Gate-Based Complexity Metrics",
+            title=title or "Gate-Based Complexity Metrics",
             xlabel="Metrics",
             ylabel="Count",
             value_format="int",
@@ -164,6 +167,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot complexity metrics as a radar chart."""
         if fig_ax_override:
@@ -214,7 +218,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         if len(metrics_data) < 3:
             self._show_no_data_message(
                 ax,
-                "Complexity Radar Chart",
+                title or "Complexity Radar Chart",
                 "Insufficient data for radar chart\n(need at least 3 metrics)",
             )
             return self._finalize_plot(
@@ -247,7 +251,10 @@ class ComplexityVisualizer(VisualizationStrategy):
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories)
         ax.set_ylim(0, 1)
-        ax.set_title("Complexity Metrics Radar Chart", pad=20)
+        # Use custom title logic
+        final_title = self._get_final_title(title or "Complexity Metrics Radar Chart")
+        if final_title is not None:
+            ax.set_title(final_title, pad=20)
 
         # Add grid
         ax.grid(True)
@@ -265,6 +272,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot circuit efficiency and utilization metrics."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -286,7 +294,9 @@ class ComplexityVisualizer(VisualizationStrategy):
                 efficiency_data[metric_name] = self.complexity_df[col].iloc[0]
 
         if not efficiency_data:
-            self._show_no_data_message(ax, "Efficiency Metrics", "No efficiency metrics available")
+            self._show_no_data_message(
+                ax, title or "Efficiency Metrics", "No efficiency metrics available"
+            )
             return self._finalize_plot(
                 fig=fig,
                 is_override=is_override,
@@ -298,7 +308,7 @@ class ComplexityVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=efficiency_data,
             ax=ax,
-            title="Circuit Efficiency Metrics",
+            title=title or "Circuit Efficiency Metrics",
             xlabel="Metrics",
             ylabel="Value",
             value_format="{:.3f}",
@@ -312,10 +322,16 @@ class ComplexityVisualizer(VisualizationStrategy):
             filename="complexity_efficiency_metrics",
         )
 
-    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
+    def create_dashboard(
+        self, save: bool = False, show: bool = False, title: Optional[str] = None
+    ) -> plt.Figure:
         """Creates a comprehensive dashboard with all ComplexityMetrics plots."""
         fig = plt.figure(figsize=(14, 10))
-        fig.suptitle("ComplexityMetrics Analysis Dashboard", fontsize=16)
+
+        # Use custom title logic for dashboard
+        final_title = self._get_final_title(title or "ComplexityMetrics Analysis Dashboard")
+        if final_title is not None:
+            fig.suptitle(final_title, fontsize=16)
 
         # Create a 2x2 grid
         gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
