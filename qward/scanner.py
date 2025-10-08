@@ -114,7 +114,7 @@ class Scanner:
 
         for strategy in self.strategies:
             metric_results = strategy.get_metrics()
-            metric_name = strategy.id or strategy.__class__.__name__
+            metric_name = strategy.__class__.__name__
 
             if metric_name == "CircuitPerformanceMetrics":
                 self._process_circuit_performance_metrics(
