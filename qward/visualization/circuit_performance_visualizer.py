@@ -139,6 +139,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot success vs error rates for individual jobs."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -161,7 +162,11 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             alpha=self.config.alpha,
         )
 
-        ax.set_title("Success vs Error Rates by Job")
+        # Use custom title logic
+        final_title = self._get_final_title(title or "Success vs Error Rates by Job")
+        if final_title is not None:
+            ax.set_title(final_title)
+
         ax.set_xlabel("Jobs")
         ax.set_ylabel("Rate")
         ax.legend(["Success Rate", "Error Rate"])
@@ -179,6 +184,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot fidelity comparison across jobs."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -191,7 +197,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=fidelity_data,
             ax=ax,
-            title="Fidelity by Job",
+            title=title or "Fidelity by Job",
             xlabel="Jobs",
             ylabel="Fidelity",
             value_format="{:.3f}",
@@ -206,6 +212,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot shot distribution (successful vs failed) as stacked bars."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -230,7 +237,11 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             alpha=self.config.alpha,
         )
 
-        ax.set_title("Shot Distribution by Job")
+        # Use custom title logic
+        final_title = self._get_final_title(title or "Shot Distribution by Job")
+        if final_title is not None:
+            ax.set_title(final_title)
+
         ax.set_xlabel("Jobs")
         ax.set_ylabel("Number of Shots")
         ax.legend(["Successful Shots", "Failed Shots"])
@@ -251,6 +262,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot aggregate statistics summary."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -284,7 +296,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=aggregate_data,
             ax=ax,
-            title="Aggregate Statistics Summary",
+            title=title or "Aggregate Statistics Summary",
             xlabel="Statistics",
             ylabel="Value",
             value_format="{:.3f}",
@@ -299,12 +311,18 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             fig=fig, is_override=is_override, save=save, show=show, filename="aggregate_statistics"
         )
 
-    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
+    def create_dashboard(
+        self, save: bool = False, show: bool = False, title: Optional[str] = None
+    ) -> plt.Figure:
         """Create a comprehensive dashboard with all CircuitPerformance plots."""
         if self.aggregate_df is not None and not self.aggregate_df.empty:
             # Full dashboard with 4 plots
             fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-            fig.suptitle("CircuitPerformance Analysis Dashboard", fontsize=16)
+
+            # Use custom title logic for dashboard
+            final_title = self._get_final_title(title or "CircuitPerformance Analysis Dashboard")
+            if final_title is not None:
+                fig.suptitle(final_title, fontsize=16)
 
             # Create each plot on its designated axes
             self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
@@ -314,7 +332,13 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         else:
             # Limited dashboard with 3 plots (no separate aggregate plot needed)
             fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
-            fig.suptitle("CircuitPerformance Analysis Dashboard (Single Job)", fontsize=16)
+
+            # Use custom title logic for single job dashboard
+            final_title = self._get_final_title(
+                title or "CircuitPerformance Analysis Dashboard (Single Job)"
+            )
+            if final_title is not None:
+                fig.suptitle(final_title, fontsize=16)
 
             # Create each plot on its designated axes
             self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
