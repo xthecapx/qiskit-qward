@@ -18,6 +18,7 @@ import math
 from typing import Dict, Set, Any, List, Tuple
 
 from qiskit import QuantumCircuit
+from qiskit.converters import circuit_to_dag
 from qiskit.circuit import Gate, Instruction
 
 from qward.metrics import types
@@ -69,7 +70,7 @@ MULTI_QUBIT_GATES = {
 }
 
 # Oracle gates (custom gates that represent oracles)
-ORACLE_GATES = {"oracle", "black_box", "unitary", "custom"}
+ORACLE_GATES = {"oracle", "black_box", "unitary", "custom", "phase_oracle", "grover_oracle"}
 
 # Measurement gates
 MEASUREMENT_GATES = {"measure", "reset"}
@@ -86,6 +87,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
     as defined in the paper "Towards a Set of Metrics for Quantum Circuits
     Understandability" by Cruz-Lemus et al.
     """
+
     @property 
     def id(self):
         return types.MetricsId.QC_UNDERSTANDABILITY.value
@@ -98,6 +100,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
             circuit: The quantum circuit to analyze
         """
         super().__init__(circuit)
+        self._circuit_dag = circuit_to_dag(circuit) if circuit else None
         self._ensure_schemas_available()
 
     def _get_metric_type(self) -> MetricsType:
@@ -149,8 +152,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         # Calculate basic structure metrics
         width = self.circuit.num_qubits
         depth = self.circuit.depth()
-        max_dens = self._calculate_max_density()
-        avg_dens = self._calculate_avg_density()
+        max_dens, avg_dens = self._calculate_circuit_density()
         
         # Calculate Pauli gate metrics
         no_p_x = gate_counts.get("x", 0)
@@ -193,7 +195,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         # Measurement and ancilla metrics
         no_qm = measurement_analysis["measured_qubits"]
         percent_qm = measurement_analysis["measured_ratio"]
-        percent_anc = self._calculate_ancilla_ratio()
+        percent_anc = len(self.circuit.ancillas) / self.circuit.num_qubits
 
 
         return QCUnderstandabilityMetricsSchema(
@@ -273,51 +275,71 @@ class QCUnderstandabilityMetrics(MetricCalculator):
 
     def _analyze_oracles(self) -> Dict[str, Any]:
         """
-        Analyze oracle usage in the circuit.
-        
+        Analiza el uso de oráculos en el circuito.
+
         Returns:
-            Dict[str, Any]: Dictionary with oracle analysis results
+            Dict[str, Any]: métricas de análisis de oráculos.
         """
+
+        def _is_oracle_gate(instr: Instruction) -> bool:
+            """Verifica si una instrucción o su definición interna representa un oráculo."""
+            name = getattr(instr, "name", "").lower()
+
+            if any(key in name for key in ORACLE_GATES):
+                return True
+
+            class_name = instr.__class__.__name__.lower()
+            if any(key in class_name for key in ORACLE_GATES):
+                return True
+            
+            definition = getattr(instr, "definition", None)
+            if hasattr(definition, "data"): 
+                for sub_instr, _, _ in definition.data:
+                    if _is_oracle_gate(sub_instr):
+                        return True
+
+            return False
+
         oracles = 0
         controlled_oracles = 0
         oracle_qubits = set()
         controlled_oracle_qubits = set()
         oracle_depths = []
-        
-        for instruction in self.circuit.data:
-            gate_name = instruction.operation.name.lower()
-            
-            # Check if it's an oracle (custom gate or named oracle)
-            if (gate_name in ORACLE_GATES or 
-                "oracle" in gate_name or 
-                "black_box" in gate_name or
-                isinstance(instruction.operation, Gate) and instruction.operation.num_qubits > 2):
-                
-                qubits = [self.circuit.find_bit(q).index for q in instruction.qubits]
+
+        # --- Iterar sobre las instrucciones del circuito ---
+        for instr, qargs, cargs in self.circuit.data:
+            gate_name = instr.name.lower()
+
+            # Ignorar operaciones no unitarias
+            if gate_name in {"measure", "barrier", "reset", "delay"}:
+                continue
+
+            if _is_oracle_gate(instr):
+                qubits = [self.circuit.find_bit(q).index for q in qargs]
                 oracle_qubits.update(qubits)
-                
-                # Check if it's controlled
-                if (gate_name.startswith("c") or gate_name.startswith("mc") or
-                    len(instruction.qubits) > 2):
+
+                # Distinguir entre oráculos controlados y simples
+                if gate_name.startswith(("c", "mc")) or len(qargs) > 2:
                     controlled_oracles += 1
                     controlled_oracle_qubits.update(qubits)
                 else:
                     oracles += 1
-                
-                # Estimate oracle depth (simplified)
-                oracle_depths.append(len(instruction.qubits))
-        
+
+                # Profundidad estimada (como proxy)
+                oracle_depths.append(len(qargs))
+
+        # --- Métricas finales ---
         total_qubits = self.circuit.num_qubits
-        qubit_ratio = len(oracle_qubits) / total_qubits if total_qubits > 0 else 0.0
-        controlled_qubit_ratio = len(controlled_oracle_qubits) / total_qubits if total_qubits > 0 else 0.0
-        
+        qubit_ratio = len(oracle_qubits) / total_qubits if total_qubits else 0.0
+        controlled_qubit_ratio = len(controlled_oracle_qubits) / total_qubits if total_qubits else 0.0
+
         return {
             "oracles": oracles,
             "controlled_oracles": controlled_oracles,
             "qubit_ratio": qubit_ratio,
             "controlled_qubit_ratio": controlled_qubit_ratio,
             "avg_depth": sum(oracle_depths) / len(oracle_depths) if oracle_depths else 0.0,
-            "max_depth": max(oracle_depths) if oracle_depths else 0
+            "max_depth": max(oracle_depths) if oracle_depths else 0,
         }
 
     def _analyze_measurements(self) -> Dict[str, Any]:
@@ -342,20 +364,30 @@ class QCUnderstandabilityMetrics(MetricCalculator):
             "measured_ratio": measured_ratio
         }
 
-    def _calculate_max_density(self) -> int:
+    def _calculate_circuit_density(self) -> int:
         """
         Calculate the maximum number of operations applied to any qubit.
         
         Returns:
             int: Maximum density
         """
-        qubit_operations = {i: 0 for i in range(self.circuit.num_qubits)}
-        
-        for instruction in self.circuit.data:
-            for qubit in instruction.qubits:
-                qubit_operations[self.circuit.find_bit(qubit).index] += 1
-        
-        return max(qubit_operations.values()) if qubit_operations else 0
+        layer_densities = []
+
+        for layer in self._circuit_dag.layers():
+            ops = [
+                node for node in layer['graph'].op_nodes()
+                if node.op.name not in ["measure", "barrier", "reset"]    
+            ]
+            
+            layer_densities.append(len(ops))
+
+        if not layer_densities:
+            return 0, 0
+
+        max_dens = max(layer_densities)
+        avg_dens = sum(layer_densities) / len(layer_densities)
+        print("Densities per layer:", layer_densities)
+        return max_dens, avg_dens
 
     def _calculate_avg_density(self) -> float:
         """
@@ -494,7 +526,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
                     qubit_cnot_counts[self.circuit.find_bit(qubit).index] += 1
         
         counts = list(qubit_cnot_counts.values())
-        avg_cnot = sum(counts) / len(counts) if counts else 0.0
+        avg_cnot = sum(counts) / self.circuit.num_qubits if counts else 0.0
         max_cnot = max(counts) if counts else 0
         
         return avg_cnot, max_cnot
@@ -525,18 +557,19 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         Returns:
             Tuple[float, int]: (average_toffoli, max_toffoli)
         """
-        qubit_toffoli_counts = {i: 0 for i in range(self.circuit.num_qubits)}
-        
-        for instruction in self.circuit.data:
-            if instruction.operation.name == "ccx":
-                for qubit in instruction.qubits:
-                    qubit_toffoli_counts[self.circuit.find_bit(qubit).index] += 1
-        
-        counts = list(qubit_toffoli_counts.values())
-        avg_toffoli = sum(counts) / len(counts) if counts else 0.0
-        max_toffoli = max(counts) if counts else 0
-        
-        return avg_toffoli, max_toffoli
+        num_qubits = self.circuit.num_qubits
+        toffoli_counts = [0] * num_qubits
+
+        for instr, qargs, _ in self.circuit.data:
+            if instr.name.lower() in {"ccx", "toffoli"}:
+                target_qubit = qargs[-1]
+                target_index = self.circuit.find_bit(target_qubit).index
+                toffoli_counts[target_index] += 1
+
+        avg_toff = sum(toffoli_counts) / num_qubits if num_qubits else 0
+        max_toff = max(toffoli_counts) if toffoli_counts else 0
+
+        return (avg_toff, max_toff)
 
     def _count_total_gates(self, gate_counts: Dict[str, int]) -> int:
         """
@@ -549,36 +582,6 @@ class QCUnderstandabilityMetrics(MetricCalculator):
             int: Total number of gates
         """
         return sum(gate_counts.values())
-
-    def _calculate_ancilla_ratio(self) -> float:
-        """
-        Calculate the ratio of ancilla (auxiliary) qubits.
-        
-        Returns:
-            float: Ratio of ancilla qubits
-        """
-        if self.circuit.num_qubits == 0:
-            return 0.0
-        
-        # Get measured qubits
-        measured_qubits = set()
-        for instruction in self.circuit.data:
-            if instruction.operation.name == "measure":
-                for qubit in instruction.qubits:
-                    measured_qubits.add(self.circuit.find_bit(qubit).index)
-        
-        # Count operations per qubit
-        qubit_operations = {i: 0 for i in range(self.circuit.num_qubits)}
-        for instruction in self.circuit.data:
-            for qubit in instruction.qubits:
-                qubit_operations[self.circuit.find_bit(qubit).index] += 1
-        
-        # Calculate average operations
-        total_operations = sum(qubit_operations.values())
-        avg_operations = total_operations / self.circuit.num_qubits if self.circuit.num_qubits > 0 else 0
-        
-                
-        return len(self.circuit.ancillas) / self.circuit.num_qubits
 
     def _ensure_schemas_available(self):
         """
