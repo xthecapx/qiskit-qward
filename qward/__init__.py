@@ -15,6 +15,7 @@ from qward.metrics import (
     LocMetrics,
     QuantumHalsteadMetrics,
     QCUnderstandabilityMetrics,
+    BehavioralMetrics,
     get_default_strategies,
 )
 from qward.visualization import Visualizer
@@ -31,6 +32,7 @@ __all__ = [
     "LocMetrics",
     "QuantumHalsteadMetrics",
     "QCUnderstandabilityMetrics",
+    "BehavioralMetrics",
     "Scanner",
     "Visualizer",
     "get_default_strategies",
