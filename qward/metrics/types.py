@@ -16,6 +16,7 @@ class MetricsId(Enum):
     LOC = "LOC"
     QUANTUM_HALSTEAD = "QUANTUM_HALSTEAD"
     QC_UNDERSTANDABILITY = "QC_UNDERSTANDABILITY"
+    BEHAVIORAL = "BEHAVIORAL"
 
 
 class MetricsType(Enum):

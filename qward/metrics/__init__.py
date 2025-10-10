@@ -10,6 +10,7 @@ from qward.metrics.circuit_performance import CircuitPerformanceMetrics
 from qward.metrics.loc_metrics import LocMetrics
 from qward.metrics.quantum_halstead_metrics import QuantumHalsteadMetrics
 from qward.metrics.qc_understandability_metrics import QCUnderstandabilityMetrics
+from qward.metrics.behavioral_metrics import BehavioralMetrics
 from qward.metrics.defaults import get_default_strategies
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "LocMetrics",
     "QuantumHalsteadMetrics",
     "QCUnderstandabilityMetrics",
+    "BehavioralMetrics",
     "MetricCalculator",
     "get_default_strategies",
 ]
