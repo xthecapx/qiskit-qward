@@ -1,22 +1,30 @@
 """
 Behavioral Metrics implementation for QWARD.
 
-This module provides the BehavioralMetrics class for analyzing quantum circuit
-execution patterns and behavioral characteristics, including:
+This module provides the BehavioralMetrics class for analyzing quantum circuit 
+execution patterns and behavioral characteristics from a static circuit analysis, 
+including:
 
-- Normalized Depth: Circuit depth after transpilation to canonical gate set
-- Program Communication: Communication requirements based on interaction graph
-- Critical-Depth: Two-qubit operations on critical path analysis
-- Measurement: Mid-circuit measurement and reset operations
-- Liveness: Qubit activity patterns during execution
-- Parallelism: Cross-talk susceptibility analysis
+- Normalized Depth: Circuit depth after transpilation to canonical gate set [1]
+- Program Communication: Communication requirements based on interaction graph [2]
+- Critical-Depth: Two-qubit operations on critical path analysis [2]
+- Measurement: Mid-circuit measurement and reset operations [2]
+- Liveness: Qubit activity patterns during execution [2]
+- Parallelism: Cross-talk susceptibility analysis [2]
 
-These metrics provide insights into circuit behavior during execution and
-help assess hardware mapping requirements and performance characteristics.
+
+[1] T. Lubinski et al., "Application-Oriented Performance Benchmarks for 
+Quantum Computing," in IEEE Transactions on Quantum Engineering, vol. 4, 
+pp. 1-32, 2023, Art no. 3100332, doi: 10.1109/TQE.2023.3253761.
+
+[2] T. Tomesh, P. Gokhale, V. Omole, G. S. Ravi, K. N. Smith, J. Viszlai, 
+X.-C. Wu, N. Hardavellas, M. R. Martonosi y F. T. Chong, “SupermarQ: A scalable 
+quantum benchmark suite,” in Proc. 2022 IEEE International Symposium on 
+High-Performance Computer Architecture (HPCA), 2022, doi: 
+10.1109/HPCA53966.2022.00050.
+
 """
 
-import math
-from typing import Dict, Set, Any, List, Tuple, Optional
 import networkx as nx
 
 from qiskit import QuantumCircuit, transpile
