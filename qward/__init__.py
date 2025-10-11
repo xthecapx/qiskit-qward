@@ -15,6 +15,7 @@ from qward.metrics import (
     LocMetrics,
     QuantumHalsteadMetrics,
     ElementMetrics,
+    StructuralMetrics,
     BehavioralMetrics,
     get_default_strategies,
 )
@@ -32,6 +33,7 @@ __all__ = [
     "LocMetrics",
     "QuantumHalsteadMetrics",
     "ElementMetrics",
+    "StructuralMetrics",
     "BehavioralMetrics",
     "Scanner",
     "Visualizer",
