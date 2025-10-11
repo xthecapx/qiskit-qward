@@ -2,23 +2,17 @@ from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-class QCUnderstandabilityMetricsSchema(BaseModel):
+class ElementMetricsSchema(BaseModel):
     """
-    Schema for Quantum Software Quality Metrics from the paper:
-    "Quantum Software Quality Metrics" by José A. Cruz-Lemus, Moisés Rodríguez, 
-    Raúl Barba-Rojas, and Mario Piattini.
+    Schema for Quantum Element Metrics.
     
-    This schema validates comprehensive metrics for analyzing quantum circuit quality
-    including circuit structure, gate distribution, and oracle analysis.
+    This schema validates comprehensive metrics for analyzing quantum circuit elements
+    including gate distribution, oracle analysis, and measurement patterns.
     """
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "width": 5,
-                "depth": 8,
-                "max_dens": 12,
-                "avg_dens": 6.4,
                 "no_p_x": 2,
                 "no_p_y": 1,
                 "no_p_z": 0,
@@ -53,12 +47,6 @@ class QCUnderstandabilityMetricsSchema(BaseModel):
             }
         }
     )
-
-    # Circuit structure metrics
-    width: int = Field(..., ge=0, description="Number of qubits in the circuit")
-    depth: int = Field(..., ge=0, description="Maximum number of operations applied to a qubit in the circuit")
-    max_dens: int = Field(..., ge=0, description="Maximum number of operations applied to the qubits")
-    avg_dens: float = Field(..., ge=0.0, description="Average number of operations applied to the qubits")
     
     # Pauli gate metrics
     no_p_x: int = Field(..., ge=0, description="Number of Pauli-X gates (NOT)")
@@ -158,7 +146,7 @@ class QCUnderstandabilityMetricsSchema(BaseModel):
         return self.model_dump()  # pylint: disable=no-member
 
     @classmethod
-    def from_flat_dict(cls, data: Dict[str, Any]) -> "QCUnderstandabilityMetricsSchema":
+    def from_flat_dict(cls, data: Dict[str, Any]) -> "ElementMetricsSchema":
         """
         Create a schema instance from a flat dictionary.
         
@@ -166,6 +154,6 @@ class QCUnderstandabilityMetricsSchema(BaseModel):
             data: Flat dictionary with metric values
             
         Returns:
-            QCUnderstandabilityMetricsSchema: Schema instance
+            ElementMetricsSchema: Schema instance
         """
         return cls(**data)
