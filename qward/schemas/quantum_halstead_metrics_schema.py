@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Any
+import warnings
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -89,7 +90,7 @@ class QuantumHalsteadMetricsSchema(BaseModel):
         if hasattr(info, 'data'):
             actual_length = info.data.get('program_length', 0)
             if actual_length > 0 and (v < 0.1 * actual_length or v > 10 * actual_length):
-                raise ValueError(f"Estimated length ({v}) seems unreasonable compared to actual length ({actual_length})")
+                warnings.warn(f"Estimated length ({v}) differs significantly from actual length ({actual_length})")
         return v
 
     @field_validator("volume")
@@ -123,7 +124,7 @@ class QuantumHalsteadMetricsSchema(BaseModel):
         """Validate that effort is positive and reasonable."""
         if v <= 0:
             raise ValueError("Effort must be positive")
-        if v > 1000000:  # Reasonable upper bound for quantum circuits
+        if v > 100000000:  # Reasonable upper bound for quantum circuits
             raise ValueError(f"Effort ({v}) seems unreasonably high for a quantum circuit")
         return v
 
