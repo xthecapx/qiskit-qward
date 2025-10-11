@@ -14,7 +14,7 @@ from qward.metrics import (
     CircuitPerformanceMetrics,
     LocMetrics,
     QuantumHalsteadMetrics,
-    QCUnderstandabilityMetrics,
+    ElementMetrics,
     BehavioralMetrics,
     get_default_strategies,
 )
@@ -31,7 +31,7 @@ __all__ = [
     "CircuitPerformanceMetrics",
     "LocMetrics",
     "QuantumHalsteadMetrics",
-    "QCUnderstandabilityMetrics",
+    "ElementMetrics",
     "BehavioralMetrics",
     "Scanner",
     "Visualizer",

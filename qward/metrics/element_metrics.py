@@ -1,7 +1,7 @@
 """
 Quantum Software Quality Metrics implementation for QWARD.
 
-This module provides the QCUnderstandabilityMetrics class for analyzing quantum circuits
+This module provides the ElementMetrics class for analyzing quantum circuits
 and extracting comprehensive quality metrics as defined in the paper:
 
 [ ] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, "Towards a set of metrics for 
@@ -14,12 +14,12 @@ Technology. QUATIC 2021 (Communications in Computer and Information Science, vol
 These metrics provide detailed analysis of quantum circuit structure, gate distribution,
 and oracle usage patterns for quality assessment and comparison.
 """
-import math
-from typing import Dict, Set, Any, List, Tuple
+
+from typing import Dict, Any, Tuple
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag
-from qiskit.circuit import Gate, Instruction
+from qiskit.circuit import Instruction
 
 from qward.metrics import types
 from qward.metrics.base_metric import MetricCalculator
@@ -27,8 +27,7 @@ from qward.metrics.types import MetricsType, MetricsId
 
 # Import schemas for structured data validation
 try:
-    from qward.schemas.qc_understandability_metrics_schema \
-    import QCUnderstandabilityMetricsSchema
+    from qward.schemas.element_metrics_schema import ElementMetricsSchema
     SCHEMAS_AVAILABLE = True
 except ImportError:
     SCHEMAS_AVAILABLE = False
@@ -79,22 +78,21 @@ MEASUREMENT_GATES = {"measure", "reset"}
 IGNORED_GATES = {"barrier", "delay", "snapshot", "save", "initialize", "finalize"}
 
 
-class QCUnderstandabilityMetrics(MetricCalculator):
+class ElementMetrics(MetricCalculator):
     """
-    Quantum Software Quality Metrics calculator for QWARD.
+    Quantum Element Metrics calculator for QWARD.
     
-    This class implements comprehensive quality metrics for quantum circuits
-    as defined in the paper "Towards a Set of Metrics for Quantum Circuits
-    Understandability" by Cruz-Lemus et al.
+    This class implements element-based metrics for quantum circuits
+    focusing on gate distribution, oracle usage patterns, and measurement analysis.
     """
 
     @property 
     def id(self):
-        return types.MetricsId.QC_UNDERSTANDABILITY.value
+        return types.MetricsId.ELEMENT.value
 
     def __init__(self, circuit: QuantumCircuit):
         """
-        Initialize the QCUnderstandabilityMetrics calculator.
+        Initialize the ElementMetrics calculator.
         
         Args:
             circuit: The quantum circuit to analyze
@@ -117,9 +115,9 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         Get the ID of this metric.
         
         Returns:
-            MetricsId: QC_UNDERSTANDABILITY
+            MetricsId: ELEMENT
         """
-        return MetricsId.QC_UNDERSTANDABILITY
+        return MetricsId.ELEMENT
 
     def is_ready(self) -> bool:
         """
@@ -130,29 +128,24 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         """
         return self.circuit is not None
 
-    def get_metrics(self) -> QCUnderstandabilityMetricsSchema:
+    def get_metrics(self) -> ElementMetricsSchema:
         """
-        Calculate and return quantum software quality metrics.
+        Calculate and return quantum element metrics.
         
         Returns:
-            QCUnderstandabilityMetricsSchema: Validated schema with all metrics
+            ElementMetricsSchema: Validated schema with all metrics
             
         Raises:
             ImportError: If schemas are not available
         """
         if not SCHEMAS_AVAILABLE:
-            raise ImportError("QuantumSoftwareQualityMetricsSchema is not available")
+            raise ImportError("ElementMetricsSchema is not available")
 
         # Analyze the circuit to extract all metrics
         gate_counts = self._count_gates()
         qubit_analysis = self._analyze_qubits()
         oracle_analysis = self._analyze_oracles()
         measurement_analysis = self._analyze_measurements()
-        
-        # Calculate basic structure metrics
-        width = self.circuit.num_qubits
-        depth = self.circuit.depth()
-        max_dens, avg_dens = self._calculate_circuit_density()
         
         # Calculate Pauli gate metrics
         no_p_x = gate_counts.get("x", 0)
@@ -197,12 +190,7 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         percent_qm = measurement_analysis["measured_ratio"]
         percent_anc = len(self.circuit.ancillas) / self.circuit.num_qubits
 
-
-        return QCUnderstandabilityMetricsSchema(
-            width=width,
-            depth=depth,
-            max_dens=max_dens,
-            avg_dens=avg_dens,
+        return ElementMetricsSchema(
             no_p_x=no_p_x,
             no_p_y=no_p_y,
             no_p_z=no_p_z,
@@ -363,49 +351,6 @@ class QCUnderstandabilityMetrics(MetricCalculator):
             "measured_qubits": len(measured_qubits),
             "measured_ratio": measured_ratio
         }
-
-    def _calculate_circuit_density(self) -> int:
-        """
-        Calculate the maximum number of operations applied to any qubit.
-        
-        Returns:
-            int: Maximum density
-        """
-        layer_densities = []
-
-        for layer in self._circuit_dag.layers():
-            ops = [
-                node for node in layer['graph'].op_nodes()
-                if node.op.name not in ["measure", "barrier", "reset"]    
-            ]
-            
-            layer_densities.append(len(ops))
-
-        if not layer_densities:
-            return 0, 0
-
-        max_dens = max(layer_densities)
-        avg_dens = sum(layer_densities) / len(layer_densities)
-        print("Densities per layer:", layer_densities)
-        return max_dens, avg_dens
-
-    def _calculate_avg_density(self) -> float:
-        """
-        Calculate the average number of operations applied to qubits.
-        
-        Returns:
-            float: Average density
-        """
-        qubit_operations = {i: 0 for i in range(self.circuit.num_qubits)}
-        
-        for instruction in self.circuit.data:
-            for qubit in instruction.qubits:
-                qubit_operations[self.circuit.find_bit(qubit).index] += 1
-        
-        total_operations = sum(qubit_operations.values())
-        total_qubits = len(qubit_operations)
-        
-        return total_operations / total_qubits if total_qubits > 0 else 0.0
 
     def _calculate_superposition_ratio(self) -> float:
         """
@@ -592,7 +537,6 @@ class QCUnderstandabilityMetrics(MetricCalculator):
         """
         if not SCHEMAS_AVAILABLE:
             raise ImportError(
-                "QuantumSoftwareQualityMetricsSchema is not available. "
+                "ElementMetricsSchema is not available. "
                 "Please ensure that the schemas module is properly imported."
             )
-
