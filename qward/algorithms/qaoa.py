@@ -11,7 +11,7 @@ import networkx as nx
 import pandas as pd
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
-from ..metrics import LocMetrics, QuantumHalsteadMetrics, BehavioralMetrics, ElementMetrics
+from ..metrics import StructuralMetrics, BehavioralMetrics, ElementMetrics
 import os
 
 
@@ -60,18 +60,15 @@ def run_experiments(
                     "graph_id": gidx,
                     "edges": list(graph.edges())
                 }
-                # LOC
-                loc_metrics = LocMetrics(qc).get_metrics()
-                row.update({f"loc_{k}": v for k, v in loc_metrics.dict().items()})
-                # Halstead
-                halstead_metrics = QuantumHalsteadMetrics(qc).get_metrics()
-                row.update({f"halstead_{k}": v for k, v in halstead_metrics.dict().items()})
+                # Element
+                element_metrics = ElementMetrics(qc).get_metrics()
+                row.update({f"element_{k}": v for k, v in element_metrics.dict().items()})
+                # Structural
+                loc_metrics = StructuralMetrics(qc).get_metrics()
+                row.update({f"structural_{k}": v for k, v in loc_metrics.dict().items()})
                 # Behavioral
                 behavioral_metrics = BehavioralMetrics(qc).get_metrics()
                 row.update({f"behavioral_{k}": v for k, v in behavioral_metrics.dict().items()})
-                # Quantum Software Quality
-                quality_metrics = ElementMetrics(qc).get_metrics()
-                row.update({f"element_{k}": v for k, v in quality_metrics.dict().items()})
                 results.append(row)
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
