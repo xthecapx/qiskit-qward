@@ -63,7 +63,7 @@ class QuantumSpecificMetrics(MetricCalculator):
         self._ensure_schemas_available()
         self._torch_available = TORCH_AVAILABLE
         # Parámetros de optimización para métricas diferenciales
-        self._max_steps = 300
+        self._max_steps = 200
         self._lr = 0.05
         self._device = "cpu"
         self._use_trace_norm = False

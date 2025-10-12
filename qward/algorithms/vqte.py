@@ -10,7 +10,7 @@ import pandas as pd
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli
-from ..metrics import BehavioralMetrics, ElementMetrics, StructuralMetrics
+from ..metrics import BehavioralMetrics, ElementMetrics, StructuralMetrics, QuantumSpecificMetrics
 import os
 
 
@@ -110,6 +110,9 @@ def run_experiments(
                 # Behavioral
                 behavioral_metrics = BehavioralMetrics(qc).get_metrics()
                 row.update({f"behavioral_{k}": v for k, v in behavioral_metrics.dict().items()})
+                # Quantum Specific
+                quantum_specific_metrics = QuantumSpecificMetrics(qc).get_metrics()
+                row.update({f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()})
                 results.append(row)
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
