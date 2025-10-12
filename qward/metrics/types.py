@@ -16,6 +16,7 @@ class MetricsId(Enum):
     ELEMENT = "ELEMENT",
     STRUCTURAL = "STRUCTURAL"
     BEHAVIORAL = "BEHAVIORAL"
+    QUANTUM_SPECIFIC = "QUANTUM_SPECIFIC"
 
 
 class MetricsType(Enum):
