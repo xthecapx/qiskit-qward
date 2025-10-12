@@ -2,14 +2,35 @@
 Quantum Specific Metrics implementation for QWARD.
 
 This module provides the QuantumSpecificMetrics class that calculates:
-- %SpposQ: Ratio of qubits with a Hadamard gate as initial gate
-- Magic: Quantum magic measure (non-Cliffordness)
-- Coherence: Coherence power measure
-- Sensitivity: Circuit sensitivity measure
-- Entanglement-Ratio: Ratio of two-qubit interactions to total operations
+- %SpposQ: Ratio of qubits with a Hadamard gate as initial gate [3]
+- Magic: Evaluates the circuit’s non-Cliffordness or 'magic'—its
+distance from classically simulable (Clifford) circuits. [1]
+- Coherence: Measures how much quantum coherence (superposition)
+the circuit can generate from incoherent input states. [1]
+- Sensitivity: Quantifies the propagation of local perturbations
+within the circuit, reflecting its structural interdependence. [1]
+- Entanglement-Ratio: Ratio of two-qubit interactions to total operations [2]
 
 These metrics provide quantum-specific analysis focusing on quantum properties
 that are critical for quantum advantage and quantum computing performance.
+
+[1] K. Bu, R. J. Garcia, A. Jaffe, D. E. Koh y L. Li, “Complexity of quantum 
+circuits via sensitivity, magic, and coherence,” Communications in Mathematical 
+Physics, vol. 405, no. 7, 2024, doi:10.1007/s00220-024-05030-6.
+
+[2] T. Tomesh, P. Gokhale, V. Omole, G. S. Ravi, K. N. Smith, J. Viszlai, 
+X.-C. Wu, N. Hardavellas, M. R. Martonosi y F. T. Chong, “SupermarQ: A scalable 
+quantum benchmark suite,” in Proc. 2022 IEEE International Symposium on 
+High-Performance Computer Architecture (HPCA), 2022, doi: 
+10.1109/HPCA53966.2022.00050.
+
+[3] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, "Towards a set of metrics for 
+quantum circuits understandability," in *Quality of Information and Communications 
+Technology. QUATIC 2021 (Communications in Computer and Information Science, vol. 1439)
+*, A. C. R. Paiva, A. R. Cavalli, P. Ventura Martins, and R. Pérez-Castillo, Eds. Cham:
+ Springer, 2021, pp. 238–253. doi: 10.1007/978-3-030-85347-1_18.
+
+
 """
 
 import numpy as np
