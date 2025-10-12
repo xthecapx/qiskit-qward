@@ -7,6 +7,10 @@ This module provides the StructuralMetrics class that unifies:
 - Circuit structure metrics (width, depth, density, size)
 
 This provides a comprehensive structural analysis of quantum circuits.
+
+[1] J. Zhao, “Some Size and Structure Metrics for Quantum Software,” 
+arXiv preprint arXiv:2103.08815, 2021.
+
 """
 
 import math
