@@ -36,5 +36,4 @@ __all__ = [
     "Scanner",
     "Visualizer",
     "get_default_strategies",
-    "LocMetrics"
 ]
