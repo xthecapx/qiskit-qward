@@ -11,7 +11,7 @@ import networkx as nx
 import pandas as pd
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
-from ..metrics import StructuralMetrics, BehavioralMetrics, ElementMetrics
+from ..metrics import StructuralMetrics, BehavioralMetrics, ElementMetrics, QuantumSpecificMetrics
 import os
 
 
@@ -40,7 +40,7 @@ def create_qaoa_maxcut_circuit(graph, p, params=None):
 
 def run_experiments(
     num_graphs=5,
-    num_nodes_list=[4, 5, 6],
+    num_nodes_list=[1, 2, 3],
     p_list=[1, 2, 3],
     seed=42,
     output_csv="qaoa_metrics_results.csv"
@@ -69,6 +69,10 @@ def run_experiments(
                 # Behavioral
                 behavioral_metrics = BehavioralMetrics(qc).get_metrics()
                 row.update({f"behavioral_{k}": v for k, v in behavioral_metrics.dict().items()})
+                # Quantum Specific
+                quantum_specific_metrics = QuantumSpecificMetrics(qc).get_metrics()
+                row.update({f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()})
+                # Guardar resultados
                 results.append(row)
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
