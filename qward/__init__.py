@@ -15,6 +15,7 @@ from qward.metrics import (
     ElementMetrics,
     StructuralMetrics,
     BehavioralMetrics,
+    QuantumSpecificMetrics,
     get_default_strategies,
 )
 from qward.visualization import Visualizer
@@ -31,6 +32,7 @@ __all__ = [
     "ElementMetrics",
     "StructuralMetrics",
     "BehavioralMetrics",
+    "QuantumSpecificMetrics",
     "Scanner",
     "Visualizer",
     "get_default_strategies",
