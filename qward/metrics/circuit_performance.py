@@ -247,7 +247,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             try:
                 register_data = getattr(pub_result.data, attr)
                 if hasattr(register_data, "get_counts"):
-                    print(register_data.get_counts())
                     return register_data.get_counts()
             except (AttributeError, TypeError):
                 continue

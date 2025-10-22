@@ -116,6 +116,7 @@ class QiskitVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot basic circuit structure metrics."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -132,7 +133,7 @@ class QiskitVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=structure_data,
             ax=ax,
-            title="Circuit Structure",
+            title=title or "Circuit Structure",
             xlabel="Metrics",
             ylabel="Count",
             value_format="int",
@@ -151,6 +152,7 @@ class QiskitVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot distribution of gate types."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -163,7 +165,9 @@ class QiskitVisualizer(VisualizationStrategy):
                 gate_counts[gate_name] = self.qiskit_df[col].iloc[0]
 
         if not gate_counts:
-            self._show_no_data_message(ax, "Gate Distribution", "No gate count data available")
+            self._show_no_data_message(
+                ax, title or "Gate Distribution", "No gate count data available"
+            )
             return self._finalize_plot(
                 fig=fig,
                 is_override=is_override,
@@ -191,7 +195,10 @@ class QiskitVisualizer(VisualizationStrategy):
                 autotext.set_color("white")
                 autotext.set_fontweight("bold")
 
-        ax.set_title("Gate Type Distribution")
+        # Use custom title logic
+        final_title = self._get_final_title(title or "Gate Type Distribution")
+        if final_title is not None:
+            ax.set_title(final_title)
 
         return self._finalize_plot(
             fig=fig,
@@ -206,6 +213,7 @@ class QiskitVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot instruction-related metrics."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -224,7 +232,7 @@ class QiskitVisualizer(VisualizationStrategy):
 
         if not instruction_data:
             self._show_no_data_message(
-                ax, "Instruction Metrics", "No instruction metrics available"
+                ax, title or "Instruction Metrics", "No instruction metrics available"
             )
             return self._finalize_plot(
                 fig=fig,
@@ -237,7 +245,7 @@ class QiskitVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=instruction_data,
             ax=ax,
-            title="Instruction Metrics",
+            title=title or "Instruction Metrics",
             xlabel="Metrics",
             ylabel="Count",
             value_format="int",
@@ -256,6 +264,7 @@ class QiskitVisualizer(VisualizationStrategy):
         save: bool = False,
         show: bool = False,
         fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
+        title: Optional[str] = None,
     ) -> plt.Figure:
         """Plot a summary view of key circuit characteristics."""
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
@@ -283,7 +292,7 @@ class QiskitVisualizer(VisualizationStrategy):
         self._create_bar_plot_with_labels(
             data=summary_data,
             ax=ax,
-            title="Circuit Summary Metrics",
+            title=title or "Circuit Summary Metrics",
             xlabel="Metrics",
             ylabel="Value",
             value_format="{:.3f}",
@@ -297,10 +306,16 @@ class QiskitVisualizer(VisualizationStrategy):
             filename="qiskit_circuit_summary",
         )
 
-    def create_dashboard(self, save: bool = False, show: bool = False) -> plt.Figure:
+    def create_dashboard(
+        self, save: bool = False, show: bool = False, title: Optional[str] = None
+    ) -> plt.Figure:
         """Creates a comprehensive dashboard with all QiskitMetrics plots."""
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-        fig.suptitle("QiskitMetrics Analysis Dashboard", fontsize=16)
+
+        # Use custom title logic for dashboard
+        final_title = self._get_final_title(title or "QiskitMetrics Analysis Dashboard")
+        if final_title is not None:
+            fig.suptitle(final_title, fontsize=16)
 
         # Create each plot on its designated axes
         self.plot_circuit_structure(save=False, show=False, fig_ax_override=(fig, ax1))
