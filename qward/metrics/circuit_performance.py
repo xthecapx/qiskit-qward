@@ -40,7 +40,6 @@ except ImportError:
 # Type alias for job types - include RuntimeJobV2
 JobType = Union[AerJob, RuntimeJobV2]
 
-
 class CircuitPerformanceMetrics(MetricCalculator):
     """
     Calculate circuit performance metrics for quantum circuits.
@@ -158,7 +157,13 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     def _extract_job_id(self, job: JobType) -> str:
         """Extract job ID from a job object."""
-        return job.job_id() if hasattr(job, "job_id") else "unknown"
+        # Try different job ID extraction methods
+        if hasattr(job, "job_id"):
+            return job.job_id() if callable(job.job_id) else job.job_id
+        elif hasattr(job, "id"):
+            return job.id if callable(job.id) else job.id
+        else:
+            return "unknown"
 
     def _extract_counts(self, job: JobType) -> Dict[str, int]:
         """
@@ -174,52 +179,91 @@ class CircuitPerformanceMetrics(MetricCalculator):
             ValueError: If counts cannot be extracted from the job result
         """
         try:
+            # Try qBraid direct result extraction
+            qbraid_counts = self._try_qbraid_extraction(job)
+            if qbraid_counts is not None:
+                return qbraid_counts
+
+            # Try RuntimeJobV2 extraction
             if isinstance(job, RuntimeJobV2):
-                # Handle RuntimeJobV2 (V2 primitives)
-                result = job.result()
-                # V2 primitives return a list of PubResult objects
-                if len(result) > 0:
-                    pub_result = result[0]  # Get first (and typically only) PUB result
+                return self._extract_runtime_v2_counts(job)
 
-                    # Try common classical register names
-                    common_names = ["meas", "c", "cr", "classical"]
-                    for name in common_names:
-                        if hasattr(pub_result.data, name):
-                            register_data = getattr(pub_result.data, name)
-                            if hasattr(register_data, "get_counts"):
-                                return register_data.get_counts()
-
-                    # If common names don't work, try to find any classical register data
-                    data_attrs = [attr for attr in dir(pub_result.data) if not attr.startswith("_")]
-
-                    for attr in data_attrs:
-                        try:
-                            register_data = getattr(pub_result.data, attr)
-                            if hasattr(register_data, "get_counts"):
-                                return register_data.get_counts()
-                        except (AttributeError, TypeError):
-                            continue
-
-                    # If no classical register found, return empty dict
-                    return {}
-                else:
-                    return {}
-            else:
-                # Handle traditional job types (V1 primitives, AerJob, etc.)
-                result = job.result()
-                if hasattr(result, "get_counts"):
-                    return result.get_counts()
-                else:
-                    raise ValueError(
-                        f"Job result of type {type(result)} does not have get_counts method"
-                    )
+            # Try traditional job extraction
+            return self._extract_traditional_counts(job)
 
         except Exception as e:
             raise ValueError(
                 f"Failed to extract counts from job {self._extract_job_id(job)}: {str(e)}"
             ) from e
 
-    def _calculate_fidelity(self, counts: Dict[str, int]) -> float:
+    def _try_qbraid_extraction(self, job: JobType) -> Optional[Dict[str, int]]:
+        """Try to extract counts using qBraid patterns."""
+        # Check if this is a qBraid Result object directly
+        if hasattr(job, "data") and hasattr(job.data, "get_counts"):
+            return job.data.get_counts()
+
+        # Check if this is a qBraid job with result() method
+        if hasattr(job, "result"):
+            try:
+                result = job.result()
+                if hasattr(result, "data") and hasattr(result.data, "get_counts"):
+                    return result.data.get_counts()
+            except Exception:
+                pass
+
+        return None
+
+    def _extract_runtime_v2_counts(self, job: RuntimeJobV2) -> Dict[str, int]:
+        """Extract counts from RuntimeJobV2 (V2 primitives)."""
+        result = job.result()
+        if len(result) == 0:
+            return {}
+
+        pub_result = result[0]  # Get first (and typically only) PUB result
+
+        # Try common classical register names first
+        counts = self._try_common_register_names(pub_result)
+        if counts is not None:
+            return counts
+
+        # Try all available data attributes
+        return self._try_all_data_attributes(pub_result)
+
+    def _try_common_register_names(self, pub_result) -> Optional[Dict[str, int]]:
+        """Try common classical register names."""
+        common_names = ["meas", "c", "cr", "classical"]
+        for name in common_names:
+            if hasattr(pub_result.data, name):
+                register_data = getattr(pub_result.data, name)
+                if hasattr(register_data, "get_counts"):
+                    return register_data.get_counts()
+        return None
+
+    def _try_all_data_attributes(self, pub_result) -> Dict[str, int]:
+        """Try all available data attributes to find counts."""
+        data_attrs = [attr for attr in dir(pub_result.data) if not attr.startswith("_")]
+
+        for attr in data_attrs:
+            try:
+                register_data = getattr(pub_result.data, attr)
+                if hasattr(register_data, "get_counts"):
+                    print(register_data.get_counts())
+                    return register_data.get_counts()
+            except (AttributeError, TypeError):
+                continue
+
+        # If no classical register found, return empty dict
+        return {}
+
+    def _extract_traditional_counts(self, job: JobType) -> Dict[str, int]:
+        """Extract counts from traditional job types (V1 primitives, AerJob, etc.)."""
+        result = job.result()
+        if hasattr(result, "get_counts"):
+            return result.get_counts()
+        else:
+            raise ValueError(f"Job result of type {type(result)} does not have get_counts method")
+
+    def _calculate_fidelity(self, counts) -> float:
         """
         Calculate quantum fidelity between measured and expected distributions.
 
@@ -241,27 +285,29 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
         # Convert counts to probabilities
         measured_probs = {state: count / total_shots for state, count in counts.items()}
+        
+        return self.success_criteria(self._job)
 
-        if self.expected_distribution is not None:
-            # Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)
-            fidelity = 0.0
-            all_states = set(measured_probs.keys()) | set(self.expected_distribution.keys())
+        # if self.expected_distribution is not None:
+        #     # Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)
+        #     fidelity = 0.0
+        #     all_states = set(measured_probs.keys()) | set(self.expected_distribution.keys())
 
-            for state in all_states:
-                p_measured = measured_probs.get(state, 0.0)
-                p_expected = self.expected_distribution.get(state, 0.0)
-                fidelity += np.sqrt(p_measured * p_expected)
+        #     for state in all_states:
+        #         p_measured = measured_probs.get(state, 0.0)
+        #         p_expected = self.expected_distribution.get(state, 0.0)
+        #         fidelity += np.sqrt(p_measured * p_expected)
 
-            return float(fidelity)
-        else:
-            # Fallback: return probability of most successful state
-            successful_states = [state for state in counts.keys() if self.success_criteria(state)]
-            if not successful_states:
-                return 0.0
+        #     return float(fidelity)
+        # else:
+        #     # Fallback: return probability of most successful state
+        #     successful_states = [state for state in counts.keys() if self.success_criteria(state)]
+        #     if not successful_states:
+        #         return 0.0
 
-            # Find the most frequent successful state
-            max_successful_count = max(counts[state] for state in successful_states)
-            return float(max_successful_count / total_shots)
+            # # Find the most frequent successful state
+            # max_successful_count = max(counts[state] for state in successful_states)
+            # return float(max_successful_count / total_shots)
 
     def set_expected_distribution(self, distribution: Dict[str, float]) -> None:
         """
@@ -609,13 +655,13 @@ class CircuitPerformanceMetrics(MetricCalculator):
             }
 
         # Calculate basic statistics
-        total_shots = sum(counts.values())
-        successful_shots = sum(
-            count for state, count in counts.items() if self.success_criteria(state)
-        )
+        total_shots = int(sum(counts.values()))
+        # successful_shots = sum(
+        #     count for state, count in counts.items() if self.success_criteria()
+        # )
 
         # Calculate rates
-        success_rate = successful_shots / total_shots if total_shots > 0 else 0.0
+        success_rate = self.success_criteria(self._job)
         error_rate = 1.0 - success_rate
 
         return {
@@ -623,7 +669,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             "success_rate": float(success_rate),
             "error_rate": float(error_rate),
             "total_shots": total_shots,
-            "successful_shots": successful_shots,
+            #"successful_shots": successful_shots,
         }
 
     def _get_multiple_jobs_success_metrics(self) -> Dict[str, Any]:
@@ -661,7 +707,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         )
         min_success_rate = float(np.min(success_rates_array))
         max_success_rate = float(np.max(success_rates_array))
-        total_trials = sum(total_shots_list)
+        total_trials = int(sum(total_shots_list))
         error_rate = 1.0 - mean_success_rate
 
         return {
