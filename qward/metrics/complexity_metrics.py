@@ -346,6 +346,9 @@ class ComplexityMetrics(MetricCalculator):
             gate_count / (width * width) if width > 0 else 0
         ) + 0.5 * (gate_count / (depth * depth) if depth > 0 else 0)
 
+        # Ensure quantum_resource_utilization doesn't exceed 1.0 (schema constraint)
+        quantum_resource_utilization = min(quantum_resource_utilization, 1.0)
+
         return AdvancedMetricsSchema(
             parallelism_factor=round(parallelism_factor, 3),
             parallelism_efficiency=round(parallelism_efficiency, 3),
