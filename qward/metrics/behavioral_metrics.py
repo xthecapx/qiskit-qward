@@ -31,6 +31,7 @@ from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Gate, Instruction
 from qiskit.converters import circuit_to_dag
 from qiskit.dagcircuit import DAGOpNode
+from qiskit.transpiler import CouplingMap
 
 from qward.metrics.base_metric import MetricCalculator
 from qward.metrics.types import MetricsType, MetricsId
@@ -138,7 +139,7 @@ class BehavioralMetrics(MetricCalculator):
             parallelism=parallelism
         )
 
-    def _make_all_to_all_coupling(n_qubits: int):
+    def _make_all_to_all_coupling(self, n_qubits: int):
         """Genera una coupling_map totalmente conectada (all-to-all)."""
         return [(i, j) for i, j in itertools.permutations(range(n_qubits), 2) if i != j]
 
@@ -154,17 +155,20 @@ class BehavioralMetrics(MetricCalculator):
             float: Depth of the transpiled circuit
         """
         try:
-            cm = self._make_all_to_all_coupling(self.circuit.num_qubits)
+            cm = CouplingMap(self._make_all_to_all_coupling(self.circuit.num_qubits))
             # Transpile to canonical basis gates
+
             transpiled_circuit = transpile(
                 self.circuit,
                 basis_gates=CANONICAL_BASIS_GATES,
                 coupling_map=cm,
                 optimization_level=0 
             )
+
             return float(transpiled_circuit.depth())
-        except Exception:
+        except Exception as e:
             # If transpilation fails, return original depth
+            print(f"Transpilation failed: {e}, returning original depth.")
             return float(self.circuit.depth())
 
     def _calculate_program_communication(self) -> float:
@@ -302,7 +306,7 @@ class BehavioralMetrics(MetricCalculator):
             # qubits activos en este paso
             active_qubits = set()
             for op in layer["graph"].op_nodes():
-                if op.name in {"measure", "barrier"}:
+                if op.name in {"barrier"}:
                     continue  # no cuentan como actividad útil
                 for qarg in op.qargs:
                     active_qubits.add(self.circuit.find_bit(qarg).index)
@@ -328,7 +332,7 @@ class BehavioralMetrics(MetricCalculator):
         """
         n = self.circuit.num_qubits
         d = self.circuit.depth()
-        ng = len([inst for inst in self.circuit.data if inst.operation.name not in ("barrier", "measure")])
+        ng = len([inst for inst in self.circuit.data if inst.operation.name not in ("barrier", "measure", "reset")])
         
         if n <= 1 or d <= 0:
             return 0.0
