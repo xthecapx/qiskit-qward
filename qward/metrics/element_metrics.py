@@ -19,7 +19,7 @@ from typing import Dict, Any, Tuple
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag
-from qiskit.circuit import Instruction
+from qiskit.circuit import Instruction, ControlledGate
 
 from qward.metrics import types
 from qward.metrics.base_metric import MetricCalculator
@@ -51,7 +51,7 @@ CONTROLLED_GATE_PREFIXES = {"c", "mc"}
 
 # Specific controlled gates
 CONTROLLED_SINGLE_QUBIT_GATES = {
-    "cx", "cy", "cz", "ch", "cs", "csdg", "ct", "ctdg",
+    "cy", "cz", "ch", "cs", "csdg", "ct", "ctdg",
     "crx", "cry", "crz", "cp", "cu1", "cu2", "cu3", "cu",
     "csx", "csxdg", "crzx", "cphase"
 }
@@ -69,7 +69,7 @@ MULTI_QUBIT_GATES = {
 }
 
 # Oracle gates (custom gates that represent oracles)
-ORACLE_GATES = {"oracle", "black_box", "unitary", "custom", "phase_oracle", "grover_oracle"}
+ORACLE_GATES = {"oracle", "black_box", "unitary", "custom", "phase_oracle", "grover_oracle", "u"}
 
 # Measurement gates
 MEASUREMENT_GATES = {"measure", "reset"}
@@ -157,10 +157,10 @@ class ElementMetrics(MetricCalculator):
         no_h = gate_counts.get("h", 0)
         percent_sppos_q = self._calculate_superposition_ratio()
         no_other_sg = self._count_other_single_qubit_gates(gate_counts)
-        t_no_sqg = no_h + t_no_p + no_other_sg
-        
-        # Calculate controlled gate metrics
         t_no_csqg = self._count_controlled_single_qubit_gates(gate_counts)
+        t_no_sqg = no_h + t_no_p + no_other_sg + t_no_csqg
+
+        # Calculate controlled gate metrics
         no_c_any_g = self._count_all_controlled_gates(gate_counts)
         no_swap = gate_counts.get("swap", 0)
         no_cnot = gate_counts.get("cx", 0)
@@ -174,11 +174,11 @@ class ElementMetrics(MetricCalculator):
         
         # Calculate general gate metrics
         no_gates = self._count_total_gates(gate_counts)
-        no_c_gates = t_no_csqg + no_toff + oracle_analysis["controlled_oracles"]
-        percent_single_gates = t_no_sqg / no_gates if no_gates > 0 else 0.0
+        no_c_gates = t_no_csqg + no_toff + oracle_analysis["controlled_oracles"] + no_cnot
+        percent_single_gates = (t_no_sqg) / no_gates if no_gates > 0 else 0.0
         
         # Oracle metrics
-        no_or = oracle_analysis["oracles"]
+        no_or = oracle_analysis["oracles"] + oracle_analysis["controlled_oracles"]
         no_c_or = oracle_analysis["controlled_oracles"]
         percent_q_in_or = oracle_analysis["qubit_ratio"]
         percent_q_in_c_or = oracle_analysis["controlled_qubit_ratio"]
@@ -198,8 +198,8 @@ class ElementMetrics(MetricCalculator):
             no_h=no_h,
             percent_sppos_q=percent_sppos_q,
             no_other_sg=no_other_sg,
-            t_no_sqg=t_no_sqg,
             t_no_csqg=t_no_csqg,
+            t_no_sqg=t_no_sqg,
             no_c_any_g=no_c_any_g,
             no_swap=no_swap,
             no_cnot=no_cnot,
@@ -272,7 +272,6 @@ class ElementMetrics(MetricCalculator):
         def _is_oracle_gate(instr: Instruction) -> bool:
             """Verifica si una instrucción o su definición interna representa un oráculo."""
             name = getattr(instr, "name", "").lower()
-
             if any(key in name for key in ORACLE_GATES):
                 return True
 
@@ -280,11 +279,6 @@ class ElementMetrics(MetricCalculator):
             if any(key in class_name for key in ORACLE_GATES):
                 return True
             
-            definition = getattr(instr, "definition", None)
-            if hasattr(definition, "data"): 
-                for sub_instr, _, _ in definition.data:
-                    if _is_oracle_gate(sub_instr):
-                        return True
 
             return False
 
@@ -292,6 +286,7 @@ class ElementMetrics(MetricCalculator):
         controlled_oracles = 0
         oracle_qubits = set()
         controlled_oracle_qubits = set()
+        affected_qubits = set()
         oracle_depths = []
 
         # --- Iterar sobre las instrucciones del circuito ---
@@ -304,21 +299,35 @@ class ElementMetrics(MetricCalculator):
 
             if _is_oracle_gate(instr):
                 qubits = [self.circuit.find_bit(q).index for q in qargs]
-                oracle_qubits.update(qubits)
 
                 # Distinguir entre oráculos controlados y simples
-                if gate_name.startswith(("c", "mc")) or len(qargs) > 2:
-                    controlled_oracles += 1
-                    controlled_oracle_qubits.update(qubits)
-                else:
-                    oracles += 1
+                if gate_name.startswith(("c", "mc")) or len(qargs) > 2 or isinstance(instr, ControlledGate):
+                    if isinstance(instr, ControlledGate):
+                        n_ctrl = instr.num_ctrl_qubits
+                        #ctrl_qubits = qubits[:n_ctrl]
+                        target_qubits = qubits[n_ctrl:]
+                        controlled_oracles += 1
+                        controlled_oracle_qubits.update(qubits)
+                        affected_qubits.update(target_qubits)
+                    else:
+                        controlled_oracles += 1
+                        controlled_oracle_qubits.update(qubits)
 
-                # Profundidad estimada (como proxy)
-                oracle_depths.append(len(qargs))
+                        # Último qubit = target afectado
+                        if qubits:
+                            affected_qubits.add(qubits[-1])
+                    oracle_depths.append(len(affected_qubits))
+                else:
+                    # Oráculo simple
+                    oracles += 1
+                    oracle_qubits.update(qubits)
+                    affected_qubits.update(qubits)
+
+                    oracle_depths.append(len(qargs))
 
         # --- Métricas finales ---
         total_qubits = self.circuit.num_qubits
-        qubit_ratio = len(oracle_qubits) / total_qubits if total_qubits else 0.0
+        qubit_ratio = len(affected_qubits) / total_qubits if total_qubits else 0.0
         controlled_qubit_ratio = len(controlled_oracle_qubits) / total_qubits if total_qubits else 0.0
 
         return {
@@ -458,22 +467,25 @@ class ElementMetrics(MetricCalculator):
 
     def _calculate_cnot_stats(self) -> Tuple[float, int]:
         """
-        Calculate average and maximum CNOT gates per qubit.
-        
+        Calculate average and maximum number of times each qubit 
+        is affected (as target) by a CNOT gate.
+
         Returns:
             Tuple[float, int]: (average_cnot, max_cnot)
         """
         qubit_cnot_counts = {i: 0 for i in range(self.circuit.num_qubits)}
         
-        for instruction in self.circuit.data:
-            if instruction.operation.name == "cx":
-                for qubit in instruction.qubits:
-                    qubit_cnot_counts[self.circuit.find_bit(qubit).index] += 1
-        
+        for instr, qargs, _ in self.circuit.data:
+            if instr.name == "cx":
+                target_qubit = qargs[1]
+                target_index = self.circuit.find_bit(target_qubit).index
+                qubit_cnot_counts[target_index] += 1
+
         counts = list(qubit_cnot_counts.values())
+
         avg_cnot = sum(counts) / self.circuit.num_qubits if counts else 0.0
         max_cnot = max(counts) if counts else 0
-        
+
         return avg_cnot, max_cnot
 
     def _calculate_toffoli_qubit_ratio(self) -> float:
