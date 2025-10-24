@@ -20,8 +20,8 @@ class ElementMetricsSchema(BaseModel):
                 "no_h": 4,
                 "percent_sppos_q": 0.8,
                 "no_other_sg": 3,
-                "t_no_sqg": 10,
                 "t_no_csqg": 6,
+                "t_no_sqg": 10,
                 "no_c_any_g": 6,
                 "no_swap": 0,
                 "no_cnot": 4,
@@ -58,10 +58,11 @@ class ElementMetricsSchema(BaseModel):
     no_h: int = Field(..., ge=0, description="Number of Hadamard gates")
     percent_sppos_q: float = Field(..., ge=0.0, le=1.0, description="Ratio of qubits with a Hadamard gate as an initial gate")
     no_other_sg: int = Field(..., ge=0, description="Number of other single-qubit gates in the circuit")
+    t_no_csqg: int = Field(..., ge=0, description="Total number of controlled single-qubit gates")
     t_no_sqg: int = Field(..., ge=0, description="Total number of single-qubit gates")
     
     # Controlled gate metrics
-    t_no_csqg: int = Field(..., ge=0, description="Total number of controlled single-qubit gates")
+    no_c_or: int = Field(..., ge=0, description="Number of controlled oracles in the circuit")
     no_c_any_g: int = Field(..., ge=0, description="Number of controlled gates (any)")
     no_swap: int = Field(..., ge=0, description="Number of exchange gates")
     no_cnot: int = Field(..., ge=0, description="Number of NOT controlled gates (CNOT)")
@@ -82,7 +83,6 @@ class ElementMetricsSchema(BaseModel):
     
     # Oracle metrics
     no_or: int = Field(..., ge=0, description="Number of oracles in the circuit")
-    no_c_or: int = Field(..., ge=0, description="Number of controlled oracles in the circuit")
     percent_q_in_or: float = Field(..., ge=0.0, le=1.0, description="Proportion of qubits affected by the oracles")
     percent_q_in_c_or: float = Field(..., ge=0.0, le=1.0, description="Ratio of qubits affected by controlled oracles")
     avg_or_d: float = Field(..., ge=0.0, description="Average depth of an oracle in the circuit")
@@ -108,7 +108,7 @@ class ElementMetricsSchema(BaseModel):
     def validate_t_no_sqg(cls, v, info):
         """Validate that total single-qubit gates equals sum of individual single-qubit gates."""
         if hasattr(info, 'data'):
-            expected = info.data.get('no_h', 0) + info.data.get('no_p_x', 0) + info.data.get('no_p_y', 0) + info.data.get('no_p_z', 0) + info.data.get('no_other_sg', 0)
+            expected = info.data.get('no_h', 0) + info.data.get('no_p_x', 0) + info.data.get('no_p_y', 0) + info.data.get('no_p_z', 0) + info.data.get('no_other_sg', 0) + info.data.get('t_no_csqg', 0)
             if v != expected:
                 raise ValueError(f"Total single-qubit gates ({v}) must equal sum of individual single-qubit gates ({expected})")
         return v
@@ -118,7 +118,7 @@ class ElementMetricsSchema(BaseModel):
     def validate_no_c_gates(cls, v, info):
         """Validate that total controlled gates equals sum of individual controlled gates."""
         if hasattr(info, 'data'):
-            expected = info.data.get('t_no_csqg', 0) + info.data.get('no_toff', 0) + info.data.get('no_c_or', 0)
+            expected = info.data.get('t_no_csqg', 0) + info.data.get('no_toff', 0) + info.data.get('no_c_or', 0) + info.data.get('no_cnot', 0)
             if v != expected:
                 raise ValueError(f"Total controlled gates ({v}) must equal sum of individual controlled gates ({expected})")
         return v
