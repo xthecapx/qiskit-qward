@@ -1,0 +1,22 @@
+{
+  "name": "chilecon",
+  "version": "1.0.0",
+  "description": "A professional, projector-optimized presentation for the qWard quantum computing toolkit.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8000 -o",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean && mkdir -p dist",
+    "build": "npm run copy:files && npm run copy:reveal",
+    "copy:files": "cp index.html dist/ && cp *.css dist/ && cp *.js dist/ && cp *.png dist/ 2>/dev/null || true",
+    "copy:reveal": "mkdir -p dist/node_modules/reveal.js && cp -r node_modules/reveal.js/dist dist/node_modules/reveal.js/ && cp -r node_modules/reveal.js/plugin dist/node_modules/reveal.js/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["quantum", "qiskit", "presentation", "reveal.js"],
+  "author": "Cristian Marquez",
+  "license": "ISC",
+  "dependencies": {
+    "reveal.js": "^5.2.1"
+  },
+  "devDependencies": {}
+}
