@@ -1,0 +1,182 @@
+# GitHub Pages Deployment Setup
+
+This document explains the GitHub Pages deployment setup for the qWard ChileCon presentation.
+
+## 📋 What Was Set Up
+
+### 1. Build Scripts (`package.json`)
+
+Added the following npm scripts:
+- `npm run clean` - Removes the dist folder
+- `npm run build` - Builds the presentation for deployment
+- `npm run copy:files` - Copies HTML, CSS, JS, and images to dist/
+- `npm run copy:reveal` - Copies reveal.js dependencies to dist/
+
+### 2. GitHub Actions Workflow (`.github/workflows/gh-pages.yml`)
+
+Created an automated deployment pipeline that:
+- Triggers on push to `main` branch (when changes are in `docs/papers/chilecon/`)
+- Can also be triggered manually via `workflow_dispatch`
+- Installs dependencies with npm
+- Builds the presentation
+- Deploys to GitHub Pages automatically
+
+### 3. Git Ignore (`docs/papers/chilecon/.gitignore`)
+
+Updated to exclude:
+- `dist/` - Build output folder
+- `node_modules/` - Dependencies
+- `package-lock.json` - Lock file
+- `.DS_Store` - macOS files
+
+## 🚀 Deployment Steps
+
+### First Time Setup
+
+1. **Enable GitHub Pages in Repository Settings**:
+   - Go to: `Settings` → `Pages`
+   - Under "Build and deployment":
+     - Source: Select "GitHub Actions"
+   - Save changes
+
+2. **Verify Build Locally** (Optional):
+   ```bash
+   cd docs/papers/chilecon
+   npm install
+   npm run build
+   # Check that dist/ folder is created with all files
+   ```
+
+3. **Push to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Setup GitHub Pages deployment for ChileCon presentation"
+   git push origin main
+   ```
+
+4. **Monitor Deployment**:
+   - Go to: `Actions` tab in GitHub
+   - Watch the "Deploy to GitHub Pages" workflow
+   - Once complete (green checkmark), your site is live!
+
+### Future Deployments
+
+Every time you push changes to files in `docs/papers/chilecon/`, the site will automatically rebuild and redeploy.
+
+**Manual Trigger** (if needed):
+1. Go to: `Actions` tab
+2. Select "Deploy to GitHub Pages" workflow
+3. Click "Run workflow" → "Run workflow"
+
+## 🌐 Accessing Your Presentation
+
+Once deployed, your presentation will be available at:
+
+```
+https://<username>.github.io/<repository-name>/
+```
+
+For example:
+- Repository: `xthecapx/qiskit-qward`
+- URL: `https://xthecapx.github.io/qiskit-qward/`
+
+## 🔍 Troubleshooting
+
+### Build Fails in GitHub Actions
+
+**Check the logs**:
+1. Go to `Actions` tab
+2. Click on the failed workflow run
+3. Expand the failed step to see error details
+
+**Common issues**:
+- Missing dependencies: Ensure `package-lock.json` is committed
+- Build script errors: Test locally with `npm run build`
+- Path issues: Verify file paths are correct
+
+### Site Not Updating
+
+1. **Clear browser cache**: Hard refresh with `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
+2. **Check deployment**: Verify the workflow completed successfully in Actions
+3. **Wait a moment**: GitHub Pages can take 1-2 minutes to propagate changes
+
+### 404 Error
+
+1. **Verify GitHub Pages is enabled**: Check repository Settings → Pages
+2. **Check source**: Ensure it's set to "GitHub Actions"
+3. **Verify workflow ran**: Check Actions tab for successful deployment
+
+## 📁 Build Output Structure
+
+After running `npm run build`, the `dist/` folder contains:
+
+```
+dist/
+├── index.html                    # Main presentation file
+├── *.css                         # All stylesheets
+├── *.js                          # JavaScript files
+├── *.png                         # All images
+└── node_modules/
+    └── reveal.js/
+        ├── dist/                 # reveal.js core
+        └── plugin/               # reveal.js plugins
+```
+
+## 🔧 Customization
+
+### Changing Deployment Branch
+
+Edit `.github/workflows/gh-pages.yml`:
+
+```yaml
+on:
+  push:
+    branches:
+      - main  # Change this to your preferred branch
+```
+
+### Deploying from Different Directory
+
+Edit the `working-directory` in `.github/workflows/gh-pages.yml`:
+
+```yaml
+defaults:
+  run:
+    working-directory: docs/papers/chilecon  # Change this path
+```
+
+### Custom Domain
+
+If you have a custom domain:
+
+1. Add a `CNAME` file to `docs/papers/chilecon/`:
+   ```
+   your-domain.com
+   ```
+
+2. Update build script in `package.json`:
+   ```json
+   "copy:files": "cp index.html CNAME dist/ && cp *.css dist/ ..."
+   ```
+
+3. Configure DNS records as per [GitHub's documentation](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site)
+
+## 📚 Additional Resources
+
+- [GitHub Pages Documentation](https://docs.github.com/en/pages)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [reveal.js Documentation](https://revealjs.com/)
+
+## 💡 Tips
+
+1. **Test locally before pushing**: Always run `npm run build` and check the output
+2. **Use workflow_dispatch**: Enable manual triggers for controlled deployments
+3. **Monitor Actions**: Watch the first few deployments to ensure everything works
+4. **Keep dependencies updated**: Regularly update reveal.js and other packages
+
+---
+
+**Last Updated**: October 29, 2025  
+**Maintained by**: Cristian Marquez  
+**Repository**: xthecapx/qiskit-qward
+
