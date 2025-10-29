@@ -34,13 +34,6 @@ class StructuralMetricsSchema(BaseModel):
                 "volume": 147.2,
                 "difficulty": 3.2,
                 "effort": 471.0,
-                "quantum_operators": 4,
-                "classical_operators": 1,
-                "quantum_operands": 6,
-                "classical_operands": 2,
-                "qubit_operands": 5,
-                "classical_bit_operands": 3,
-                "parameter_operands": 2,
                 
                 # Circuit Structure Metrics
                 "width": 5,
@@ -49,8 +42,6 @@ class StructuralMetricsSchema(BaseModel):
                 "avg_dens": 6.4,
                 "size": 32,
                 
-                # Gate types (dynamic based on circuit)
-                "gate_types": {"h": 4, "cx": 3, "x": 2, "measure": 5}
             }
         }
     )
@@ -99,17 +90,6 @@ class StructuralMetricsSchema(BaseModel):
     difficulty: float = Field(..., ge=0, description="Difficulty of the quantum program (DQ = (η1/2) × (M2/η2))")
     effort: float = Field(..., ge=0, description="Effort required to implement the quantum program (EQ = DQ × VQ)")
     
-    # Quantum-specific classifications
-    quantum_operators: int = Field(..., ge=0, description="Number of unique quantum operators")
-    classical_operators: int = Field(..., ge=0, description="Number of unique classical operators")
-    quantum_operands: int = Field(..., ge=0, description="Number of unique quantum operands")
-    classical_operands: int = Field(..., ge=0, description="Number of unique classical operands")
-    
-    # Circuit-specific metrics
-    gate_types: Dict[str, int] = Field(..., description="Count of each gate type in the circuit")
-    qubit_operands: int = Field(..., ge=0, description="Number of unique qubit operands")
-    classical_bit_operands: int = Field(..., ge=0, description="Number of unique classical bit operands")
-    parameter_operands: int = Field(..., ge=0, description="Number of unique parameter operands")
 
     # =============================================================================
     # Circuit Structure Metrics
@@ -166,7 +146,7 @@ class StructuralMetricsSchema(BaseModel):
     @classmethod
     def validate_volume(cls, v, info):
         """Validate that volume is positive and reasonable."""
-        if v <= 0:
+        if v < 0:
             raise ValueError("Volume must be positive")
         return v
 
@@ -174,7 +154,7 @@ class StructuralMetricsSchema(BaseModel):
     @classmethod
     def validate_difficulty(cls, v, info):
         """Validate that difficulty is positive and reasonable."""
-        if v <= 0:
+        if v < 0:
             raise ValueError("Difficulty must be positive")
         if v > 1000:  # Reasonable upper bound for quantum circuits
             raise ValueError(f"Difficulty ({v}) seems unreasonably high for a quantum circuit")
@@ -184,19 +164,10 @@ class StructuralMetricsSchema(BaseModel):
     @classmethod
     def validate_effort(cls, v, info):
         """Validate that effort is positive and reasonable."""
-        if v <= 0:
+        if v < 0:
             raise ValueError("Effort must be positive")
         if v > 100000000:  # Reasonable upper bound for quantum circuits
             raise ValueError(f"Effort ({v}) seems unreasonably high for a quantum circuit")
-        return v
-
-    @field_validator("gate_types")
-    @classmethod
-    def validate_gate_types(cls, v):
-        """Validate that all gate type counts are non-negative."""
-        for gate_name, count in v.items():
-            if count < 0:
-                raise ValueError(f"Gate count for '{gate_name}' must be non-negative, got {count}")
         return v
 
     @field_validator("width")
@@ -209,15 +180,16 @@ class StructuralMetricsSchema(BaseModel):
                 raise ValueError(f"Width ({v}) must equal phi5_num_qubits ({num_qubits})")
         return v
 
-    @field_validator("size")
-    @classmethod
-    def validate_size_consistency(cls, v, info):
-        """Validate that size is consistent with total operators from Halstead metrics."""
-        if hasattr(info, 'data'):
-            total_operators = info.data.get('total_operators', 0)
-            if v != total_operators:
-                raise ValueError(f"Size ({v}) must equal total_operators ({total_operators})")
-        return v
+    # Se comenta ya que total_operators no cuenta barreras y size sí
+    # @field_validator("size")
+    # @classmethod
+    # def validate_size_consistency(cls, v, info):
+    #     """Validate that size is consistent with total operators from Halstead metrics."""
+    #     if hasattr(info, 'data'):
+    #         total_operators = info.data.get('total_operators', 0)
+    #         if v != total_operators:
+    #             raise ValueError(f"Size ({v}) must equal total_operators ({total_operators})")
+    #     return v
 
     def to_flat_dict(self) -> Dict[str, Any]:
         """
@@ -250,14 +222,6 @@ class StructuralMetricsSchema(BaseModel):
             "volume": self.volume,
             "difficulty": self.difficulty,
             "effort": self.effort,
-            "quantum_operators": self.quantum_operators,
-            "classical_operators": self.classical_operators,
-            "quantum_operands": self.quantum_operands,
-            "classical_operands": self.classical_operands,
-            "qubit_operands": self.qubit_operands,
-            "classical_bit_operands": self.classical_bit_operands,
-            "parameter_operands": self.parameter_operands,
-            **{f"gate_{gate}": count for gate, count in self.gate_types.items()}
         }
         
         # Circuit structure metrics
@@ -270,27 +234,3 @@ class StructuralMetricsSchema(BaseModel):
         }
         
         return {**loc_data, **halstead_data, **structure_data}
-
-    @classmethod
-    def from_flat_dict(cls, data: Dict[str, Any]) -> "StructuralMetricsSchema":
-        """
-        Create a schema instance from a flat dictionary.
-        
-        Args:
-            data: Flat dictionary with metric values
-            
-        Returns:
-            StructuralMetricsSchema: Schema instance
-        """
-        # Extract gate types from flat dictionary
-        gate_types = {}
-        for key, value in data.items():
-            if key.startswith("gate_"):
-                gate_name = key[5:]  # Remove "gate_" prefix
-                gate_types[gate_name] = value
-        
-        # Remove gate keys from data to avoid conflicts
-        filtered_data = {k: v for k, v in data.items() if not k.startswith("gate_")}
-        filtered_data["gate_types"] = gate_types
-        
-        return cls(**filtered_data)
