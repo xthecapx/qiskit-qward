@@ -44,7 +44,9 @@ The presentation is automatically deployed to GitHub Pages when changes are push
 
 1. **Automatic Deployment**: Push changes to `docs/papers/chilecon/` in the main branch
 2. **GitHub Actions**: The workflow builds and deploys automatically
-3. **Access**: Visit your GitHub Pages URL (e.g., `https://username.github.io/qiskit-qward/`)
+3. **Access**: Visit `https://xthecapx.github.io/qiskit-qward/chilecon/`
+
+**Note**: The presentation is deployed to the `/chilecon/` subdirectory to avoid conflicts with the main Sphinx documentation (which is at the root URL).
 
 **Manual Deployment**:
 ```bash

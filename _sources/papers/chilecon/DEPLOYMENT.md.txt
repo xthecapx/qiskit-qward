@@ -4,6 +4,19 @@ This document explains the GitHub Pages deployment setup for the qWard ChileCon 
 
 ## 📋 What Was Set Up
 
+### Deployment Strategy
+
+The qWard repository has **two separate GitHub Pages deployments** that coexist on the same `gh-pages` branch:
+
+| Content | URL | Source | Deploy On |
+|---------|-----|--------|-----------|
+| **Sphinx Docs** | `https://xthecapx.github.io/qiskit-qward/` | `docs/_build/html/` | Any docs change |
+| **ChileCon Presentation** | `https://xthecapx.github.io/qiskit-qward/chilecon/` | `docs/papers/chilecon/dist` | ChileCon changes |
+
+Both use `peaceiris/actions-gh-pages@v4` with:
+- `keep_files: true` - Prevents overwriting each other's content
+- `destination_dir: chilecon` - Deploys presentation to subdirectory (only for presentation)
+
 ### 1. Build Scripts (`package.json`)
 
 Added the following npm scripts:
@@ -74,12 +87,15 @@ Every time you push changes to files in `docs/papers/chilecon/`, the site will a
 Once deployed, your presentation will be available at:
 
 ```
-https://<username>.github.io/<repository-name>/
+https://<username>.github.io/<repository-name>/chilecon/
 ```
 
 For example:
 - Repository: `xthecapx/qiskit-qward`
-- URL: `https://xthecapx.github.io/qiskit-qward/`
+- Presentation URL: `https://xthecapx.github.io/qiskit-qward/chilecon/`
+- Docs URL: `https://xthecapx.github.io/qiskit-qward/` (Sphinx documentation at root)
+
+**Note**: The presentation is deployed to the `/chilecon/` subdirectory to avoid conflicts with the main Sphinx documentation.
 
 ## 🔍 Troubleshooting
 
