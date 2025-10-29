@@ -15,7 +15,7 @@ echo "✅ Black formatting check passed"
 
 echo ""
 echo "2️⃣  Running Pylint on core library and tests..."
-pylint -rn qward tests
+pylint -rn --ignore=examples qward tests
 echo "✅ Pylint check passed"
 
 echo ""

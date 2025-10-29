@@ -8,7 +8,7 @@ import sys
 os.environ["MPLBACKEND"] = "Agg"
 
 # Also set it programmatically as a fallback
-import matplotlib
+import matplotlib  # pylint: disable=wrong-import-position
 
 matplotlib.use("Agg", force=True)
 
