@@ -40,7 +40,7 @@ def test_visualization_defaults():
 
     # Generate all plots for all metrics using new API
     all_plots = visualizer.generate_plots(
-        {Metrics.QISKIT: None, Metrics.COMPLEXITY: None}  # None = all plots
+        selections={Metrics.QISKIT: None, Metrics.COMPLEXITY: None}  # None = all plots
     )  # Default: save=False, show=False
 
     print(f"   Created {len(dashboards)} dashboards (not saved)")
@@ -51,11 +51,13 @@ def test_visualization_defaults():
     # Test 2: Explicit save=True (should save but not show)
     print("\n2. Testing explicit save=True...")
 
-    saved_dashboard = visualizer.create_dashboard(save=True)
+    _ = visualizer.create_dashboard(save=True)
 
     # Generate specific QiskitMetrics plots with save=True
     saved_plots = visualizer.generate_plots(
-        {Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE, Plots.Qiskit.GATE_DISTRIBUTION]},
+        selections={
+            Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE, Plots.Qiskit.GATE_DISTRIBUTION]
+        },
         save=True,
     )
 
@@ -72,7 +74,7 @@ def test_visualization_defaults():
     print(f"   Initial open figures: {initial_figures}")
 
     # Create many plots without showing (memory efficient)
-    for i in range(3):
+    for _ in range(3):
         _ = visualizer.create_dashboard()  # Creates figures but doesn't show them
 
     # Count figures after (should be manageable)
@@ -94,7 +96,7 @@ def test_visualization_defaults():
 
     # Create specific ComplexityMetrics plots with custom config and save them
     custom_plots = custom_visualizer.generate_plots(
-        {
+        selections={
             Metrics.COMPLEXITY: [
                 Plots.Complexity.COMPLEXITY_RADAR,
                 Plots.Complexity.GATE_BASED_METRICS,
@@ -112,7 +114,10 @@ def test_visualization_defaults():
     print("\n5. Testing single plot generation...")
 
     single_plot = visualizer.generate_plot(
-        Metrics.QISKIT, Plots.Qiskit.CIRCUIT_STRUCTURE, save=False, show=False
+        metric_name=Metrics.QISKIT,
+        plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+        save=False,
+        show=False,
     )
     print(f"   Generated single circuit structure plot: {type(single_plot)}")
     plt.close(single_plot)  # Clean up
