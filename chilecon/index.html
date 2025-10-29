@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>qWard: A Unified Toolkit for Pre- and Post-Runtime Quantum Circuit Metrics</title>
+
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/theme/serif.css" id="theme">
+    
+    <!-- Custom overrides for qWard presentation -->
+    <link rel="stylesheet" href="custom-overrides.css">
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="node_modules/reveal.js/plugin/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Title -->
+            <section>
+                <h1>qWard</h1>
+                <h3>A Unified Toolkit for Pre- and Post-Runtime Quantum Circuit Metrics</h3>
+                <p>
+                    <strong>Cristian Marquez, Daniel Sierra, Kelly Garcés</strong>
+                </p>
+                <p class="subtitle">
+                    Universidad de los Andes de Colombia & The Catholic University of America
+                </p>
+            </section>
+
+            <!-- Slide 2: Agenda -->
+            <!-- <section>
+                <h2>Agenda</h2>
+                <ol>
+                    <li><strong class="highlight-cyan">Introduction & Motivation</strong> - Quantum promise & NISQ challenges</li>
+                    <li><strong class="highlight-blue">The Problem</strong> - Bell State example & research questions</li>
+                    <li><strong class="highlight-amber">Our Solution: qWard</strong> - Architecture & methodology</li>
+                    <li><strong class="highlight-purple">Results</strong> - Pre/post-runtime metrics analysis</li>
+                    <li><strong class="highlight-cyan">Conclusion & Future Work</strong></li>
+                </ol>
+            </section> -->
+
+            <!-- Slide 3: Introduction & Motivation - The Promise -->
+            <section>
+                <h2>The Quantum Promise</h2>
+                <h3 class="subtitle-cyan">Potential to Revolutionize Computing</h3>
+                <div class="r-stack">
+                    <div class="promise-box-stack fragment fade-in-then-out" data-fragment-index="0">
+                        <p class="large-icon">⚛️</p>
+                        <h4>Quantum Mechanics</h4>
+                        <p>Exponential speedup</p>
+                    </div>
+                    <div class="promise-box-stack fragment fade-in-then-out" data-fragment-index="1">
+                        <p class="large-icon">🧬</p>
+                        <h4>Drug Discovery</h4>
+                        <p>Molecular simulation</p>
+                    </div>
+                    <div class="promise-box-stack fragment fade-in-then-out" data-fragment-index="2">
+                        <p class="large-icon">🔐</p>
+                        <h4>Cryptography</h4>
+                        <p>Quantum-safe systems</p>
+                    </div>
+                    <div class="promise-box-stack fragment fade-in" data-fragment-index="3">
+                        <p class="large-icon">🎯</p>
+                        <h4>Optimization</h4>
+                        <p>Complex problems</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: The Reality - NISQ Era Challenges -->
+            <section>
+                <h2>The Reality: NISQ Era Challenges</h2>
+                <h3 class="subtitle-cyan">Quantum Computing is Still Maturing</h3>
+                <div class="r-stack">
+                    <div class="challenge-card-stack card-red fragment fade-in-then-out" data-fragment-index="0">
+                        <p class="large-icon">⚠️</p>
+                        <div>
+                            <h4>Noise & High Error Rates</h4>
+                            <p>Fragile quantum states limit circuit depth</p>
+                        </div>
+                    </div>
+                    <div class="challenge-card-stack card-amber fragment fade-in-then-out" data-fragment-index="1">
+                        <p class="large-icon">💰</p>
+                        <div>
+                            <h4>High Cost of Execution</h4>
+                            <p>Expensive hardware access</p>
+                        </div>
+                    </div>
+                    <div class="challenge-card-stack card-blue fragment fade-in" data-fragment-index="2">
+                        <p class="large-icon">🔒</p>
+                        <div>
+                            <h4>Limited Hardware Access</h4>
+                            <p>Few processors, long queue times</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- <p class="centered-emphasis fragment" data-fragment-index="3">We need <strong class="highlight-amber">tools and metrics</strong> to navigate these challenges!</p> -->
+            </section>
+
+            <!-- Slide 5: The Quantum Programming Journey -->
+            <section>
+                <h2>The Quantum Programming Journey</h2>
+                <h3 class="subtitle-cyan">Challenges Developers Face at Every Stage</h3>
+                <div class="journey-grid">
+                    <div class="journey-card card-cyan">
+                        <h4>Design</h4>
+                        <p>How complex will my circuit be?</p>
+                    </div>
+                    <div class="journey-card card-blue">
+                        <h4>Implement</h4>
+                        <p>What resources do I need?</p>
+                    </div>
+                    <div class="journey-card card-amber">
+                        <h4>Execute</h4>
+                        <p>How much will it cost? Can it run?</p>
+                    </div>
+                    <div class="journey-card card-red">
+                        <h4>Analyze</h4>
+                        <p>Did it work correctly?</p>
+                    </div>
+                </div>
+                <p class="centered-emphasis">Developers need <strong class="highlight-amber">metrics and tools</strong> to answer these questions.</p>
+            </section>
+
+            <!-- Slide 6: Introducing the Bell State Circuit -->
+            <section>
+                <h2>A Practical Example: The Bell State Circuit</h2>
+                <!-- <h3 class="subtitle-cyan">Let's explore metrics through a concrete quantum circuit</h3> -->
+                <div class="bell-intro-layout">
+                    <div class="bell-circuit-large">
+                        <img src="bellstate.png" alt="Bell State Circuit" style="max-width: 400px; border-radius: 12px; background: white; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+                    </div>
+                    <div class="bell-explanation">
+                        <div class="bell-info-box">
+                            <h4 class="highlight-cyan">What is a Bell State?</h4>
+                            <p>Creates a maximally entangled state between two qubits:</p>
+                            <p class="equation">(|00⟩ + |11⟩) / √2</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7: Pre-runtime Metrics -->
+            <section>
+                <h2>Pre-runtime Metrics</h2>
+                <div class="metrics-optimized-layout">
+                    <div class="top-row">
+                        <div class="circuit-section">
+                            <img src="bellstate.png" alt="Bell State Circuit" style="max-width: 280px; border-radius: 8px; background: white; padding: 10px;">
+                            <h4 class="highlight-cyan">⏱️ Pre-runtime Metrics</h4>
+                            <p class="metric-description">Analyzed <strong>before execution</strong> (static analysis)</p>
+                        </div>
+                        <div class="metric-table-container">
+                            <table class="metrics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Circuit Depth</td><td>3</td></tr>
+                                    <tr><td>Number of Qubits</td><td>2</td></tr>
+                                    <tr><td>Classical Bits</td><td>2</td></tr>
+                                    <tr><td>Gate Count</td><td>4</td></tr>
+                                    <tr><td>CNOT Count</td><td>1</td></tr>
+                                    <tr><td>T-Gate Count</td><td>0</td></tr>
+                                    <tr><td>Two-Qubit Gates</td><td>1</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Post-runtime Metrics -->
+            <section>
+                <h2>Post-runtime Metrics</h2>
+                <div class="metrics-optimized-layout">
+                    <div class="top-row">
+                        <div class="circuit-section">
+                            <img src="bellstate.png" alt="Bell State Circuit" style="max-width: 280px; border-radius: 8px; background: white; padding: 10px;">
+                            <h4 class="highlight-cyan">✅ Post-runtime Metrics</h4>
+                            <p class="metric-description">Measured <strong>after execution</strong> on hardware/simulator</p>
+                        </div>
+                        <div class="metric-table-container">
+                            <table class="metrics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Jobs Analyzed</td><td>3</td></tr>
+                                    <tr><td>Total Measurements</td><td>3,072</td></tr>
+                                    <tr><td><strong>Avg. Success Rate</strong></td><td><strong>89.5% ± 8.2%</strong></td></tr>
+                                    <tr><td>Job 1 Success</td><td>100.0% (fidelity: 1.000)</td></tr>
+                                    <tr><td>Job 2 Success</td><td>80.1% (fidelity: 0.895)</td></tr>
+                                    <tr><td>Job 3 Success</td><td>88.5% (fidelity: 0.941)</td></tr>
+                                </tbody>
+                            </table>
+                            <p class="metric-note">⚠️ Good performance with some noise impact</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 9: Research Questions -->
+            <section>
+                <h2>The Problem: Our Research Questions</h2>
+                <h3 class="subtitle-cyan">What We Need to Understand</h3>
+                <div class="r-stack">
+                    <div class="challenge-card-stack card-cyan fragment fade-in-then-out" data-fragment-index="0">
+                        <p class="large-icon">🔍</p>
+                        <div>
+                            <h4>RQ1: SDK Support for Metrics</h4>
+                            <p>To what extent do existing QC SDKs facilitate the collection of pre- and the calculation of post-runtime metrics?</p>
+                        </div>
+                    </div>
+                    <div class="challenge-card-stack card-blue fragment fade-in-then-out" data-fragment-index="1">
+                        <p class="large-icon">📚</p>
+                        <div>
+                            <h4>RQ2: Emerging Metrics Integration</h4>
+                            <p>Do QC SDKs effectively incorporate emerging metrics as reported in the literature?</p>
+                        </div>
+                    </div>
+                    <div class="challenge-card-stack card-amber fragment fade-in" data-fragment-index="2">
+                        <p class="large-icon">🏗️</p>
+                        <div>
+                            <h4>RQ3: Library Design</h4>
+                            <p>How can a library be designed to address the need to collect and analyze a wide spectrum of quantum circuit metrics?</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="centered-emphasis fragment" data-fragment-index="3">These questions guide our development of <strong class="highlight-amber">qWard</strong>!</p>
+            </section>
+
+            <!-- Slide 10: Our Approach - Methodology -->
+            <section>
+                <h2>Our Approach</h2>
+                <h3 class="subtitle-cyan">Design Science Research (DSR) Methodology</h3>
+                <div class="methodology-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-number">1</div>
+                        <div class="timeline-card card-cyan">
+                            <div class="timeline-icon">📚</div>
+                            <h4>Literature Review</h4>
+                        </div>
+                    </div>
+                    <div class="timeline-arrow">→</div>
+                    <div class="timeline-item">
+                        <div class="timeline-number">2</div>
+                        <div class="timeline-card card-blue">
+                            <div class="timeline-icon">🔍</div>
+                            <h4>SDK Analysis</h4>
+                        </div>
+                    </div>
+                    <div class="timeline-arrow">→</div>
+                    <div class="timeline-item">
+                        <div class="timeline-number">3</div>
+                        <div class="timeline-card card-amber">
+                            <div class="timeline-icon">🏗️</div>
+                            <h4>Experimentation (qWard)</h4>
+                        </div>
+                    </div>
+                </div>
+                <p class="centered-emphasis">Now let's see what we found...</p>
+            </section>
+
+            <!-- Slide 11: Answer to RQ1 -->
+            <section>
+                <h2>Answering Our Questions</h2>
+                <h3 class="subtitle-cyan">RQ1: Do existing SDKs facilitate metric collection?</h3>
+                <p><strong>Answer:</strong> Insufficiently. They offer <strong class="highlight-amber">only basic support</strong>.</p>
+            </section>
+            
+            <!-- Slide 12: Answer to RQ2 -->
+            <section>
+                <h2>Answering Our Questions</h2>
+                <h3 class="subtitle-cyan">RQ2: Do SDKs incorporate emerging metrics from literature?</h3>
+                <p><strong>Answer:</strong> Evidently, <strong class="highlight-red">no</strong>.</p>
+            </section>
+            
+            <!-- Slide 13: Answer to RQ3 -->
+            <section>
+                <h2>Answering Our Questions</h2>
+                <h3 class="subtitle-cyan">RQ3: How can a library address these gaps?</h3>
+                <p><strong>Answer:</strong><strong class="highlight-cyan"> qWard</strong>.</p>
+            </section>
+            
+            <!-- Slide 14: Introducing qWard -->
+            <section>
+                <h2>Introducing qWard: Our Solution</h2>
+                <div class="feature-grid">
+                    <div class="feature-card card-cyan">
+                        <h3>Calculate</h3>
+                        <p>Comprehensive pre- and post-runtime metrics</p>
+                    </div>
+                    <div class="feature-card card-blue">
+                        <h3>Visualize</h3>
+                        <p>Transform data into actionable insights</p>
+                    </div>
+                </div>
+                <div class="centered-content">
+                    <p><strong class="highlight-amber">Built for Qiskit SDK</strong></p>
+                    <p class="large-text highlight-cyan"><strong>Data-driven quantum development</strong></p>
+                </div>
+            </section>
+            
+            <!-- Slide 15: qWard Metrics Architecture -->
+            <section>
+                <h2>qWard Architecture: Metrics Calculation</h2>
+                <img src="uml-strategy-2.png" alt="qWard Metrics Architecture" class="r-stretch" style="margin: 0">
+            </section>
+
+            <!-- Slide 16: qWard Visualization Architecture -->
+            <section>
+                <h2>qWard Architecture: Visualization</h2>
+                <img src="uml-visualization-2.png" alt="qWard Visualization Architecture" class="r-stretch" style="margin: 0">
+            </section>
+
+            <!-- Slide 17: qWard in Action -->
+            <section>
+                <h2>qWard in Action: A Practical Example</h2>
+                <div class="action-grid">
+                    <div class="action-card card-cyan">
+                        <p class="medium-icon">🔬</p>
+                        <h4>Bell State Circuit</h4>
+                        <p>Using qWard to analyze it.</p>
+                    </div>
+                    <div class="action-card card-blue">
+                        <p class="medium-icon">⏱️</p>
+                        <h4>Pre-runtime</h4>
+                        <p>Complexity & resources</p>
+                    </div>
+                    <div class="action-card card-amber">
+                        <p class="medium-icon">✅</p>
+                        <h4>Post-runtime</h4>
+                        <p>Performance & fidelity</p>
+                    </div>
+                </div>
+                <p class="centered-emphasis">Let's see the results...</p>
+            </section>
+
+            <!-- Slide 18: Pre-runtime Metrics Results -->
+            <section>
+                <h2>Results: Pre-runtime Metrics</h2>
+                <img src="notebook.png" alt="qWard Analysis Summary" class="r-stretch" style="margin: 0">
+            </section>
+
+            <!-- Slide 19: Post-runtime Results - Success Rate -->
+            <section>
+                <h2>Results: Post-runtime Metrics - Success Rate</h2>
+                <!-- <h3 class="subtitle-cyan">Comparing AER Simulator vs. IBM Quantum Hardware</h3> -->
+                <div class="results-grid">
+                    <div>
+                        <h4 class="highlight-cyan">AER Simulator</h4>
+                        <img src="aer_success_error_rates_2.png" alt="Success vs Error Rates on AER Simulator" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4 class="highlight-blue">IBM</h4>
+                        <img src="success_error_rates_2.png" alt="Success vs Error Rates on IBM Hardware" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                </div>
+                <!-- <div class="insight-box card-amber">
+                    <h4>Key Findings:</h4>
+                    <ul class="compact-list">
+                        <li>The noisy simulator provides realistic predictions comparable to real hardware</li>
+                        <li>Success rate quantifies how often we get the expected outcomes (|00⟩ or |11⟩)</li>
+                        <li>Error rate shows deviation from ideal quantum behavior</li>
+                    </ul>
+                </div> -->
+            </section>
+            
+            <!-- Slide 20: Post-runtime Results - Fidelity (COMMENTED OUT) -->
+            <!-- <section>
+                <h2>Results: Post-runtime Metrics - Fidelity</h2>
+                <h3 class="subtitle-cyan">How Close Are We to the Ideal Quantum State?</h3>
+                <div class="centered-content">
+                    <img src="fidelity_comparison_2.png" alt="Fidelity Comparison on IBM Hardware" style="max-width: 80%; border-radius: 8px;">
+                    <div class="insight-box card-purple">
+                        <h4>What is Fidelity?</h4>
+                        <p>Fidelity measures how similar the actual quantum state produced by the circuit is to the theoretical ideal state.</p>
+                        <ul class="compact-list">
+                            <li><strong class="highlight-amber">Fidelity = 1.0:</strong> Perfect match with ideal state</li>
+                            <li><strong class="highlight-amber">Fidelity &lt; 1.0:</strong> Deviations due to noise, decoherence, and gate errors</li>
+                            <li>This metric helps evaluate circuit optimizations and hardware quality</li>
+                        </ul>
+                    </div>
+                </div>
+            </section> -->
+
+            <!-- Slide 20: Conclusion -->
+            <section>
+                <h2>Conclusion & Future Work</h2>
+                <h3 class="subtitle-cyan">Summary of Contributions</h3>
+                <ul>
+                    <li><strong class="highlight-amber">Identified</strong> critical gap in quantum SDKs</li>
+                    <li><strong class="highlight-cyan">Developed</strong> qWard - open-source solution</li>
+                    <li><strong class="highlight-blue">Unified</strong> pre- and post-runtime analysis</li>
+                    <li><strong class="highlight-purple">Demonstrated</strong> actionable insights</li>
+                </ul>
+            </section>
+
+            <!-- Slide 21: Future Work -->
+            <section>
+                <h2>Conclusion & Future Work</h2>
+                <h3 class="subtitle-cyan">What's Next for qWard?</h3>
+                <ul>
+                    <li><strong class="highlight-cyan">Expand metrics</strong> - community contributions</li>
+                    <li><strong class="highlight-blue">Multi-SDK support</strong> - PennyLane, Q#</li>
+                    <li><strong class="highlight-purple">Predictive models</strong> - pre → post correlations</li>
+                </ul>
+            </section>
+
+            <!-- Slide 22: Thank You & Q&A -->
+            <section>
+                <h1 class="highlight-cyan">Thank You!</h1>
+                <h2>Questions?</h2>
+                <div class="contact-info">
+                    <p><strong class="highlight-amber">GitHub:</strong> xthecapx/qiskit-qward</p>
+                    <p><strong class="highlight-amber">PyPI:</strong> qiskit-qward</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Section indicator -->
+    <div class="section-indicator hide" id="sectionIndicator"></div>
+
+    <script src="node_modules/reveal.js/dist/reveal.js"></script>
+    <script src="node_modules/reveal.js/plugin/notes/notes.js"></script>
+    <script src="node_modules/reveal.js/plugin/markdown/markdown.js"></script>
+    <script src="node_modules/reveal.js/plugin/highlight/highlight.js"></script>
+    <script>
+        // More info about initialization & config:
+        // - https://revealjs.com/initialization/
+        // - https://revealjs.com/config/
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide', // none/fade/slide/convex/concave/zoom
+            
+            // Slide numbers
+            slideNumber: 'c/t', // Shows current/total (e.g., "1 / 23")
+            // Other options: true, 'h.v', 'h/v', 'c', false
+            
+            // Learn about plugins: https://revealjs.com/plugins/
+            plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+        });
+
+        // Section indicator logic
+        const sectionIndicator = document.getElementById('sectionIndicator');
+        
+        // Define sections: [startSlide, endSlide, label, sectionNumber]
+        const sections = [
+            [0, 1, null, 0],  // Title and Agenda - hidden
+            [2, 4, 'Introduction & Motivation', 1],
+            [5, 9, 'The Problem', 2],
+            [10, 16, 'Our Solution: qWard', 3],
+            [17, 18, 'Results', 4],
+            [19, 21, 'Conclusion & Future Work', 5]
+        ];
+        
+        function updateSectionIndicator() {
+            const currentSlide = Reveal.getIndices().h;
+            
+            // Find current section
+            let currentSection = null;
+            for (const [start, end, label, sectionNum] of sections) {
+                if (currentSlide >= start && currentSlide <= end) {
+                    currentSection = { label, sectionNum };
+                    break;
+                }
+            }
+            
+            // Update indicator
+            if (currentSection && currentSection.label) {
+                sectionIndicator.textContent = `Section ${currentSection.sectionNum}: ${currentSection.label}`;
+                sectionIndicator.className = `section-indicator section-${currentSection.sectionNum}`;
+            } else {
+                // Hide on title/agenda slides
+                sectionIndicator.className = 'section-indicator hide';
+            }
+        }
+        
+        // Update on slide change
+        Reveal.on('slidechanged', updateSectionIndicator);
+        
+        // Initial update
+        Reveal.on('ready', updateSectionIndicator);
+    </script>
+</body>
+</html>
+
