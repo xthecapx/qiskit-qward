@@ -153,14 +153,6 @@ class StructuralMetrics(MetricCalculator):
             volume=halstead_metrics["volume"],
             difficulty=halstead_metrics["difficulty"],
             effort=halstead_metrics["effort"],
-            quantum_operators=halstead_metrics["quantum_operators"],
-            classical_operators=halstead_metrics["classical_operators"],
-            quantum_operands=halstead_metrics["quantum_operands"],
-            classical_operands=halstead_metrics["classical_operands"],
-            gate_types=halstead_metrics["gate_types"],
-            qubit_operands=halstead_metrics["qubit_operands"],
-            classical_bit_operands=halstead_metrics["classical_bit_operands"],
-            parameter_operands=halstead_metrics["parameter_operands"],
             
             # Circuit Structure Metrics
             width=structure_metrics["width"],
@@ -177,7 +169,6 @@ class StructuralMetrics(MetricCalculator):
         Returns:
             Dict[str, Any]: Dictionary with LOC metrics
         """
-            # Fallback: Estimate from circuit instructions if QASM is unavailable
         (
             phi1_total_loc,
             phi2_gate_loc,
@@ -218,36 +209,22 @@ class StructuralMetrics(MetricCalculator):
         total_operators = 0
         total_operands = 0
         
-        quantum_operators = set()
-        classical_operators = set()
+
         quantum_operands = set()
         classical_operands = set()
         parameter_operands = set()
         
-        gate_types = {}
         qubit_operands = set()
         classical_bit_operands = set()
 
         # Analyze circuit instructions
         for instruction in self.circuit.data:
             gate_name = instruction.operation.name.lower()
+            if gate_name == "barrier":
+                continue  # Skip barrier instructions
             
-            # Count gate types
-            gate_types[gate_name] = gate_types.get(gate_name, 0) + 1
-            
-            # Classify operators
-            if gate_name in QUANTUM_OPERATORS:
-                operators.add(gate_name)
-                quantum_operators.add(gate_name)
-            elif gate_name in CLASSICAL_OPERATORS:
-                operators.add(gate_name)
-                classical_operators.add(gate_name)
-            else:
-                # Unknown gate, treat as quantum operator
-                operators.add(gate_name)
-                quantum_operators.add(gate_name)
-            
-            total_operators += 1
+            total_operators += 1            
+            operators.add(gate_name)
             
             # Analyze operands (qubits and classical bits)
             for qubit in instruction.qubits:
@@ -300,8 +277,8 @@ class StructuralMetrics(MetricCalculator):
             volume = 0.0
         
         # Difficulty calculation
-        if len(quantum_operands) > 0:
-            difficulty = (len(quantum_operators) / 2) * (len(quantum_operands) / len(quantum_operands))
+        if unique_operands> 0:
+            difficulty = (unique_operators / 2) * (total_operands / unique_operands)
         else:
             difficulty = 0.0
         
@@ -318,15 +295,7 @@ class StructuralMetrics(MetricCalculator):
             "estimated_length": estimated_length,
             "volume": volume,
             "difficulty": difficulty,
-            "effort": effort,
-            "quantum_operators": len(quantum_operators),
-            "classical_operators": len(classical_operators),
-            "quantum_operands": len(quantum_operands),
-            "classical_operands": len(classical_operands),
-            "gate_types": gate_types,
-            "qubit_operands": len(qubit_operands),
-            "classical_bit_operands": len(classical_bit_operands),
-            "parameter_operands": len(parameter_operands),
+            "effort": effort
         }
 
     def _calculate_structure_metrics(self) -> Dict[str, Any]:
@@ -363,21 +332,24 @@ class StructuralMetrics(MetricCalculator):
         Returns:
             Tuple[int, float]: (maximum_density, average_density)
         """
-        layer_densities = []
+        # Convertir a DAG para acceder a niveles de paralelismo
+        dag = circuit_to_dag(self.circuit)
+        
+        # Obtener las capas (cada capa son operaciones paralelas)
+        layers = list(dag.layers())
+        
+        # Contar operaciones por capa
+        densities = []
+        for layer in layers:
+            ops = [node for node in layer['graph'].op_nodes()]
+            densities.append(len(ops))
+        
+        if not densities:
+            return 0.0, 0.0
 
-        for layer in self._circuit_dag.layers():
-            ops = [
-                node for node in layer['graph'].op_nodes()
-                if node.op.name not in ["measure", "barrier", "reset"]    
-            ]
-            
-            layer_densities.append(len(ops))
-
-        if not layer_densities:
-            return 0, 0.0
-
-        max_dens = max(layer_densities)
-        avg_dens = sum(layer_densities) / len(layer_densities)
+        # Calcular métricas
+        max_dens = max(densities)
+        avg_dens = sum(densities) / len(densities)
         
         return max_dens, avg_dens
 
@@ -395,13 +367,14 @@ class StructuralMetrics(MetricCalculator):
         
         for instruction in self.circuit.data:
             gate_name = instruction.operation.name.lower()
-            if gate_name == "measure":
-                measure_loc += 1
-            elif gate_name in QUANTUM_OPERATORS:
-                gate_loc += 1
-            else:
-                # Treat unknown gates as quantum gates
-                gate_loc += 1
+            if gate_name != "barrier":
+                if gate_name == "measure":
+                    measure_loc += 1
+                elif gate_name in QUANTUM_OPERATORS:
+                    gate_loc += 1
+                else:
+                    # Treat unknown gates as quantum gates
+                    gate_loc += 1
         
         quantum_total_loc = gate_loc + measure_loc
         
