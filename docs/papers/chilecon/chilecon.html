@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>qWard Presentation</title>
+    
+    <!-- External Stylesheets -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active">
+        <div class="slide-content text-center">
+            <h1 class="text-6xl font-bold text-cyan mb-6">qWard: A Unified Toolkit for Pre- and Post-Runtime Quantum Circuit Metrics</h1>
+            <p class="text-2xl">Cristian Marquez, Daniel Sierra, Kelly Garcés</p>
+            <p class="text-xl text-secondary mt-2">Universidad de los Andes & The Catholic University of America</p>
+        </div>
+    </div>
+
+    <!-- Slide 2: Agenda -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Agenda</h2>
+            <ol class="text-2xl space-y-4">
+                <li><strong class="text-cyan">Introduction & Motivation</strong></li>
+                <li><strong class="text-cyan">The Problem: A Gap in Quantum Tooling</strong></li>
+                <li><strong class="text-cyan">Introducing qWard: Our Solution</strong></li>
+                <li><strong class="text-cyan">qWard in Action: A Practical Example</strong></li>
+                <li><strong class="text-cyan">Conclusion & Future Work</strong></li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Slide 3: Introduction & Motivation -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Introduction & Motivation</h2>
+            <h3>The Rise of Quantum Computing (QC)</h3>
+            <ul class="list-disc text-xl space-y-3">
+                <li>QC leverages quantum mechanics for powerful computation.</li>
+                <li>Potential to solve problems intractable for classical computers (e.g., drug discovery, cryptography).</li>
+                <li>However, QC is in its early stages and faces significant challenges:
+                    <ul class="list-circle ml-8 mt-2 space-y-2 text-lg">
+                        <li>Noise and high error rates</li>
+                        <li>High cost of execution</li>
+                        <li>Limited access to hardware</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 3.5: The Quantum Programming Journey (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>The Quantum Programming Journey</h2>
+            <h3>Challenges Developers Face at Every Stage</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+                <div class="bg-card p-6 rounded-lg border-t-4" style="border-color: var(--accent-cyan);">
+                    <h4 class="font-bold text-2xl mb-4 text-cyan">1. Design</h4>
+                    <p class="text-lg">How complex will my circuit be?</p>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-t-4" style="border-color: var(--accent-blue);">
+                    <h4 class="font-bold text-2xl mb-4 text-blue">2. Implement</h4>
+                    <p class="text-lg">What resources do I need?</p>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-t-4" style="border-color: var(--accent-amber);">
+                    <h4 class="font-bold text-2xl mb-4 text-amber">3. Execute</h4>
+                    <p class="text-lg">How much will it cost? Can it run?</p>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-t-4" style="border-color: var(--accent-red);">
+                    <h4 class="font-bold text-2xl mb-4 text-red">4. Analyze</h4>
+                    <p class="text-lg">Did it work correctly?</p>
+                </div>
+            </div>
+            <p class="text-2xl mt-8 text-center">Developers need <strong class="text-amber">metrics and tools</strong> to answer these questions.</p>
+        </div>
+    </div>
+
+    <!-- Slide 4: The Need for Quality Evaluation -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>How do we know if our quantum algorithms operate as expected?</h2>
+            <p class="text-xl text-secondary mb-6 italic">Recalling the challenges from the programming journey...</p>
+            <ul class="list-disc text-2xl space-y-4">
+                <li>At each stage, developers need answers to critical questions.</li>
+                <li>We need <strong class="text-amber">meaningful metrics</strong> to evaluate quantum circuits.</li>
+                <li>This enables better algorithm design, resource estimation, and debugging.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 5: The Problem -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>The Problem: A Gap in Quantum Tooling</h2>
+            <h3>Pre-runtime vs. Post-runtime Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg">
+                <div class="bg-card p-6 rounded-lg border-2 border-visible">
+                    <h4 class="font-semibold text-xl mb-3 text-cyan">Pre-runtime Metrics</h4>
+                    <ul class="list-disc space-y-2">
+                        <li>Calculated <strong>before</strong> execution (static analysis).</li>
+                        <li>Examples: Number of qubits, circuit depth, gate counts.</li>
+                        <li>Helpful for estimating resource requirements.</li>
+                    </ul>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-2 border-visible">
+                    <h4 class="font-semibold text-xl mb-3 text-cyan">Post-runtime Metrics</h4>
+                    <ul class="list-disc space-y-2">
+                        <li>Calculated <strong>after</strong> execution on a simulator or QPU.</li>
+                        <li>Examples: Success rate, fidelity, execution time.</li>
+                        <li>Crucial for understanding real-world performance.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5.5: Example - Bell State Circuit & Metrics (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Example: Understanding Metrics with a Bell State</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl mb-4">The Bell State Circuit</h3>
+                    <div class="bg-white p-6 rounded-lg mb-4">
+                        <!-- Bell State Circuit Visualization Placeholder -->
+                        <svg viewBox="0 0 400 200" class="w-full">
+                            <!-- Qubit lines -->
+                            <line x1="50" y1="60" x2="350" y2="60" stroke="#4A5568" stroke-width="3"/>
+                            <line x1="50" y1="140" x2="350" y2="140" stroke="#4A5568" stroke-width="3"/>
+                            
+                            <!-- State labels -->
+                            <text x="20" y="65" fill="#2D3748" font-size="20" font-weight="bold">|0⟩</text>
+                            <text x="20" y="145" fill="#2D3748" font-size="20" font-weight="bold">|0⟩</text>
+                            
+                            <!-- H gate -->
+                            <rect x="100" y="40" width="50" height="40" fill="#22D3EE" stroke="#0891B2" stroke-width="3" rx="4"/>
+                            <text x="115" y="67" fill="#1A202C" font-size="24" font-weight="bold">H</text>
+                            
+                            <!-- CNOT gate -->
+                            <circle cx="225" cy="60" r="8" fill="#22D3EE" stroke="#0891B2" stroke-width="3"/>
+                            <line x1="225" y1="60" x2="225" y2="140" stroke="#22D3EE" stroke-width="3"/>
+                            <circle cx="225" cy="140" r="15" fill="none" stroke="#22D3EE" stroke-width="3"/>
+                            <line x1="225" y1="125" x2="225" y2="155" stroke="#22D3EE" stroke-width="3"/>
+                            <line x1="210" y1="140" x2="240" y2="140" stroke="#22D3EE" stroke-width="3"/>
+                            
+                            <!-- Measurement -->
+                            <rect x="300" y="45" width="30" height="30" fill="none" stroke="#A78BFA" stroke-width="3" rx="3"/>
+                            <path d="M 305 70 Q 315 60 325 70" stroke="#A78BFA" stroke-width="2" fill="none"/>
+                            <line x1="320" y1="70" x2="320" y2="60" stroke="#A78BFA" stroke-width="2"/>
+                            
+                            <rect x="300" y="125" width="30" height="30" fill="none" stroke="#A78BFA" stroke-width="3" rx="3"/>
+                            <path d="M 305 150 Q 315 140 325 150" stroke="#A78BFA" stroke-width="2" fill="none"/>
+                            <line x1="320" y1="150" x2="320" y2="140" stroke="#A78BFA" stroke-width="2"/>
+                            
+                            <!-- Output state -->
+                            <text x="360" y="105" fill="#2D3748" font-size="18" font-weight="bold">|Φ⁺⟩</text>
+                        </svg>
+                    </div>
+                    <p class="text-lg">Creates an entangled state: (|00⟩ + |11⟩) / √2</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl mb-4">Key Metrics</h3>
+                    <div class="space-y-4">
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-cyan);">
+                            <h4 class="font-bold text-xl text-cyan mb-2">Pre-runtime: Circuit Depth</h4>
+                            <p class="text-lg">Measures the number of sequential gate layers. Lower depth = less time for errors to accumulate.</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-blue);">
+                            <h4 class="font-bold text-xl text-blue mb-2">Post-runtime: Success Rate</h4>
+                            <p class="text-lg">Percentage of measurements matching expected outcomes (|00⟩ or |11⟩).</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-purple);">
+                            <h4 class="font-bold text-xl text-purple mb-2">Post-runtime: Fidelity</h4>
+                            <p class="text-lg">Measures how close the actual quantum state is to the ideal theoretical state.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Research Questions (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>The Problem: Our Research Questions</h2>
+            <ol class="text-2xl space-y-6">
+                <li>To what extent do existing QC SDKs facilitate the collection of pre- and the calculation of post-runtime metrics?</li>
+                <li>Do QC SDKs effectively incorporate emerging metrics as reported in the literature?</li>
+                <li>How can a library be designed to address the need to collect and analyze a wide spectrum of quantum circuit metrics?</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Slide 6.5: Our Approach - Methodology (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Our Approach</h2>
+            <h3 class="mb-8">Design Science Research (DSR) Methodology</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-card p-6 rounded-lg border-l-4" style="border-color: var(--accent-cyan);">
+                    <h4 class="font-bold text-2xl mb-3 text-cyan">1. Literature Review</h4>
+                    <p class="text-xl">Analyzed research papers to identify quantum circuit metrics.</p>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-l-4" style="border-color: var(--accent-blue);">
+                    <h4 class="font-bold text-2xl mb-3 text-blue">2. SDK Analysis</h4>
+                    <p class="text-xl">Evaluated existing quantum SDKs for metric support.</p>
+                </div>
+                <div class="bg-card p-6 rounded-lg border-l-4" style="border-color: var(--accent-amber);">
+                    <h4 class="font-bold text-2xl mb-3 text-amber">3. Experimentation</h4>
+                    <p class="text-xl">Designed and implemented qWard, validated with real circuits.</p>
+                </div>
+            </div>
+            <p class="text-2xl mt-10 text-center">Now let's see what we found...</p>
+        </div>
+    </div>
+
+    <!-- Slide 7: Answer to RQ1 (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Answering Our Questions</h2>
+            <h3>RQ1: Do existing SDKs facilitate metric collection?</h3>
+            <p class="text-2xl mb-6"><strong>Answer:</strong> Insufficiently. They offer <strong class="text-amber">only basic support</strong>.</p>
+            <ul class="list-disc text-2xl space-y-3">
+                <li>Current SDKs provide fundamental characteristics like circuit depth, width, and gate counts.</li>
+                <li>However, they lack the advanced metrics extensively covered in academic literature.</li>
+                <li>There is a shortage of robust, built-in tools for detailed execution analysis.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Slide 8: Answer to RQ2 (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Answering Our Questions</h2>
+            <h3>RQ2: Do SDKs incorporate emerging metrics from literature?</h3>
+            <p class="text-2xl mb-6"><strong>Answer:</strong> Evidently, <strong class="text-red">no</strong>.</p>
+            <ul class="list-disc text-2xl space-y-3">
+                <li>There is a clear disparity between theoretical advances in metrics and their practical implementation in SDKs.</li>
+                <li>This gap forces researchers and developers to repeatedly code the same analysis from scratch.</li>
+                <li>This leads to inconsistent metric definitions and varying calculation methodologies across projects.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Slide 9: Answer to RQ3 (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Answering Our Questions</h2>
+            <h3>RQ3: How can a library address these gaps?</h3>
+            <p class="text-2xl mb-6"><strong>Answer:</strong> By providing a <strong class="text-cyan">structured and extensible solution</strong>.</p>
+             <ul class="list-disc text-2xl space-y-3">
+                <li>Implement the <strong class="text-amber">Strategy Pattern</strong> for consistent and easy integration of new metrics.</li>
+                <li>Use <strong class="text-amber">Schema Validation</strong> (e.g., Pydantic) to ensure data integrity and type safety.</li>
+                <li>Include <strong class="text-amber">Integrated Visualization Tools</strong> to translate raw data into actionable insights.</li>
+                <li>This is the philosophy behind <strong class="text-cyan">qWard</strong>.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Slide 10: Introducing qWard -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Introducing qWard: Our Solution</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                <div class="bg-card p-8 rounded-lg border-l-4" style="border-color: var(--accent-cyan);">
+                    <h3 class="text-4xl font-bold text-cyan mb-4">Calculate</h3>
+                    <p class="text-2xl">Comprehensive pre- and post-runtime metrics</p>
+                </div>
+                <div class="bg-card p-8 rounded-lg border-l-4" style="border-color: var(--accent-blue);">
+                    <h3 class="text-4xl font-bold text-blue mb-4">Visualize</h3>
+                    <p class="text-2xl">Transform data into actionable insights</p>
+                </div>
+            </div>
+            <div class="mt-12 text-center space-y-4">
+                <p class="text-2xl"><strong class="text-amber">Built for Qiskit SDK</strong></p>
+                <p class="text-3xl font-semibold text-cyan">Goal: Data-driven quantum development</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 11A: qWard Metrics Architecture -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>qWard Architecture: Metrics Calculation</h2>
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <div class="w-full md:w-1/2">
+                    <h3 class="text-2xl mb-6">Strategy Pattern for Extensibility</h3>
+                    <ul class="list-disc text-xl space-y-4">
+                        <li><strong class="text-cyan">QiskitMetrics:</strong> Native circuit properties (depth, width, gate counts)</li>
+                        <li><strong class="text-blue">ComplexityMetrics:</strong> Advanced analysis (T-count, entanglement density, parallelism)</li>
+                        <li><strong class="text-purple">CircuitPerformance:</strong> Post-execution metrics (success rate, fidelity, entropy)</li>
+                    </ul>
+                    <p class="text-xl mt-6">Easy to add new metric strategies!</p>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <img src="uml-strategy-2.png" alt="qWard Metrics Architecture" class="rounded-lg bg-white p-4">
+                    <p class="text-base text-center mt-2 text-secondary">MetricCalculator using Strategy Pattern</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 11B: qWard Visualization Architecture -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>qWard Architecture: Visualization</h2>
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <div class="w-full md:w-1/2">
+                    <h3 class="text-2xl mb-6">Multiple Visualization Strategies</h3>
+                    <ul class="list-disc text-xl space-y-4">
+                        <li><strong class="text-cyan">Bar Charts:</strong> Compare metrics across backends</li>
+                        <li><strong class="text-blue">Heatmaps:</strong> Visualize correlation matrices</li>
+                        <li><strong class="text-purple">Distribution Plots:</strong> Show measurement outcomes</li>
+                        <li><strong class="text-amber">Time Series:</strong> Track metrics over circuit evolution</li>
+                    </ul>
+                    <p class="text-xl mt-6">Unified API for generating insights</p>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <img src="uml-visualization-2.png" alt="qWard Visualization Architecture" class="rounded-lg bg-white p-4">
+                    <p class="text-base text-center mt-2 text-secondary">Visualizer with Strategy Pattern</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 13: qWard in Action -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>qWard in Action: A Practical Example</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl mb-4">The Bell State Circuit</h3>
+                    <div class="bg-white p-4 rounded-lg mb-4">
+                        <svg viewBox="0 0 400 200" class="w-full">
+                            <line x1="50" y1="60" x2="350" y2="60" stroke="#4A5568" stroke-width="3"/>
+                            <line x1="50" y1="140" x2="350" y2="140" stroke="#4A5568" stroke-width="3"/>
+                            <text x="20" y="65" fill="#2D3748" font-size="20" font-weight="bold">|0⟩</text>
+                            <text x="20" y="145" fill="#2D3748" font-size="20" font-weight="bold">|0⟩</text>
+                            <rect x="100" y="40" width="50" height="40" fill="#22D3EE" stroke="#0891B2" stroke-width="3" rx="4"/>
+                            <text x="115" y="67" fill="#1A202C" font-size="24" font-weight="bold">H</text>
+                            <circle cx="225" cy="60" r="8" fill="#22D3EE" stroke="#0891B2" stroke-width="3"/>
+                            <line x1="225" y1="60" x2="225" y2="140" stroke="#22D3EE" stroke-width="3"/>
+                            <circle cx="225" cy="140" r="15" fill="none" stroke="#22D3EE" stroke-width="3"/>
+                            <line x1="225" y1="125" x2="225" y2="155" stroke="#22D3EE" stroke-width="3"/>
+                            <line x1="210" y1="140" x2="240" y2="140" stroke="#22D3EE" stroke-width="3"/>
+                            <rect x="300" y="45" width="30" height="30" fill="none" stroke="#A78BFA" stroke-width="3" rx="3"/>
+                            <path d="M 305 70 Q 315 60 325 70" stroke="#A78BFA" stroke-width="2" fill="none"/>
+                            <line x1="320" y1="70" x2="320" y2="60" stroke="#A78BFA" stroke-width="2"/>
+                            <rect x="300" y="125" width="30" height="30" fill="none" stroke="#A78BFA" stroke-width="3" rx="3"/>
+                            <path d="M 305 150 Q 315 140 325 150" stroke="#A78BFA" stroke-width="2" fill="none"/>
+                            <line x1="320" y1="150" x2="320" y2="140" stroke="#A78BFA" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <p class="text-lg mb-2"><strong>What is a Bell State?</strong></p>
+                    <p class="text-lg">A maximally entangled quantum state of two qubits. Creates superposition: (|00⟩ + |11⟩) / √2</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl mb-4">Experiment Details</h3>
+                    <div class="space-y-4">
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-amber);">
+                            <h4 class="font-bold text-xl text-amber mb-2">Expected Outcome:</h4>
+                            <p class="text-lg">50% probability for |00⟩, 50% for |11⟩</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-cyan);">
+                            <h4 class="font-bold text-xl text-cyan mb-2">Execution 1: AER Simulator</h4>
+                            <p class="text-lg">• Ideal (no noise): 8,192 shots</p>
+                            <p class="text-lg">• With noise model: 8,192 shots</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border-l-4" style="border-color: var(--accent-blue);">
+                            <h4 class="font-bold text-xl text-blue mb-2">Execution 2: IBM Quantum</h4>
+                            <p class="text-lg">• Backend: "ibm_torino" (127 qubits)</p>
+                            <p class="text-lg">• Shots: 8,192</p>
+                            <p class="text-lg">• Real quantum hardware</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 14: Live Demo Backup: Code (BACKUP SLIDE - For Q&A if needed) -->
+    <div class="slide backup-slide">
+        <div class="slide-content">
+            <h2>qWard in Action: A Practical Example</h2>
+            <h3>Live Demo Backup: Code Snippets</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <h4 class="font-semibold mb-2 text-cyan">1. Create the circuit:</h4>
+                    <pre><code>circuit = QuantumCircuit(2, 2)
+circuit.h(0)
+circuit.cx(0, 1)
+circuit.measure([0,1], [0,1])</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-cyan">2. Integrate with qWard:</h4>
+                    <pre><code>scanner = Scanner(
+    circuit=circuit,
+    job=jobs,
+    strategies=[
+        QiskitMetrics,
+        ComplexityMetrics,
+        CircuitPerformanceMetrics(...)
+    ]
+)
+metrics_dict = scanner.calculate_metrics()</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-cyan">3. Visualize the results:</h4>
+                    <pre><code>visualizer = Visualizer(scanner=scanner)
+visualizer.generate_plots(
+    selections={
+        Metrics.CIRCUIT_PERFORMANCE: [
+            Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+            Plots.CircuitPerformance.FIDELITY_COMPARISON
+        ]
+    }
+)</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 14.5: Pre-runtime Metrics Results (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Results: Pre-runtime Metrics</h2>
+            <h3 class="mb-8">Bell State Circuit Analysis (Before Execution)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-card p-8 rounded-lg border-l-4" style="border-color: var(--accent-cyan);">
+                    <h4 class="font-bold text-4xl text-cyan mb-4">2</h4>
+                    <p class="text-2xl">Qubits (Width)</p>
+                    <p class="text-lg text-secondary mt-2">Minimal resource requirement</p>
+                </div>
+                <div class="bg-card p-8 rounded-lg border-l-4" style="border-color: var(--accent-blue);">
+                    <h4 class="font-bold text-4xl text-blue mb-4">2</h4>
+                    <p class="text-2xl">Circuit Depth</p>
+                    <p class="text-lg text-secondary mt-2">Short execution time</p>
+                </div>
+                <div class="bg-card p-8 rounded-lg border-l-4" style="border-color: var(--accent-purple);">
+                    <h4 class="font-bold text-4xl text-purple mb-4">4</h4>
+                    <p class="text-2xl">Total Gates</p>
+                    <p class="text-lg text-secondary mt-2">1 H + 1 CNOT + 2 Measure</p>
+                </div>
+            </div>
+            <div class="mt-12 bg-card p-6 rounded-lg border-l-4" style="border-color: var(--accent-amber);">
+                <h4 class="font-bold text-2xl text-amber mb-4">Key Insight:</h4>
+                <p class="text-xl">Simple circuit with low depth means less susceptibility to noise - ideal for NISQ devices!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 15: Post-runtime Results - Success Rate -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Results: Post-runtime Metrics - Success Rate</h2>
+            <h3 class="mb-6">Comparing AER Simulator vs. IBM Quantum Hardware</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-2xl mb-4 text-cyan">AER Simulator (with noise)</h4>
+                    <img src="aer_success_error_rates_2.png" alt="Success vs Error Rates on AER Simulator" class="rounded-lg">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-2xl mb-4 text-blue">IBM Quantum (ibm_torino)</h4>
+                    <img src="success_error_rates_2.png" alt="Success vs Error Rates on IBM Hardware" class="rounded-lg">
+                </div>
+            </div>
+            <div class="mt-8 bg-card p-6 rounded-lg border-l-4" style="border-color: var(--accent-amber);">
+                <h4 class="font-bold text-2xl text-amber mb-4">Key Findings:</h4>
+                <ul class="list-disc list-inside text-xl space-y-2">
+                    <li>The noisy simulator provides realistic predictions comparable to real hardware</li>
+                    <li>Success rate quantifies how often we get the expected outcomes (|00⟩ or |11⟩)</li>
+                    <li>Error rate shows deviation from ideal quantum behavior</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Slide 15.5: Post-runtime Results - Fidelity (NEW) -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Results: Post-runtime Metrics - Fidelity</h2>
+            <h3 class="mb-6">How Close Are We to the Ideal Quantum State?</h3>
+            <div class="flex flex-col items-center">
+                <div class="w-full max-w-3xl">
+                    <img src="fidelity_comparison_2.png" alt="Fidelity Comparison on IBM Hardware" class="rounded-lg w-full">
+                </div>
+                <div class="mt-8 bg-card p-6 rounded-lg w-full border-l-4" style="border-color: var(--accent-purple);">
+                    <h4 class="font-bold text-2xl text-purple mb-4">What is Fidelity?</h4>
+                    <p class="text-xl mb-4">Fidelity measures how similar the actual quantum state produced by the circuit is to the theoretical ideal state.</p>
+                    <ul class="list-disc list-inside text-xl space-y-2">
+                        <li><strong class="text-amber">Fidelity = 1.0:</strong> Perfect match with ideal state</li>
+                        <li><strong class="text-amber">Fidelity &lt; 1.0:</strong> Deviations due to noise, decoherence, and gate errors</li>
+                        <li>This metric helps evaluate circuit optimizations and hardware quality</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 16: Conclusion -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Conclusion & Future Work</h2>
+            <h3>Summary of Contributions</h3>
+            <ul class="list-disc text-2xl space-y-5">
+                <li><strong class="text-amber">Identified</strong> critical gap in quantum SDKs</li>
+                <li><strong class="text-cyan">Developed</strong> qWard - open-source solution</li>
+                <li><strong class="text-blue">Unified</strong> pre- and post-runtime analysis</li>
+                <li><strong class="text-purple">Demonstrated</strong> actionable insights</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 17: Future Work -->
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Conclusion & Future Work</h2>
+            <h3>What's Next for qWard?</h3>
+            <ul class="list-disc text-2xl space-y-5">
+                <li><strong class="text-cyan">Expand metrics</strong> - community contributions</li>
+                <li><strong class="text-blue">Multi-SDK support</strong> - PennyLane, Q#</li>
+                <li><strong class="text-purple">Predictive models</strong> - pre → post correlations</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 18: Thank You & Q&A -->
+    <div class="slide">
+        <div class="slide-content text-center">
+            <h1 class="text-7xl font-bold text-cyan">Thank You!</h1>
+            <h2 class="text-5xl mt-8 border-none">Questions?</h2>
+            <div class="mt-12 text-2xl">
+                <p><strong class="text-amber">GitHub:</strong> xthecapx/qiskit-qward</p>
+                <p class="mt-2"><strong class="text-amber">PyPI:</strong> qiskit-qward</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Navigation -->
+    <div id="slideCounter" class="slide-counter">1 / 23</div>
+    <button id="prevBtn" class="nav-button">&larr;</button>
+    <button id="nextBtn" class="nav-button">&rarr;</button>
+
+    <!-- External JavaScript -->
+    <script src="presentation.js"></script>
+</body>
+</html>
