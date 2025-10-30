@@ -18,7 +18,7 @@ from qward.metrics.circuit_performance import CircuitPerformanceMetrics
 
 # Import schemas for structured data validation
 try:
-    from qward.metrics.schemas import (
+    from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
         SuccessMetricsSchema,
         FidelityMetricsSchema,

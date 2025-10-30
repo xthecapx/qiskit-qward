@@ -20,7 +20,7 @@ from qward.metrics.types import MetricsType, MetricsId
 
 # Import schemas for structured data validation
 try:
-    from qward.metrics.schemas import (
+    from qward.schemas.complexity_metrics_schema import (
         ComplexityMetricsSchema,
         GateBasedMetricsSchema,
         EntanglementMetricsSchema,

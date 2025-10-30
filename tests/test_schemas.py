@@ -5,17 +5,25 @@ import json
 from pydantic import ValidationError
 from qiskit import QuantumCircuit
 from qiskit.circuit import CircuitInstruction, Instruction
-
-from qward.metrics.schemas import (
+from qward.schemas.qiskit_metrics_schema import (
     QiskitMetricsSchema,
-    ComplexityMetricsSchema,
-    CircuitPerformanceSchema,
     BasicMetricsSchema,
+
+)
+
+from qward.schemas.complexity_metrics_schema import (
+    ComplexityMetricsSchema,
     GateBasedMetricsSchema,
+)
+
+from qward.schemas.circuit_performance_schema import (
+    CircuitPerformanceSchema,
     SuccessMetricsSchema,
     FidelityMetricsSchema,
-    StatisticalMetricsSchema,
+    StatisticalMetricsSchema
 )
+
+
 
 
 class TestSchemaValidation(unittest.TestCase):
