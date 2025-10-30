@@ -65,7 +65,12 @@ TWO_QUBIT_GATES = {
     'mcrx', 'mcry', 'mcrz', 'mcp', 'mcu', 'mcswap'
 }
 
-
+PAULI_SINGLE = {
+    'I': np.array([[1,0],[0,1]], dtype=complex),
+    'X': np.array([[0,1],[1,0]], dtype=complex),
+    'Y': np.array([[0,-1j],[1j,0]], dtype=complex),
+    'Z': np.array([[1,0],[0,-1]], dtype=complex)
+}
 
 class QuantumSpecificMetrics(MetricCalculator):
     """
@@ -84,7 +89,7 @@ class QuantumSpecificMetrics(MetricCalculator):
         self._ensure_schemas_available()
         self._torch_available = TORCH_AVAILABLE
         # Parámetros de optimización para métricas diferenciales
-        self._max_steps = 200
+        self._max_steps = 300
         self._lr = 0.05
         self._device = "cpu"
         self._use_trace_norm = False
@@ -154,6 +159,7 @@ class QuantumSpecificMetrics(MetricCalculator):
                 best_val = val
         return best_val
 
+
     # --- Coherence ---
     def _calculate_coherence(self) -> float:
         if not self._torch_available:
@@ -191,65 +197,112 @@ class QuantumSpecificMetrics(MetricCalculator):
         return float(-loss.item())
 
     # --- Sensitivity ---
+    def _generate_pauli_labels(self, n_qubits: int, w_max: int) -> List[Tuple[str]]:
+        """Generate Pauli labels of weight ≤ w_max (e.g. ('X','I','Z'))."""
+        import itertools
+        labels = []
+        for w in range(0, w_max + 1):
+            for positions in itertools.combinations(range(n_qubits), w):
+                for prod in itertools.product(['X', 'Y', 'Z'], repeat=w):
+                    label = ['I'] * n_qubits
+                    for pos, sym in zip(positions, prod):
+                        label[pos] = sym
+                    labels.append(tuple(label))
+        return labels
+
+    def _pauli_label_to_matrix(self, label: Tuple[str]) -> np.ndarray:
+        """Convert a tuple of ('I','X','Y','Z') to its matrix via kron."""
+        mats = [PAULI_SINGLE[s] for s in label]
+        out = mats[0]
+        for m in mats[1:]:
+            out = np.kron(out, m)
+        return out
+
+    def _influence_from_coeffs(self, coeffs: torch.Tensor, labels: List[Tuple[str]], n_qubits: int, dim_factor: int) -> torch.Tensor:
+        """Compute total influence as in Bu et al. but on restricted basis."""
+        q_a = (coeffs.abs() ** 2) * float(dim_factor)
+        per_qubit = torch.zeros(n_qubits, dtype=torch.float32, device=self._device)
+        for idx, label in enumerate(labels):
+            for i, sym in enumerate(label):
+                if sym != 'I':
+                    per_qubit[i] += q_a[idx].real
+        return torch.sum(per_qubit)
+
+    def _pauli_coeffs_restricted(self, O_t: torch.Tensor, pauli_t_list: List[torch.Tensor], dim_factor: int) -> torch.Tensor:
+        """Return coefficients c_a = Tr(P_a^† O)/2^n for a restricted list of Paulis."""
+        coeffs = []
+        denom = float(dim_factor)
+        for P in pauli_t_list:
+            c = torch.trace(torch.conj(P).T @ O_t) / denom
+            coeffs.append(c)
+        return torch.stack(coeffs)
+
     def _calculate_sensitivity(self) -> float:
+        """Approximate Circuit Sensitivity (CiS) from Bu et al., practical version."""
         if not self._torch_available:
-            print("Warning: Sensitivity metric requires PyTorch. Install torch>=1.12.0 to enable this metric.")
-            return 0.0
-        try:
-            return self._sensitivity_metric()
-        except Exception as e:
-            print(f"Warning: Sensitivity calculation failed: {e}")
+            print("Warning: Sensitivity metric requires PyTorch.")
             return 0.0
 
-    def _sensitivity_metric(self) -> float:
+        # --- Precompute data ---
         circuit = self._remove_measurements(self.circuit)
         U_np = Operator(circuit).data
         U_t = torch.tensor(U_np, dtype=torch.complex64, device=self._device)
         d = U_np.shape[0]
         n_qubits = int(np.log2(d))
-        best_overall = 0.0
-        for j in range(n_qubits):
-            Xj_np = self._make_pauli_x_on_n(n_qubits, j)
-            Xj_t = torch.tensor(Xj_np, dtype=torch.complex64, device=self._device)
-            val_j = self._sensitivity_optimize(U_t, Xj_t)
-            if val_j > best_overall:
-                best_overall = val_j
-        return float(best_overall)
+        dim_factor = 2 ** n_qubits
 
-    def _sensitivity_optimize(self, U, X_j_t):
-        d = U.shape[0]
-        n_qubits = int(np.log2(d))
-        x = torch.randn(d, requires_grad=True, device=self._device)
-        opt = torch.optim.Adam([x], lr=self._lr)
+        # Restricted Pauli sets
+        w_max_O = 1     # parametrize O as combo of weight-1 Paulis
+        w_max_eval = 2  # evaluate expansion up to weight 2
+        labels_O = self._generate_pauli_labels(n_qubits, w_max_O)
+        labels_eval = self._generate_pauli_labels(n_qubits, w_max_eval)
+
+        # Precompute torch Paulis
+        def np_to_torch(mat_np):
+            real = torch.tensor(mat_np.real, dtype=torch.float32, device=self._device)
+            imag = torch.tensor(mat_np.imag, dtype=torch.float32, device=self._device)
+            return torch.complex(real, imag)
+        P_eval_t = [np_to_torch(self._pauli_label_to_matrix(lbl)) for lbl in labels_eval]
+        P_O_t = [np_to_torch(self._pauli_label_to_matrix(lbl)) for lbl in labels_O]
+
+        # Parameters (real coefficients α_j for O)
+        m = len(labels_O)
+        params = torch.randn(m, device=self._device, dtype=torch.float32) * 0.1
+        params.requires_grad_(True)
+        opt = torch.optim.Adam([params], lr=self._lr)
+
         best_val = 0.0
+
         for step in range(self._max_steps):
-            p = torch.softmax(x, dim=0)
-            rho = torch.diag(p).to(torch.complex64)
-            rho_flip = X_j_t @ rho @ torch.conj(X_j_t.T)
-            rho_out = U @ rho @ torch.conj(U.T)
-            rho_out_flip = U @ rho_flip @ torch.conj(U.T)
-            d_half = 2 ** (n_qubits - 1)
-            def partial_trace_over_qubit(mat):
-                mat = mat.reshape([2, d_half, 2, d_half])
-                res = torch.zeros((d_half, d_half), dtype=torch.complex64, device=self._device)
-                for k in range(2):
-                    res = res + mat[k, :, k, :]
-                return res
-            red = partial_trace_over_qubit(rho_out)
-            red_flip = partial_trace_over_qubit(rho_out_flip)
-            Delta = red - red_flip
-            if self._use_trace_norm:
-                val = self._trace_norm(Delta)
-            else:
-                val = self._frobenius_norm(Delta)
-            loss = -val
             opt.zero_grad()
+            # Construct O = sum α_j P_j
+            O_t = torch.zeros((d, d), dtype=torch.complex64, device=self._device)
+            for a, alpha in enumerate(params):
+                O_t = O_t + alpha * P_O_t[a]
+
+            # Normalize Hilbert–Schmidt
+            hs_norm = torch.sqrt(torch.real(torch.trace(torch.conj(O_t).T @ O_t)))
+            O_t = O_t / (hs_norm + 1e-12)
+
+            # Influence before
+            coeffs_O = self._pauli_coeffs_restricted(O_t, P_eval_t, dim_factor)
+            I_O = self._influence_from_coeffs(coeffs_O, labels_eval, n_qubits, dim_factor)
+
+            # After conjugation
+            Oprime = U_t @ O_t @ torch.conj(U_t).T
+            coeffs_Op = self._pauli_coeffs_restricted(Oprime, P_eval_t, dim_factor)
+            I_Op = self._influence_from_coeffs(coeffs_Op, labels_eval, n_qubits, dim_factor)
+
+            val = torch.abs(I_Op - I_O)
+            loss = -val
             loss.backward()
             opt.step()
+
             current_val = float(val.detach().cpu().item())
             if current_val > best_val:
                 best_val = current_val
-        return best_val
+
+        return float(best_val)
 
     def _get_metric_type(self) -> MetricsType:
         """
