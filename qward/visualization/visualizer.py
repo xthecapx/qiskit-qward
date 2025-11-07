@@ -96,6 +96,12 @@ class Visualizer:
 
             self.register_strategy("BehavioralMetrics", BehavioralMetricsVisualizer)
 
+        # Register QuantumSpecificMetrics strategy if data is available
+        if "QuantumSpecificMetrics" in self.metrics_data:
+            from .quantum_specific_metrics_visualizer import QuantumSpecificMetricsVisualizer
+
+            self.register_strategy("QuantumSpecificMetrics", QuantumSpecificMetricsVisualizer)
+
     def register_strategy(
         self, metric_name: str, strategy_class: Type[VisualizationStrategy]
     ) -> None:

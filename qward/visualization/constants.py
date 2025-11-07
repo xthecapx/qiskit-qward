@@ -16,6 +16,7 @@ class Metrics:
     ELEMENT = "ElementMetrics"
     STRUCTURAL = "StructuralMetrics"
     BEHAVIORAL = "BehavioralMetrics"
+    QUANTUM_SPECIFIC = "QuantumSpecificMetrics"
 
 
 class Plots:
@@ -75,4 +76,11 @@ class Plots:
         MEASUREMENT_LIVENESS = "measurement_liveness"
         PARALLELISM = "parallelism"
         BEHAVIORAL_RADAR = "behavioral_radar"
+        SUMMARY = "summary"
+
+    class QuantumSpecific:
+        """Plot constants for QuantumSpecificMetrics visualizations."""
+
+        ALL_METRICS_BAR = "all_metrics_bar"
+        QUANTUM_RADAR = "quantum_radar"
         SUMMARY = "summary"
