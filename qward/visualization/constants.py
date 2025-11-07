@@ -14,6 +14,7 @@ class Metrics:
     COMPLEXITY = "ComplexityMetrics"
     CIRCUIT_PERFORMANCE = "CircuitPerformance"
     ELEMENT = "ElementMetrics"
+    STRUCTURAL = "StructuralMetrics"
 
 
 class Plots:
@@ -52,4 +53,14 @@ class Plots:
         ORACLE_RATIOS = "oracle_ratios"
         CNOT_TOFFOLI_STATS = "cnot_toffoli_stats"
         MEASUREMENT_ANCILLA = "measurement_ancilla"
+        SUMMARY = "summary"
+
+    class Structural:
+        """Plot constants for StructuralMetrics visualizations."""
+
+        LOC_BREAKDOWN = "loc_breakdown"
+        HALSTEAD_BASIC = "halstead_basic"
+        HALSTEAD_DERIVED = "halstead_derived"
+        STRUCTURE_DIMENSIONS = "structure_dimensions"
+        DENSITY_METRICS = "density_metrics"
         SUMMARY = "summary"
