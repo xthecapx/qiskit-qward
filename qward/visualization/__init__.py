@@ -9,6 +9,7 @@ from .base import VisualizationStrategy, PlotConfig, PlotType, PlotMetadata
 from .circuit_performance_visualizer import CircuitPerformanceVisualizer
 from .qiskit_metrics_visualizer import QiskitVisualizer
 from .complexity_metrics_visualizer import ComplexityVisualizer
+from .element_metrics_visualizer import ElementMetricsVisualizer
 from .visualizer import Visualizer
 from .constants import Metrics, Plots
 from .ieee_config import (
@@ -34,6 +35,7 @@ __all__ = [
     "CircuitPerformanceVisualizer",
     "QiskitVisualizer",
     "ComplexityVisualizer",
+    "ElementMetricsVisualizer",
     "Visualizer",
     "Metrics",
     "Plots",
