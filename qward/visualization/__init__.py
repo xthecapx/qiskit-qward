@@ -11,6 +11,7 @@ from .qiskit_metrics_visualizer import QiskitVisualizer
 from .complexity_metrics_visualizer import ComplexityVisualizer
 from .element_metrics_visualizer import ElementMetricsVisualizer
 from .structural_metrics_visualizer import StructuralMetricsVisualizer
+from .behavioral_metrics_visualizer import BehavioralMetricsVisualizer
 from .visualizer import Visualizer
 from .constants import Metrics, Plots
 from .ieee_config import (
@@ -38,6 +39,7 @@ __all__ = [
     "ComplexityVisualizer",
     "ElementMetricsVisualizer",
     "StructuralMetricsVisualizer",
+    "BehavioralMetricsVisualizer",
     "Visualizer",
     "Metrics",
     "Plots",

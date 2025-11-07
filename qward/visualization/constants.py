@@ -15,6 +15,7 @@ class Metrics:
     CIRCUIT_PERFORMANCE = "CircuitPerformance"
     ELEMENT = "ElementMetrics"
     STRUCTURAL = "StructuralMetrics"
+    BEHAVIORAL = "BehavioralMetrics"
 
 
 class Plots:
@@ -63,4 +64,15 @@ class Plots:
         HALSTEAD_DERIVED = "halstead_derived"
         STRUCTURE_DIMENSIONS = "structure_dimensions"
         DENSITY_METRICS = "density_metrics"
+        SUMMARY = "summary"
+
+    class Behavioral:
+        """Plot constants for BehavioralMetrics visualizations."""
+
+        NORMALIZED_DEPTH = "normalized_depth"
+        PROGRAM_COMMUNICATION = "program_communication"
+        CRITICAL_DEPTH = "critical_depth"
+        MEASUREMENT_LIVENESS = "measurement_liveness"
+        PARALLELISM = "parallelism"
+        BEHAVIORAL_RADAR = "behavioral_radar"
         SUMMARY = "summary"
