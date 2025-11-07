@@ -13,6 +13,7 @@ class Metrics:
     QISKIT = "QiskitMetrics"
     COMPLEXITY = "ComplexityMetrics"
     CIRCUIT_PERFORMANCE = "CircuitPerformance"
+    ELEMENT = "ElementMetrics"
 
 
 class Plots:
@@ -40,3 +41,15 @@ class Plots:
         FIDELITY_COMPARISON = "fidelity_comparison"
         SHOT_DISTRIBUTION = "shot_distribution"
         AGGREGATE_SUMMARY = "aggregate_summary"
+
+    class Element:
+        """Plot constants for ElementMetrics visualizations."""
+
+        PAULI_GATES = "pauli_gates"
+        SINGLE_QUBIT_BREAKDOWN = "single_qubit_breakdown"
+        CONTROLLED_GATES = "controlled_gates"
+        ORACLE_USAGE = "oracle_usage"
+        ORACLE_RATIOS = "oracle_ratios"
+        CNOT_TOFFOLI_STATS = "cnot_toffoli_stats"
+        MEASUREMENT_ANCILLA = "measurement_ancilla"
+        SUMMARY = "summary"

@@ -78,6 +78,12 @@ class Visualizer:
 
             self.register_strategy("ComplexityMetrics", ComplexityVisualizer)
 
+        # Register ElementMetrics strategy if data is available
+        if "ElementMetrics" in self.metrics_data:
+            from .element_metrics_visualizer import ElementMetricsVisualizer
+
+            self.register_strategy("ElementMetrics", ElementMetricsVisualizer)
+
     def register_strategy(
         self, metric_name: str, strategy_class: Type[VisualizationStrategy]
     ) -> None:
