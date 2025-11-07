@@ -84,6 +84,12 @@ class Visualizer:
 
             self.register_strategy("ElementMetrics", ElementMetricsVisualizer)
 
+        # Register StructuralMetrics strategy if data is available
+        if "StructuralMetrics" in self.metrics_data:
+            from .structural_metrics_visualizer import StructuralMetricsVisualizer
+
+            self.register_strategy("StructuralMetrics", StructuralMetricsVisualizer)
+
     def register_strategy(
         self, metric_name: str, strategy_class: Type[VisualizationStrategy]
     ) -> None:
