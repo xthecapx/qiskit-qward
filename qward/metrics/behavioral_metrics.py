@@ -65,10 +65,22 @@ CANONICAL_BASIS_GATES = ['rx', 'ry', 'rz', 'cx']
 
 class BehavioralMetrics(MetricCalculator):
     """
-    Behavioral Metrics calculator for QWARD.
-    
-    This class implements behavioral metrics that analyze quantum circuit
-    execution patterns and characteristics during runtime.
+    Extract behavioral metrics from QuantumCircuit objects.
+
+    This class analyzes quantum circuits to compute behavioral metrics that
+    describe how the circuit behaves as a computational process. Behavioral
+    metrics capture dynamic characteristics such as parallelism potential,
+    liveness of qubits across the circuit timeline, normalized depth measures,
+    communication flow between qubits, and other indicators of execution
+    dynamics derived from the circuit’s DAG representation.
+
+    Attributes:
+        circuit (QuantumCircuit):
+            The quantum circuit to analyze (inherited from MetricCalculator).
+
+        _dag_circuit (DAGCircuit):
+            DAG representation of the circuit, used to extract execution
+            behavior, dependency structure, and parallelism characteristics.
     """
 
     def __init__(self, circuit: QuantumCircuit):
