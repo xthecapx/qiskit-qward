@@ -1,18 +1,17 @@
 """
 Quantum Specific Metrics implementation for QWARD.
 
-This module provides the QuantumSpecificMetrics class that calculates:
-- %SpposQ: Ratio of qubits with a Hadamard gate as initial gate [3]
-- Magic: Evaluates the circuit’s non-Cliffordness or 'magic'—its
-distance from classically simulable (Clifford) circuits. [1]
-- Coherence: Measures how much quantum coherence (superposition)
-the circuit can generate from incoherent input states. [1]
-- Sensitivity: Quantifies the propagation of local perturbations
-within the circuit, reflecting its structural interdependence. [1]
-- Entanglement-Ratio: Ratio of two-qubit interactions to total operations [2]
+This module provides the QuantumSpecificMetrics class for extracting metrics
+that quantify intrinsically quantum properties of a circuit within the QWARD
+framework. These metrics capture phenomena that have no classical analogue and
+directly reflect the quantum computational resources present in a circuit.
 
-These metrics provide quantum-specific analysis focusing on quantum properties
-that are critical for quantum advantage and quantum computing performance.
+Quantum-specific metrics include measures of entanglement, coherence, sensitivity,
+and non-Clifford “magic,” along with other indicators of quantum behavior that
+define the circuit’s potential for quantum advantage and its complexity under
+classical simulation. By focusing on fundamental quantum effects rather than
+gate counts or structural arrangement, these metrics offer insight into the
+circuit’s true quantum nature and resource requirements.
 
 [1] K. Bu, R. J. Garcia, A. Jaffe, D. E. Koh y L. Li, “Complexity of quantum 
 circuits via sensitivity, magic, and coherence,” Communications in Mathematical 
