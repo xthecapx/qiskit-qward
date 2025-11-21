@@ -2,6 +2,12 @@
 Quantum Software Quality Metrics implementation for QWARD.
 
 This module provides the ElementMetrics class for analyzing quantum circuits
+and extracting fundamental element-level metrics used across the QWARD framework.
+These metrics focus on quantifying the basic building blocks of a circuit,
+including qubits and quantum gates, as well as their distributions and
+relationships.
+
+This module provides the ElementMetrics class for analyzing quantum circuits
 and extracting comprehensive quality metrics as defined in the paper:
 
 [ ] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, "Towards a set of metrics for 

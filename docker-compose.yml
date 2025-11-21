@@ -34,8 +34,14 @@ services:
       - ./docs:/docs/docs
       - ./README.md:/docs/README.md
       - ./requirements.docs.txt:/docs/requirements.docs.txt
+      # Montar el código fuente para que autodoc pueda importar qward.*
+      - ./qward:/docs/qward
+      - ./pyproject.toml:/docs/pyproject.toml
+      - ./setup.py:/docs/setup.py
     # Package is already installed in the Dockerfile
     command: >
       bash -c "sphinx-build -b html docs docs/_build/html && 
                cd docs/_build/html && 
                python -m http.server 1234"
+    environment:
+      - PYTHONPATH=/docs

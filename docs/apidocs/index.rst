@@ -27,6 +27,10 @@ QWARD API Reference
    metrics_complexity
    metrics_circuit_performance
    metrics_utils
+   metrics_element
+   metrics_structural
+   metrics_behavioral
+   metrics_quantum_specific
 
 .. toctree::
    :maxdepth: 2
