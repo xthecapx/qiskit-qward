@@ -1,12 +1,14 @@
 """
 Structural Metrics implementation for QWARD.
 
-This module provides the StructuralMetrics class that unifies:
-- LOC metrics (Lines of Code related metrics)
-- Halstead metrics (complexity metrics) 
-- Circuit structure metrics (width, depth, density, size)
+This module provides the StructuralMetrics class for analyzing the structural
+properties of quantum circuits within the QWARD framework. Structural metrics
+characterize how a circuit is organized, independent of the specific gates or
+quantum states involved.
 
-This provides a comprehensive structural analysis of quantum circuits.
+These metrics capture global and topological attributes such as circuit depth,
+width, size, density, connectivity, and structural complexity indicators adopted
+from software engineering.
 
 [1] J. Zhao, “Some Size and Structure Metrics for Quantum Software,” 
 arXiv preprint arXiv:2103.08815, 2021.

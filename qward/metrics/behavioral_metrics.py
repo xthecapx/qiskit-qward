@@ -10,7 +10,7 @@ including:
 - Critical-Depth: Two-qubit operations on critical path analysis [2]
 - Measurement: Mid-circuit measurement and reset operations [2]
 - Liveness: Qubit activity patterns during execution [2]
-- Parallelism: Cross-talk susceptibility analysis [2]
+- Parallelism: Cross-talk susceptibility metric [2]
 
 
 [1] T. Lubinski et al., "Application-Oriented Performance Benchmarks for 
