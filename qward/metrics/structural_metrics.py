@@ -65,10 +65,22 @@ PARAMETER_OPERANDS = {"theta", "phi", "lambda", "gamma", "beta", "alpha"}
 
 class StructuralMetrics(MetricCalculator):
     """
-    Structural Metrics calculator for QWARD.
-    
-    This class unifies LOC, Halstead, and circuit structure metrics
-    to provide comprehensive structural analysis of quantum circuits.
+    Extract structural metrics from QuantumCircuit objects.
+
+    This class analyzes the structural organization of a quantum circuit
+    and computes metrics that describe its shape, topology, and logical
+    arrangement. Structural metrics include circuit depth, width, size,
+    density, connectivity, and software-engineering-inspired metrics such
+    as LOC and Halstead adapted to quantum circuit representations.
+
+    Attributes:
+        circuit (QuantumCircuit):
+            The quantum circuit to analyze (inherited from MetricCalculator).
+
+        _circuit_dag (DAGCircuit | None):
+            DAG representation of the circuit, used to compute depth,
+            connectivity, structural relationships, and topological features.
+
     """
 
     @property 
