@@ -73,10 +73,40 @@ PAULI_SINGLE = {
 
 class QuantumSpecificMetrics(MetricCalculator):
     """
-    Quantum Specific Metrics calculator for QWARD.
-    
-    This class provides quantum-specific metrics that focus on quantum properties
-    critical for quantum advantage and quantum computing performance.
+    Extract intrinsically quantum metrics from QuantumCircuit objects.
+
+    Quantum-specific metrics provide insight into the true quantum behavior of
+    a circuit, its resource requirements, and its expected difficulty for
+    classical simulation. They complement structural and element-level metrics
+    by focusing exclusively on quantum effects arising from the circuit’s
+    transformations and state evolution.
+
+    Attributes:
+        circuit (QuantumCircuit):
+            The quantum circuit to analyze (inherited from MetricCalculator).
+
+        _circuit_dag (DAGCircuit | None):
+            DAG representation of the circuit, used for structural traversal
+            when computing quantum-specific metrics.
+
+        _torch_available (bool):
+            Indicates whether PyTorch is available for metrics that rely on
+            differentiable simulation or gradient-based optimization.
+
+        _max_steps (int):
+            Maximum number of optimization steps used in iterative or
+            differentiable metrics (e.g., magic or sensitivity estimation).
+
+        _lr (float):
+            Learning rate used for gradient-based optimization of certain metrics.
+
+        _device (str):
+            Device specification ("cpu" or "cuda") for metrics that may leverage
+            PyTorch computation.
+
+        _use_trace_norm (bool):
+            Whether to use the trace norm when computing specific quantum
+            sensitivity or distance-based metrics.
     """
 
     def __init__(self, circuit: QuantumCircuit):
@@ -217,7 +247,7 @@ class QuantumSpecificMetrics(MetricCalculator):
             out = np.kron(out, m)
         return out
 
-    def _influence_from_coeffs(self, coeffs: torch.Tensor, labels: List[Tuple[str]], n_qubits: int, dim_factor: int) -> torch.Tensor:
+    def _influence_from_coeffs(self, coeffs: torch.Tensor, labels: List[Tuple[str]], n_qubits: int, dim_factor: int) -> torch.Tensor: # type: ignore
         """Compute total influence as in Bu et al. but on restricted basis."""
         q_a = (coeffs.abs() ** 2) * float(dim_factor)
         per_qubit = torch.zeros(n_qubits, dtype=torch.float32, device=self._device)
@@ -227,7 +257,7 @@ class QuantumSpecificMetrics(MetricCalculator):
                     per_qubit[i] += q_a[idx].real
         return torch.sum(per_qubit)
 
-    def _pauli_coeffs_restricted(self, O_t: torch.Tensor, pauli_t_list: List[torch.Tensor], dim_factor: int) -> torch.Tensor:
+    def _pauli_coeffs_restricted(self, O_t: torch.Tensor, pauli_t_list: List[torch.Tensor], dim_factor: int) -> torch.Tensor: # pyright: ignore[reportInvalidTypeForm]
         """Return coefficients c_a = Tr(P_a^† O)/2^n for a restricted list of Paulis."""
         coeffs = []
         denom = float(dim_factor)
