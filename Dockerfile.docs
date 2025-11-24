@@ -1,16 +1,22 @@
 FROM sphinxdoc/sphinx
 
-# Copy requirements files first
+# Copy requirement files (docs + main + qward)
 COPY requirements.docs.txt /docs/
+COPY requirements.qward.txt /docs/
+COPY requirements.txt /docs/
 
-# Install documentation dependencies
-RUN pip install -r /docs/requirements.docs.txt
+# Install full dependency set (runtime + docs)
+RUN pip install --upgrade pip \
+	&& pip install -r /docs/requirements.txt
 
+# Copy project source
 COPY . /docs
 
+# Install editable package (needed for autosummary paths & version)
 RUN pip install -e /docs
+
 # Set working directory
 WORKDIR /docs
 
-# Default command to build and serve documentation
+# Build and serve docs
 CMD ["bash", "-c", "sphinx-build -b html docs docs/_build/html && cd docs/_build/html && python -m http.server 1234"] 
