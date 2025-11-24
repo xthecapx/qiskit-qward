@@ -18,12 +18,14 @@ Sphinx documentation builder
 
 # General options:
 from pathlib import Path
+import sys
 
 project = "Qward"
 copyright = "2022"  # pylint: disable=redefined-builtin
 author = ""
 
 _rootdir = Path(__file__).parent.parent
+sys.path.insert(0, str(_rootdir))
 
 # The full version, including alpha/beta/rc tags
 release = "0.1.0"
@@ -81,6 +83,9 @@ html_theme = "qiskit-ecosystem"
 autosummary_generate = True
 autosummary_generate_overwrite = False
 autoclass_content = "both"
+
+# Mock sólo librerías realmente pesadas opcionales
+autodoc_mock_imports = ["torch", "qiskit_ibm_runtime", "qbraid"]
 
 # nbsphinx options (for tutorials)
 nbsphinx_timeout = 180
