@@ -10,8 +10,8 @@ These metrics capture global and topological attributes such as circuit depth,
 width, size, density, connectivity, and structural complexity indicators adopted
 from software engineering.
 
-[1] J. Zhao, “Some Size and Structure Metrics for Quantum Software,” 
-arXiv preprint arXiv:2103.08815, 2021.
+[1]J. Zhao, “Some Size and Structure Metrics for Quantum Software.” 2021. 
+[Online]. Available: https://arxiv.org/abs/2103.08815
 
 """
 
