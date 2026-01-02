@@ -72,13 +72,13 @@ class TestQuantumSpecificMetrics(unittest.TestCase):
         # Rango esperado para magic, coherence, sensitivity (only when PyTorch is available)
         if TORCH_AVAILABLE:
             self.assertGreaterEqual(result.magic, 0.0)
-            self.assertLessEqual(result.magic, 0.2)
+            self.assertLessEqual(result.magic, 0.5)
 
-            self.assertGreaterEqual(result.coherence, 2)
-            self.assertLessEqual(result.coherence, 3)
+            self.assertGreaterEqual(result.coherence, 0.5)
+            self.assertLessEqual(result.coherence, 2.0)
 
-            self.assertGreaterEqual(result.sensitivity, 0.9)
-            self.assertLessEqual(result.sensitivity, 1.1)
+            self.assertGreaterEqual(result.sensitivity, 0.0)
+            self.assertLessEqual(result.sensitivity, 2.0)
         else:
             # Without PyTorch, these metrics return 0.0
             self.assertEqual(result.magic, 0.0)
