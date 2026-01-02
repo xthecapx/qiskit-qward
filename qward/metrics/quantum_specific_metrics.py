@@ -170,7 +170,7 @@ class QuantumSpecificMetrics(MetricCalculator):
         return torch.sqrt(torch.sum(torch.abs(mat) ** 2))
 
     def _trace_norm(self, mat):
-        sv = torch.linalg.svdvals(mat)
+        sv = torch.linalg.svdvals(mat)  # pylint: disable=not-callable
         return torch.sum(sv)
 
     # --- Magic ---
