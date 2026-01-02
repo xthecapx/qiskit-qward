@@ -305,7 +305,6 @@
 <span class="c1"># Type alias for job types - include RuntimeJobV2</span>
 <span class="n">JobType</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">RuntimeJobV2</span><span class="p">]</span>
 
-
 <div class="viewcode-block" id="CircuitPerformanceMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
@@ -533,7 +532,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job result of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not have get_counts method&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_fidelity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_fidelity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate quantum fidelity between measured and expected distributions.</span>
 
@@ -555,27 +554,29 @@
 
         <span class="c1"># Convert counts to probabilities</span>
         <span class="n">measured_probs</span> <span class="o">=</span> <span class="p">{</span><span class="n">state</span><span class="p">:</span> <span class="n">count</span> <span class="o">/</span> <span class="n">total_shots</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)</span>
-            <span class="n">fidelity</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="n">all_states</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">measured_probs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c1"># if self.expected_distribution is not None:</span>
+        <span class="c1">#     # Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)</span>
+        <span class="c1">#     fidelity = 0.0</span>
+        <span class="c1">#     all_states = set(measured_probs.keys()) | set(self.expected_distribution.keys())</span>
 
-            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">all_states</span><span class="p">:</span>
-                <span class="n">p_measured</span> <span class="o">=</span> <span class="n">measured_probs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">p_expected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">fidelity</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p_measured</span> <span class="o">*</span> <span class="n">p_expected</span><span class="p">)</span>
+        <span class="c1">#     for state in all_states:</span>
+        <span class="c1">#         p_measured = measured_probs.get(state, 0.0)</span>
+        <span class="c1">#         p_expected = self.expected_distribution.get(state, 0.0)</span>
+        <span class="c1">#         fidelity += np.sqrt(p_measured * p_expected)</span>
 
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">fidelity</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Fallback: return probability of most successful state</span>
-            <span class="n">successful_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">successful_states</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="c1">#     return float(fidelity)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     # Fallback: return probability of most successful state</span>
+        <span class="c1">#     successful_states = [state for state in counts.keys() if self.success_criteria(state)]</span>
+        <span class="c1">#     if not successful_states:</span>
+        <span class="c1">#         return 0.0</span>
 
-            <span class="c1"># Find the most frequent successful state</span>
-            <span class="n">max_successful_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">successful_states</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_successful_count</span> <span class="o">/</span> <span class="n">total_shots</span><span class="p">)</span>
+            <span class="c1"># # Find the most frequent successful state</span>
+            <span class="c1"># max_successful_count = max(counts[state] for state in successful_states)</span>
+            <span class="c1"># return float(max_successful_count / total_shots)</span>
 
 <div class="viewcode-block" id="CircuitPerformanceMetrics.set_expected_distribution">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.set_expected_distribution">[docs]</a>
@@ -971,13 +972,13 @@
             <span class="p">}</span>
 
         <span class="c1"># Calculate basic statistics</span>
-        <span class="n">total_shots</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">successful_shots</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-            <span class="n">count</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">total_shots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="c1"># successful_shots = sum(</span>
+        <span class="c1">#     count for state, count in counts.items() if self.success_criteria()</span>
+        <span class="c1"># )</span>
 
         <span class="c1"># Calculate rates</span>
-        <span class="n">success_rate</span> <span class="o">=</span> <span class="n">successful_shots</span> <span class="o">/</span> <span class="n">total_shots</span> <span class="k">if</span> <span class="n">total_shots</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">success_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span><span class="p">)</span>
         <span class="n">error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">success_rate</span>
 
         <span class="k">return</span> <span class="p">{</span>
@@ -985,7 +986,7 @@
             <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">success_rate</span><span class="p">),</span>
             <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">error_rate</span><span class="p">),</span>
             <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="n">total_shots</span><span class="p">,</span>
-            <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="n">successful_shots</span><span class="p">,</span>
+            <span class="c1">#&quot;successful_shots&quot;: successful_shots,</span>
         <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_multiple_jobs_success_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1023,7 +1024,7 @@
         <span class="p">)</span>
         <span class="n">min_success_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span>
         <span class="n">max_success_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">success_rates_array</span><span class="p">))</span>
-        <span class="n">total_trials</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">total_shots_list</span><span class="p">)</span>
+        <span class="n">total_trials</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">total_shots_list</span><span class="p">))</span>
         <span class="n">error_rate</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">mean_success_rate</span>
 
         <span class="k">return</span> <span class="p">{</span>
