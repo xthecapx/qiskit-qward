@@ -352,7 +352,9 @@ class ElementMetrics(MetricCalculator):
         oracle_depths = []
 
         # --- Iterar sobre las instrucciones del circuito ---
-        for instr, qargs, _ in self.circuit.data:
+        for instruction in self.circuit.data:
+            instr = instruction.operation
+            qargs = instruction.qubits
             gate_name = instr.name.lower()
 
             # Ignorar operaciones no unitarias
@@ -545,9 +547,9 @@ class ElementMetrics(MetricCalculator):
         """
         qubit_cnot_counts = {i: 0 for i in range(self.circuit.num_qubits)}
 
-        for instr, qargs, _ in self.circuit.data:
-            if instr.name == "cx":
-                target_qubit = qargs[1]
+        for instruction in self.circuit.data:
+            if instruction.operation.name == "cx":
+                target_qubit = instruction.qubits[1]
                 target_index = self.circuit.find_bit(target_qubit).index
                 qubit_cnot_counts[target_index] += 1
 
@@ -587,9 +589,9 @@ class ElementMetrics(MetricCalculator):
         num_qubits = self.circuit.num_qubits
         toffoli_counts = [0] * num_qubits
 
-        for instr, qargs, _ in self.circuit.data:
-            if instr.name.lower() in {"ccx", "toffoli"}:
-                target_qubit = qargs[-1]
+        for instruction in self.circuit.data:
+            if instruction.operation.name.lower() in {"ccx", "toffoli"}:
+                target_qubit = instruction.qubits[-1]
                 target_index = self.circuit.find_bit(target_qubit).index
                 toffoli_counts[target_index] += 1
 
