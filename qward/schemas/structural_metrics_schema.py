@@ -2,10 +2,11 @@ from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
+
 class StructuralMetricsSchema(BaseModel):
     """
     Schema for Structural Metrics that unifies LOC, Halstead, and circuit structure metrics.
-    
+
     This schema combines:
     - LOC metrics (Lines of Code related metrics)
     - Halstead metrics (complexity metrics)
@@ -22,7 +23,6 @@ class StructuralMetricsSchema(BaseModel):
                 "phi4_quantum_total_loc": 43,
                 "phi5_num_qubits": 5,
                 "phi6_num_gate_types": 6,
-                
                 # Halstead Metrics
                 "unique_operators": 5,
                 "unique_operands": 8,
@@ -34,14 +34,12 @@ class StructuralMetricsSchema(BaseModel):
                 "volume": 147.2,
                 "difficulty": 3.2,
                 "effort": 471.0,
-                
                 # Circuit Structure Metrics
                 "width": 5,
                 "depth": 8,
                 "max_dens": 12,
                 "avg_dens": 6.4,
                 "size": 32,
-                
             }
         }
     )
@@ -49,7 +47,7 @@ class StructuralMetricsSchema(BaseModel):
     # =============================================================================
     # LOC Metrics (Lines of Code)
     # =============================================================================
-    
+
     # ϕ1: Número de LOC totales en un programa cuántico
     phi1_total_loc: int = Field(..., ge=0, description="Total LOC in the quantum program")
 
@@ -61,7 +59,9 @@ class StructuralMetricsSchema(BaseModel):
 
     # ϕ4: Tamaño total de LOC relacionadas a aspectos cuánticos
     phi4_quantum_total_loc: int = Field(
-        ..., ge=0, description="Total LOC related to quantum aspects (gates + measurements + other quantum ops)"
+        ...,
+        ge=0,
+        description="Total LOC related to quantum aspects (gates + measurements + other quantum ops)",
     )
 
     # ϕ5: Número de cúbits usados
@@ -75,34 +75,61 @@ class StructuralMetricsSchema(BaseModel):
     # =============================================================================
     # Halstead Metrics
     # =============================================================================
-    
+
     # Basic counts (η1, η2, M1, M2)
-    unique_operators: int = Field(..., ge=0, description="Number of unique classical and quantum operators (η1)")
-    unique_operands: int = Field(..., ge=0, description="Number of unique classical and quantum operands (η2)")
-    total_operators: int = Field(..., ge=0, description="Total occurrences of classical and quantum operators (M1)")
-    total_operands: int = Field(..., ge=0, description="Total occurrences of classical and quantum operands (M2)")
-    
+    unique_operators: int = Field(
+        ..., ge=0, description="Number of unique classical and quantum operators (η1)"
+    )
+    unique_operands: int = Field(
+        ..., ge=0, description="Number of unique classical and quantum operands (η2)"
+    )
+    total_operators: int = Field(
+        ..., ge=0, description="Total occurrences of classical and quantum operators (M1)"
+    )
+    total_operands: int = Field(
+        ..., ge=0, description="Total occurrences of classical and quantum operands (M2)"
+    )
+
     # Derived metrics
-    program_length: int = Field(..., ge=0, description="Total length of the quantum program (M = M1 + M2)")
-    vocabulary: int = Field(..., ge=0, description="Total vocabulary of the quantum program (η = η1 + η2)")
-    estimated_length: float = Field(..., ge=0, description="Estimated length of the quantum program (ME = η1*log2(η1) + η2*log2(η2))")
+    program_length: int = Field(
+        ..., ge=0, description="Total length of the quantum program (M = M1 + M2)"
+    )
+    vocabulary: int = Field(
+        ..., ge=0, description="Total vocabulary of the quantum program (η = η1 + η2)"
+    )
+    estimated_length: float = Field(
+        ...,
+        ge=0,
+        description="Estimated length of the quantum program (ME = η1*log2(η1) + η2*log2(η2))",
+    )
     volume: float = Field(..., ge=0, description="Volume of the quantum program (VQ = M × log2(η))")
-    difficulty: float = Field(..., ge=0, description="Difficulty of the quantum program (DQ = (η1/2) × (M2/η2))")
-    effort: float = Field(..., ge=0, description="Effort required to implement the quantum program (EQ = DQ × VQ)")
-    
+    difficulty: float = Field(
+        ..., ge=0, description="Difficulty of the quantum program (DQ = (η1/2) × (M2/η2))"
+    )
+    effort: float = Field(
+        ..., ge=0, description="Effort required to implement the quantum program (EQ = DQ × VQ)"
+    )
 
     # =============================================================================
     # Circuit Structure Metrics
     # =============================================================================
-    
+
     # Circuit dimensions
     width: int = Field(..., ge=0, description="Number of qubits in the circuit")
-    depth: int = Field(..., ge=0, description="Maximum number of operations applied to a qubit in the circuit")
-    
+    depth: int = Field(
+        ..., ge=0, description="Maximum number of operations applied to a qubit in the circuit"
+    )
+
     # Density metrics
-    max_dens: int = Field(..., ge=0, description="Maximum number of operations applied to the qubits in any layer")
-    avg_dens: float = Field(..., ge=0.0, description="Average number of operations applied to the qubits across all layers")
-    
+    max_dens: int = Field(
+        ..., ge=0, description="Maximum number of operations applied to the qubits in any layer"
+    )
+    avg_dens: float = Field(
+        ...,
+        ge=0.0,
+        description="Average number of operations applied to the qubits across all layers",
+    )
+
     # Size metric (total number of operations/gates in the circuit)
     size: int = Field(..., ge=0, description="Total number of operations/gates in the circuit")
 
@@ -114,32 +141,38 @@ class StructuralMetricsSchema(BaseModel):
     @classmethod
     def validate_quantum_total_loc(cls, v, info):
         """Validate that quantum total LOC is at least the sum of gate and measure LOC."""
-        if hasattr(info, 'data'):
-            gate_loc = info.data.get('phi2_gate_loc', 0)
-            measure_loc = info.data.get('phi3_measure_loc', 0)
+        if hasattr(info, "data"):
+            gate_loc = info.data.get("phi2_gate_loc", 0)
+            measure_loc = info.data.get("phi3_measure_loc", 0)
             min_expected = gate_loc + measure_loc
             if v < min_expected:
-                raise ValueError(f"Quantum total LOC ({v}) should be at least gate LOC + measure LOC ({min_expected})")
+                raise ValueError(
+                    f"Quantum total LOC ({v}) should be at least gate LOC + measure LOC ({min_expected})"
+                )
         return v
 
     @field_validator("program_length")
     @classmethod
     def validate_program_length(cls, v, info):
         """Validate that program length equals total operators + total operands."""
-        if hasattr(info, 'data'):
-            total_ops = info.data.get('total_operators', 0) + info.data.get('total_operands', 0)
+        if hasattr(info, "data"):
+            total_ops = info.data.get("total_operators", 0) + info.data.get("total_operands", 0)
             if v != total_ops:
-                raise ValueError(f"Program length ({v}) must equal total_operators + total_operands ({total_ops})")
+                raise ValueError(
+                    f"Program length ({v}) must equal total_operators + total_operands ({total_ops})"
+                )
         return v
 
     @field_validator("vocabulary")
     @classmethod
     def validate_vocabulary(cls, v, info):
         """Validate that vocabulary equals unique operators + unique operands."""
-        if hasattr(info, 'data'):
-            unique_ops = info.data.get('unique_operators', 0) + info.data.get('unique_operands', 0)
+        if hasattr(info, "data"):
+            unique_ops = info.data.get("unique_operators", 0) + info.data.get("unique_operands", 0)
             if v != unique_ops:
-                raise ValueError(f"Vocabulary ({v}) must equal unique_operators + unique_operands ({unique_ops})")
+                raise ValueError(
+                    f"Vocabulary ({v}) must equal unique_operators + unique_operands ({unique_ops})"
+                )
         return v
 
     @field_validator("volume")
@@ -174,8 +207,8 @@ class StructuralMetricsSchema(BaseModel):
     @classmethod
     def validate_width_consistency(cls, v, info):
         """Validate that width is consistent with num_qubits from LOC metrics."""
-        if hasattr(info, 'data'):
-            num_qubits = info.data.get('phi5_num_qubits', 0)
+        if hasattr(info, "data"):
+            num_qubits = info.data.get("phi5_num_qubits", 0)
             if v != num_qubits:
                 raise ValueError(f"Width ({v}) must equal phi5_num_qubits ({num_qubits})")
         return v
@@ -194,13 +227,14 @@ class StructuralMetricsSchema(BaseModel):
     def to_flat_dict(self) -> Dict[str, Any]:
         """
         Convert the schema to a flat dictionary for DataFrame compatibility.
-        
+
         Returns:
             Dict[str, Any]: Flattened dictionary representation
         """
         # LOC metrics with prefix
         loc_data = {
-            f"loc_{k}": v for k, v in {
+            f"loc_{k}": v
+            for k, v in {
                 "phi1_total_loc": self.phi1_total_loc,
                 "phi2_gate_loc": self.phi2_gate_loc,
                 "phi3_measure_loc": self.phi3_measure_loc,
@@ -209,7 +243,7 @@ class StructuralMetricsSchema(BaseModel):
                 "phi6_num_gate_types": self.phi6_num_gate_types,
             }.items()
         }
-        
+
         # Halstead metrics
         halstead_data = {
             "unique_operators": self.unique_operators,
@@ -223,7 +257,7 @@ class StructuralMetricsSchema(BaseModel):
             "difficulty": self.difficulty,
             "effort": self.effort,
         }
-        
+
         # Circuit structure metrics
         structure_data = {
             "width": self.width,
@@ -232,5 +266,5 @@ class StructuralMetricsSchema(BaseModel):
             "avg_dens": self.avg_dens,
             "size": self.size,
         }
-        
+
         return {**loc_data, **halstead_data, **structure_data}

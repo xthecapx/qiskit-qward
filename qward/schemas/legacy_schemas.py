@@ -123,4 +123,3 @@ class CircuitPerformanceAggregateSchema(BaseModel):
                     f"Error rate {v} should equal 1 - mean_success_rate ({expected_error_rate})"
                 )
         return v
-

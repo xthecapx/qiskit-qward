@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 # Circuit Performance Metrics Schemas
 # =============================================================================
 
+
 class SuccessMetricsSchema(BaseModel):
     """
     Schema for success rate metrics.
@@ -303,4 +304,3 @@ class CircuitPerformanceSchema(BaseModel):
             },
         }
     )
-
