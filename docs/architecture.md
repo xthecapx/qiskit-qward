@@ -228,6 +228,8 @@ classDiagram
         +_default_success_criteria() Callable[[str], bool]
     }
 
+    
+
     class MetricsType {
         <<enumeration>>
         PRE_RUNTIME
@@ -279,11 +281,14 @@ The QWARD library is organized into the following folder structure:
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
 │   ├── types.py                # MetricsType and MetricsId enums
-│   ├── defaults.py             # Default metric configurations
-│   ├── schemas.py              # Pydantic schema definitions
+│   ├── defaults.py             # Default metric configurations│    
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   └── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── behavioral_metrics.py   # BehavioralMetrics implementation
+│   ├── structural_metrics.py   # StructuralMetrics implementation
+│   ├── element_metrics.py      # ElementMetrics implementation
+│   └── quantum_specific_metrics.py # QuantumSpecificMetrics implementation
 ├── visualization/
 │   ├── __init__.py
 │   ├── base.py                 # VisualizationStrategy base class and PlotConfig
@@ -291,21 +296,36 @@ The QWARD library is organized into the following folder structure:
 │   ├── qiskit_metrics_visualizer.py      # QiskitVisualizer implementation
 │   ├── complexity_metrics_visualizer.py  # ComplexityVisualizer implementation
 │   └── circuit_performance_visualizer.py # CircuitPerformanceVisualizer implementation
+│   ├── behavioral_metrics_visualizer.py  # BehavioralVisualizer implementation  
+│   ├── element_metrics_visualizer.py     # StructuralVisualizer implementation  
+│   ├── quantum_specific_metrics_visualizer.py  # ElementVisualizer implementation
+│   └── structural_metrics_visualizer.py  # QuantumSpecificVisualizer implementation  
 ├── utils/
 │   ├── __init__.py
 │   ├── flatten.py              # Utility for flattening nested lists
 │   └── helpers.py              # Utility functions
 └── examples/
-    ├── __init__.py
-    ├── utils.py                # Utilities for examples
-    ├── schema_demo.py          # Schema validation demonstration
-    ├── circuit_performance_demo.py # Circuit performance metrics demonstration
-    ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
-    ├── aer.py                  # Example Aer simulator usage
-    ├── example_visualizer.py   # Comprehensive visualization examples
-    ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
-    ├── direct_strategy_example.py # Direct strategy usage examples
-    └── visualization_quickstart.py # Quick visualization example
+│   ├── __init__.py
+│   ├── utils.py                # Utilities for examples
+│   ├── schema_demo.py          # Schema validation demonstration
+│   ├── circuit_performance_demo.py # Circuit performance metrics demonstration
+│   ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
+│   ├── aer.py                  # Example Aer simulator usage
+│   ├── example_visualizer.py   # Comprehensive visualization examples
+│   ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
+│   ├── direct_strategy_example.py # Direct strategy usage examples
+│   └── visualization_quickstart.py # Quick visualization example
+└── schemas/                    # Pydantic schema definitions
+    ├── behavioral_metrics_schema.py
+    ├── circuit_performance_schema.py
+    ├── complexity_metrics_schema.py
+    ├── element_metrics_schema.py
+    ├── legacy_schemas.py
+    ├── loc_metrics_schema.py
+    ├── qiskit_metrics_schema.py
+    ├── quantum_specific_metrics_schema.py
+    └── structural_metrics_schema.py
+
 ```
 
 This structure provides a clean organization for the code, with:
@@ -341,6 +361,20 @@ The ComplexityMetrics class calculates comprehensive circuit complexity metrics 
 
 ### CircuitPerformanceMetrics
 The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
+
+
+### **ElementMetrics**
+The ElementMetrics class analyzes the fundamental building blocks of a quantum circuit, including gate usage, operator frequencies, and parameterized operations. It provides fine-grained insight into gate composition and operand interactions. All results are returned through a validated `ElementMetricsSchema` for safe and structured access.
+
+### **StructuralMetrics**
+The StructuralMetrics class captures the architectural shape of a quantum circuit, including depth, width, layering structure, and graph-based connectivity. It measures topological and resource-oriented properties that reflect the circuit’s structural complexity. The class returns a validated `StructuralMetricsSchema` containing all structural indicators.
+
+### **BehavioralMetrics**
+The BehavioralMetrics class evaluates how a circuit behaves during execution or simulation, analyzing state evolution, probability distributions, and interference patterns. It provides metrics that reflect the dynamic behavior of the algorithm rather than its static structure. All outputs are validated through a `BehavioralMetricsSchema`.
+
+### **QuantumSpecificMetrics**
+The QuantumSpecificMetrics class computes metrics that capture uniquely quantum properties, such as entanglement, interference, non-classicality, and resource-theoretic indicators. These measures quantify the quantum nature and computational potential of a circuit. The class returns a validated `QuantumSpecificMetricsSchema` containing all quantum-specific metrics.
+
 
 ## Usage Examples
 

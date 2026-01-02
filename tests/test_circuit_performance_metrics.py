@@ -6,7 +6,7 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 
 from qward.metrics import CircuitPerformanceMetrics
-from qward.metrics.schemas import CircuitPerformanceSchema
+from qward.schemas.circuit_performance_schema import CircuitPerformanceSchema
 from qward.metrics.types import MetricsType, MetricsId
 
 
