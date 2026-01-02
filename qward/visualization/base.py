@@ -371,6 +371,7 @@ class VisualizationStrategy(ABC):
         save: bool,
         show: bool,
         filename: str,
+        close: bool = False,
     ) -> plt.Figure:
         """
         Finalize plot with tight layout, saving, and showing.
@@ -381,6 +382,7 @@ class VisualizationStrategy(ABC):
             save: Whether to save the plot
             show: Whether to show the plot
             filename: Filename for saving (without extension)
+            close: Whether to close the figure after processing (to free memory)
 
         Returns:
             The figure object
@@ -392,6 +394,10 @@ class VisualizationStrategy(ABC):
             self.save_plot(fig, filename)
         if show and not is_override:
             self.show_plot(fig)
+
+        # Close figure to free memory when not showing and close is requested
+        if close and not show and not is_override:
+            plt.close(fig)
 
         return fig
 

@@ -7,6 +7,7 @@ from qiskit import QuantumCircuit
 from qiskit.circuit.library.basis_change import QFTGate
 from qiskit_aer import AerSimulator
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
@@ -44,6 +45,10 @@ class TestIntegration(unittest.TestCase):
         # Success criteria - updated to handle correct format with spaces
         self.bell_success = lambda result: result in ["00 00", "11 00"]
         self.ghz_success = lambda result: result in ["000 000", "111 000"]
+
+    def tearDown(self):
+        """Clean up matplotlib figures after each test to prevent memory warnings."""
+        plt.close("all")
 
     def test_complete_workflow_bell_state(self):
         """Test complete workflow with Bell state circuit."""
