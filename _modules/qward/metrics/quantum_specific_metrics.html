@@ -1,0 +1,1190 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
+        <title>qward.metrics.quantum_specific_metrics - Qward 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/thebelab.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Qward 0.1.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">Qward 0.1.0</span>
+  
+</a>
+<form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Home</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../beginners_guide.html">QWARD Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../technical_docs.html">Technical Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../project_overview.html">QWARD Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">QWARD Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization_guide.html">QWARD Visualization Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../apidocs/index.html">API References</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/scanner.html">Scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_schemas.html">Metrics Schemas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_complexity.html">Complexity Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/metrics_element.html">Element Metrics (Gate-Level)</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Element Metrics (Gate-Level)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../apidocs/generated/qward.metrics.element_metrics.ElementMetrics.html">qward.metrics.element_metrics.ElementMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/metrics_structural.html">Structural Metrics</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Structural Metrics</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../apidocs/generated/qward.metrics.structural_metrics.StructuralMetrics.html">qward.metrics.structural_metrics.StructuralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../apidocs/metrics_behavioral.html">Behavioral Metrics (Execution Dynamics)</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Behavioral Metrics (Execution Dynamics)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../apidocs/generated/qward.metrics.behavioral_metrics.BehavioralMetrics.html">qward.metrics.behavioral_metrics.BehavioralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/metrics_quantum_specific.html">Quantum Specific Metrics (Magic / Coherence / Sensitivity)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../apidocs/visualization_unified.html">Unified Visualizer</a></li>
+</ul>
+</li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for qward.metrics.quantum_specific_metrics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Quantum Specific Metrics implementation for QWARD.</span>
+
+<span class="sd">This module provides the QuantumSpecificMetrics class for extracting metrics</span>
+<span class="sd">that quantify intrinsically quantum properties of a circuit within the QWARD</span>
+<span class="sd">framework. These metrics capture phenomena that have no classical analogue and</span>
+<span class="sd">directly reflect the quantum computational resources present in a circuit.</span>
+
+<span class="sd">Quantum-specific metrics include measures of entanglement, coherence, sensitivity,</span>
+<span class="sd">and non-Clifford “magic,” along with other indicators of quantum behavior that</span>
+<span class="sd">define the circuit’s potential for quantum advantage and its complexity under</span>
+<span class="sd">classical simulation. By focusing on fundamental quantum effects rather than</span>
+<span class="sd">gate counts or structural arrangement, these metrics offer insight into the</span>
+<span class="sd">circuit’s true quantum nature and resource requirements.</span>
+
+<span class="sd">[1] K. Bu, R. J. Garcia, A. Jaffe, D. E. Koh y L. Li, “Complexity of quantum </span>
+<span class="sd">circuits via sensitivity, magic, and coherence,” Communications in Mathematical </span>
+<span class="sd">Physics, vol. 405, no. 7, 2024, doi:10.1007/s00220-024-05030-6.</span>
+
+<span class="sd">[2] T. Tomesh, P. Gokhale, V. Omole, G. S. Ravi, K. N. Smith, J. Viszlai, </span>
+<span class="sd">X.-C. Wu, N. Hardavellas, M. R. Martonosi y F. T. Chong, “SupermarQ: A scalable </span>
+<span class="sd">quantum benchmark suite,” in Proc. 2022 IEEE International Symposium on </span>
+<span class="sd">High-Performance Computer Architecture (HPCA), 2022, doi: </span>
+<span class="sd">10.1109/HPCA53966.2022.00050.</span>
+
+<span class="sd">[3] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, &quot;Towards a set of metrics for </span>
+<span class="sd">quantum circuits understandability,&quot; in *Quality of Information and Communications </span>
+<span class="sd">Technology. QUATIC 2021 (Communications in Computer and Information Science, vol. 1439)</span>
+<span class="sd">*, A. C. R. Paiva, A. R. Cavalli, P. Ventura Martins, and R. Pérez-Castillo, Eds. Cham:</span>
+<span class="sd"> Springer, 2021, pp. 238–253. doi: 10.1007/978-3-030-85347-1_18.</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.quantum_info</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">partial_trace</span><span class="p">,</span> <span class="n">DensityMatrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.converters</span><span class="w"> </span><span class="kn">import</span> <span class="n">circuit_to_dag</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
+
+<span class="c1"># Try to import torch, but handle gracefully if not available</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+    <span class="n">TORCH_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">TORCH_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">torch</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Import schemas for structured data validation</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">qward.schemas.quantum_specific_metrics_schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumSpecificMetricsSchema</span>
+    <span class="n">SCHEMAS_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">SCHEMAS_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Gates that represent two-qubit interactions</span>
+<span class="n">TWO_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;cx&#39;</span><span class="p">,</span> <span class="s1">&#39;cy&#39;</span><span class="p">,</span> <span class="s1">&#39;cz&#39;</span><span class="p">,</span> <span class="s1">&#39;swap&#39;</span><span class="p">,</span> <span class="s1">&#39;iswap&#39;</span><span class="p">,</span> <span class="s1">&#39;dcx&#39;</span><span class="p">,</span> <span class="s1">&#39;ecr&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rxx&#39;</span><span class="p">,</span> <span class="s1">&#39;ryy&#39;</span><span class="p">,</span> <span class="s1">&#39;rzz&#39;</span><span class="p">,</span> <span class="s1">&#39;rzx&#39;</span><span class="p">,</span> <span class="s1">&#39;xx_minus_yy&#39;</span><span class="p">,</span> <span class="s1">&#39;xx_plus_yy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ccx&#39;</span><span class="p">,</span> <span class="s1">&#39;cswap&#39;</span><span class="p">,</span> <span class="s1">&#39;mcx&#39;</span><span class="p">,</span> <span class="s1">&#39;mcphase&#39;</span><span class="p">,</span> <span class="s1">&#39;mcu1&#39;</span><span class="p">,</span> <span class="s1">&#39;mcu2&#39;</span><span class="p">,</span> <span class="s1">&#39;mcu3&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mcrx&#39;</span><span class="p">,</span> <span class="s1">&#39;mcry&#39;</span><span class="p">,</span> <span class="s1">&#39;mcrz&#39;</span><span class="p">,</span> <span class="s1">&#39;mcp&#39;</span><span class="p">,</span> <span class="s1">&#39;mcu&#39;</span><span class="p">,</span> <span class="s1">&#39;mcswap&#39;</span>
+<span class="p">}</span>
+
+<span class="n">PAULI_SINGLE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+    <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+    <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="p">],[</span><span class="mi">1</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">),</span>
+    <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="QuantumSpecificMetrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_quantum_specific.html#qward.metrics.quantum_specific_metrics.QuantumSpecificMetrics">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QuantumSpecificMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract intrinsically quantum metrics from QuantumCircuit objects.</span>
+
+<span class="sd">    Quantum-specific metrics provide insight into the true quantum behavior of</span>
+<span class="sd">    a circuit, its resource requirements, and its expected difficulty for</span>
+<span class="sd">    classical simulation. They complement structural and element-level metrics</span>
+<span class="sd">    by focusing exclusively on quantum effects arising from the circuit’s</span>
+<span class="sd">    transformations and state evolution.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        circuit (QuantumCircuit):</span>
+<span class="sd">            The quantum circuit to analyze (inherited from MetricCalculator).</span>
+
+<span class="sd">        _circuit_dag (DAGCircuit | None):</span>
+<span class="sd">            DAG representation of the circuit, used for structural traversal</span>
+<span class="sd">            when computing quantum-specific metrics.</span>
+
+<span class="sd">        _torch_available (bool):</span>
+<span class="sd">            Indicates whether PyTorch is available for metrics that rely on</span>
+<span class="sd">            differentiable simulation or gradient-based optimization.</span>
+
+<span class="sd">        _max_steps (int):</span>
+<span class="sd">            Maximum number of optimization steps used in iterative or</span>
+<span class="sd">            differentiable metrics (e.g., magic or sensitivity estimation).</span>
+
+<span class="sd">        _lr (float):</span>
+<span class="sd">            Learning rate used for gradient-based optimization of certain metrics.</span>
+
+<span class="sd">        _device (str):</span>
+<span class="sd">            Device specification (&quot;cpu&quot; or &quot;cuda&quot;) for metrics that may leverage</span>
+<span class="sd">            PyTorch computation.</span>
+
+<span class="sd">        _use_trace_norm (bool):</span>
+<span class="sd">            Whether to use the trace norm when computing specific quantum</span>
+<span class="sd">            sensitivity or distance-based metrics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QuantumSpecificMetrics.__init__">
+<a class="viewcode-back" href="../../../apidocs/generated/qward.metrics.quantum_specific_metrics.QuantumSpecificMetrics.html#qward.metrics.quantum_specific_metrics.QuantumSpecificMetrics.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inicializa el calculador de métricas cuánticas específicas.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span> <span class="k">if</span> <span class="n">circuit</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_torch_available</span> <span class="o">=</span> <span class="n">TORCH_AVAILABLE</span>
+        <span class="c1"># Parámetros de optimización para métricas diferenciales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_steps</span> <span class="o">=</span> <span class="mi">300</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lr</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_trace_norm</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_remove_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">):</span>
+        <span class="n">qc_unitary</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ci</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="n">instr</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">operation</span>
+            <span class="n">qargs</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">qubits</span>
+            <span class="k">if</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">]:</span>
+                <span class="n">qc_unitary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">qargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">qc_unitary</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_pauli_x_on_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">mats</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)]</span> <span class="o">*</span> <span class="n">n_qubits</span>
+        <span class="n">mats</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">mats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mats</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_frobenius_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trace_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+        <span class="n">sv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svdvals</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span>
+
+    <span class="c1"># --- Magic ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_magic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_torch_available</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Magic metric requires PyTorch. Install torch&gt;=1.12.0 to enable this metric.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magic_metric</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Magic calculation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_magic_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_measurements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">)</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">U_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magic_optimize</span><span class="p">(</span><span class="n">U_t</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_magic_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho_out</span><span class="p">):</span>
+        <span class="n">off_diag</span> <span class="o">=</span> <span class="n">rho_out</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">rho_out</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">off_diag</span><span class="p">)))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_magic_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lr</span><span class="p">)</span>
+        <span class="n">best_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_steps</span><span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+            <span class="n">rho_out</span> <span class="o">=</span> <span class="n">U</span> <span class="o">@</span> <span class="n">rho</span> <span class="o">@</span> <span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">Mval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magic_proxy</span><span class="p">(</span><span class="n">rho_out</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">Mval</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Mval</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">best_val</span><span class="p">:</span>
+                <span class="n">best_val</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">best_val</span>
+
+
+    <span class="c1"># --- Coherence ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_coherence</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_torch_available</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Coherence metric requires PyTorch. Install torch&gt;=1.12.0 to enable this metric.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coherence_metric</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Coherence calculation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coherence_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_measurements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">)</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">U_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coherence_optimize</span><span class="p">(</span><span class="n">U_t</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coherence_l1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+        <span class="n">off_diag</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">rho</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">off_diag</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coherence_optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lr</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_steps</span><span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+            <span class="n">rho_out</span> <span class="o">=</span> <span class="n">U</span> <span class="o">@</span> <span class="n">rho</span> <span class="o">@</span> <span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coherence_l1</span><span class="p">(</span><span class="n">rho_out</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">C</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+    <span class="c1"># --- Sensitivity ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_pauli_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w_max</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate Pauli labels of weight ≤ w_max (e.g. (&#39;X&#39;,&#39;I&#39;,&#39;Z&#39;)).&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">positions</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">),</span> <span class="n">w</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="n">w</span><span class="p">):</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;I&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_qubits</span>
+                    <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">sym</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">prod</span><span class="p">):</span>
+                        <span class="n">label</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">sym</span>
+                    <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">labels</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pauli_label_to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a tuple of (&#39;I&#39;,&#39;X&#39;,&#39;Y&#39;,&#39;Z&#39;) to its matrix via kron.&quot;&quot;&quot;</span>
+        <span class="n">mats</span> <span class="o">=</span> <span class="p">[</span><span class="n">PAULI_SINGLE</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">label</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">mats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mats</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_influence_from_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">n_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim_factor</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span> <span class="c1"># type: ignore</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute total influence as in Bu et al. but on restricted basis.&quot;&quot;&quot;</span>
+        <span class="n">q_a</span> <span class="o">=</span> <span class="p">(</span><span class="n">coeffs</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">dim_factor</span><span class="p">)</span>
+        <span class="n">per_qubit</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sym</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sym</span> <span class="o">!=</span> <span class="s1">&#39;I&#39;</span><span class="p">:</span>
+                    <span class="n">per_qubit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">q_a</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">real</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">per_qubit</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pauli_coeffs_restricted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">O_t</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">pauli_t_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">dim_factor</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span> <span class="c1"># pyright: ignore[reportInvalidTypeForm]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return coefficients c_a = Tr(P_a^† O)/2^n for a restricted list of Paulis.&quot;&quot;&quot;</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dim_factor</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">P</span> <span class="ow">in</span> <span class="n">pauli_t_list</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">O_t</span><span class="p">)</span> <span class="o">/</span> <span class="n">denom</span>
+            <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_sensitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Approximate Circuit Sensitivity (CiS) from Bu et al., practical version.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_torch_available</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Sensitivity metric requires PyTorch.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># --- Precompute data ---</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_measurements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">)</span>
+        <span class="n">U_np</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">U_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">U_np</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">U_np</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">n_qubits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="n">dim_factor</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">n_qubits</span>
+
+        <span class="c1"># Restricted Pauli sets</span>
+        <span class="n">w_max_O</span> <span class="o">=</span> <span class="mi">1</span>     <span class="c1"># parametrize O as combo of weight-1 Paulis</span>
+        <span class="n">w_max_eval</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># evaluate expansion up to weight 2</span>
+        <span class="n">labels_O</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_pauli_labels</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">,</span> <span class="n">w_max_O</span><span class="p">)</span>
+        <span class="n">labels_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_pauli_labels</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">,</span> <span class="n">w_max_eval</span><span class="p">)</span>
+
+        <span class="c1"># Precompute torch Paulis</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">np_to_torch</span><span class="p">(</span><span class="n">mat_np</span><span class="p">):</span>
+            <span class="n">real</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">mat_np</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+            <span class="n">imag</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">mat_np</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">complex</span><span class="p">(</span><span class="n">real</span><span class="p">,</span> <span class="n">imag</span><span class="p">)</span>
+        <span class="n">P_eval_t</span> <span class="o">=</span> <span class="p">[</span><span class="n">np_to_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pauli_label_to_matrix</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels_eval</span><span class="p">]</span>
+        <span class="n">P_O_t</span> <span class="o">=</span> <span class="p">[</span><span class="n">np_to_torch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pauli_label_to_matrix</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels_O</span><span class="p">]</span>
+
+        <span class="c1"># Parameters (real coefficients α_j for O)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels_O</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span><span class="n">params</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lr</span><span class="p">)</span>
+
+        <span class="n">best_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_steps</span><span class="p">):</span>
+            <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="c1"># Construct O = sum α_j P_j</span>
+            <span class="n">O_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+                <span class="n">O_t</span> <span class="o">=</span> <span class="n">O_t</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">P_O_t</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+
+            <span class="c1"># Normalize Hilbert–Schmidt</span>
+            <span class="n">hs_norm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">O_t</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">O_t</span><span class="p">)))</span>
+            <span class="n">O_t</span> <span class="o">=</span> <span class="n">O_t</span> <span class="o">/</span> <span class="p">(</span><span class="n">hs_norm</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
+
+            <span class="c1"># Influence before</span>
+            <span class="n">coeffs_O</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pauli_coeffs_restricted</span><span class="p">(</span><span class="n">O_t</span><span class="p">,</span> <span class="n">P_eval_t</span><span class="p">,</span> <span class="n">dim_factor</span><span class="p">)</span>
+            <span class="n">I_O</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_influence_from_coeffs</span><span class="p">(</span><span class="n">coeffs_O</span><span class="p">,</span> <span class="n">labels_eval</span><span class="p">,</span> <span class="n">n_qubits</span><span class="p">,</span> <span class="n">dim_factor</span><span class="p">)</span>
+
+            <span class="c1"># After conjugation</span>
+            <span class="n">Oprime</span> <span class="o">=</span> <span class="n">U_t</span> <span class="o">@</span> <span class="n">O_t</span> <span class="o">@</span> <span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">U_t</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">coeffs_Op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pauli_coeffs_restricted</span><span class="p">(</span><span class="n">Oprime</span><span class="p">,</span> <span class="n">P_eval_t</span><span class="p">,</span> <span class="n">dim_factor</span><span class="p">)</span>
+            <span class="n">I_Op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_influence_from_coeffs</span><span class="p">(</span><span class="n">coeffs_Op</span><span class="p">,</span> <span class="n">labels_eval</span><span class="p">,</span> <span class="n">n_qubits</span><span class="p">,</span> <span class="n">dim_factor</span><span class="p">)</span>
+
+            <span class="n">val</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">I_Op</span> <span class="o">-</span> <span class="n">I_O</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">val</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="n">current_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">current_val</span> <span class="o">&gt;</span> <span class="n">best_val</span><span class="p">:</span>
+                <span class="n">best_val</span> <span class="o">=</span> <span class="n">current_val</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">best_val</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type of this metric.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            MetricsType: PRE_RUNTIME (can be calculated without execution)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the ID of this metric.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            MetricsId: QUANTUM_SPECIFIC</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">QUANTUM_SPECIFIC</span>
+
+<div class="viewcode-block" id="QuantumSpecificMetrics.is_ready">
+<a class="viewcode-back" href="../../../apidocs/metrics_quantum_specific.html#qward.metrics.quantum_specific_metrics.QuantumSpecificMetrics.is_ready">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the metric is ready to be calculated.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the circuit is available, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="QuantumSpecificMetrics.get_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_quantum_specific.html#qward.metrics.quantum_specific_metrics.QuantumSpecificMetrics.get_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumSpecificMetricsSchema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate and return quantum specific metrics.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            QuantumSpecificMetricsSchema: Validated schema with all metrics</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If schemas are not available</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;QuantumSpecificMetricsSchema is not available&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Calculate %SpposQ metric</span>
+        <span class="n">spposq_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_spposq_ratio</span><span class="p">()</span>
+        
+        <span class="c1"># Calculate Magic metric</span>
+        <span class="n">magic_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_magic</span><span class="p">()</span>
+        
+        <span class="c1"># Calculate Coherence metric</span>
+        <span class="n">coherence_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_coherence</span><span class="p">()</span>
+        
+        <span class="c1"># Calculate Sensitivity metric</span>
+        <span class="n">sensitivity_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_sensitivity</span><span class="p">()</span>
+        
+        <span class="c1"># Calculate Entanglement-Ratio metric</span>
+        <span class="n">entanglement_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_entanglement_ratio</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">QuantumSpecificMetricsSchema</span><span class="p">(</span>
+            <span class="n">spposq_ratio</span><span class="o">=</span><span class="n">spposq_ratio</span><span class="p">,</span>
+            <span class="n">magic</span><span class="o">=</span><span class="n">magic_value</span><span class="p">,</span>
+            <span class="n">coherence</span><span class="o">=</span><span class="n">coherence_value</span><span class="p">,</span>
+            <span class="n">sensitivity</span><span class="o">=</span><span class="n">sensitivity_value</span><span class="p">,</span>
+            <span class="n">entanglement_ratio</span><span class="o">=</span><span class="n">entanglement_ratio</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_spposq_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate %SpposQ: Ratio of qubits with a Hadamard gate as initial gate.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Ratio of qubits that start with a Hadamard gate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+            
+        <span class="n">qubits_with_hadamard_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
+        
+        <span class="c1"># For each qubit, check if the first operation is a Hadamard gate</span>
+        <span class="n">active_qubits</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">qubit_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_qubits</span><span class="p">):</span>
+            <span class="n">qubit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="n">qubit_index</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
+                    <span class="n">active_qubits</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">gate_name</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">gate_name</span> <span class="o">==</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span>
+                        <span class="n">qubits_with_hadamard_start</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">break</span>  <span class="c1"># first operation found</span>
+        <span class="k">if</span> <span class="n">active_qubits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">qubits_with_hadamard_start</span> <span class="o">/</span> <span class="n">active_qubits</span>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_entanglement_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate Entanglement-Ratio: Ratio of two-qubit interactions to total operations.</span>
+<span class="sd">        </span>
+<span class="sd">        Formula: E = ne/ng</span>
+<span class="sd">        where:</span>
+<span class="sd">        - ne: number of two-qubit interactions</span>
+<span class="sd">        - ng: total number of gate operations</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Entanglement ratio</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+            
+        <span class="n">two_qubit_gates</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_gate_operations</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="n">gate_name</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            
+            <span class="c1"># Skip measurement, barrier, and reset operations</span>
+            <span class="k">if</span> <span class="n">gate_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span> <span class="s1">&#39;barrier&#39;</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">}:</span>
+                <span class="k">continue</span>
+                
+            <span class="n">total_gate_operations</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+            <span class="c1"># Check if it&#39;s a two-qubit gate</span>
+            <span class="k">if</span> <span class="n">gate_name</span> <span class="ow">in</span> <span class="n">TWO_QUBIT_GATES</span><span class="p">:</span>
+                <span class="n">two_qubit_gates</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># If gate operates on 2 or more qubits, count as two-qubit interaction</span>
+                <span class="n">two_qubit_gates</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">if</span> <span class="n">total_gate_operations</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+            
+        <span class="k">return</span> <span class="n">two_qubit_gates</span> <span class="o">/</span> <span class="n">total_gate_operations</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure that the required schemas are available.</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If schemas are not available</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">&quot;QuantumSpecificMetricsSchema is not available. &quot;</span>
+                <span class="s2">&quot;Please ensure that the schemas module is properly imported.&quot;</span>
+            <span class="p">)</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../../../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">
+document.addEventListener('DOMContentLoaded', function() {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        themeVariables: {
+            primaryColor: '#ff6b6b',
+            primaryTextColor: '#333',
+            primaryBorderColor: '#ff6b6b',
+            lineColor: '#333',
+            secondaryColor: '#4ecdc4',
+            tertiaryColor: '#ffe66d'
+        },
+        flowchart: {
+            useMaxWidth: true,
+            htmlLabels: true
+        },
+        classDiagram: {
+            useMaxWidth: true
+        }
+    });
+    
+    // Force re-render of mermaid diagrams
+    mermaid.run();
+});
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+    <script src="../../../_static/mermaid-init.js?v=05525452"></script>
+    </body>
+</html>

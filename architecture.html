@@ -212,6 +212,19 @@
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_element.html">Element Metrics (Gate-Level)</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Element Metrics (Gate-Level)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.element_metrics.ElementMetrics.html">qward.metrics.element_metrics.ElementMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_structural.html">Structural Metrics</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Structural Metrics</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.structural_metrics.StructuralMetrics.html">qward.metrics.structural_metrics.StructuralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_behavioral.html">Behavioral Metrics (Execution Dynamics)</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Behavioral Metrics (Execution Dynamics)</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.behavioral_metrics.BehavioralMetrics.html">qward.metrics.behavioral_metrics.BehavioralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_quantum_specific.html">Quantum Specific Metrics (Magic / Coherence / Sensitivity)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
@@ -483,6 +496,8 @@
         +_default_success_criteria() Callable[[str], bool]
     }
 
+    
+
     class MetricsType {
         &lt;&lt;enumeration&gt;&gt;
         PRE_RUNTIME
@@ -531,11 +546,14 @@
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
 │   ├── types.py                # MetricsType and MetricsId enums
-│   ├── defaults.py             # Default metric configurations
-│   ├── schemas.py              # Pydantic schema definitions
+│   ├── defaults.py             # Default metric configurations│    
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   └── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── behavioral_metrics.py   # BehavioralMetrics implementation
+│   ├── structural_metrics.py   # StructuralMetrics implementation
+│   ├── element_metrics.py      # ElementMetrics implementation
+│   └── quantum_specific_metrics.py # QuantumSpecificMetrics implementation
 ├── visualization/
 │   ├── __init__.py
 │   ├── base.py                 # VisualizationStrategy base class and PlotConfig
@@ -543,21 +561,36 @@
 │   ├── qiskit_metrics_visualizer.py      # QiskitVisualizer implementation
 │   ├── complexity_metrics_visualizer.py  # ComplexityVisualizer implementation
 │   └── circuit_performance_visualizer.py # CircuitPerformanceVisualizer implementation
+│   ├── behavioral_metrics_visualizer.py  # BehavioralVisualizer implementation  
+│   ├── element_metrics_visualizer.py     # StructuralVisualizer implementation  
+│   ├── quantum_specific_metrics_visualizer.py  # ElementVisualizer implementation
+│   └── structural_metrics_visualizer.py  # QuantumSpecificVisualizer implementation  
 ├── utils/
 │   ├── __init__.py
 │   ├── flatten.py              # Utility for flattening nested lists
 │   └── helpers.py              # Utility functions
 └── examples/
-    ├── __init__.py
-    ├── utils.py                # Utilities for examples
-    ├── schema_demo.py          # Schema validation demonstration
-    ├── circuit_performance_demo.py # Circuit performance metrics demonstration
-    ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
-    ├── aer.py                  # Example Aer simulator usage
-    ├── example_visualizer.py   # Comprehensive visualization examples
-    ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
-    ├── direct_strategy_example.py # Direct strategy usage examples
-    └── visualization_quickstart.py # Quick visualization example
+│   ├── __init__.py
+│   ├── utils.py                # Utilities for examples
+│   ├── schema_demo.py          # Schema validation demonstration
+│   ├── circuit_performance_demo.py # Circuit performance metrics demonstration
+│   ├── run_on_aer.ipynb        # Example notebook for running on Aer simulator
+│   ├── aer.py                  # Example Aer simulator usage
+│   ├── example_visualizer.py   # Comprehensive visualization examples
+│   ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
+│   ├── direct_strategy_example.py # Direct strategy usage examples
+│   └── visualization_quickstart.py # Quick visualization example
+└── schemas/                    # Pydantic schema definitions
+    ├── behavioral_metrics_schema.py
+    ├── circuit_performance_schema.py
+    ├── complexity_metrics_schema.py
+    ├── element_metrics_schema.py
+    ├── legacy_schemas.py
+    ├── loc_metrics_schema.py
+    ├── qiskit_metrics_schema.py
+    ├── quantum_specific_metrics_schema.py
+    └── structural_metrics_schema.py
+
 </pre></div>
 </div>
 <p>This structure provides a clean organization for the code, with:</p>
@@ -602,6 +635,22 @@
 <section id="circuitperformancemetrics">
 <h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
 <p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+</section>
+<section id="elementmetrics">
+<h3><strong>ElementMetrics</strong><a class="headerlink" href="#elementmetrics" title="Link to this heading">¶</a></h3>
+<p>The ElementMetrics class analyzes the fundamental building blocks of a quantum circuit, including gate usage, operator frequencies, and parameterized operations. It provides fine-grained insight into gate composition and operand interactions. All results are returned through a validated <code class="docutils literal notranslate"><span class="pre">ElementMetricsSchema</span></code> for safe and structured access.</p>
+</section>
+<section id="structuralmetrics">
+<h3><strong>StructuralMetrics</strong><a class="headerlink" href="#structuralmetrics" title="Link to this heading">¶</a></h3>
+<p>The StructuralMetrics class captures the architectural shape of a quantum circuit, including depth, width, layering structure, and graph-based connectivity. It measures topological and resource-oriented properties that reflect the circuit’s structural complexity. The class returns a validated <code class="docutils literal notranslate"><span class="pre">StructuralMetricsSchema</span></code> containing all structural indicators.</p>
+</section>
+<section id="behavioralmetrics">
+<h3><strong>BehavioralMetrics</strong><a class="headerlink" href="#behavioralmetrics" title="Link to this heading">¶</a></h3>
+<p>The BehavioralMetrics class evaluates how a circuit behaves during execution or simulation, analyzing state evolution, probability distributions, and interference patterns. It provides metrics that reflect the dynamic behavior of the algorithm rather than its static structure. All outputs are validated through a <code class="docutils literal notranslate"><span class="pre">BehavioralMetricsSchema</span></code>.</p>
+</section>
+<section id="quantumspecificmetrics">
+<h3><strong>QuantumSpecificMetrics</strong><a class="headerlink" href="#quantumspecificmetrics" title="Link to this heading">¶</a></h3>
+<p>The QuantumSpecificMetrics class computes metrics that capture uniquely quantum properties, such as entanglement, interference, non-classicality, and resource-theoretic indicators. These measures quantify the quantum nature and computational potential of a circuit. The class returns a validated <code class="docutils literal notranslate"><span class="pre">QuantumSpecificMetricsSchema</span></code> containing all quantum-specific metrics.</p>
 </section>
 </section>
 <section id="usage-examples">
@@ -1205,6 +1254,10 @@
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
 <li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
+<li><a class="reference internal" href="#elementmetrics"><strong>ElementMetrics</strong></a></li>
+<li><a class="reference internal" href="#structuralmetrics"><strong>StructuralMetrics</strong></a></li>
+<li><a class="reference internal" href="#behavioralmetrics"><strong>BehavioralMetrics</strong></a></li>
+<li><a class="reference internal" href="#quantumspecificmetrics"><strong>QuantumSpecificMetrics</strong></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
