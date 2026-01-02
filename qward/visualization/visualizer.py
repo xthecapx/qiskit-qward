@@ -78,6 +78,30 @@ class Visualizer:
 
             self.register_strategy("ComplexityMetrics", ComplexityVisualizer)
 
+        # Register ElementMetrics strategy if data is available
+        if "ElementMetrics" in self.metrics_data:
+            from .element_metrics_visualizer import ElementMetricsVisualizer
+
+            self.register_strategy("ElementMetrics", ElementMetricsVisualizer)
+
+        # Register StructuralMetrics strategy if data is available
+        if "StructuralMetrics" in self.metrics_data:
+            from .structural_metrics_visualizer import StructuralMetricsVisualizer
+
+            self.register_strategy("StructuralMetrics", StructuralMetricsVisualizer)
+
+        # Register BehavioralMetrics strategy if data is available
+        if "BehavioralMetrics" in self.metrics_data:
+            from .behavioral_metrics_visualizer import BehavioralMetricsVisualizer
+
+            self.register_strategy("BehavioralMetrics", BehavioralMetricsVisualizer)
+
+        # Register QuantumSpecificMetrics strategy if data is available
+        if "QuantumSpecificMetrics" in self.metrics_data:
+            from .quantum_specific_metrics_visualizer import QuantumSpecificMetricsVisualizer
+
+            self.register_strategy("QuantumSpecificMetrics", QuantumSpecificMetricsVisualizer)
+
     def register_strategy(
         self, metric_name: str, strategy_class: Type[VisualizationStrategy]
     ) -> None:
