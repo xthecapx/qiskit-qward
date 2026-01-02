@@ -305,7 +305,9 @@ class ElementMetricsVisualizer(VisualizationStrategy):
             # Si nos pasan ejes, usamos uno solo (combinamos métricas)
             axs = [base_ax]
         else:
-            fig, axs = plt.subplots(1, 2, figsize=(self.config.figsize[0] + 2, self.config.figsize[1]))
+            fig, axs = plt.subplots(
+                1, 2, figsize=(self.config.figsize[0] + 2, self.config.figsize[1])
+            )
             is_override = False
 
         # Datos CNOT
@@ -324,7 +326,10 @@ class ElementMetricsVisualizer(VisualizationStrategy):
 
         if len(axs) == 1:
             # Combinar ambos conjuntos si solo tenemos un eje
-            combined = {**{f"CNOT - {k}": v for k, v in cnot_data.items()}, **{f"Toffoli - {k}": v for k, v in toff_data.items()}}
+            combined = {
+                **{f"CNOT - {k}": v for k, v in cnot_data.items()},
+                **{f"Toffoli - {k}": v for k, v in toff_data.items()},
+            }
             self._create_bar_plot_with_labels(
                 data=combined,
                 ax=axs[0],

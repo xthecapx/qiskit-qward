@@ -306,4 +306,3 @@ class ComplexityMetricsSchema(BaseModel):
             advanced_metrics=AdvancedMetricsSchema(**categories["advanced_metrics"]),
             derived_metrics=DerivedMetricsSchema(**categories["derived_metrics"]),
         )
-

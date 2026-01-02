@@ -5,6 +5,7 @@ from qiskit import QuantumCircuit
 from qward.metrics.behavioral_metrics import BehavioralMetrics
 from qward.schemas.behavioral_metrics_schema import BehavioralMetricsSchema
 
+
 class TestBehavioralMetrics(unittest.TestCase):
     """Test cases for BehavioralMetrics class."""
 
@@ -16,8 +17,7 @@ class TestBehavioralMetrics(unittest.TestCase):
         self.simple_circuit.cx(0, 1)
         self.simple_circuit.barrier()
         self.simple_circuit.measure_all()
-        
-        
+
         # More complex circuit for testing
         self.complex_circuit = QuantumCircuit(4, 2)
 
@@ -42,15 +42,15 @@ class TestBehavioralMetrics(unittest.TestCase):
 
     def test_basic_metrics_simple_circuit(self):
         """Test behavioral metrics calculation for simple circuit."""
-        
+
         metrics = BehavioralMetrics(self.simple_circuit)
         result = metrics.get_metrics()
         self.assertIsInstance(result, BehavioralMetricsSchema)
         self.assertEqual(result.normalized_depth, 4)
         self.assertEqual(result.program_communication, 1)
         self.assertEqual(result.critical_depth, 1)
-        self.assertEqual(result.measurement, 1/5)
-        self.assertEqual(result.liveness, 1/2)
+        self.assertEqual(result.measurement, 1 / 5)
+        self.assertEqual(result.liveness, 1 / 2)
         self.assertAlmostEqual(result.parallelism, 0, places=9)
 
     def test_metrics_complex_circuit(self):
@@ -60,11 +60,11 @@ class TestBehavioralMetrics(unittest.TestCase):
         result = metrics.get_metrics()
         self.assertIsInstance(result, BehavioralMetricsSchema)
         self.assertEqual(result.normalized_depth, 11)
-        self.assertEqual(result.program_communication, 2/3)
+        self.assertEqual(result.program_communication, 2 / 3)
         self.assertEqual(result.critical_depth, 0.5)
-        self.assertEqual(result.measurement, 4/7)
-        self.assertEqual(result.liveness, 17/28)
-        self.assertAlmostEqual(result.parallelism, 2/21, places=9)
+        self.assertEqual(result.measurement, 4 / 7)
+        self.assertEqual(result.liveness, 17 / 28)
+        self.assertAlmostEqual(result.parallelism, 2 / 21, places=9)
 
     def test_empty_circuit(self):
         """Test with empty circuit."""
@@ -103,6 +103,7 @@ class TestBehavioralMetrics(unittest.TestCase):
         self.assertEqual(result1.measurement, result2.measurement)
         self.assertEqual(result1.liveness, result2.liveness)
         self.assertEqual(result1.parallelism, result2.parallelism)
+
 
 if __name__ == "__main__":
     unittest.main()

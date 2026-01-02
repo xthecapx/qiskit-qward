@@ -15,7 +15,9 @@ def main():
     # For demonstration purposes, this just assumes Scanner is configured to compute QuantumSpecificMetrics.
     scanner = Scanner()
 
-    viz = Visualizer(scanner=scanner, config=PlotConfig(style="quantum"), output_dir="qward/examples/img")
+    viz = Visualizer(
+        scanner=scanner, config=PlotConfig(style="quantum"), output_dir="qward/examples/img"
+    )
 
     # Print available metrics and plots
     viz.print_available_metrics()

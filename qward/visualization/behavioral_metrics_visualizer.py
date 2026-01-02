@@ -88,7 +88,9 @@ class BehavioralMetricsVisualizer(VisualizationStrategy):
         fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
         # Recoger todas las métricas calculadas por BehavioralMetrics
         normalized_depth = float(self.beh_df.get("normalized_depth", pd.Series([0.0])).iloc[0])
-        program_communication = float(self.beh_df.get("program_communication", pd.Series([0.0])).iloc[0])
+        program_communication = float(
+            self.beh_df.get("program_communication", pd.Series([0.0])).iloc[0]
+        )
         critical_depth = float(self.beh_df.get("critical_depth", pd.Series([0.0])).iloc[0])
         measurement = float(self.beh_df.get("measurement", pd.Series([0.0])).iloc[0])
         liveness = float(self.beh_df.get("liveness", pd.Series([0.0])).iloc[0])
@@ -110,7 +112,13 @@ class BehavioralMetricsVisualizer(VisualizationStrategy):
             ylabel="Valor",
             value_format="auto",
         )
-        return self._finalize_plot(fig=fig, is_override=is_override, save=save, show=show, filename="behavioral_all_metrics")
+        return self._finalize_plot(
+            fig=fig,
+            is_override=is_override,
+            save=save,
+            show=show,
+            filename="behavioral_all_metrics",
+        )
 
     # (Se eliminan gráficos de una sola barra y redundantes como parallelism, program_communication, critical_depth, normalized_depth)
 
@@ -130,7 +138,9 @@ class BehavioralMetricsVisualizer(VisualizationStrategy):
             is_override = False
 
         metrics = {
-            "Communication": float(self.beh_df.get("program_communication", pd.Series([0.0])).iloc[0]),
+            "Communication": float(
+                self.beh_df.get("program_communication", pd.Series([0.0])).iloc[0]
+            ),
             "Critical Depth": float(self.beh_df.get("critical_depth", pd.Series([0.0])).iloc[0]),
             "Measurement": float(self.beh_df.get("measurement", pd.Series([0.0])).iloc[0]),
             "Liveness": float(self.beh_df.get("liveness", pd.Series([0.0])).iloc[0]),
@@ -156,7 +166,9 @@ class BehavioralMetricsVisualizer(VisualizationStrategy):
             ax.set_title(final_title, pad=20)
         ax.grid(True)
 
-        return self._finalize_plot(fig=fig, is_override=is_override, save=save, show=show, filename="behavioral_radar")
+        return self._finalize_plot(
+            fig=fig, is_override=is_override, save=save, show=show, filename="behavioral_radar"
+        )
 
     # (Se elimina el plot de summary de barras para evitar duplicar la información del radar)
 

@@ -163,7 +163,11 @@ class QuantumSpecificMetricsVisualizer(VisualizationStrategy):
         ax.grid(True)
 
         return self._finalize_plot(
-            fig=fig, is_override=is_override, save=save, show=show, filename="quantum_specific_radar"
+            fig=fig,
+            is_override=is_override,
+            save=save,
+            show=show,
+            filename="quantum_specific_radar",
         )
 
     # ----------------------- Dashboard -----------------------

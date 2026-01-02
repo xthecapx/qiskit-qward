@@ -3,15 +3,18 @@ from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward.metrics.circuit_performance import CircuitPerformanceMetrics
 from qward.scanner import Scanner
-#from qward.metrics.behavioral_metrics import BehavioralMetrics
-#from qward.metrics.quantum_specific_metrics import QuantumSpecificMetrics
-#from qward.metrics.structural_metrics import StructuralMetrics
-#from qward.metrics.element_metrics import ElementMetrics
+
+# from qward.metrics.behavioral_metrics import BehavioralMetrics
+# from qward.metrics.quantum_specific_metrics import QuantumSpecificMetrics
+# from qward.metrics.structural_metrics import StructuralMetrics
+# from qward.metrics.element_metrics import ElementMetrics
 from qward.algorithms.pvqd import ising_evolved_state, create_pvqd_ansatz
 from qiskit.quantum_info import state_fidelity
 
 
-def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = {"method": 'statevector'}, n_shots: int = 1024):
+def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = None, n_shots: int = 1024):
+    if simulator_config is None:
+        simulator_config = {"method": "statevector"}
 
     # Import noise model components
     from qiskit_aer.noise import (
@@ -22,7 +25,7 @@ def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = {"method":
     )
 
     # Create an Aer simulator with default settings (no noise)
-    simulator = AerSimulator(method='statevector')
+    simulator = AerSimulator(method="statevector")
 
     # Run the circuit multiple times with different noise models
     jobs = []
@@ -54,7 +57,7 @@ def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = {"method":
     noise_model1.add_all_qubit_readout_error(readout_error)
 
     # Create a simulator with the first noise model
-    noisy_simulator1 = AerSimulator(noise_model=noise_model1, method='statevector')
+    noisy_simulator1 = AerSimulator(noise_model=noise_model1, method="statevector")
     job2 = noisy_simulator1.run(bound_qc, shots=1024)
     jobs.append(job2)
 
@@ -74,8 +77,8 @@ def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = {"method":
     noise_model2.add_all_qubit_readout_error(readout_error)
 
     # Create a simulator with the second noise model
-    noisy_simulator2 = AerSimulator(noise_model=noise_model2, method='statevector')
-    
+    noisy_simulator2 = AerSimulator(noise_model=noise_model2, method="statevector")
+
     job3 = noisy_simulator2.run(bound_qc, shots=1024)
     jobs.append(job3)
 
@@ -83,20 +86,17 @@ def test_with_noise(circuit: QuantumCircuit, simulator_config: dict = {"method":
     # Wait for all jobs to complete
     # for job in jobs:
     #     job.result()
-    
+
     return jobs
+
 
 def calculate_metrics(circuit: QuantumCircuit, jobs: list):
 
-    
     # Add CircuitPerformance strategy with multiple jobs
 
-    
-    
-    #Create a scanner with the circuit
-    
+    # Create a scanner with the circuit
+
     scanner = Scanner(circuit=circuit)
-    
 
     def success_criteria(counts):
         print(counts)
@@ -105,19 +105,20 @@ def calculate_metrics(circuit: QuantumCircuit, jobs: list):
         # Calculamos la fidelidad.
         fidelity = state_fidelity(target_value, output_state)
         return fidelity
-     
+
     circuit_performance_strategy = CircuitPerformanceMetrics(
         circuit=circuit, success_criteria=success_criteria
     )
-    #Add jobs one by one to demonstrate the new functionality
+    # Add jobs one by one to demonstrate the new functionality
     circuit_performance_strategy.add_job(jobs[0])  # Add first job
-    
+
     circuit_performance_strategy.add_job(jobs[1:])  # Add remaining jobs as a list
     scanner.add_strategy(circuit_performance_strategy)
-    
+
     # Calculate metrics
     metrics_dict = scanner.calculate_metrics()
     return metrics_dict
+
 
 def main():
     circuit = create_pvqd_ansatz(num_qubits=4, reps=3)

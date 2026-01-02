@@ -14,10 +14,12 @@ from ..metrics import BehavioralMetrics, ElementMetrics, StructuralMetrics, Quan
 import os
 
 
-def create_vqte_circuit_variational(num_qubits, p, evolution_type="imaginary", ansatz_type="ising", delta_t=0.1):
+def create_vqte_circuit_variational(
+    num_qubits, p, evolution_type="imaginary", ansatz_type="ising", delta_t=0.1
+):
     """
     Crea un circuito inspirado en la evolución variacional (VarQTE/VarQITE) para analizar métricas estructurales.
-    
+
     Parámetros:
         num_qubits (int): número de qubits
         p (int): número de pasos (profundidad variacional)
@@ -25,7 +27,7 @@ def create_vqte_circuit_variational(num_qubits, p, evolution_type="imaginary", a
         ansatz_type (str): tipo de ansatz ("ising", "heisenberg", "su2")
         delta_t (float): paso de tiempo
     """
-    params = ParameterVector('theta', p)
+    params = ParameterVector("theta", p)
     qc = QuantumCircuit(num_qubits)
 
     # Inicialización en |+>^n
@@ -81,11 +83,15 @@ def create_vqte_circuit_variational(num_qubits, p, evolution_type="imaginary", a
 
 def run_experiments(
     num_instances=3,
-    num_qubits_list=[5, 6, 7],
-    p_list=[1, 2, 3],
+    num_qubits_list=None,
+    p_list=None,
     seed=123,
-    output_csv="vqte_metrics_results.csv"
+    output_csv="vqte_metrics_results.csv",
 ):
+    if num_qubits_list is None:
+        num_qubits_list = [5, 6, 7]
+    if p_list is None:
+        p_list = [1, 2, 3]
     results = []
     np.random.seed(seed)
     for n in num_qubits_list:
@@ -94,13 +100,11 @@ def run_experiments(
 
                 for evo_type in ["imaginary", "real"]:
                     for ansatz in ["ising", "heisenberg", "su2"]:
-                        qc = create_vqte_circuit_variational(n, p, evolution_type=evo_type, ansatz_type=ansatz)
+                        qc = create_vqte_circuit_variational(
+                            n, p, evolution_type=evo_type, ansatz_type=ansatz
+                        )
 
-                row = {
-                    "num_qubits": n,
-                    "p": p,
-                    "instance_id": idx
-                }
+                row = {"num_qubits": n, "p": p, "instance_id": idx}
                 # Element
                 element_metrics = ElementMetrics(qc).get_metrics()
                 row.update({f"element_{k}": v for k, v in element_metrics.dict().items()})
@@ -112,7 +116,9 @@ def run_experiments(
                 row.update({f"behavioral_{k}": v for k, v in behavioral_metrics.dict().items()})
                 # Quantum Specific
                 quantum_specific_metrics = QuantumSpecificMetrics(qc).get_metrics()
-                row.update({f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()})
+                row.update(
+                    {f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()}
+                )
                 results.append(row)
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)

@@ -6,6 +6,7 @@ from qiskit.circuit.library import SGate, TGate
 from qward.metrics.element_metrics import ElementMetrics
 from qward.schemas.element_metrics_schema import ElementMetricsSchema
 
+
 class TestElementMetrics(unittest.TestCase):
     """Test cases for ElementMetrics class."""
 
@@ -22,22 +23,22 @@ class TestElementMetrics(unittest.TestCase):
         self.simple_circuit.cx(1, 3)
 
         # Complex circuit as solicitado
-        n_count = 3   # qubits de conteo
+        n_count = 3  # qubits de conteo
         n_target = 2  # qubits del eigenvector
         qc = QuantumCircuit(n_count + n_target, n_count)
         for q in range(n_count):
             qc.h(q)
-        U = QuantumCircuit(n_target)
-        U.cz(0, 1)
-        U.name = "U"
-        U_gate = U.to_gate()
-        U2_gate = U.power(2).to_gate()
-        U4_gate = U.power(4).to_gate()
+        unitary_circ = QuantumCircuit(n_target)
+        unitary_circ.cz(0, 1)
+        unitary_circ.name = "U"
+        unitary_gate = unitary_circ.to_gate()
+        unitary2_gate = unitary_circ.power(2).to_gate()
+        unitary4_gate = unitary_circ.power(4).to_gate()
 
-        qc.append(U4_gate.control(), [0] + [3, 4])
+        qc.append(unitary4_gate.control(), [0] + [3, 4])
         qc.h(0)
-        qc.append(U2_gate.control(), [1] + [3, 4])
-        qc.append(U_gate.control(),  [2] + [3, 4])
+        qc.append(unitary2_gate.control(), [1] + [3, 4])
+        qc.append(unitary_gate.control(), [2] + [3, 4])
 
         csgate_0 = SGate().control(1)
         qc.append(csgate_0, [0, 1])
@@ -163,6 +164,7 @@ class TestElementMetrics(unittest.TestCase):
         self.assertEqual(result1.no_gates, result2.no_gates)
         self.assertEqual(result1.no_h, result2.no_h)
         self.assertEqual(result1.no_qm, result2.no_qm)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,6 +9,7 @@ from qiskit.transpiler import Layout
 # Basic Circuit Metrics Schema
 # =============================================================================
 
+
 class BasicMetricsSchema(BaseModel):
     """
     Schema for basic quantum circuit metrics.
@@ -61,6 +62,7 @@ class BasicMetricsSchema(BaseModel):
 # Instruction Metrics Schema
 # =============================================================================
 
+
 class InstructionMetricsSchema(BaseModel):
     """
     Schema for quantum circuit instruction metrics.
@@ -92,6 +94,7 @@ class InstructionMetricsSchema(BaseModel):
 # =============================================================================
 # Scheduling Metrics Schema
 # =============================================================================
+
 
 class SchedulingMetricsSchema(BaseModel):
     """
@@ -126,11 +129,12 @@ class SchedulingMetricsSchema(BaseModel):
             if v < info.data["qubit_start_time"]:
                 raise ValueError("Qubit stop time must be >= start time")
         return v
-    
+
 
 # =============================================================================
 # Complete Qiskit Metrics Schema
 # =============================================================================
+
 
 class QiskitMetricsSchema(BaseModel):
     """

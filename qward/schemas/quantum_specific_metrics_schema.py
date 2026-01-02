@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 class QuantumSpecificMetricsSchema(BaseModel):
     """
     Schema for Quantum Specific Metrics that provides quantum-specific analysis.
-    
+
     This schema includes:
     - %SpposQ: Ratio of qubits with a Hadamard gate as initial gate
     - Magic: Quantum magic measure (non-Cliffordness)
@@ -28,7 +28,7 @@ class QuantumSpecificMetricsSchema(BaseModel):
                 "magic": 0.85,
                 "coherence": 1.2,
                 "sensitivity": 0.45,
-                "entanglement_ratio": 0.3
+                "entanglement_ratio": 0.3,
             }
         }
     )
@@ -39,39 +39,37 @@ class QuantumSpecificMetricsSchema(BaseModel):
 
     # %SpposQ: Ratio of qubits with a Hadamard gate as initial gate
     spposq_ratio: float = Field(
-        ..., 
-        ge=0.0, 
-        le=1.0, 
-        description="Ratio of qubits with a Hadamard gate as initial gate (%SpposQ)"
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Ratio of qubits with a Hadamard gate as initial gate (%SpposQ)",
     )
 
     # Magic: Quantum magic measure (non-Cliffordness)
     magic: float = Field(
-        ..., 
-        ge=0.0, 
-        description="Quantum magic measure indicating non-Cliffordness of the circuit"
+        ..., ge=0.0, description="Quantum magic measure indicating non-Cliffordness of the circuit"
     )
 
     # Coherence: Coherence power measure
     coherence: float = Field(
-        ..., 
-        ge=0.0, 
-        description="Coherence power measure indicating the circuit's ability to generate coherence"
+        ...,
+        ge=0.0,
+        description="Coherence power measure indicating the circuit's ability to generate coherence",
     )
 
     # Sensitivity: Circuit sensitivity measure
     sensitivity: float = Field(
-        ..., 
-        ge=0.0, 
-        description="Circuit sensitivity measure indicating sensitivity to perturbations"
+        ...,
+        ge=0.0,
+        description="Circuit sensitivity measure indicating sensitivity to perturbations",
     )
 
     # Entanglement-Ratio: Ratio of two-qubit interactions to total operations
     entanglement_ratio: float = Field(
-        ..., 
-        ge=0.0, 
-        le=1.0, 
-        description="Ratio of two-qubit interactions (ne) to total gate operations (ng): E = ne/ng"
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Ratio of two-qubit interactions (ne) to total gate operations (ng): E = ne/ng",
     )
 
     # =============================================================================
@@ -121,7 +119,7 @@ class QuantumSpecificMetricsSchema(BaseModel):
     def to_flat_dict(self) -> Dict[str, Any]:
         """
         Convert the schema to a flat dictionary for DataFrame compatibility.
-        
+
         Returns:
             Dict[str, Any]: Flattened dictionary representation
         """
@@ -137,10 +135,10 @@ class QuantumSpecificMetricsSchema(BaseModel):
     def from_flat_dict(cls, data: Dict[str, Any]) -> "QuantumSpecificMetricsSchema":
         """
         Create a schema instance from a flat dictionary.
-        
+
         Args:
             data: Flat dictionary with metric values
-            
+
         Returns:
             QuantumSpecificMetricsSchema: Schema instance
         """
@@ -152,5 +150,5 @@ class QuantumSpecificMetricsSchema(BaseModel):
             "sensitivity": data.get("quantum_specific_sensitivity", 0.0),
             "entanglement_ratio": data.get("quantum_specific_entanglement_ratio", 0.0),
         }
-        
+
         return cls(**mapped_data)

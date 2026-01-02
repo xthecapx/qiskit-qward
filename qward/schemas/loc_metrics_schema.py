@@ -38,7 +38,9 @@ class LocMetricsSchema(BaseModel):
 
     # ϕ4: Tamaño total de LOC relacionadas a aspectos cuánticos
     phi4_quantum_total_loc: int = Field(
-        ..., ge=0, description="Total LOC related to quantum aspects (gates + measurements + other quantum ops)"
+        ...,
+        ge=0,
+        description="Total LOC related to quantum aspects (gates + measurements + other quantum ops)",
     )
 
     # ϕ5: Número de cúbits usados

@@ -6,6 +6,7 @@ from qward.metrics.structural_metrics import StructuralMetrics
 from qward.schemas.structural_metrics_schema import StructuralMetricsSchema
 from math import log2
 
+
 class TestStructuralMetrics(unittest.TestCase):
     """Test cases for StructuralMetrics class."""
 
@@ -51,21 +52,23 @@ class TestStructuralMetrics(unittest.TestCase):
         self.assertEqual(result.unique_operands, 4)
         self.assertEqual(result.total_operators, 4)
         self.assertEqual(result.total_operands, 7)
-        N = result.total_operators + result.total_operands
-        self.assertEqual(result.program_length, N)
+        program_len = result.total_operators + result.total_operands
+        self.assertEqual(result.program_length, program_len)
         miu = result.unique_operators + result.unique_operands
         self.assertEqual(result.vocabulary, miu)
-        N_E = result.unique_operators * log2(result.unique_operators) + result.unique_operands * log2(result.unique_operands)
-        self.assertAlmostEqual(result.estimated_length, N_E, places=9)
-        V = N * log2(miu)
-        self.assertAlmostEqual(result.volume, V, places=9)
-        D = (result.unique_operators / 2) * (result.total_operands / result.unique_operands)
-        self.assertEqual(result.difficulty, D)
-        self.assertEqual(result.effort, D * V)
+        estimated_len = result.unique_operators * log2(
+            result.unique_operators
+        ) + result.unique_operands * log2(result.unique_operands)
+        self.assertAlmostEqual(result.estimated_length, estimated_len, places=9)
+        vol = program_len * log2(miu)
+        self.assertAlmostEqual(result.volume, vol, places=9)
+        diff = (result.unique_operators / 2) * (result.total_operands / result.unique_operands)
+        self.assertEqual(result.difficulty, diff)
+        self.assertEqual(result.effort, diff * vol)
         self.assertEqual(result.width, 2)
         self.assertEqual(result.depth, 3)
         self.assertEqual(result.max_dens, 2)
-        self.assertAlmostEqual(result.avg_dens, 6/5)
+        self.assertAlmostEqual(result.avg_dens, 6 / 5)
         self.assertEqual(result.size, 6)
 
     def test_metrics_complex_circuit(self):
@@ -74,7 +77,7 @@ class TestStructuralMetrics(unittest.TestCase):
         result = metrics.get_metrics()
         self.assertIsInstance(result, StructuralMetricsSchema)
         # Verifica todos los campos del schema para el circuito complejo
-        self.assertEqual(result.phi1_total_loc, 8) # The barrier sentences are included
+        self.assertEqual(result.phi1_total_loc, 8)  # The barrier sentences are included
         self.assertEqual(result.phi2_gate_loc, 7)
         self.assertEqual(result.phi3_measure_loc, 0)
         self.assertEqual(result.phi4_quantum_total_loc, 7)
@@ -84,23 +87,25 @@ class TestStructuralMetrics(unittest.TestCase):
         self.assertEqual(result.unique_operands, 4)
         self.assertEqual(result.total_operators, 7)
         self.assertEqual(result.total_operands, 11)
-        N = result.total_operators + result.total_operands
-        self.assertEqual(result.program_length, N)
+        program_len = result.total_operators + result.total_operands
+        self.assertEqual(result.program_length, program_len)
         miu = result.unique_operators + result.unique_operands
         self.assertEqual(result.vocabulary, miu)
-        N_E = result.unique_operators * log2(result.unique_operators) + result.unique_operands * log2(result.unique_operands)
-        self.assertAlmostEqual(result.estimated_length, N_E, places=9)
-        V = N * log2(miu)
-        self.assertAlmostEqual(result.volume, V, places=9)
-        D = (result.unique_operators / 2) * (result.total_operands / result.unique_operands)
-        self.assertEqual(result.difficulty, D)
-        self.assertEqual(result.effort, D * V)
+        estimated_len = result.unique_operators * log2(
+            result.unique_operators
+        ) + result.unique_operands * log2(result.unique_operands)
+        self.assertAlmostEqual(result.estimated_length, estimated_len, places=9)
+        vol = program_len * log2(miu)
+        self.assertAlmostEqual(result.volume, vol, places=9)
+        diff = (result.unique_operators / 2) * (result.total_operands / result.unique_operands)
+        self.assertEqual(result.difficulty, diff)
+        self.assertEqual(result.effort, diff * vol)
         self.assertEqual(result.width, 4)
         self.assertEqual(result.depth, 5)
         self.assertEqual(result.max_dens, 2)
-        self.assertAlmostEqual(result.avg_dens, 8/6)
+        self.assertAlmostEqual(result.avg_dens, 8 / 6)
         self.assertEqual(result.size, 8)
-    
+
     def test_empty_circuit(self):
         """Test with empty circuit."""
         empty_circuit = QuantumCircuit(2)
@@ -121,6 +126,7 @@ class TestStructuralMetrics(unittest.TestCase):
         self.assertEqual(result1.width, result2.width)
         self.assertEqual(result1.depth, result2.depth)
         self.assertEqual(result1.program_length, result2.program_length)
+
 
 if __name__ == "__main__":
     unittest.main()

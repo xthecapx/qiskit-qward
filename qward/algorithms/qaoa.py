@@ -5,7 +5,6 @@ Genera variaciones automáticas de QAOA para MaxCut sobre grafos aleatorios y di
 ejecuta las métricas LOC, Halstead, Behavioral y Quantum Software Quality, y guarda los resultados en un CSV.
 """
 
-
 import numpy as np
 import networkx as nx
 import pandas as pd
@@ -19,7 +18,7 @@ def create_qaoa_maxcut_circuit(graph, p, params=None):
     n = graph.number_of_nodes()
     qc = QuantumCircuit(n)
     if params is None:
-        params = ParameterVector('theta', 2 * p)
+        params = ParameterVector("theta", 2 * p)
     # Inicialización en superposición
     qc.h(range(n))
     # Alternar operadores de costo y mezcla
@@ -40,11 +39,15 @@ def create_qaoa_maxcut_circuit(graph, p, params=None):
 
 def run_experiments(
     num_graphs=5,
-    num_nodes_list=[1, 2, 3],
-    p_list=[1, 2, 3],
+    num_nodes_list=None,
+    p_list=None,
     seed=42,
-    output_csv="qaoa_metrics_results.csv"
+    output_csv="qaoa_metrics_results.csv",
 ):
+    if num_nodes_list is None:
+        num_nodes_list = [1, 2, 3]
+    if p_list is None:
+        p_list = [1, 2, 3]
     results = []
     np.random.seed(seed)
     for n in num_nodes_list:
@@ -54,12 +57,7 @@ def run_experiments(
                 graph = nx.erdos_renyi_graph(n, 0.5, seed=seed + gidx)
                 qc = create_qaoa_maxcut_circuit(graph, p)
                 # Ejecutar métricas
-                row = {
-                    "num_nodes": n,
-                    "p": p,
-                    "graph_id": gidx,
-                    "edges": list(graph.edges())
-                }
+                row = {"num_nodes": n, "p": p, "graph_id": gidx, "edges": list(graph.edges())}
                 # Element
                 element_metrics = ElementMetrics(qc).get_metrics()
                 row.update({f"element_{k}": v for k, v in element_metrics.dict().items()})
@@ -71,7 +69,9 @@ def run_experiments(
                 row.update({f"behavioral_{k}": v for k, v in behavioral_metrics.dict().items()})
                 # Quantum Specific
                 quantum_specific_metrics = QuantumSpecificMetrics(qc).get_metrics()
-                row.update({f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()})
+                row.update(
+                    {f"quantum_specific_{k}": v for k, v in quantum_specific_metrics.dict().items()}
+                )
                 # Guardar resultados
                 results.append(row)
     df = pd.DataFrame(results)
