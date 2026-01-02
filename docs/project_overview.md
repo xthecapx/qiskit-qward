@@ -61,6 +61,47 @@ Analyzes execution results and performance characteristics:
 - **Multi-job Support**: Aggregate analysis across multiple execution runs
 - **Returns**: `CircuitPerformanceSchema` with cross-field validation
 
+#### **ElementMetrics**
+
+Analyzes the fundamental building blocks of a quantum circuit at the operator level:
+
+* **Gate-Level Analysis**: Counts of each gate type, decomposition structure, and operator frequency
+* **Operand Metrics**: Qubit usage per operation and qubit–gate correlation
+* **Parameter Extraction**: Angle parameters, controlled-gate configurations, and unitary arguments
+* **Standardization**: Normalized gate histograms and operator-type summaries
+* **Returns**: `ElementMetricsSchema` with per-element validation and structured operator data
+
+#### **StructuralMetrics**
+
+Captures the circuit’s architectural and topological characteristics:
+
+* **Topology Metrics**: Layering depth, critical paths, connectivity maps
+* **Graph-Based Structure**: Directed acyclic graph extraction, node/edge statistics
+* **Multi-Qubit Structure**: Entanglement regions, interaction clusters, and locality analysis
+* **Resource Layout**: Width, register structure, and structural complexity indices
+* **Returns**: `StructuralMetricsSchema` with graph-validated structural information
+
+#### **BehavioralMetrics**
+
+Evaluates how the circuit behaves dynamically when executed or simulated:
+
+* **State Evolution Analysis**: Statevector transitions, amplitude flow, and interference patterns
+* **Probabilistic Behavior**: Measurement distribution, variance, and statistical signatures
+* **Sensitivity Metrics**: Effect of removing or perturbing operations
+* **Stability Indicators**: Behavior across multiple runs or simulation seeds
+* **Returns**: `BehavioralMetricsSchema` with behavioral and probabilistic validations
+
+#### **QuantumSpecificMetrics**
+
+Measures properties uniquely relevant to quantum computation (beyond classical analogs):
+
+* **Entanglement Measures**: Entropy, mutual information, bipartite entanglement
+* **Quantum Advantage Indicators**: Non-classicality scores, contextuality markers
+* **Interference Metrics**: Global and local interference patterns and phase structure
+* **Quantum Resource Indicators**: Magic-state metrics, stabilizer distance, Clifford deviation
+* **Returns**: `QuantumSpecificMetricsSchema` with quantum-only property validations
+
+
 ### Schema Validation System
 Comprehensive data validation using Pydantic schemas:
 - **Automatic Type Checking**: Ensures data integrity at calculation time

@@ -12,6 +12,10 @@ from qward.metrics import (
     MetricsType,
     QiskitMetrics,
     CircuitPerformanceMetrics,
+    ElementMetrics,
+    StructuralMetrics,
+    BehavioralMetrics,
+    QuantumSpecificMetrics,
     get_default_strategies,
 )
 from qward.visualization import Visualizer
@@ -25,6 +29,10 @@ __all__ = [
     "MetricsType",
     "QiskitMetrics",
     "CircuitPerformanceMetrics",
+    "ElementMetrics",
+    "StructuralMetrics",
+    "BehavioralMetrics",
+    "QuantumSpecificMetrics",
     "Scanner",
     "Visualizer",
     "get_default_strategies",

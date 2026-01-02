@@ -9,6 +9,10 @@ from .base import VisualizationStrategy, PlotConfig, PlotType, PlotMetadata
 from .circuit_performance_visualizer import CircuitPerformanceVisualizer
 from .qiskit_metrics_visualizer import QiskitVisualizer
 from .complexity_metrics_visualizer import ComplexityVisualizer
+from .element_metrics_visualizer import ElementMetricsVisualizer
+from .structural_metrics_visualizer import StructuralMetricsVisualizer
+from .behavioral_metrics_visualizer import BehavioralMetricsVisualizer
+from .quantum_specific_metrics_visualizer import QuantumSpecificMetricsVisualizer
 from .visualizer import Visualizer
 from .constants import Metrics, Plots
 from .ieee_config import (
@@ -34,6 +38,10 @@ __all__ = [
     "CircuitPerformanceVisualizer",
     "QiskitVisualizer",
     "ComplexityVisualizer",
+    "ElementMetricsVisualizer",
+    "StructuralMetricsVisualizer",
+    "BehavioralMetricsVisualizer",
+    "QuantumSpecificMetricsVisualizer",
     "Visualizer",
     "Metrics",
     "Plots",
