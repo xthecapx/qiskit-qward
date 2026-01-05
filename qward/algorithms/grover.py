@@ -1,8 +1,15 @@
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+import math
+
+from qiskit import QuantumCircuit
 from qiskit.circuit.library import grover_operator, MCMTGate, ZGate
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_aer import AerSimulator
-import math
+
+# Import display with fallback for non-notebook environments
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
 
 
 class GroverOracle:
@@ -199,69 +206,48 @@ class Grover:
         circuit_isa = pm.run(self.circuit)
         return circuit_isa
 
-    def create_rigetti_isa_circuit(self, optimization_level=3):
+    def create_rigetti_isa_circuit(self, optimization_level=3, verbose=False):
         """Create ISA circuit specifically optimized for Rigetti quantum devices and qBraid compatibility.
 
         This method creates a circuit that is compatible with qBraid's transpiler by using
         only basic gates that can be reliably converted from Qiskit to Braket format.
 
         Args:
-            optimization_level: Transpiler optimization level (0-3, default: 1 for maximum compatibility)
+            optimization_level: Transpiler optimization level (0-3, default: 3)
+            verbose: If True, display the circuit diagram (useful in notebooks)
 
         Returns:
             QuantumCircuit: Rigetti-optimized ISA circuit compatible with qBraid
         """
-        from qiskit.transpiler import CouplingMap
-
         try:
-            # Create a conservative transpilation for qBraid compatibility
-            # Use only the most basic gates that qBraid can handle reliably
-
-            # Create a simple linear coupling map for Rigetti-like connectivity
-            num_qubits = self.num_qubits
-            coupling_list = []
-
-            # Create a linear coupling map as a starting point
-            for i in range(num_qubits - 1):
-                coupling_list.append([i, i + 1])
-                coupling_list.append([i + 1, i])  # Bidirectional
-
-            # coupling_map = CouplingMap(coupling_list)
-
-            # Create pass manager with very conservative settings for qBraid compatibility
+            # Create pass manager with conservative settings for qBraid compatibility
+            # Use only basic gates that qBraid supports well
             pm = generate_preset_pass_manager(
-                optimization_level=optimization_level,  # Use level 1 for better compatibility
-                # coupling_map=coupling_map,
-                # Use only the most basic gates that qBraid supports well
+                optimization_level=optimization_level,
                 basis_gates=["h", "x", "y", "z", "rx", "ry", "rz", "cx", "cz", "measure", "reset"],
                 seed_transpiler=42,  # For reproducible results
-                # Additional settings to avoid problematic gates
-                # translation_method='translator',  # Use translator instead of synthesis
-                # approximation_degree=0.99999  # High fidelity approximation
             )
 
             circuit_isa = pm.run(self.circuit)
 
-            display(circuit_isa.draw(output="mpl"))
+            if verbose:
+                display(circuit_isa.draw(output="mpl"))
 
             # Additional cleanup: decompose any remaining composite gates
             from qiskit.transpiler.passes import Decompose
             from qiskit.transpiler import PassManager
 
-            # Create a cleanup pass to decompose any remaining problematic gates
-            cleanup_pm = PassManager(
-                [Decompose(["u1", "u2", "u3"])]  # Decompose U gates that cause qBraid issues
-            )
-
+            # Decompose U gates that cause qBraid issues
+            cleanup_pm = PassManager([Decompose(["u1", "u2", "u3"])])
             circuit_isa = cleanup_pm.run(circuit_isa)
 
             return circuit_isa
 
         except Exception as e:
             print(
-                f"Warning: Rigetti-specific transpilation failed ({e}), falling back to standard transpilation"
+                f"Warning: Rigetti-specific transpilation failed ({e}), "
+                "falling back to standard transpilation"
             )
-            # Fallback to standard transpilation
             return self.create_isa_circuit(optimization_level=optimization_level)
 
     def expected_distribution(self) -> dict:
@@ -317,7 +303,11 @@ class GroverCircuitGenerator:
     Args:
         marked_states: List of marked states to search for (default: ["011", "100"])
         use_barriers: Whether to add barriers for visualization
-        save_statevector: Whether to save intermediate statevectors
+
+    Attributes:
+        circuit: The main Grover circuit
+        circuit_isa: Lazily-created ISA circuit (standard transpilation)
+        circuit_isa_rigetti: Lazily-created Rigetti-optimized ISA circuit
     """
 
     def __init__(
@@ -325,14 +315,12 @@ class GroverCircuitGenerator:
         marked_states=None,
         *,
         use_barriers: bool = True,
-        save_statevector: bool = False,
     ):
         if marked_states is None:
             marked_states = ["011", "100"]
 
         self.marked_states = marked_states
         self.use_barriers = use_barriers
-        self.save_statevector = save_statevector
 
         # Create the Grover algorithm
         self.grover = Grover(marked_states, use_barriers=use_barriers)
@@ -341,11 +329,23 @@ class GroverCircuitGenerator:
         # Direct access to the circuit
         self.circuit = self.grover.circuit
 
-        # Create and expose ISA circuit (standard)
-        self.circuit_isa = self.grover.create_isa_circuit()
+        # Lazy-loaded ISA circuits (created on first access)
+        self._circuit_isa = None
+        self._circuit_isa_rigetti = None
 
-        # Create and expose Rigetti-optimized ISA circuit
-        self.circuit_isa_rigetti = self.grover.create_rigetti_isa_circuit()
+    @property
+    def circuit_isa(self):
+        """Get the standard ISA circuit (lazily created)."""
+        if self._circuit_isa is None:
+            self._circuit_isa = self.grover.create_isa_circuit()
+        return self._circuit_isa
+
+    @property
+    def circuit_isa_rigetti(self):
+        """Get the Rigetti-optimized ISA circuit (lazily created)."""
+        if self._circuit_isa_rigetti is None:
+            self._circuit_isa_rigetti = self.grover.create_rigetti_isa_circuit()
+        return self._circuit_isa_rigetti
 
     def draw(self):
         """Draw the circuit."""
