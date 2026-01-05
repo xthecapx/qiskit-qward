@@ -1,7 +1,7 @@
 """
-Clean teleportation example using the refactored v_tp.py and QuantumCircuitExecutor.
+QWARD Teleportation Example
 
-This example demonstrates the new clean separation between circuit generation
+This example demonstrates the separation between circuit generation
 and execution, showing how to use the TeleportationCircuitGenerator with
 the QuantumCircuitExecutor for comprehensive analysis.
 """
@@ -162,10 +162,10 @@ def main():
     custom_gates_example()
 
     print("\n🎉 ALL EXAMPLES COMPLETED!")
-    print("The v_tp.py file is now clean and modular!")
-    print("- Circuit generation is separate from execution")
-    print("- Use QuantumCircuitExecutor directly: executor.simulate(generator.circuit, ...)")
-    print("- Easy integration with qward metrics and visualization")
+    print("Key features demonstrated:")
+    print("  • Circuit generation is separate from execution")
+    print("  • Use QuantumCircuitExecutor: executor.simulate(generator.circuit, ...)")
+    print("  • Easy integration with QWARD metrics and visualization")
 
 
 if __name__ == "__main__":

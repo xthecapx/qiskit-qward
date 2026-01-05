@@ -1,8 +1,8 @@
 """
-Demo showing how to use QWARD's CircuitPerformanceMetrics metrics.
+QWARD CircuitPerformance Example
 
-This example demonstrates:
-1. Traditional approach using CircuitPerformanceMetrics directly
+This example demonstrates CircuitPerformanceMetrics capabilities:
+1. Direct CircuitPerformanceMetrics usage
 2. Schema-based approach with validation
 3. Custom success criteria and fidelity calculation
 4. Validation features and error handling
@@ -54,10 +54,10 @@ def run_circuit_simulation(circuit: QuantumCircuit, shots: int = 1024) -> Any:
     return job
 
 
-def demo_traditional_approach() -> None:
-    """Demonstrate traditional dictionary-based success rate metrics."""
+def demo_dictionary_approach() -> None:
+    """Demonstrate dictionary-based success rate metrics."""
     print("=" * 60)
-    print("TRADITIONAL DICTIONARY-BASED APPROACH")
+    print("DICTIONARY-BASED APPROACH")
     print("=" * 60)
 
     # Create and run a simple circuit
@@ -92,7 +92,7 @@ def demo_schema_approach() -> None:
     Demonstrate schema-based metrics with validation.
     """
     print("\n" + "=" * 50)
-    print("SCHEMA-BASED APPROACH DEMO")
+    print("SCHEMA-BASED APPROACH")
     print("=" * 50)
 
     if not SCHEMAS_AVAILABLE:
@@ -182,7 +182,7 @@ def demo_validation_features() -> None:
     Demonstrate validation features and error handling.
     """
     print("\n" + "=" * 50)
-    print("VALIDATION FEATURES DEMO")
+    print("VALIDATION FEATURES")
     print("=" * 50)
 
     if not SCHEMAS_AVAILABLE:
@@ -288,7 +288,7 @@ def demo_json_schema_generation() -> None:
     Demonstrate JSON schema generation capabilities.
     """
     print("\n" + "=" * 50)
-    print("JSON SCHEMA GENERATION DEMO")
+    print("JSON SCHEMA GENERATION")
     print("=" * 50)
 
     if not SCHEMAS_AVAILABLE:
@@ -313,18 +313,18 @@ def demo_json_schema_generation() -> None:
 
 
 def main() -> None:
-    """Run all circuit performance demos."""
-    print("🚀 QWARD CircuitPerformance Metrics Demo")
+    """Run all circuit performance examples."""
+    print("🚀 QWARD CircuitPerformance Example")
     print("=" * 60)
     print()
 
-    demo_traditional_approach()
+    demo_dictionary_approach()
     demo_schema_approach()
     demo_custom_success_criteria()
     demo_validation_features()
     demo_json_schema_generation()
 
-    print("✅ Demo completed successfully!")
+    print("✅ Example completed successfully!")
 
 
 if __name__ == "__main__":
