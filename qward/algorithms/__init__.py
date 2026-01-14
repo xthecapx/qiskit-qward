@@ -17,6 +17,14 @@ from .grover import (
     GroverOracle,
     GroverCircuitGenerator,
 )
+from .qft import (
+    QFT,
+    QFTCircuitGenerator,
+)
+from .phase_estimation import (
+    PhaseEstimation,
+    PhaseEstimationCircuitGenerator,
+)
 
 __all__ = [
     "QuantumCircuitExecutor",
@@ -28,4 +36,8 @@ __all__ = [
     "Grover",
     "GroverOracle",
     "GroverCircuitGenerator",
+    "QFT",
+    "QFTCircuitGenerator",
+    "PhaseEstimation",
+    "PhaseEstimationCircuitGenerator",
 ]
