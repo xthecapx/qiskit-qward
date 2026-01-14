@@ -710,6 +710,7 @@ qward/examples/papers/
     ├── __init__.py                    # Package exports
     ├── README.md                      # Overview and usage instructions
     ├── grover_experiment.md           # This experiment design document
+    ├── grover_math_analysis.tex       # Mathematical analysis (LaTeX)
     ├── grover_experiment.py           # Main experiment runner
     ├── grover_configs.py              # Circuit configurations (24 configs, 8 noise models)
     ├── grover_success_metrics.py      # Success metric implementations (3 levels)
@@ -951,6 +952,204 @@ Based on simulator results:
 
 ---
 
+## Phase 2: Real QPU Experiment Plan
+
+### Resource Constraints
+
+| Resource | Value | Notes |
+|----------|-------|-------|
+| **Total QPU time** | 10 minutes (600 seconds) | IBM Quantum allocation |
+| **Time per experiment** | ~5 seconds | Including queue + execution |
+| **Max experiments** | ~120 | Budget: 600s ÷ 5s |
+| **Shots per experiment** | 1024 | Same as simulator |
+| **Runs per config** | 3-5 | Reduced from 10 due to cost |
+
+### Experiment Design Philosophy
+
+Based on simulator results, we design QPU experiments to:
+1. **Validate** simulator predictions match real hardware
+2. **Identify** the actual noise profile of the QPU
+3. **Confirm** scalability limits
+4. **Test** hypotheses about marked state effects
+5. **Document** expected failures to establish algorithm boundaries
+
+### Hypotheses to Test on Real QPU
+
+| ID | Hypothesis | Based On | Expected Outcome |
+|----|-----------|----------|------------------|
+| H1 | QPU noise profile matches DEP-MED simulator | Industry reports | 3-qubit limit |
+| H2 | READOUT errors dominate at small circuits | Simulator: READOUT -6.8% | 2-qubit >90% success |
+| H3 | Marking 1s outperforms 0s on real hardware | Simulator: 1-2% improvement | Measurable difference |
+| H4 | 4+ qubit circuits will show near-random results | Simulator: DEP-MED <10% | Loss of quantum advantage |
+| H5 | Circuit depth correlates with error rate | Simulator: ~10%/25 gates | Consistent degradation |
+
+---
+
+### Experiment Groups
+
+#### Group A: Baseline Validation (20 experiments, ~100 seconds)
+**Goal**: Confirm QPU behaves as expected for simple cases.
+
+| Exp | Config | Qubits | Depth | Runs | Simulator Prediction | QPU Hypothesis |
+|-----|--------|--------|-------|------|---------------------|----------------|
+| A1 | S2-1 | 2 | 12 | 5 | DEP-MED: 84.8% | 80-90% (best case) |
+| A2 | M3-2 | 3 | 17 | 5 | DEP-MED: ~85%* | 75-85% (short circuit) |
+| A3 | S3-1 | 3 | 26 | 5 | DEP-MED: 28.8% | 25-35% (typical) |
+| A4 | H3-3 | 3 | 22 | 5 | DEP-MED: 29.4% | 25-35% (all 1s state) |
+
+*Estimated from short circuit depth
+
+**Success Criteria**: Results within ±15% of DEP-MED simulator predictions.
+
+---
+
+#### Group B: Hamming Weight Test (15 experiments, ~75 seconds)
+**Goal**: Confirm marking 1s vs 0s difference on real hardware.
+
+| Exp | Config | State | Gates | Runs | Simulator (DEP-MED) | QPU Hypothesis |
+|-----|--------|-------|-------|------|---------------------|----------------|
+| B1 | H3-0 | 000 | 57 | 5 | 27.6% | 20-30% |
+| B2 | H3-3 | 111 | 45 | 5 | 29.4% | 25-35% |
+| B3 | H4-0 | 0000 | 101 | 5 | 6.8% | 5-10% |
+
+**Success Criteria**: H3-3 > H3-0 and H4-4 > H4-0 (1s better than 0s).
+
+---
+
+#### Group C: Scalability Boundary (35 experiments, ~175 seconds)
+**Goal**: Find exact qubit count where quantum advantage disappears.
+
+| Exp | Config | Qubits | Depth | Gates | Runs | Simulator (DEP-MED) | Expected |
+|-----|--------|--------|-------|-------|------|---------------------|----------|
+| C1 | S2-1 | 2 | 12 | 21 | 5 | 84.8% | ✅ Quantum advantage |
+| C2 | S3-1 | 3 | 26 | 49 | 5 | 28.8% | ⚠️ Marginal |
+| C3 | S4-1 | 4 | 38 | 89 | 5 | 7.2% | ❌ Near random |
+| C4 | S5-1 | 5 | 50 | 141 | 5 | 3.3% | ❌ Random |
+| C5 | S6-1 | 6 | 74 | 231 | 5 | 1.6% | ❌ Random |
+| C6 | S7-1 | 7 | 98 | 337 | 5 | 0.8% | ❌ Random |
+| C7 | S8-1 | 8 | 146 | 571 | 5 | 0.3% | ❌ Random |
+
+**Success Criteria**: Identify crossover point where success rate ≤ 2× random chance.
+
+---
+
+#### Group D: Marked State Count (15 experiments, ~75 seconds)
+**Goal**: Test if more marked states improve QPU success.
+
+| Exp | Config | Qubits | Marked | Depth | Runs | Simulator (DEP-MED) | QPU Hypothesis |
+|-----|--------|--------|--------|-------|------|---------------------|----------------|
+| D1 | M3-1 | 3 | 1 | 26 | 5 | ~28% | 20-35% |
+| D2 | M3-2 | 3 | 2 | 17 | 5 | ~85%* | 75-90% (shorter) |
+| D3 | M4-1 | 4 | 1 | 38 | 5 | ~7% | 5-12% |
+
+*M3-2 has much shorter circuit due to fewer iterations.
+
+**Success Criteria**: Fewer Grover iterations (more marked states) = higher success.
+
+---
+
+#### Group E: Symmetry Test (15 experiments, ~75 seconds)
+**Goal**: Check if symmetric vs asymmetric marked states differ on real hardware.
+
+| Exp | Config | Pattern | Depth | Gates | Runs | Simulator (DEP-MED) | QPU Hypothesis |
+|-----|--------|---------|-------|-------|------|---------------------|----------------|
+| E1 | SYM-1 | ["000","111"] | 17 | 36 | 5 | ~85%* | 75-90% |
+| E2 | ASYM-1 | ["000","001"] | 19 | 40 | 5 | ~80%* | 70-85% |
+| E3 | SYM-2 | ["001","110"] | 17 | 36 | 5 | ~85%* | 75-90% |
+
+**Success Criteria**: SYM configs should outperform ASYM due to shorter circuits.
+
+---
+
+#### Group F: Expected Failures - Confirm Limits (20 experiments, ~100 seconds)
+**Goal**: Confirm where the algorithm definitively fails on real QPU.
+
+| Exp | Config | Qubits | Depth | Gates | Runs | Random Chance | Expected Result |
+|-----|--------|--------|-------|-------|------|---------------|-----------------|
+| F1 | S5-1 | 5 | 50 | 141 | 2 | 3.12% | ❌ ~3-5% (random) |
+| F2 | S6-1 | 6 | 74 | 231 | 2 | 1.56% | ❌ ~1-3% (random) |
+| F3 | S7-1 | 7 | 98 | 337 | 2 | 0.78% | ❌ ~0.5-2% (random) |
+| F4 | S8-1 | 8 | 146 | 571 | 2 | 0.39% | ❌ ~0.3-1% (random) |
+| F5 | H4-0 | 4 | 38 | 101 | 2 | 6.25% | ❌ ~5-10% (near random) |
+| F6 | M4-1 | 4 | 38 | 101 | 2 | 6.25% | ❌ ~5-10% (near random) |
+| F7 | S5-1 | 5 | 50 | 141 | 2 | 3.12% | ❌ ~3-5% (random) |
+| F8 | S6-1 | 6 | 74 | 231 | 2 | 1.56% | ❌ ~1-3% (random) |
+| F9 | S7-1 | 7 | 98 | 337 | 2 | 0.78% | ❌ ~0.5-2% (random) |
+| F10 | S8-1 | 8 | 146 | 571 | 2 | 0.39% | ❌ ~0.3-1% (random) |
+
+**Success Criteria**: Results statistically indistinguishable from random chance (p > 0.05).
+
+---
+
+### QPU Execution Summary
+
+| Group | Purpose | Experiments | Time (s) | Priority |
+|-------|---------|-------------|----------|----------|
+| A | Baseline Validation | 20 | 100 | 🔴 Critical |
+| B | Hamming Weight Test | 15 | 75 | 🟡 Important |
+| C | Scalability Boundary | 35 | 175 | 🔴 Critical |
+| D | Marked State Count | 15 | 75 | 🟡 Important |
+| E | Symmetry Test | 15 | 75 | 🟢 Nice-to-have |
+| F | Expected Failures | 20 | 100 | 🔴 Critical |
+| **Total** | | **120** | **600** | |
+
+### Execution Priority Order
+
+If time is limited, execute in this order:
+
+1. **Phase 1 (Essential, ~375s)**: Groups A + C + F
+   - Validates QPU matches simulator
+   - Confirms scalability limits
+   - Documents failure boundaries
+
+2. **Phase 2 (Important, ~150s)**: Groups B + D
+   - Tests Hamming weight hypothesis
+   - Tests marked state count effect
+
+3. **Phase 3 (Optional, ~75s)**: Group E
+   - Tests symmetry effects
+   - Lower priority, can skip if time constrained
+
+### Expected Outcomes
+
+| Outcome | Probability | Implication |
+|---------|-------------|-------------|
+| QPU matches DEP-MED | 60% | Simulator is good predictor |
+| QPU worse than DEP-MED | 25% | Real hardware has additional noise |
+| QPU better than DEP-MED | 15% | Error mitigation/calibration helping |
+
+### Data Collection for QPU
+
+Each QPU experiment should record:
+- `qpu_name`: IBM backend name (e.g., "ibm_brisbane")
+- `qpu_calibration_date`: Last calibration timestamp
+- `queue_time_ms`: Time waiting in queue
+- `execution_time_ms`: Actual QPU execution time
+- `transpilation_time_ms`: Circuit preparation time
+- `counts`: Raw measurement results
+- `success_rate`: Calculated success
+- `qward_metrics`: Pre-runtime circuit metrics
+
+### Post-QPU Analysis Plan
+
+1. **Compare QPU vs Simulator**:
+   - Calculate mean absolute error (MAE)
+   - Identify which noise model best predicts QPU
+
+2. **Validate Hypotheses**:
+   - H1-H5 confirmation or rejection
+   - Statistical significance tests
+
+3. **Establish QPU-Specific Limits**:
+   - Actual crossover point for quantum advantage
+   - Maximum practical circuit depth
+
+4. **Cost-Benefit Analysis**:
+   - Success rate vs QPU cost
+   - Recommendations for practical Grover applications
+
+---
+
 ## Quick Start
 
 ```python
@@ -998,6 +1197,7 @@ list_noise_configs()
 14. ✅ Identify scalability crossover points (3-6 qubits depending on noise)
 15. ✅ Test Hamming weight hypothesis (confirmed: 1s better than 0s under noise)
 16. ✅ Rank noise model severity (READOUT < THERMAL < DEP-LOW < DEP-MED < COMBINED < PAULI < DEP-HIGH)
+17. ✅ Create mathematical analysis document (`grover_math_analysis.tex`)
 
 ### Next Steps (Week 4)
 1. [ ] Generate visualizations (distribution plots, heatmaps)
