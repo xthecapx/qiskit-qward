@@ -67,16 +67,24 @@ from .grover_statistical_analysis import (
 )
 
 from .grover_experiment import (
+    # Result classes
+    GroverExperimentResult,
+    GroverBatchResult,
+    # Runner class
+    GroverExperimentRunner,
+    # Convenience functions
     run_single_experiment,
     run_batch,
     run_experiment_campaign,
+    aggregate_session_results,
+    # Test functions
     test_single_config,
     test_pilot_study,
-    calculate_qward_metrics,
-    ExperimentResult,
-    BatchResult,
+    test_grover_base_case,
+    # Constants
     SHOTS,
     NUM_RUNS,
+    OPTIMIZATION_LEVEL,
 )
 
 __all__ = [
@@ -118,15 +126,24 @@ __all__ = [
     "analyze_config_results",
     "ConfigAnalysis",
     
-    # Experiment Runner
+    # Result classes
+    "GroverExperimentResult",
+    "GroverBatchResult",
+    
+    # Runner class
+    "GroverExperimentRunner",
+    
+    # Experiment Runner functions
     "run_single_experiment",
     "run_batch",
     "run_experiment_campaign",
+    "aggregate_session_results",
     "test_single_config",
     "test_pilot_study",
-    "calculate_qward_metrics",
-    "ExperimentResult",
-    "BatchResult",
+    "test_grover_base_case",
+    
+    # Constants
     "SHOTS",
     "NUM_RUNS",
+    "OPTIMIZATION_LEVEL",
 ]

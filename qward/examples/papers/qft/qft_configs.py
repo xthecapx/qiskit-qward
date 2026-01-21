@@ -8,6 +8,8 @@ including scalability studies for both round-trip and period detection modes.
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
+from qward.algorithms.noise_generator import NoiseConfig
+
 
 @dataclass
 class QFTExperimentConfig:
@@ -59,25 +61,6 @@ class QFTExperimentConfig:
             "theoretical_gate_count": self.theoretical_gate_count,
             "description": self.description,
             "hardware_only": self.hardware_only,
-        }
-
-
-@dataclass
-class NoiseConfig:
-    """Noise model configuration."""
-
-    noise_id: str
-    noise_type: str  # "none", "depolarizing", "pauli", "readout", "combined"
-    parameters: Dict[str, float]
-    description: str = ""
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        return {
-            "noise_id": self.noise_id,
-            "noise_type": self.noise_type,
-            "parameters": self.parameters,
-            "description": self.description,
         }
 
 
@@ -359,43 +342,96 @@ INPUT_VARIATION_CONFIGS = [
 # =============================================================================
 # Noise Model Configurations
 # =============================================================================
+# These noise configurations are based on empirical data from quantum hardware
+# providers. See qward/algorithms/noise_generator.py for full documentation
+# and literature references.
+#
+# Hardware data sources (January 2026):
+# - IBM Quantum Platform: https://quantum.cloud.ibm.com/computers
+# - IBM Heron characterization: https://research.ibm.com/publications/noise-characterization-and-error-mitigation-on-ibm-heron-processors-part-1--1
+# - Rigetti Ankaa-3: https://thequantuminsider.com/2024/12/23/rigetti-computing-reports-84-qubit-ankaa-3-system-achieves-99-5-median-two-qubit-gate-fidelity-milestone/
 
 NOISE_CONFIGS = [
+    # =========================================================================
+    # Ideal (baseline)
+    # =========================================================================
     NoiseConfig(
         noise_id="IDEAL",
         noise_type="none",
         parameters={},
         description="Ideal simulation (no noise)",
     ),
+
+    # =========================================================================
+    # Generic Depolarizing Noise (for parameter sweeps)
+    # =========================================================================
     NoiseConfig(
         noise_id="DEP-LOW",
         noise_type="depolarizing",
         parameters={"p1": 0.001, "p2": 0.005},
-        description="Low depolarizing noise (0.1% 1Q, 0.5% 2Q)",
+        description="Low depolarizing (p1=0.1%, p2=0.5%)",
     ),
     NoiseConfig(
         noise_id="DEP-MED",
         noise_type="depolarizing",
         parameters={"p1": 0.005, "p2": 0.02},
-        description="Medium depolarizing noise (0.5% 1Q, 2% 2Q)",
+        description="Medium depolarizing (p1=0.5%, p2=2%)",
     ),
     NoiseConfig(
         noise_id="DEP-HIGH",
         noise_type="depolarizing",
         parameters={"p1": 0.01, "p2": 0.05},
-        description="High depolarizing noise (1% 1Q, 5% 2Q)",
+        description="High depolarizing (p1=1%, p2=5%)",
     ),
+
+    # =========================================================================
+    # Hardware-Specific: IBM Heron Processors
+    # =========================================================================
+    # Data from quantum.cloud.ibm.com/computers (Jan 2026)
+    NoiseConfig(
+        noise_id="IBM-HERON-R3",
+        noise_type="combined",
+        parameters={"p1": 0.0005, "p2": 0.00115, "p_readout": 0.0046},
+        description="IBM Heron r3 (ibm_boston): 2Q=0.113%, readout=0.46%",
+    ),
+    NoiseConfig(
+        noise_id="IBM-HERON-R2",
+        noise_type="combined",
+        parameters={"p1": 0.001, "p2": 0.0026, "p_readout": 0.0127},
+        description="IBM Heron r2 (ibm_marrakesh): 2Q=0.26%, readout=1.27%",
+    ),
+    NoiseConfig(
+        noise_id="IBM-HERON-R1",
+        noise_type="combined",
+        parameters={"p1": 0.001, "p2": 0.0025, "p_readout": 0.0293},
+        description="IBM Heron r1 (ibm_torino): 2Q=0.25%, readout=2.93%",
+    ),
+
+    # =========================================================================
+    # Hardware-Specific: Rigetti Ankaa Processors
+    # =========================================================================
+    # Data from Quantum Insider (Dec 2024) and qcs.rigetti.com
+    NoiseConfig(
+        noise_id="RIGETTI-ANKAA3",
+        noise_type="combined",
+        parameters={"p1": 0.002, "p2": 0.005, "p_readout": 0.02},
+        description="Rigetti Ankaa-3 (84q): 99.5% 2Q fidelity (0.5% error)",
+    ),
+
+    # =========================================================================
+    # Other Noise Types
+    # =========================================================================
     NoiseConfig(
         noise_id="READOUT",
         noise_type="readout",
         parameters={"p01": 0.02, "p10": 0.02},
-        description="Readout errors only (2% flip rate)",
+        description="Readout errors only (2% symmetric flip)",
     ),
     NoiseConfig(
         noise_id="COMBINED",
         noise_type="combined",
-        parameters={"p1": 0.005, "p2": 0.02, "p_readout": 0.02},
-        description="Combined depolarizing + readout",
+        parameters={"p1": 0.005, "p2": 0.015, "p_readout": 0.02},
+        description="Generic combined noise (realistic NISQ baseline)",
     ),
 ]
 
