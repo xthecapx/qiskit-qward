@@ -12,15 +12,11 @@ from typing import Dict, Any, Optional, Union, TYPE_CHECKING, cast
 import pandas as pd
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qiskit_aer.noise import (
-    NoiseModel,
-    ReadoutError,
-    pauli_error,
-    depolarizing_error,
-)
+from qiskit_aer.noise import NoiseModel
 
 from qward import Scanner, Visualizer
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from .noise_generator import NoiseConfig, NoiseModelGenerator
 
 if TYPE_CHECKING:
     try:
@@ -64,118 +60,6 @@ class QuantumCircuitExecutor:
         self.timeout = timeout
         self.shots = shots
 
-    def _create_depolarizing_noise_model(self, noise_level: float) -> NoiseModel:
-        """Create a noise model with depolarizing errors.
-
-        Args:
-            noise_level: Noise strength (0.0 to 1.0)
-
-        Returns:
-            NoiseModel with depolarizing errors on single and two-qubit gates
-        """
-        noise_model = NoiseModel()
-
-        # Add depolarizing error to all single qubit gates
-        depol_error_1q = depolarizing_error(noise_level, 1)
-        noise_model.add_all_qubit_quantum_error(
-            depol_error_1q, ["u1", "u2", "u3", "h", "x", "y", "z", "s", "t"]
-        )
-
-        # Add depolarizing error to all two qubit gates (higher error rate)
-        depol_error_2q = depolarizing_error(noise_level * 2, 2)
-        noise_model.add_all_qubit_quantum_error(depol_error_2q, ["cx", "cy", "cz"])
-
-        # Add readout error
-        readout_error = ReadoutError(
-            [[1 - noise_level, noise_level], [noise_level, 1 - noise_level]]
-        )
-        noise_model.add_all_qubit_readout_error(readout_error)
-
-        return noise_model
-
-    def _create_pauli_noise_model(self, noise_level: float) -> NoiseModel:
-        """Create a noise model with Pauli errors.
-
-        Args:
-            noise_level: Noise strength (0.0 to 1.0)
-
-        Returns:
-            NoiseModel with Pauli errors on single and two-qubit gates
-        """
-        noise_model = NoiseModel()
-
-        # Add Pauli error to all single qubit gates
-        # Distribute error equally among X, Y, Z with remaining probability for I
-        pauli_prob = noise_level / 3
-        identity_prob = 1 - noise_level
-        pauli_error_1q = pauli_error(
-            [("X", pauli_prob), ("Y", pauli_prob), ("Z", pauli_prob), ("I", identity_prob)]
-        )
-        noise_model.add_all_qubit_quantum_error(
-            pauli_error_1q, ["u1", "u2", "u3", "h", "x", "y", "z", "s", "t"]
-        )
-
-        # Add Pauli error to all two qubit gates
-        pauli_prob_2q = noise_level / 3
-        identity_prob_2q = 1 - noise_level
-        pauli_error_2q = pauli_error(
-            [
-                ("XX", pauli_prob_2q),
-                ("YY", pauli_prob_2q),
-                ("ZZ", pauli_prob_2q),
-                ("II", identity_prob_2q),
-            ]
-        )
-        noise_model.add_all_qubit_quantum_error(pauli_error_2q, ["cx", "cy", "cz"])
-
-        # Add readout error (lower than gate errors)
-        readout_prob = noise_level / 2
-        readout_error = ReadoutError(
-            [[1 - readout_prob, readout_prob], [readout_prob, 1 - readout_prob]]
-        )
-        noise_model.add_all_qubit_readout_error(readout_error)
-
-        return noise_model
-
-    def _create_mixed_noise_model(self, noise_level: float) -> NoiseModel:
-        """Create a noise model combining depolarizing and Pauli errors.
-
-        Args:
-            noise_level: Noise strength (0.0 to 1.0)
-
-        Returns:
-            NoiseModel with mixed error types
-        """
-        noise_model = NoiseModel()
-
-        # Use depolarizing errors for single qubit gates
-        depol_error_1q = depolarizing_error(noise_level, 1)
-        noise_model.add_all_qubit_quantum_error(
-            depol_error_1q, ["u1", "u2", "u3", "h", "x", "y", "z", "s", "t"]
-        )
-
-        # Use Pauli errors for two qubit gates
-        pauli_prob_2q = noise_level / 3
-        identity_prob_2q = 1 - noise_level
-        pauli_error_2q = pauli_error(
-            [
-                ("XX", pauli_prob_2q),
-                ("YY", pauli_prob_2q),
-                ("ZZ", pauli_prob_2q),
-                ("II", identity_prob_2q),
-            ]
-        )
-        noise_model.add_all_qubit_quantum_error(pauli_error_2q, ["cx", "cy", "cz"])
-
-        # Add readout error
-        readout_prob = noise_level
-        readout_error = ReadoutError(
-            [[1 - readout_prob, readout_prob], [readout_prob, 1 - readout_prob]]
-        )
-        noise_model.add_all_qubit_readout_error(readout_error)
-
-        return noise_model
-
     def _get_noise_model(
         self, noise_model_config: Union[str, NoiseModel, None], noise_level: float = 0.05
     ) -> Optional[NoiseModel]:
@@ -192,12 +76,16 @@ class QuantumCircuitExecutor:
             return None
         elif isinstance(noise_model_config, NoiseModel):
             return noise_model_config
+        elif isinstance(noise_model_config, NoiseConfig):
+            return NoiseModelGenerator.create_from_config(noise_model_config)
         elif noise_model_config == "depolarizing":
-            return self._create_depolarizing_noise_model(noise_level)
+            return NoiseModelGenerator.create_by_type("depolarizing", noise_level)
         elif noise_model_config == "pauli":
-            return self._create_pauli_noise_model(noise_level)
+            return NoiseModelGenerator.create_by_type("pauli", noise_level)
         elif noise_model_config == "mixed":
-            return self._create_mixed_noise_model(noise_level)
+            return NoiseModelGenerator.create_by_type("mixed", noise_level)
+        elif noise_model_config in {"readout", "combined"}:
+            return NoiseModelGenerator.create_by_type(noise_model_config, noise_level)
         else:
             raise ValueError(f"Unknown noise model type: {noise_model_config}")
 
@@ -222,7 +110,9 @@ class QuantumCircuitExecutor:
                 - None: No noise (default)
                 - 'depolarizing': Depolarizing error model
                 - 'pauli': Pauli error model
-                - 'mixed': Combined depolarizing and Pauli errors
+                - 'mixed': Depolarizing (1Q) + Pauli (2Q) + readout
+                - 'readout': Readout-only error model
+                - 'combined': Depolarizing + readout error model
                 - NoiseModel instance: Custom noise model
             noise_level: Noise strength (0.0 to 1.0, default: 0.05 for 5% error rate)
 

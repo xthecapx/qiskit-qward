@@ -1,23 +1,19 @@
 """
 QFT Experiment Runner
 
-This module provides the main experiment runner for systematic evaluation
+This module provides the experiment runner for systematic evaluation
 of Quantum Fourier Transform under various configurations and noise models.
 
-Integrates with QWARD for pre-runtime metrics analysis.
+Uses the BaseExperimentRunner framework for consistent workflow with
+incremental saving, resume support, and QWARD metrics integration.
 """
 
-import json
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
-from dataclasses import dataclass, asdict
-import numpy as np
+from typing import List, Dict, Any, Optional, Tuple
+from dataclasses import dataclass
 
-from qiskit_aer import AerSimulator
-from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error, pauli_error
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+from qiskit import QuantumCircuit
 
 # Local imports
 from .qft_configs import (
@@ -34,12 +30,10 @@ from .qft_configs import (
 
 # QWARD imports
 from qward.algorithms import QFTCircuitGenerator
-from qward import Scanner
-from qward.metrics import (
-    QiskitMetrics,
-    ComplexityMetrics,
-    StructuralMetrics,
-    QuantumSpecificMetrics,
+from qward.algorithms.experiment import (
+    BaseExperimentResult,
+    BaseBatchResult,
+    BaseExperimentRunner,
 )
 
 
@@ -50,129 +44,6 @@ from qward.metrics import (
 SHOTS = 1024
 NUM_RUNS = 10
 OPTIMIZATION_LEVEL = 0
-
-
-# =============================================================================
-# QWARD Metrics Calculator
-# =============================================================================
-
-
-def calculate_qward_metrics(circuit) -> Dict[str, Any]:
-    """
-    Calculate pre-runtime QWARD metrics for a circuit using Scanner.
-
-    These metrics can be used to analyze correlations with:
-    - Success rate
-    - Execution time
-    - QPU price (in real hardware)
-
-    Args:
-        circuit: The quantum circuit to analyze
-
-    Returns:
-        Dictionary with all QWARD metrics (converted from DataFrames for JSON serialization)
-        Returns empty dict if metrics calculation fails.
-    """
-    try:
-        # Create scanner with pre-runtime metric strategies
-        scanner = Scanner(
-            circuit=circuit,
-            strategies=[QiskitMetrics, ComplexityMetrics, StructuralMetrics, QuantumSpecificMetrics],
-        )
-
-        # Calculate all metrics
-        metrics_dict = scanner.calculate_metrics()
-
-        # Convert DataFrames to flat dictionaries for JSON serialization
-        result = {}
-        for metric_name, df in metrics_dict.items():
-            if df is not None and not df.empty:
-                row = df.iloc[0]
-                result[metric_name] = {col: _serialize_value(val) for col, val in row.items()}
-
-        return result
-    except Exception as e:
-        print(f"    Warning: QWARD metrics failed: {e}")
-        return {"error": str(e)}
-
-
-def _serialize_value(value):
-    """Convert a value to JSON-serializable format."""
-    if isinstance(value, (int, float, str, bool, type(None))):
-        return value
-    elif isinstance(value, dict):
-        return {k: _serialize_value(v) for k, v in value.items()}
-    elif isinstance(value, (list, tuple)):
-        return [_serialize_value(v) for v in value]
-    else:
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return str(value)
-
-
-# =============================================================================
-# Noise Model Factory
-# =============================================================================
-
-
-def create_noise_model(noise_config: NoiseConfig) -> Optional[NoiseModel]:
-    """
-    Create a Qiskit noise model from configuration.
-
-    Args:
-        noise_config: Noise configuration
-
-    Returns:
-        NoiseModel or None for ideal simulation
-    """
-    if noise_config.noise_type == "none":
-        return None
-
-    noise_model = NoiseModel()
-    params = noise_config.parameters
-
-    if noise_config.noise_type == "depolarizing":
-        p1 = params.get("p1", 0.01)
-        p2 = params.get("p2", 0.05)
-
-        # Single-qubit depolarizing
-        depol_1q = depolarizing_error(p1, 1)
-        noise_model.add_all_qubit_quantum_error(
-            depol_1q, ["h", "x", "y", "z", "s", "t", "rx", "ry", "rz", "p"]
-        )
-
-        # Two-qubit depolarizing (important for controlled phase gates in QFT)
-        depol_2q = depolarizing_error(p2, 2)
-        noise_model.add_all_qubit_quantum_error(depol_2q, ["cx", "cz", "cp", "swap"])
-
-    elif noise_config.noise_type == "readout":
-        p01 = params.get("p01", 0.02)
-        p10 = params.get("p10", 0.02)
-
-        readout_err = ReadoutError([[1 - p01, p01], [p10, 1 - p10]])
-        noise_model.add_all_qubit_readout_error(readout_err)
-
-    elif noise_config.noise_type == "combined":
-        p1 = params.get("p1", 0.01)
-        p2 = params.get("p2", 0.05)
-        p_readout = params.get("p_readout", 0.02)
-
-        # Depolarizing
-        depol_1q = depolarizing_error(p1, 1)
-        noise_model.add_all_qubit_quantum_error(
-            depol_1q, ["h", "x", "y", "z", "s", "t", "rx", "ry", "rz", "p"]
-        )
-        depol_2q = depolarizing_error(p2, 2)
-        noise_model.add_all_qubit_quantum_error(depol_2q, ["cx", "cz", "cp", "swap"])
-
-        # Readout
-        readout_err = ReadoutError(
-            [[1 - p_readout, p_readout], [p_readout, 1 - p_readout]]
-        )
-        noise_model.add_all_qubit_readout_error(readout_err)
-
-    return noise_model
 
 
 # =============================================================================
@@ -212,51 +83,212 @@ def count_successful_shots(
 
 
 # =============================================================================
-# Single Experiment Run
+# QFT-Specific Result Classes
 # =============================================================================
 
 
 @dataclass
-class ExperimentResult:
-    """Result from a single experiment run."""
+class QFTExperimentResult(BaseExperimentResult):
+    """Result from a single QFT experiment run."""
 
-    # Identification
-    experiment_id: str
-    config_id: str
-    noise_model: str
-    run_number: int
-    timestamp: str
+    # QFT-specific properties
+    test_mode: str = ""
+    input_state: Optional[str] = None
+    period: Optional[int] = None
 
-    # Circuit properties
-    num_qubits: int
-    test_mode: str
-    input_state: Optional[str]
-    period: Optional[int]
-
-    # Circuit metrics (basic)
-    circuit_depth: int
-    total_gates: int
-
-    # QWARD Pre-runtime Metrics
-    qward_metrics: Optional[Dict[str, Any]] = None
-
-    # Execution
-    shots: int = SHOTS
-    execution_time_ms: float = 0.0
-
-    # Results
-    counts: Dict[str, int] = None
-    success_rate: float = 0.0
-    success_count: int = 0
-
-    # Thresholds
+    # QFT-specific thresholds
     threshold_90: bool = False
     threshold_95: bool = False
     threshold_99: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        return asdict(self)
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "QFTExperimentResult":
+        """Reconstruct from dictionary."""
+        return cls(
+            experiment_id=data.get("experiment_id", ""),
+            config_id=data.get("config_id", ""),
+            noise_model=data.get("noise_model", ""),
+            run_number=data.get("run_number", 0),
+            timestamp=data.get("timestamp", ""),
+            backend_type=data.get("backend_type", "simulator"),
+            backend_name=data.get("backend_name", "AerSimulator"),
+            num_qubits=data.get("num_qubits", 0),
+            circuit_depth=data.get("circuit_depth", 0),
+            total_gates=data.get("total_gates", 0),
+            qward_metrics=data.get("qward_metrics"),
+            shots=data.get("shots", SHOTS),
+            execution_time_ms=data.get("execution_time_ms", 0.0),
+            counts=data.get("counts", {}),
+            success_rate=data.get("success_rate", 0.0),
+            success_count=data.get("success_count", 0),
+            test_mode=data.get("test_mode", ""),
+            input_state=data.get("input_state"),
+            period=data.get("period"),
+            threshold_90=data.get("threshold_90", False),
+            threshold_95=data.get("threshold_95", False),
+            threshold_99=data.get("threshold_99", False),
+        )
+
+
+@dataclass
+class QFTBatchResult(BaseBatchResult[QFTExperimentResult, None]):
+    """Result from running multiple QFT experiment runs."""
+
+    pass  # Uses base implementation
+
+
+# =============================================================================
+# QFT Experiment Runner
+# =============================================================================
+
+
+class QFTExperimentRunner(BaseExperimentRunner[
+    QFTExperimentConfig, QFTExperimentResult, QFTBatchResult, None
+]):
+    """
+    Experiment runner for QFT algorithm.
+    
+    Provides systematic evaluation of QFT under various configurations
+    and noise models with incremental saving and resume support.
+    """
+
+    def __init__(
+        self,
+        shots: int = SHOTS,
+        num_runs: int = NUM_RUNS,
+        optimization_level: int = OPTIMIZATION_LEVEL,
+        output_dir: str = "data",
+        backend_type: str = "simulator",
+        backend_name: str = "AerSimulator",
+    ):
+        # Resolve output_dir relative to this file's location
+        base_dir = Path(__file__).parent / output_dir
+        super().__init__(
+            shots=shots,
+            num_runs=num_runs,
+            optimization_level=optimization_level,
+            output_dir=str(base_dir),
+            backend_type=backend_type,
+            backend_name=backend_name,
+        )
+
+    @property
+    def algorithm_name(self) -> str:
+        return "QFT"
+
+    def create_circuit(
+        self, config: QFTExperimentConfig
+    ) -> Tuple[QuantumCircuit, QFTCircuitGenerator]:
+        """Create QFT circuit based on configuration."""
+        if config.test_mode == "roundtrip":
+            qft_gen = QFTCircuitGenerator(
+                num_qubits=config.num_qubits,
+                test_mode="roundtrip",
+                input_state=config.input_state,
+                use_barriers=True,
+            )
+        else:  # period_detection
+            qft_gen = QFTCircuitGenerator(
+                num_qubits=config.num_qubits,
+                test_mode="period_detection",
+                period=config.period,
+                use_barriers=True,
+            )
+        return qft_gen.circuit, qft_gen
+
+    def calculate_success(
+        self,
+        counts: Dict[str, int],
+        config: QFTExperimentConfig,
+        circuit_metadata: QFTCircuitGenerator,
+    ) -> Tuple[float, int]:
+        """Calculate QFT success metrics."""
+        rate = calculate_success_rate(counts, circuit_metadata.success_criteria)
+        s_count = count_successful_shots(counts, circuit_metadata.success_criteria)
+        return rate, s_count
+
+    def create_result(
+        self,
+        config: QFTExperimentConfig,
+        noise_config: NoiseConfig,
+        run_number: int,
+        transpiled_circuit: QuantumCircuit,
+        counts: Dict[str, int],
+        execution_time_ms: float,
+        success_rate: float,
+        success_count: int,
+        qward_metrics: Optional[Dict[str, Any]],
+        circuit_metadata: QFTCircuitGenerator,
+        backend_type: str,
+        backend_name: str,
+    ) -> QFTExperimentResult:
+        """Create QFT experiment result."""
+        experiment_id = f"{config.config_id}_{noise_config.noise_id}_{run_number:03d}"
+
+        return QFTExperimentResult(
+            experiment_id=experiment_id,
+            config_id=config.config_id,
+            noise_model=noise_config.noise_id,
+            run_number=run_number,
+            timestamp=datetime.now().isoformat(),
+            backend_type=backend_type,
+            backend_name=backend_name,
+            num_qubits=config.num_qubits,
+            circuit_depth=transpiled_circuit.depth(),
+            total_gates=sum(transpiled_circuit.count_ops().values()),
+            qward_metrics=qward_metrics,
+            shots=self.shots,
+            execution_time_ms=execution_time_ms,
+            counts=counts,
+            success_rate=success_rate,
+            success_count=success_count,
+            test_mode=config.test_mode,
+            input_state=config.input_state,
+            period=config.period,
+            threshold_90=success_rate >= 0.90,
+            threshold_95=success_rate >= 0.95,
+            threshold_99=success_rate >= 0.99,
+        )
+
+    def get_config(self, config_id: str) -> QFTExperimentConfig:
+        """Get experiment configuration by ID."""
+        return get_config(config_id)
+
+    def get_noise_config(self, noise_id: str) -> NoiseConfig:
+        """Get noise configuration by ID."""
+        return get_noise_config(noise_id)
+
+    def get_all_config_ids(self) -> List[str]:
+        """Get all available configuration IDs."""
+        return list(CONFIGS_BY_ID.keys())
+
+    def get_all_noise_ids(self) -> List[str]:
+        """Get all available noise model IDs."""
+        return list(NOISE_BY_ID.keys())
+
+    def get_config_description(self, config: QFTExperimentConfig) -> str:
+        """Get description for config in verbose output."""
+        return f"Mode: {config.test_mode}, Qubits: {config.num_qubits}"
+
+    def load_result_from_dict(self, data: Dict[str, Any]) -> QFTExperimentResult:
+        """Reconstruct QFT result from dictionary."""
+        return QFTExperimentResult.from_dict(data)
+
+
+# =============================================================================
+# Module-Level Convenience Functions
+# =============================================================================
+
+# Default runner instance
+_default_runner: Optional[QFTExperimentRunner] = None
+
+
+def _get_runner() -> QFTExperimentRunner:
+    """Get or create the default runner instance."""
+    global _default_runner
+    if _default_runner is None:
+        _default_runner = QFTExperimentRunner()
+    return _default_runner
 
 
 def run_single_experiment(
@@ -265,132 +297,15 @@ def run_single_experiment(
     run_number: int,
     shots: int = SHOTS,
     calculate_qward: bool = True,
-) -> ExperimentResult:
+) -> QFTExperimentResult:
     """
     Run a single experiment with given configuration.
-
-    Args:
-        exp_config: Experiment configuration
-        noise_config: Noise model configuration
-        run_number: Run number (1-indexed)
-        shots: Number of shots
-        calculate_qward: Whether to calculate QWARD pre-runtime metrics
-
-    Returns:
-        ExperimentResult with QWARD metrics for correlation analysis
+    
+    Convenience function for backward compatibility.
     """
-    # Create QFT circuit generator based on test mode
-    if exp_config.test_mode == "roundtrip":
-        qft_gen = QFTCircuitGenerator(
-            num_qubits=exp_config.num_qubits,
-            test_mode="roundtrip",
-            input_state=exp_config.input_state,
-            use_barriers=True,
-        )
-    else:  # period_detection
-        qft_gen = QFTCircuitGenerator(
-            num_qubits=exp_config.num_qubits,
-            test_mode="period_detection",
-            period=exp_config.period,
-            use_barriers=True,
-        )
-
-    circuit = qft_gen.circuit
-
-    # Create noise model
-    noise_model = create_noise_model(noise_config)
-
-    # Create simulator
-    simulator = AerSimulator(noise_model=noise_model)
-
-    # Transpile circuit
-    pm = generate_preset_pass_manager(
-        target=simulator.target,
-        optimization_level=OPTIMIZATION_LEVEL,
-    )
-    transpiled_circuit = pm.run(circuit)
-
-    # Calculate QWARD pre-runtime metrics on transpiled circuit
-    qward_metrics = None
-    if calculate_qward:
-        qward_metrics = calculate_qward_metrics(transpiled_circuit)
-
-    # Run experiment
-    start_time = time.time()
-    job = simulator.run(transpiled_circuit, shots=shots)
-    result = job.result()
-    execution_time_ms = (time.time() - start_time) * 1000
-
-    counts = result.get_counts()
-
-    # Calculate success metrics using generator's success criteria
-    rate = calculate_success_rate(counts, qft_gen.success_criteria)
-    s_count = count_successful_shots(counts, qft_gen.success_criteria)
-
-    # Create experiment ID
-    experiment_id = f"{exp_config.config_id}_{noise_config.noise_id}_{run_number:03d}"
-
-    return ExperimentResult(
-        experiment_id=experiment_id,
-        config_id=exp_config.config_id,
-        noise_model=noise_config.noise_id,
-        run_number=run_number,
-        timestamp=datetime.now().isoformat(),
-        num_qubits=exp_config.num_qubits,
-        test_mode=exp_config.test_mode,
-        input_state=exp_config.input_state,
-        period=exp_config.period,
-        circuit_depth=transpiled_circuit.depth(),
-        total_gates=sum(transpiled_circuit.count_ops().values()),
-        qward_metrics=qward_metrics,
-        shots=shots,
-        execution_time_ms=execution_time_ms,
-        counts=counts,
-        success_rate=rate,
-        success_count=s_count,
-        threshold_90=rate >= 0.90,
-        threshold_95=rate >= 0.95,
-        threshold_99=rate >= 0.99,
-    )
-
-
-# =============================================================================
-# Batch Experiment Runner
-# =============================================================================
-
-
-@dataclass
-class BatchResult:
-    """Result from running multiple runs of the same configuration."""
-
-    config_id: str
-    noise_model: str
-    num_runs: int
-    shots_per_run: int
-
-    # Aggregate statistics
-    mean_success_rate: float
-    std_success_rate: float
-    min_success_rate: float
-    max_success_rate: float
-    median_success_rate: float
-
-    # Individual results
-    results: List[ExperimentResult]
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary (without individual results for summary)."""
-        return {
-            "config_id": self.config_id,
-            "noise_model": self.noise_model,
-            "num_runs": self.num_runs,
-            "shots_per_run": self.shots_per_run,
-            "mean_success_rate": self.mean_success_rate,
-            "std_success_rate": self.std_success_rate,
-            "min_success_rate": self.min_success_rate,
-            "max_success_rate": self.max_success_rate,
-            "median_success_rate": self.median_success_rate,
-        }
+    runner = _get_runner()
+    runner.shots = shots
+    return runner.run_single(exp_config, noise_config, run_number, shots, calculate_qward)
 
 
 def run_batch(
@@ -399,63 +314,16 @@ def run_batch(
     num_runs: int = NUM_RUNS,
     shots: int = SHOTS,
     verbose: bool = True,
-) -> BatchResult:
+) -> QFTBatchResult:
     """
     Run multiple experiments with the same configuration.
-
-    Args:
-        config_id: Configuration ID
-        noise_id: Noise model ID
-        num_runs: Number of runs
-        shots: Shots per run
-        verbose: Print progress
-
-    Returns:
-        BatchResult
+    
+    Convenience function for backward compatibility.
     """
-    exp_config = get_config(config_id)
-    noise_config = get_noise_config(noise_id)
-
-    if verbose:
-        print(f"\n{'=' * 60}")
-        print(f"Running {config_id} with {noise_id} ({num_runs} runs)")
-        print(f"  Mode: {exp_config.test_mode}, Qubits: {exp_config.num_qubits}")
-        print(f"{'=' * 60}")
-
-    results = []
-    for run in range(1, num_runs + 1):
-        if verbose:
-            print(f"  Run {run}/{num_runs}...", end=" ", flush=True)
-
-        result = run_single_experiment(exp_config, noise_config, run, shots)
-        results.append(result)
-
-        if verbose:
-            print(f"Success rate: {result.success_rate:.4f}")
-
-    # Calculate aggregate statistics
-    rates = [r.success_rate for r in results]
-
-    if verbose:
-        print(f"\n  Summary: mean={np.mean(rates):.4f}, std={np.std(rates):.4f}")
-
-    return BatchResult(
-        config_id=config_id,
-        noise_model=noise_id,
-        num_runs=num_runs,
-        shots_per_run=shots,
-        mean_success_rate=float(np.mean(rates)),
-        std_success_rate=float(np.std(rates, ddof=1)) if len(rates) > 1 else 0.0,
-        min_success_rate=float(np.min(rates)),
-        max_success_rate=float(np.max(rates)),
-        median_success_rate=float(np.median(rates)),
-        results=results,
-    )
-
-
-# =============================================================================
-# Full Experiment Campaign
-# =============================================================================
+    runner = _get_runner()
+    runner.shots = shots
+    runner.num_runs = num_runs
+    return runner.run_batch(config_id, noise_id, num_runs, shots, verbose=verbose)
 
 
 def run_experiment_campaign(
@@ -469,313 +337,42 @@ def run_experiment_campaign(
     incremental_save: bool = True,
     session_id: Optional[str] = None,
     skip_existing: bool = True,
-) -> Dict[str, BatchResult]:
+) -> Dict[Tuple[str, str], QFTBatchResult]:
     """
     Run a full experiment campaign across configurations and noise models.
-
-    Args:
-        config_ids: List of configuration IDs (None = all)
-        noise_ids: List of noise model IDs (None = all)
-        num_runs: Number of runs per configuration
-        shots: Shots per run
-        save_results: Whether to save results to disk
-        output_dir: Output directory for results
-        verbose: Print progress
-        incremental_save: Save results after each batch (recommended for long runs)
-        session_id: Unique session identifier (auto-generated if None)
-        skip_existing: Skip configurations that already have saved results in this session
-
-    Returns:
-        Dictionary mapping (config_id, noise_id) to BatchResult
+    
+    Convenience function that uses the QFTExperimentRunner.
     """
-    # Default to all configurations
-    if config_ids is None:
-        config_ids = list(CONFIGS_BY_ID.keys())
-    if noise_ids is None:
-        noise_ids = list(NOISE_BY_ID.keys())
-
-    # Ensure IDEAL is first for baseline comparison
-    if "IDEAL" in noise_ids:
-        noise_ids = ["IDEAL"] + [n for n in noise_ids if n != "IDEAL"]
-
-    total_batches = len(config_ids) * len(noise_ids)
-
-    # Generate session ID for this campaign run
-    if session_id is None:
-        session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    # Setup paths for incremental saving
-    base_path = Path(__file__).parent / output_dir
-    raw_path = base_path / "raw" / session_id
-    raw_path.mkdir(parents=True, exist_ok=True)
-
-    if verbose:
-        print(f"\n{'#' * 70}")
-        print("QFT EXPERIMENT CAMPAIGN")
-        print(f"{'#' * 70}")
-        print(f"Session ID: {session_id}")
-        print(f"Configurations: {len(config_ids)}")
-        print(f"Noise models: {len(noise_ids)}")
-        print(f"Runs per batch: {num_runs}")
-        print(f"Shots per run: {shots}")
-        print(f"Total batches: {total_batches}")
-        print(f"Incremental save: {incremental_save}")
-        print(f"Output path: {raw_path}")
-        print(f"{'#' * 70}")
-
-    all_results = {}
-
-    # Check for existing results if skip_existing is enabled
-    existing_files = set()
-    if skip_existing:
-        existing_files = {f.stem for f in raw_path.glob("*.json")}
-        if existing_files and verbose:
-            print(f"\nFound {len(existing_files)} existing results in this session")
-
-    batch_num = 0
-    skipped = 0
-    start_time = time.time()
-
-    for config_id in config_ids:
-        for noise_id in noise_ids:
-            batch_num += 1
-            batch_key = f"{config_id}_{noise_id}"
-
-            # Skip if already exists
-            if skip_existing and batch_key in existing_files:
-                if verbose:
-                    print(f"\n[{batch_num}/{total_batches}] {batch_key} - SKIPPED (exists)")
-                skipped += 1
-                # Load existing result
-                try:
-                    existing_result = load_batch_result(raw_path / f"{batch_key}.json")
-                    if existing_result:
-                        all_results[(config_id, noise_id)] = existing_result
-                except Exception as e:
-                    if verbose:
-                        print(f"    Warning: Could not load existing result: {e}")
-                continue
-
-            if verbose:
-                print(f"\n[{batch_num}/{total_batches}] ", end="")
-
-            batch_result = run_batch(
-                config_id=config_id,
-                noise_id=noise_id,
-                num_runs=num_runs,
-                shots=shots,
-                verbose=verbose,
-            )
-
-            all_results[(config_id, noise_id)] = batch_result
-
-            # Incremental save after each batch
-            if incremental_save:
-                save_batch_result(batch_result, config_id, noise_id, raw_path, verbose=False)
-                if verbose:
-                    print(f"    [Saved: {batch_key}.json]")
-
-    elapsed = time.time() - start_time
-
-    # Save final aggregated summary
-    if save_results:
-        save_campaign_summary(all_results, base_path, session_id, verbose)
-
-    if verbose:
-        print(f"\n{'#' * 70}")
-        print("CAMPAIGN COMPLETE")
-        print(f"{'#' * 70}")
-        print(f"Total batches: {batch_num}")
-        print(f"Completed: {batch_num - skipped}")
-        print(f"Skipped (existing): {skipped}")
-        print(f"Total time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
-        print(f"Session ID: {session_id}")
-        print(f"Results saved to: {base_path}")
-        print(f"{'#' * 70}")
-
-    return all_results
-
-
-def save_batch_result(
-    batch: BatchResult,
-    config_id: str,
-    noise_id: str,
-    output_path: Path,
-    verbose: bool = False,
-) -> None:
-    """Save a single batch result to disk (incremental save)."""
-    filename = f"{config_id}_{noise_id}.json"
-    filepath = output_path / filename
-
-    data = {
-        "config_id": config_id,
-        "noise_id": noise_id,
-        "saved_at": datetime.now().isoformat(),
-        "batch_summary": batch.to_dict(),
-        "individual_results": [r.to_dict() for r in batch.results],
-    }
-
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=2, default=str)
-
-    if verbose:
-        print(f"  Saved: {filepath}")
-
-
-def load_batch_result(filepath: Path) -> Optional[BatchResult]:
-    """Load a batch result from disk."""
-    try:
-        with open(filepath, "r") as f:
-            data = json.load(f)
-
-        # Reconstruct BatchResult from saved data
-        summary = data["batch_summary"]
-        individual = data.get("individual_results", [])
-
-        # Reconstruct ExperimentResult objects
-        results = []
-        for r in individual:
-            results.append(ExperimentResult(
-                experiment_id=r.get("experiment_id", ""),
-                config_id=r.get("config_id", ""),
-                noise_model=r.get("noise_model", ""),
-                run_number=r.get("run_number", 0),
-                timestamp=r.get("timestamp", ""),
-                num_qubits=r.get("num_qubits", 0),
-                test_mode=r.get("test_mode", ""),
-                input_state=r.get("input_state"),
-                period=r.get("period"),
-                circuit_depth=r.get("circuit_depth", 0),
-                total_gates=r.get("total_gates", 0),
-                qward_metrics=r.get("qward_metrics"),
-                shots=r.get("shots", SHOTS),
-                execution_time_ms=r.get("execution_time_ms", 0.0),
-                counts=r.get("counts", {}),
-                success_rate=r.get("success_rate", 0.0),
-                success_count=r.get("success_count", 0),
-            ))
-
-        return BatchResult(
-            config_id=summary.get("config_id", ""),
-            noise_model=summary.get("noise_model", ""),
-            num_runs=summary.get("num_runs", 0),
-            shots_per_run=summary.get("shots_per_run", 0),
-            mean_success_rate=summary.get("mean_success_rate", 0.0),
-            std_success_rate=summary.get("std_success_rate", 0.0),
-            min_success_rate=summary.get("min_success_rate", 0.0),
-            max_success_rate=summary.get("max_success_rate", 0.0),
-            median_success_rate=summary.get("median_success_rate", 0.0),
-            results=results,
-        )
-    except Exception as e:
-        print(f"Warning: Could not load {filepath}: {e}")
-        return None
-
-
-def save_campaign_summary(
-    results: Dict[tuple, BatchResult],
-    base_path: Path,
-    session_id: str,
-    verbose: bool = True,
-) -> None:
-    """Save aggregated campaign summary."""
-    agg_path = base_path / "aggregated"
-    agg_path.mkdir(parents=True, exist_ok=True)
-
-    summary = []
-    for (config_id, noise_id), batch in results.items():
-        summary.append({
-            "config_id": config_id,
-            "noise_model": noise_id,
-            **batch.to_dict(),
-        })
-
-    summary_file = agg_path / f"campaign_summary_{session_id}.json"
-    with open(summary_file, "w") as f:
-        json.dump(summary, f, indent=2, default=str)
-
-    if verbose:
-        print(f"\nAggregated summary saved to: {summary_file}")
+    # Create runner with correct output_dir
+    runner = QFTExperimentRunner(
+        shots=shots,
+        num_runs=num_runs,
+        output_dir=output_dir,
+    )
+    
+    return runner.run_campaign(
+        config_ids=config_ids,
+        noise_ids=noise_ids,
+        num_runs=num_runs,
+        shots=shots,
+        save_results=save_results,
+        verbose=verbose,
+        incremental_save=incremental_save,
+        session_id=session_id,
+        skip_existing=skip_existing,
+    )
 
 
 def aggregate_session_results(
     session_id: str,
     output_dir: str = "data",
     verbose: bool = True,
-) -> Dict[str, BatchResult]:
+) -> Dict[Tuple[str, str], QFTBatchResult]:
     """
     Aggregate all results from a session directory.
-
-    Useful for resuming or analyzing a partially completed campaign.
-
-    Args:
-        session_id: The session ID to aggregate
-        output_dir: Output directory
-        verbose: Print progress
-
-    Returns:
-        Dictionary mapping (config_id, noise_id) to BatchResult
     """
-    base_path = Path(__file__).parent / output_dir
-    raw_path = base_path / "raw" / session_id
-
-    if not raw_path.exists():
-        raise ValueError(f"Session directory not found: {raw_path}")
-
-    all_results = {}
-    files = list(raw_path.glob("*.json"))
-
-    if verbose:
-        print(f"Loading {len(files)} results from session {session_id}...")
-
-    for filepath in files:
-        parts = filepath.stem.split("_")
-        if len(parts) >= 2:
-            config_id = parts[0]
-            noise_id = parts[1]
-
-            batch = load_batch_result(filepath)
-            if batch:
-                all_results[(config_id, noise_id)] = batch
-                if verbose:
-                    print(f"  Loaded: {config_id}_{noise_id}")
-
-    if verbose:
-        print(f"Loaded {len(all_results)} batch results")
-
-    # Generate aggregated summary
-    save_campaign_summary(all_results, base_path, session_id, verbose)
-
-    return all_results
-
-
-# =============================================================================
-# Data Persistence (Legacy - kept for compatibility)
-# =============================================================================
-
-
-def save_campaign_results(
-    results: Dict[tuple, BatchResult],
-    output_dir: str,
-    verbose: bool = True,
-) -> None:
-    """
-    Save campaign results to disk (legacy function).
-
-    Note: The new incremental save in run_experiment_campaign is preferred.
-    This function is kept for backward compatibility.
-    """
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_path = Path(__file__).parent / output_dir
-
-    # Use new functions
-    raw_path = base_path / "raw" / timestamp
-    raw_path.mkdir(parents=True, exist_ok=True)
-
-    for (config_id, noise_id), batch in results.items():
-        save_batch_result(batch, config_id, noise_id, raw_path, verbose=False)
-
-    save_campaign_summary(results, base_path, timestamp, verbose)
+    runner = QFTExperimentRunner(output_dir=output_dir)
+    return runner.aggregate_session(session_id, verbose=verbose)
 
 
 # =============================================================================
@@ -787,12 +384,12 @@ def test_single_config(
     config_id: str = "SR3",
     noise_id: str = "IDEAL",
     num_runs: int = 3,
-) -> BatchResult:
+) -> QFTBatchResult:
     """Quick test with a single configuration."""
     return run_batch(config_id, noise_id, num_runs=num_runs, verbose=True)
 
 
-def test_pilot_study(verbose: bool = True) -> Dict[str, BatchResult]:
+def test_pilot_study(verbose: bool = True) -> Dict[Tuple[str, str], QFTBatchResult]:
     """
     Run a pilot study with small configs and two noise models.
 
@@ -810,7 +407,7 @@ def test_pilot_study(verbose: bool = True) -> Dict[str, BatchResult]:
     )
 
 
-def test_roundtrip_base_case(verbose: bool = True) -> ExperimentResult:
+def test_roundtrip_base_case(verbose: bool = True) -> QFTExperimentResult:
     """
     Run a single base case for roundtrip mode to understand the algorithm.
 
@@ -856,7 +453,7 @@ def test_roundtrip_base_case(verbose: bool = True) -> ExperimentResult:
     return result
 
 
-def test_period_detection_base_case(verbose: bool = True) -> ExperimentResult:
+def test_period_detection_base_case(verbose: bool = True) -> QFTExperimentResult:
     """
     Run a single base case for period detection mode to understand the algorithm.
 
@@ -922,9 +519,18 @@ def main():
     print("  - test_pilot_study()")
     print("  - run_batch(config_id, noise_id, num_runs, shots)")
     print("  - run_experiment_campaign(...)")
+    print("  - aggregate_session_results(session_id)  # Resume partial campaign")
+    print("\nKey features:")
+    print("  - incremental_save=True  # Save after each batch")
+    print("  - skip_existing=True     # Don't re-run completed experiments")
+    print("  - session_id='...'       # Resume a specific session")
     print("\nExample:")
-    print("  from qft_experiment import test_roundtrip_base_case")
-    print("  result = test_roundtrip_base_case()")
+    print("  from qft_experiment import run_experiment_campaign")
+    print("  results = run_experiment_campaign(")
+    print("      config_ids=['SR3', 'SR4'],")
+    print("      noise_ids=['IDEAL', 'DEP-MED'],")
+    print("      session_id='my_experiment'")
+    print("  )")
 
 
 if __name__ == "__main__":

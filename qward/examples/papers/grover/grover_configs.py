@@ -5,10 +5,11 @@ This module defines all circuit configurations for the Grover experiment,
 including scalability, marked state, Hamming weight, and symmetry studies.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Any
 import math
 
+from qward.algorithms.noise_generator import NoiseConfig
 
 @dataclass
 class ExperimentConfig:
@@ -275,74 +276,114 @@ SYMMETRY_CONFIGS = [
 # =============================================================================
 # Noise Model Configurations
 # =============================================================================
-
-@dataclass
-class NoiseConfig:
-    """Configuration for a noise model."""
-    
-    noise_id: str
-    noise_type: str  # "none", "depolarizing", "pauli", "thermal", "readout", "combined"
-    parameters: Dict[str, float] = field(default_factory=dict)
-    description: str = ""
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for data storage."""
-        return {
-            "noise_id": self.noise_id,
-            "noise_type": self.noise_type,
-            "parameters": self.parameters,
-            "description": self.description,
-        }
-
+# These noise configurations are based on empirical data from quantum hardware
+# providers. See qward/algorithms/noise_generator.py for full documentation
+# and literature references.
+#
+# Hardware data sources (January 2026):
+# - IBM Quantum Platform: https://quantum.cloud.ibm.com/computers
+# - IBM Heron characterization: https://research.ibm.com/publications/noise-characterization-and-error-mitigation-on-ibm-heron-processors-part-1--1
+# - Rigetti Ankaa-3: https://thequantuminsider.com/2024/12/23/rigetti-computing-reports-84-qubit-ankaa-3-system-achieves-99-5-median-two-qubit-gate-fidelity-milestone/
 
 NOISE_CONFIGS = [
+    # =========================================================================
+    # Ideal (baseline)
+    # =========================================================================
     NoiseConfig(
         noise_id="IDEAL",
         noise_type="none",
         parameters={},
         description="Perfect execution baseline"
     ),
+
+    # =========================================================================
+    # Generic Depolarizing Noise (for parameter sweeps)
+    # =========================================================================
     NoiseConfig(
         noise_id="DEP-LOW",
         noise_type="depolarizing",
-        parameters={"p1": 0.001, "p2": 0.01},
-        description="Light depolarizing noise"
+        parameters={"p1": 0.001, "p2": 0.005},
+        description="Low depolarizing (p1=0.1%, p2=0.5%)"
     ),
     NoiseConfig(
         noise_id="DEP-MED",
         noise_type="depolarizing",
-        parameters={"p1": 0.01, "p2": 0.05},
-        description="Medium depolarizing noise"
+        parameters={"p1": 0.005, "p2": 0.02},
+        description="Medium depolarizing (p1=0.5%, p2=2%)"
     ),
     NoiseConfig(
         noise_id="DEP-HIGH",
         noise_type="depolarizing",
-        parameters={"p1": 0.05, "p2": 0.10},
-        description="Heavy depolarizing noise"
+        parameters={"p1": 0.01, "p2": 0.05},
+        description="High depolarizing (p1=1%, p2=5%)"
     ),
+
+    # =========================================================================
+    # Hardware-Specific: IBM Heron Processors
+    # =========================================================================
+    # Data from quantum.cloud.ibm.com/computers (Jan 2026)
+    NoiseConfig(
+        noise_id="IBM-HERON-R3",
+        noise_type="combined",
+        parameters={"p1": 0.0005, "p2": 0.00115, "p_readout": 0.0046},
+        description="IBM Heron r3 (ibm_boston): 2Q=0.113%, readout=0.46%"
+    ),
+    NoiseConfig(
+        noise_id="IBM-HERON-R2",
+        noise_type="combined",
+        parameters={"p1": 0.001, "p2": 0.0026, "p_readout": 0.0127},
+        description="IBM Heron r2 (ibm_marrakesh): 2Q=0.26%, readout=1.27%"
+    ),
+    NoiseConfig(
+        noise_id="IBM-HERON-R1",
+        noise_type="combined",
+        parameters={"p1": 0.001, "p2": 0.0025, "p_readout": 0.0293},
+        description="IBM Heron r1 (ibm_torino): 2Q=0.25%, readout=2.93%"
+    ),
+
+    # =========================================================================
+    # Hardware-Specific: Rigetti Ankaa Processors
+    # =========================================================================
+    # Data from Quantum Insider (Dec 2024) and qcs.rigetti.com
+    NoiseConfig(
+        noise_id="RIGETTI-ANKAA3",
+        noise_type="combined",
+        parameters={"p1": 0.002, "p2": 0.005, "p_readout": 0.02},
+        description="Rigetti Ankaa-3 (84q): 99.5% 2Q fidelity (0.5% error)"
+    ),
+
+    # =========================================================================
+    # Other Noise Types
+    # =========================================================================
     NoiseConfig(
         noise_id="PAULI",
         noise_type="pauli",
         parameters={"pX": 0.01, "pY": 0.01, "pZ": 0.01},
-        description="Structured Pauli errors"
+        description="Symmetric Pauli errors (1% each X/Y/Z)"
+    ),
+    NoiseConfig(
+        noise_id="PAULI-ZBIAS",
+        noise_type="pauli",
+        parameters={"pX": 0.005, "pY": 0.005, "pZ": 0.02},
+        description="Z-biased Pauli (phase-flip dominant, typical superconducting)"
     ),
     NoiseConfig(
         noise_id="THERMAL",
         noise_type="thermal",
-        parameters={"T1": 50e-6, "T2": 70e-6},  # in seconds
-        description="T1/T2 relaxation"
+        parameters={"T1": 50e-6, "T2": 70e-6, "gate_time": 50e-9},
+        description="T1/T2 relaxation (T1=50μs, T2=70μs)"
     ),
     NoiseConfig(
         noise_id="READOUT",
         noise_type="readout",
         parameters={"p01": 0.02, "p10": 0.02},
-        description="Measurement errors only"
+        description="Readout errors only (2% symmetric flip)"
     ),
     NoiseConfig(
         noise_id="COMBINED",
         noise_type="combined",
-        parameters={"p1": 0.01, "p2": 0.05, "p_readout": 0.02},
-        description="Realistic combined noise (DEP-MED + READOUT)"
+        parameters={"p1": 0.005, "p2": 0.015, "p_readout": 0.02},
+        description="Generic combined noise (realistic NISQ baseline)"
     ),
 ]
 

@@ -132,9 +132,14 @@ Understand how different noise models affect Grover's algorithm and establish si
 | DEP-MED | Depolarizing | p1=0.01, p2=0.05 | Medium depolarizing noise |
 | DEP-HIGH | Depolarizing | p1=0.05, p2=0.10 | Heavy depolarizing noise |
 | PAULI | Pauli | pX=pY=pZ=0.01 | Structured Pauli errors |
+| PAULI-ZBIAS | Pauli | pX=0.005, pY=0.005, pZ=0.02 | Z-biased phase-flip dominant |
 | THERMAL | Thermal | T1=50μs, T2=70μs | T1/T2 relaxation |
 | READOUT | Readout | p01=p10=0.02 | Measurement errors only |
 | COMBINED | Mixed | DEP-MED + READOUT | Realistic combined noise |
+| IBM-HERON-R3 | Combined | p1=0.0005, p2=0.00115, p_readout=0.0046 | IBM Heron r3 (ibm_boston) |
+| IBM-HERON-R2 | Combined | p1=0.001, p2=0.0026, p_readout=0.0127 | IBM Heron r2 (ibm_marrakesh) |
+| IBM-HERON-R1 | Combined | p1=0.001, p2=0.0025, p_readout=0.0293 | IBM Heron r1 (ibm_torino) |
+| RIGETTI-ANKAA3 | Combined | p1=0.002, p2=0.005, p_readout=0.02 | Rigetti Ankaa-3 (84q) |
 
 ### Analysis Goals
 - Establish success rate under each noise model
@@ -646,13 +651,13 @@ config_aggregate = {
 
 | Experiment | Configs | × Noise Models | × Runs | = Total Jobs |
 |------------|---------|----------------|--------|--------------|
-| Scalability (S) | 7 | 8 | 10 | 560 |
-| Marked Count (M) | 6 | 8 | 10 | 480 |
-| Hamming (H) | 7 | 8 | 10 | 560 |
-| Symmetric (SYM/ASYM) | 4 | 8 | 10 | 320 |
-| **Total** | 24 | - | - | **1,920** |
+| Scalability (S) | 7 | 13 | 10 | 910 |
+| Marked Count (M) | 6 | 13 | 10 | 780 |
+| Hamming (H) | 7 | 13 | 10 | 910 |
+| Symmetric (SYM/ASYM) | 4 | 13 | 10 | 520 |
+| **Total** | 24 | - | - | **3,120** |
 
-**Execution time estimate**: ~30 minutes on local Aer simulator
+**Execution time estimate**: ~60 minutes on local Aer simulator
 
 **Recommended start**: IDEAL + DEP-MED only (480 jobs) for rapid iteration
 
@@ -814,20 +819,26 @@ All 24 configurations completed with 10 runs each (1024 shots per run).
 
 ## Week 3 Results: Noisy Simulator Study ✅
 
-All 24 configurations × 7 noise models × 10 runs = 1,680 experiments completed.
+All 24 configurations × 12 noise models × 10 runs = 2,880 experiments completed
+(plus IDEAL baseline: 240 runs, total 3,120).
 
 ### Noise Model Severity Ranking
 
 | Rank | Noise Model | Avg Success% | Degradation | Impact Level |
 |------|-------------|--------------|-------------|--------------|
-| 1 | IDEAL | 95.49% | Baseline | - |
-| 2 | READOUT | 88.67% | -6.8% | Low |
-| 3 | THERMAL | 79.52% | -16.0% | Medium |
-| 4 | DEP-LOW | 57.24% | -38.2% | High |
-| 5 | DEP-MED | 25.77% | -69.7% | Severe |
-| 6 | COMBINED | 24.92% | -70.6% | Severe |
-| 7 | PAULI | 22.89% | -72.6% | Severe |
-| 8 | DEP-HIGH | 16.42% | -79.1% | Severe |
+| 1 | IDEAL | 95.48% | Baseline | - |
+| 2 | READOUT | 88.67% | -7.1% | Low |
+| 3 | THERMAL | 79.52% | -16.7% | Medium |
+| 4 | IBM-HERON-R3 | 76.94% | -19.4% | Medium |
+| 5 | IBM-HERON-R2 | 68.61% | -28.1% | Medium |
+| 6 | IBM-HERON-R1 | 65.30% | -31.6% | Medium |
+| 7 | RIGETTI-ANKAA3 | 59.19% | -38.0% | High |
+| 8 | DEP-LOW | 57.27% | -40.0% | High |
+| 9 | DEP-MED | 25.75% | -73.0% | Severe |
+| 10 | COMBINED | 24.92% | -73.9% | Severe |
+| 11 | PAULI | 22.89% | -76.0% | Severe |
+| 12 | PAULI-ZBIAS | 19.65% | -79.4% | Severe |
+| 13 | DEP-HIGH | 16.42% | -82.8% | Severe |
 
 ### Scalability Under Noise
 
@@ -871,13 +882,14 @@ All 24 configurations × 7 noise models × 10 runs = 1,680 experiments completed
 #### 1. Noise Severity Ranking
 
 ```
-IDEAL (95.5%) > READOUT (88.7%) > THERMAL (79.5%) > DEP-LOW (57.2%) > DEP-MED (25.8%) > COMBINED (24.9%) > PAULI (22.9%) > DEP-HIGH (16.4%)
+IDEAL (95.5%) > READOUT (88.7%) > THERMAL (79.5%) > IBM-HERON-R3 (76.9%) > IBM-HERON-R2 (68.6%) > IBM-HERON-R1 (65.3%) > RIGETTI-ANKAA3 (59.2%) > DEP-LOW (57.3%) > DEP-MED (25.8%) > COMBINED (24.9%) > PAULI (22.9%) > PAULI-ZBIAS (19.7%) > DEP-HIGH (16.4%)
 ```
 
 **Interpretation**:
-- **READOUT noise**: Minimal impact (-6.8%) - measurement errors are correctable
-- **THERMAL noise**: Moderate impact (-16.0%) - T1/T2 relaxation affects longer circuits
-- **Depolarizing noise**: Devastating (-38% to -79%) - random errors accumulate quickly
+- **READOUT noise**: Minimal impact (-7.1%) - measurement errors are correctable
+- **THERMAL noise**: Moderate impact (-16.7%) - T1/T2 relaxation affects longer circuits
+- **Hardware-calibrated combined noise**: IBM Heron and Rigetti sit between THERMAL and DEP-LOW, giving realistic QPU baselines
+- **Depolarizing/Pauli noise**: Severe impact (-40% to -83%); Z-biased Pauli is slightly worse than symmetric Pauli
 - **COMBINED**: Similar to DEP-MED, confirming depolarizing dominates over readout
 
 #### 2. Scalability Limits by Noise Type
@@ -941,12 +953,12 @@ Based on simulator results:
 
 | Metric | Value |
 |--------|-------|
-| Total experiments | 1,680 |
-| Noise models tested | 7 (+ IDEAL baseline) |
+| Total experiments | 3,120 |
+| Noise models tested | 12 (+ IDEAL baseline) |
 | Configurations | 24 |
 | Runs per config | 10 |
-| Most resilient noise | READOUT (-6.8%) |
-| Most severe noise | DEP-HIGH (-79.1%) |
+| Most resilient noise | READOUT (-7.1%) |
+| Most severe noise | DEP-HIGH (-82.8%) |
 | Max useful qubits (DEP-MED) | 3 |
 | Max useful qubits (THERMAL) | 6 |
 
