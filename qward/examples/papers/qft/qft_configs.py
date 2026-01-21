@@ -23,6 +23,9 @@ class QFTExperimentConfig:
     input_state: str = None  # For roundtrip mode
     period: int = None  # For period_detection mode
 
+    # Execution constraints
+    hardware_only: bool = False  # If True, skip in simulator (too expensive)
+
     @property
     def search_space(self) -> int:
         """Total state space size (2^n)."""
@@ -55,6 +58,7 @@ class QFTExperimentConfig:
             "expected_num_peaks": self.expected_num_peaks,
             "theoretical_gate_count": self.theoretical_gate_count,
             "description": self.description,
+            "hardware_only": self.hardware_only,
         }
 
 
@@ -145,7 +149,8 @@ SCALABILITY_ROUNDTRIP_CONFIGS = [
         num_qubits=10,
         test_mode="roundtrip",
         input_state="0110011001",
-        description="10 qubits, round-trip, input |0110011001⟩",
+        description="10 qubits, round-trip (HARDWARE ONLY - too slow for simulator)",
+        hardware_only=True,  # 2^10 = 1024 states, expensive to simulate
     ),
     QFTExperimentConfig(
         config_id="SR12",
@@ -153,7 +158,8 @@ SCALABILITY_ROUNDTRIP_CONFIGS = [
         num_qubits=12,
         test_mode="roundtrip",
         input_state="011001100110",
-        description="12 qubits, round-trip (stress test)",
+        description="12 qubits, round-trip (HARDWARE ONLY - stress test)",
+        hardware_only=True,  # 2^12 = 4096 states, very expensive to simulate
     ),
 ]
 
@@ -218,7 +224,8 @@ SCALABILITY_PERIOD_CONFIGS = [
         num_qubits=8,
         test_mode="period_detection",
         period=4,
-        description="8 qubits, period=4",
+        description="8 qubits, period=4 (HARDWARE ONLY - 9 total qubits)",
+        hardware_only=True,  # 8 counting + 1 ancilla = 9 qubits
     ),
     QFTExperimentConfig(
         config_id="SP8-P16",
@@ -226,7 +233,8 @@ SCALABILITY_PERIOD_CONFIGS = [
         num_qubits=8,
         test_mode="period_detection",
         period=16,
-        description="8 qubits, period=16",
+        description="8 qubits, period=16 (HARDWARE ONLY - 9 total qubits)",
+        hardware_only=True,  # 8 counting + 1 ancilla = 9 qubits
     ),
 ]
 
@@ -403,6 +411,10 @@ ALL_EXPERIMENT_CONFIGS = (
     + INPUT_VARIATION_CONFIGS
 )
 
+# Separate configs by execution target
+SIMULATOR_CONFIGS = [c for c in ALL_EXPERIMENT_CONFIGS if not c.hardware_only]
+HARDWARE_ONLY_CONFIGS = [c for c in ALL_EXPERIMENT_CONFIGS if c.hardware_only]
+
 # Index by config_id for quick lookup
 CONFIGS_BY_ID = {c.config_id: c for c in ALL_EXPERIMENT_CONFIGS}
 NOISE_BY_ID = {n.noise_id: n for n in NOISE_CONFIGS}
@@ -427,9 +439,27 @@ def get_noise_config(noise_id: str) -> NoiseConfig:
     return NOISE_BY_ID[noise_id]
 
 
-def get_configs_by_type(experiment_type: str) -> List[QFTExperimentConfig]:
+def get_configs_by_type(experiment_type: str, include_hardware_only: bool = True) -> List[QFTExperimentConfig]:
     """Get all configurations of a given type."""
-    return [c for c in ALL_EXPERIMENT_CONFIGS if c.experiment_type == experiment_type]
+    configs = [c for c in ALL_EXPERIMENT_CONFIGS if c.experiment_type == experiment_type]
+    if not include_hardware_only:
+        configs = [c for c in configs if not c.hardware_only]
+    return configs
+
+
+def get_simulator_configs() -> List[QFTExperimentConfig]:
+    """Get all configurations suitable for simulator execution (excludes hardware_only)."""
+    return SIMULATOR_CONFIGS
+
+
+def get_simulator_config_ids() -> List[str]:
+    """Get config IDs suitable for simulator execution."""
+    return [c.config_id for c in SIMULATOR_CONFIGS]
+
+
+def get_hardware_only_configs() -> List[QFTExperimentConfig]:
+    """Get configurations that should only run on real hardware."""
+    return HARDWARE_ONLY_CONFIGS
 
 
 def list_all_configs() -> None:
@@ -441,10 +471,16 @@ def list_all_configs() -> None:
         configs = get_configs_by_type(exp_type)
         print(f"\n{exp_type.upper()} ({len(configs)} configs):")
         for c in configs:
+            hw_tag = " [HARDWARE ONLY]" if c.hardware_only else ""
             if c.test_mode == "roundtrip":
-                print(f"  {c.config_id}: {c.num_qubits}q, input={c.input_state}")
+                print(f"  {c.config_id}: {c.num_qubits}q, input={c.input_state}{hw_tag}")
             else:
-                print(f"  {c.config_id}: {c.num_qubits}q, period={c.period}")
+                print(f"  {c.config_id}: {c.num_qubits}q, period={c.period}{hw_tag}")
+
+    print(f"\nSUMMARY:")
+    print(f"  Total configs: {len(ALL_EXPERIMENT_CONFIGS)}")
+    print(f"  Simulator-friendly: {len(SIMULATOR_CONFIGS)}")
+    print(f"  Hardware-only: {len(HARDWARE_ONLY_CONFIGS)}")
 
     print(f"\nNOISE MODELS ({len(NOISE_CONFIGS)}):")
     for n in NOISE_CONFIGS:

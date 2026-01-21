@@ -466,6 +466,9 @@ def run_experiment_campaign(
     save_results: bool = True,
     output_dir: str = "data",
     verbose: bool = True,
+    incremental_save: bool = True,
+    session_id: Optional[str] = None,
+    skip_existing: bool = True,
 ) -> Dict[str, BatchResult]:
     """
     Run a full experiment campaign across configurations and noise models.
@@ -478,6 +481,9 @@ def run_experiment_campaign(
         save_results: Whether to save results to disk
         output_dir: Output directory for results
         verbose: Print progress
+        incremental_save: Save results after each batch (recommended for long runs)
+        session_id: Unique session identifier (auto-generated if None)
+        skip_existing: Skip configurations that already have saved results in this session
 
     Returns:
         Dictionary mapping (config_id, noise_id) to BatchResult
@@ -494,23 +500,61 @@ def run_experiment_campaign(
 
     total_batches = len(config_ids) * len(noise_ids)
 
+    # Generate session ID for this campaign run
+    if session_id is None:
+        session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Setup paths for incremental saving
+    base_path = Path(__file__).parent / output_dir
+    raw_path = base_path / "raw" / session_id
+    raw_path.mkdir(parents=True, exist_ok=True)
+
     if verbose:
         print(f"\n{'#' * 70}")
         print("QFT EXPERIMENT CAMPAIGN")
         print(f"{'#' * 70}")
+        print(f"Session ID: {session_id}")
         print(f"Configurations: {len(config_ids)}")
         print(f"Noise models: {len(noise_ids)}")
         print(f"Runs per batch: {num_runs}")
         print(f"Shots per run: {shots}")
         print(f"Total batches: {total_batches}")
+        print(f"Incremental save: {incremental_save}")
+        print(f"Output path: {raw_path}")
         print(f"{'#' * 70}")
 
     all_results = {}
 
+    # Check for existing results if skip_existing is enabled
+    existing_files = set()
+    if skip_existing:
+        existing_files = {f.stem for f in raw_path.glob("*.json")}
+        if existing_files and verbose:
+            print(f"\nFound {len(existing_files)} existing results in this session")
+
     batch_num = 0
+    skipped = 0
+    start_time = time.time()
+
     for config_id in config_ids:
         for noise_id in noise_ids:
             batch_num += 1
+            batch_key = f"{config_id}_{noise_id}"
+
+            # Skip if already exists
+            if skip_existing and batch_key in existing_files:
+                if verbose:
+                    print(f"\n[{batch_num}/{total_batches}] {batch_key} - SKIPPED (exists)")
+                skipped += 1
+                # Load existing result
+                try:
+                    existing_result = load_batch_result(raw_path / f"{batch_key}.json")
+                    if existing_result:
+                        all_results[(config_id, noise_id)] = existing_result
+                except Exception as e:
+                    if verbose:
+                        print(f"    Warning: Could not load existing result: {e}")
+                continue
 
             if verbose:
                 print(f"\n[{batch_num}/{total_batches}] ", end="")
@@ -525,20 +569,188 @@ def run_experiment_campaign(
 
             all_results[(config_id, noise_id)] = batch_result
 
-    # Save results if requested
+            # Incremental save after each batch
+            if incremental_save:
+                save_batch_result(batch_result, config_id, noise_id, raw_path, verbose=False)
+                if verbose:
+                    print(f"    [Saved: {batch_key}.json]")
+
+    elapsed = time.time() - start_time
+
+    # Save final aggregated summary
     if save_results:
-        save_campaign_results(all_results, output_dir, verbose)
+        save_campaign_summary(all_results, base_path, session_id, verbose)
 
     if verbose:
         print(f"\n{'#' * 70}")
         print("CAMPAIGN COMPLETE")
         print(f"{'#' * 70}")
+        print(f"Total batches: {batch_num}")
+        print(f"Completed: {batch_num - skipped}")
+        print(f"Skipped (existing): {skipped}")
+        print(f"Total time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
+        print(f"Session ID: {session_id}")
+        print(f"Results saved to: {base_path}")
+        print(f"{'#' * 70}")
+
+    return all_results
+
+
+def save_batch_result(
+    batch: BatchResult,
+    config_id: str,
+    noise_id: str,
+    output_path: Path,
+    verbose: bool = False,
+) -> None:
+    """Save a single batch result to disk (incremental save)."""
+    filename = f"{config_id}_{noise_id}.json"
+    filepath = output_path / filename
+
+    data = {
+        "config_id": config_id,
+        "noise_id": noise_id,
+        "saved_at": datetime.now().isoformat(),
+        "batch_summary": batch.to_dict(),
+        "individual_results": [r.to_dict() for r in batch.results],
+    }
+
+    with open(filepath, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+
+    if verbose:
+        print(f"  Saved: {filepath}")
+
+
+def load_batch_result(filepath: Path) -> Optional[BatchResult]:
+    """Load a batch result from disk."""
+    try:
+        with open(filepath, "r") as f:
+            data = json.load(f)
+
+        # Reconstruct BatchResult from saved data
+        summary = data["batch_summary"]
+        individual = data.get("individual_results", [])
+
+        # Reconstruct ExperimentResult objects
+        results = []
+        for r in individual:
+            results.append(ExperimentResult(
+                experiment_id=r.get("experiment_id", ""),
+                config_id=r.get("config_id", ""),
+                noise_model=r.get("noise_model", ""),
+                run_number=r.get("run_number", 0),
+                timestamp=r.get("timestamp", ""),
+                num_qubits=r.get("num_qubits", 0),
+                test_mode=r.get("test_mode", ""),
+                input_state=r.get("input_state"),
+                period=r.get("period"),
+                circuit_depth=r.get("circuit_depth", 0),
+                total_gates=r.get("total_gates", 0),
+                qward_metrics=r.get("qward_metrics"),
+                shots=r.get("shots", SHOTS),
+                execution_time_ms=r.get("execution_time_ms", 0.0),
+                counts=r.get("counts", {}),
+                success_rate=r.get("success_rate", 0.0),
+                success_count=r.get("success_count", 0),
+            ))
+
+        return BatchResult(
+            config_id=summary.get("config_id", ""),
+            noise_model=summary.get("noise_model", ""),
+            num_runs=summary.get("num_runs", 0),
+            shots_per_run=summary.get("shots_per_run", 0),
+            mean_success_rate=summary.get("mean_success_rate", 0.0),
+            std_success_rate=summary.get("std_success_rate", 0.0),
+            min_success_rate=summary.get("min_success_rate", 0.0),
+            max_success_rate=summary.get("max_success_rate", 0.0),
+            median_success_rate=summary.get("median_success_rate", 0.0),
+            results=results,
+        )
+    except Exception as e:
+        print(f"Warning: Could not load {filepath}: {e}")
+        return None
+
+
+def save_campaign_summary(
+    results: Dict[tuple, BatchResult],
+    base_path: Path,
+    session_id: str,
+    verbose: bool = True,
+) -> None:
+    """Save aggregated campaign summary."""
+    agg_path = base_path / "aggregated"
+    agg_path.mkdir(parents=True, exist_ok=True)
+
+    summary = []
+    for (config_id, noise_id), batch in results.items():
+        summary.append({
+            "config_id": config_id,
+            "noise_model": noise_id,
+            **batch.to_dict(),
+        })
+
+    summary_file = agg_path / f"campaign_summary_{session_id}.json"
+    with open(summary_file, "w") as f:
+        json.dump(summary, f, indent=2, default=str)
+
+    if verbose:
+        print(f"\nAggregated summary saved to: {summary_file}")
+
+
+def aggregate_session_results(
+    session_id: str,
+    output_dir: str = "data",
+    verbose: bool = True,
+) -> Dict[str, BatchResult]:
+    """
+    Aggregate all results from a session directory.
+
+    Useful for resuming or analyzing a partially completed campaign.
+
+    Args:
+        session_id: The session ID to aggregate
+        output_dir: Output directory
+        verbose: Print progress
+
+    Returns:
+        Dictionary mapping (config_id, noise_id) to BatchResult
+    """
+    base_path = Path(__file__).parent / output_dir
+    raw_path = base_path / "raw" / session_id
+
+    if not raw_path.exists():
+        raise ValueError(f"Session directory not found: {raw_path}")
+
+    all_results = {}
+    files = list(raw_path.glob("*.json"))
+
+    if verbose:
+        print(f"Loading {len(files)} results from session {session_id}...")
+
+    for filepath in files:
+        parts = filepath.stem.split("_")
+        if len(parts) >= 2:
+            config_id = parts[0]
+            noise_id = parts[1]
+
+            batch = load_batch_result(filepath)
+            if batch:
+                all_results[(config_id, noise_id)] = batch
+                if verbose:
+                    print(f"  Loaded: {config_id}_{noise_id}")
+
+    if verbose:
+        print(f"Loaded {len(all_results)} batch results")
+
+    # Generate aggregated summary
+    save_campaign_summary(all_results, base_path, session_id, verbose)
 
     return all_results
 
 
 # =============================================================================
-# Data Persistence
+# Data Persistence (Legacy - kept for compatibility)
 # =============================================================================
 
 
@@ -547,46 +759,23 @@ def save_campaign_results(
     output_dir: str,
     verbose: bool = True,
 ) -> None:
-    """Save campaign results to disk."""
-    base_path = Path(__file__).parent / output_dir
-    raw_path = base_path / "raw"
-    agg_path = base_path / "aggregated"
+    """
+    Save campaign results to disk (legacy function).
 
-    raw_path.mkdir(parents=True, exist_ok=True)
-    agg_path.mkdir(parents=True, exist_ok=True)
-
+    Note: The new incremental save in run_experiment_campaign is preferred.
+    This function is kept for backward compatibility.
+    """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_path = Path(__file__).parent / output_dir
 
-    # Save individual results (raw)
+    # Use new functions
+    raw_path = base_path / "raw" / timestamp
+    raw_path.mkdir(parents=True, exist_ok=True)
+
     for (config_id, noise_id), batch in results.items():
-        filename = f"{config_id}_{noise_id}_{timestamp}.json"
-        filepath = raw_path / filename
+        save_batch_result(batch, config_id, noise_id, raw_path, verbose=False)
 
-        data = {
-            "batch_summary": batch.to_dict(),
-            "individual_results": [r.to_dict() for r in batch.results],
-        }
-
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2, default=str)
-
-    # Save aggregated summary
-    summary = []
-    for (config_id, noise_id), batch in results.items():
-        summary.append(
-            {
-                "config_id": config_id,
-                "noise_model": noise_id,
-                **batch.to_dict(),
-            }
-        )
-
-    summary_file = agg_path / f"campaign_summary_{timestamp}.json"
-    with open(summary_file, "w") as f:
-        json.dump(summary, f, indent=2, default=str)
-
-    if verbose:
-        print(f"\nResults saved to {base_path}")
+    save_campaign_summary(results, base_path, timestamp, verbose)
 
 
 # =============================================================================
