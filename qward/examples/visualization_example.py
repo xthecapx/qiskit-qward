@@ -222,20 +222,24 @@ def custom_data_example():
     print("\n=== Example 6: Custom Metrics Data ===\n")
 
     # Create custom data (normally from your own calculations)
-    custom_qiskit_data = pd.DataFrame([{
-        "basic_metrics.depth": 5,
-        "basic_metrics.width": 6,
-        "basic_metrics.size": 8,
-        "basic_metrics.num_qubits": 3,
-        "basic_metrics.num_clbits": 3,
-        "basic_metrics.count_ops.h": 2,
-        "basic_metrics.count_ops.cx": 2,
-        "basic_metrics.count_ops.measure": 3,
-        "instruction_metrics.num_connected_components": 1,
-        "instruction_metrics.num_nonlocal_gates": 2,
-        "instruction_metrics.num_tensor_factors": 1,
-        "instruction_metrics.num_unitary_factors": 1,
-    }])
+    custom_qiskit_data = pd.DataFrame(
+        [
+            {
+                "basic_metrics.depth": 5,
+                "basic_metrics.width": 6,
+                "basic_metrics.size": 8,
+                "basic_metrics.num_qubits": 3,
+                "basic_metrics.num_clbits": 3,
+                "basic_metrics.count_ops.h": 2,
+                "basic_metrics.count_ops.cx": 2,
+                "basic_metrics.count_ops.measure": 3,
+                "instruction_metrics.num_connected_components": 1,
+                "instruction_metrics.num_nonlocal_gates": 2,
+                "instruction_metrics.num_tensor_factors": 1,
+                "instruction_metrics.num_unitary_factors": 1,
+            }
+        ]
+    )
 
     custom_metrics = {Metrics.QISKIT: custom_qiskit_data}
 
@@ -390,7 +394,8 @@ def plot_metadata_exploration():
     structure_plots = {}
     for metric_name, plot_names in available.items():
         metric_structure = [
-            p for p in plot_names
+            p
+            for p in plot_names
             if visualizer.get_plot_metadata(metric_name, p).category == "structure"
         ]
         if metric_structure:
@@ -437,4 +442,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

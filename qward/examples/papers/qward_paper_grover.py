@@ -189,7 +189,9 @@ def run_ibm(circuit):
         if not backends:
             raise ValueError(f"No backends available in instance '{IBM_QUANTUM_INSTANCE}'")
         operational = [b for b in backends if b.status().operational]
-        backend = min(operational, key=lambda b: b.status().pending_jobs) if operational else backends[0]
+        backend = (
+            min(operational, key=lambda b: b.status().pending_jobs) if operational else backends[0]
+        )
 
     print(f">>> Backend: {backend.name}")
     print(f">>> Pending jobs: {backend.status().pending_jobs}")
@@ -380,7 +382,9 @@ def _run_simulator_fallback(circuit, shots=1024, error=None):
 # =============================================================================
 
 
-def analyze_grover_results(circuit, grover_gen, results, backend_type="simulator", display_results=True):
+def analyze_grover_results(
+    circuit, grover_gen, results, backend_type="simulator", display_results=True
+):
     """
     Unified analysis function for Grover results from any backend.
 
@@ -458,7 +462,9 @@ def analyze_grover_results(circuit, grover_gen, results, backend_type="simulator
 # =============================================================================
 
 
-def visualize_grover_results(scanner, output_dir="img/qward_paper_grover", show_plots=True, save_plots=True):
+def visualize_grover_results(
+    scanner, output_dir="img/qward_paper_grover", show_plots=True, save_plots=True
+):
     """
     Create IEEE-styled visualizations for Grover results.
 
@@ -594,7 +600,9 @@ def run_grover_experiment(
     elif backend in ["simulator", "ibm", "qbraid", "qbraid_3exp"]:
         backends_to_run = [backend]
     else:
-        raise ValueError(f"Unknown backend: {backend}. Use: simulator, ibm, qbraid, qbraid_3exp, all")
+        raise ValueError(
+            f"Unknown backend: {backend}. Use: simulator, ibm, qbraid, qbraid_3exp, all"
+        )
 
     for b in backends_to_run:
         try:
@@ -606,7 +614,11 @@ def run_grover_experiment(
                     viz = visualize_grover_results(
                         analysis["scanner"], f"{output_dir}/simulator", show_plots, save_plots
                     )
-                    results["simulator"] = {"results": sim_results, "analysis": analysis, "viz": viz}
+                    results["simulator"] = {
+                        "results": sim_results,
+                        "analysis": analysis,
+                        "viz": viz,
+                    }
 
             elif b == "ibm":
                 print("\n" + "=" * 60)
@@ -627,17 +639,27 @@ def run_grover_experiment(
                     viz = visualize_grover_results(
                         analysis["scanner"], f"{output_dir}/qbraid", show_plots, save_plots
                     )
-                    results["qbraid"] = {"results": qbraid_results, "analysis": analysis, "viz": viz}
+                    results["qbraid"] = {
+                        "results": qbraid_results,
+                        "analysis": analysis,
+                        "viz": viz,
+                    }
 
             elif b == "qbraid_3exp":
                 print("\n" + "=" * 60)
                 qbraid_3_results = run_qbraid_3_experiments(marked_states)
-                analysis = analyze_grover_results(circuit, grover_gen, qbraid_3_results, "qbraid_3exp")
+                analysis = analyze_grover_results(
+                    circuit, grover_gen, qbraid_3_results, "qbraid_3exp"
+                )
                 if analysis["scanner"]:
                     viz = visualize_grover_results(
                         analysis["scanner"], f"{output_dir}/qbraid_3exp", show_plots, save_plots
                     )
-                    results["qbraid_3exp"] = {"results": qbraid_3_results, "analysis": analysis, "viz": viz}
+                    results["qbraid_3exp"] = {
+                        "results": qbraid_3_results,
+                        "analysis": analysis,
+                        "viz": viz,
+                    }
 
         except Exception as e:
             print(f"   ❌ Error running {b}: {e}")
@@ -658,7 +680,9 @@ def run_grover_experiment(
 # =============================================================================
 
 
-def load_qbraid_jobs(job_ids, marked_states=None, optimization_levels=None, output_dir=None, show_plots=True):
+def load_qbraid_jobs(
+    job_ids, marked_states=None, optimization_levels=None, output_dir=None, show_plots=True
+):
     """
     Load existing qBraid jobs and create visualizations.
 
@@ -700,13 +724,17 @@ def load_qbraid_jobs(job_ids, marked_states=None, optimization_levels=None, outp
                     success = sum(counts.get(s, 0) for s in marked_states)
 
                     print(f"   ✅ Loaded: {total} shots, success rate: {success/total:.3f}")
-                    completed_jobs.append({
-                        "job_id": job_id,
-                        "job": job,
-                        "result": result,
-                        "counts": counts,
-                        "optimization_level": optimization_levels[i] if i < len(optimization_levels) else i,
-                    })
+                    completed_jobs.append(
+                        {
+                            "job_id": job_id,
+                            "job": job,
+                            "result": result,
+                            "counts": counts,
+                            "optimization_level": (
+                                optimization_levels[i] if i < len(optimization_levels) else i
+                            ),
+                        }
+                    )
                 else:
                     print(f"   ⚠️ Job status: {status}")
             except Exception as e:
@@ -782,7 +810,9 @@ def test_grover_setup():
 
         # Test analysis
         results = {"jobs": [job]}
-        analysis = analyze_grover_results(circuit, grover_gen, results, "simulator", display_results=False)
+        analysis = analyze_grover_results(
+            circuit, grover_gen, results, "simulator", display_results=False
+        )
         print(f"   ✓ Analysis: {len(analysis['metrics_dict'])} metric types")
 
         print("\n✅ All tests passed!")

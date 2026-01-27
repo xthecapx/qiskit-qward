@@ -536,14 +536,14 @@ class QuantumCircuitExecutor:
             >>> # Option 1: Use saved credentials
             >>> executor = QuantumCircuitExecutor(shots=1024)
             >>> result = executor.run_ibm(circuit, optimization_levels=[0, 2])
-            
+
             >>> # Option 2: Pass credentials directly
             >>> result = executor.run_ibm(
             ...     circuit,
             ...     channel="ibm_quantum",
             ...     token="your-api-token",
             ... )
-            
+
             >>> print(f"Batch ID: {result.batch_id}")
             >>> for job in result.jobs:
             ...     print(f"Opt {job.optimization_level}: {job.success_rate:.2%}")
@@ -641,7 +641,9 @@ class QuantumCircuitExecutor:
 
                 # Check if all jobs are completed
                 completed_states = {"DONE", "CANCELLED", "ERROR"}
-                if all(any(state in status for state in completed_states) for status in job_statuses):
+                if all(
+                    any(state in status for state in completed_states) for status in job_statuses
+                ):
                     all_completed = True
                     if show_progress:
                         print(">>> All jobs completed!")
@@ -690,9 +692,7 @@ class QuantumCircuitExecutor:
             qward_metrics = None
             try:
                 # Use first successful job for metrics
-                first_counts = next(
-                    (jr.counts for jr in job_results if jr.counts), None
-                )
+                first_counts = next((jr.counts for jr in job_results if jr.counts), None)
                 if first_counts:
                     qward_metrics = self.get_circuit_metrics(
                         circuit,
@@ -746,18 +746,18 @@ class QuantumCircuitExecutor:
             # Try to find the classical register data
             # Common names are 'c', 'meas', or the measurement register name
             bit_array = None
-            for attr in ['c', 'meas', 'cr']:
+            for attr in ["c", "meas", "cr"]:
                 if hasattr(pub_result.data, attr):
                     bit_array = getattr(pub_result.data, attr)
                     break
 
             if bit_array is None:
                 # Try to get the first available data attribute
-                data_attrs = [a for a in dir(pub_result.data) if not a.startswith('_')]
+                data_attrs = [a for a in dir(pub_result.data) if not a.startswith("_")]
                 # Filter to only BitArray-like attributes
                 for attr in data_attrs:
                     obj = getattr(pub_result.data, attr)
-                    if hasattr(obj, 'get_counts') or hasattr(obj, 'num_shots'):
+                    if hasattr(obj, "get_counts") or hasattr(obj, "num_shots"):
                         bit_array = obj
                         break
 
@@ -765,35 +765,37 @@ class QuantumCircuitExecutor:
                 return {}
 
             # Method 1: Use get_counts() if available (preferred)
-            if hasattr(bit_array, 'get_counts'):
+            if hasattr(bit_array, "get_counts"):
                 return dict(bit_array.get_counts())
 
             # Method 2: Use get_bitstrings() if available
-            if hasattr(bit_array, 'get_bitstrings'):
+            if hasattr(bit_array, "get_bitstrings"):
                 from collections import Counter
+
                 bitstrings = bit_array.get_bitstrings()
                 return dict(Counter(bitstrings))
 
             # Method 3: Manual extraction from array
             from collections import Counter
+
             num_shots = bit_array.num_shots
             bit_strings = []
 
             # Try array-based access
-            if hasattr(bit_array, 'array'):
+            if hasattr(bit_array, "array"):
                 arr = bit_array.array
                 num_bits = bit_array.num_bits
                 for row in arr:
                     # Convert numpy array row to bitstring
-                    bit_string = ''.join(str(int(b)) for b in row[:num_bits])
+                    bit_string = "".join(str(int(b)) for b in row[:num_bits])
                     bit_strings.append(bit_string)
             else:
                 # Fallback to index-based access
                 for shot in range(num_shots):
                     try:
                         bits = bit_array[shot]
-                        if hasattr(bits, '__iter__') and not isinstance(bits, str):
-                            bit_string = ''.join(str(int(b)) for b in bits)
+                        if hasattr(bits, "__iter__") and not isinstance(bits, str):
+                            bit_string = "".join(str(int(b)) for b in bits)
                         else:
                             bit_string = str(bits)
                         bit_strings.append(bit_string)
