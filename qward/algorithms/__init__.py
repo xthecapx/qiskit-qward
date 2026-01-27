@@ -45,6 +45,25 @@ from .experiment import (
     BaseExperimentRunner,
     CampaignProgress,
 )
+from .experiment_analysis import (
+    compute_descriptive_stats,
+    NormalityTestResult,
+    test_shapiro_wilk,
+    test_dagostino_pearson,
+    test_anderson_darling,
+    test_kolmogorov_smirnov,
+    test_normality,
+    analyze_noise_impact,
+    characterize_distribution,
+    compare_noise_models,
+    analyze_config_results_base,
+    load_latest_batch_files,
+    load_batch_results,
+    extract_success_rates,
+    build_results_by_config,
+    build_noise_means,
+    generate_campaign_report,
+)
 
 __all__ = [
     # Executor
@@ -82,4 +101,22 @@ __all__ = [
     "BaseBatchResult",
     "BaseExperimentRunner",
     "CampaignProgress",
+    # Experiment Analysis
+    "compute_descriptive_stats",
+    "NormalityTestResult",
+    "test_shapiro_wilk",
+    "test_dagostino_pearson",
+    "test_anderson_darling",
+    "test_kolmogorov_smirnov",
+    "test_normality",
+    "analyze_noise_impact",
+    "characterize_distribution",
+    "compare_noise_models",
+    "analyze_config_results_base",
+    "load_latest_batch_files",
+    "load_batch_results",
+    "extract_success_rates",
+    "build_results_by_config",
+    "build_noise_means",
+    "generate_campaign_report",
 ]
