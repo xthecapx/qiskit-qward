@@ -1,587 +1,53 @@
 """
 QFT Experiment Statistical Analysis
 
-This module implements statistical analysis functions for understanding
-the distribution of success rates and characterizing noise effects
-in Quantum Fourier Transform experiments.
+This module implements QFT-specific statistical analysis functions on top of
+the shared analysis utilities in qward.algorithms.experiment_analysis.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
+
 import numpy as np
 from scipy import stats
-import warnings
 
-
-# =============================================================================
-# Descriptive Statistics
-# =============================================================================
-
-def compute_descriptive_stats(success_rates: List[float]) -> Dict[str, float]:
-    """
-    Compute comprehensive descriptive statistics for success rates.
-    
-    Args:
-        success_rates: List of success rates from multiple runs
-        
-    Returns:
-        dict: Comprehensive descriptive statistics
-    """
-    arr = np.array(success_rates)
-    n = len(arr)
-    
-    if n == 0:
-        return {"error": "Empty data"}
-    
-    mean = np.mean(arr)
-    
-    # Handle edge cases for standard deviation
-    std = np.std(arr, ddof=1) if n > 1 else 0.0
-    variance = np.var(arr, ddof=1) if n > 1 else 0.0
-    sem = stats.sem(arr) if n > 1 else 0.0
-    
-    # Coefficient of variation (handle zero mean)
-    cv = std / mean if mean > 0 else float('inf')
-    
-    # Skewness and kurtosis (need at least 3 points)
-    if n >= 3:
-        skewness = stats.skew(arr)
-        kurtosis = stats.kurtosis(arr)  # Excess kurtosis (0 = normal)
-    else:
-        skewness = 0.0
-        kurtosis = 0.0
-    
-    # Mode (most frequent value - may not be meaningful for continuous data)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        mode_result = stats.mode(arr, keepdims=True)
-        mode = mode_result.mode[0] if len(mode_result.mode) > 0 else mean
-    
-    # Percentiles
-    q1 = np.percentile(arr, 25)
-    q3 = np.percentile(arr, 75)
-    iqr = q3 - q1
-    
-    # Confidence interval (95%)
-    ci_margin = 1.96 * sem
-    
-    return {
-        # Central Tendency
-        "mean": mean,
-        "median": np.median(arr),
-        "mode": mode,
-        
-        # Spread
-        "std": std,
-        "variance": variance,
-        "sem": sem,  # Standard error of the mean
-        "range": np.max(arr) - np.min(arr),
-        "iqr": iqr,
-        "min": np.min(arr),
-        "max": np.max(arr),
-        "q1": q1,
-        "q3": q3,
-        
-        # Relative Spread
-        "cv": cv,  # Coefficient of variation
-        
-        # Shape
-        "skewness": skewness,
-        "kurtosis": kurtosis,
-        
-        # Confidence Interval (95%)
-        "ci_lower": mean - ci_margin,
-        "ci_upper": mean + ci_margin,
-        "ci_margin": ci_margin,
-        
-        # Sample size
-        "n": n,
-    }
-
-
-# =============================================================================
-# Normality Tests
-# =============================================================================
-
-@dataclass
-class NormalityTestResult:
-    """Result of a normality test."""
-    test_name: str
-    statistic: float
-    p_value: Optional[float]
-    is_normal: bool
-    interpretation: str
-    critical_value: Optional[float] = None
-
-
-def test_shapiro_wilk(data: List[float], alpha: float = 0.05) -> NormalityTestResult:
-    """
-    Shapiro-Wilk test for normality.
-    
-    Best for small samples (n < 50). Most powerful test for detecting
-    departures from normality.
-    
-    Args:
-        data: Sample data
-        alpha: Significance level
-        
-    Returns:
-        NormalityTestResult
-    """
-    arr = np.array(data)
-    
-    if len(arr) < 3:
-        return NormalityTestResult(
-            test_name="Shapiro-Wilk",
-            statistic=0.0,
-            p_value=None,
-            is_normal=True,
-            interpretation="Insufficient data (n < 3)"
-        )
-    
-    # Shapiro-Wilk has a limit of 5000 samples
-    if len(arr) > 5000:
-        arr = np.random.choice(arr, 5000, replace=False)
-    
-    stat, p = stats.shapiro(arr)
-    is_normal = p >= alpha
-    
-    return NormalityTestResult(
-        test_name="Shapiro-Wilk",
-        statistic=stat,
-        p_value=p,
-        is_normal=is_normal,
-        interpretation=f"{'Normal' if is_normal else 'Not Normal'} (p={p:.4f})"
-    )
-
-
-def test_dagostino_pearson(data: List[float], alpha: float = 0.05) -> NormalityTestResult:
-    """
-    D'Agostino-Pearson test for normality.
-    
-    Based on skewness and kurtosis. Good for n >= 20.
-    
-    Args:
-        data: Sample data
-        alpha: Significance level
-        
-    Returns:
-        NormalityTestResult
-    """
-    arr = np.array(data)
-    
-    if len(arr) < 20:
-        return NormalityTestResult(
-            test_name="D'Agostino-Pearson",
-            statistic=0.0,
-            p_value=None,
-            is_normal=True,
-            interpretation="Insufficient data (n < 20)"
-        )
-    
-    stat, p = stats.normaltest(arr)
-    is_normal = p >= alpha
-    
-    return NormalityTestResult(
-        test_name="D'Agostino-Pearson",
-        statistic=stat,
-        p_value=p,
-        is_normal=is_normal,
-        interpretation=f"{'Normal' if is_normal else 'Not Normal'} (p={p:.4f})"
-    )
-
-
-def test_anderson_darling(data: List[float], alpha: float = 0.05) -> NormalityTestResult:
-    """
-    Anderson-Darling test for normality.
-    
-    More sensitive to tails than other tests.
-    
-    Args:
-        data: Sample data
-        alpha: Significance level (uses 5% critical value)
-        
-    Returns:
-        NormalityTestResult
-    """
-    arr = np.array(data)
-    
-    if len(arr) < 3:
-        return NormalityTestResult(
-            test_name="Anderson-Darling",
-            statistic=0.0,
-            p_value=None,
-            is_normal=True,
-            interpretation="Insufficient data (n < 3)"
-        )
-    
-    result = stats.anderson(arr, dist='norm')
-    
-    # Critical values at 15%, 10%, 5%, 2.5%, 1% significance
-    # Index 2 is the 5% level
-    critical_5pct = result.critical_values[2]
-    is_normal = result.statistic < critical_5pct
-    
-    return NormalityTestResult(
-        test_name="Anderson-Darling",
-        statistic=result.statistic,
-        p_value=None,  # Anderson-Darling doesn't give a p-value directly
-        is_normal=is_normal,
-        interpretation=f"{'Normal' if is_normal else 'Not Normal'} (stat={result.statistic:.4f} vs crit={critical_5pct:.4f})",
-        critical_value=critical_5pct
-    )
-
-
-def test_kolmogorov_smirnov(data: List[float], alpha: float = 0.05) -> NormalityTestResult:
-    """
-    Kolmogorov-Smirnov test for normality.
-    
-    Compares data to a fitted normal distribution. Less powerful but more general.
-    
-    Args:
-        data: Sample data
-        alpha: Significance level
-        
-    Returns:
-        NormalityTestResult
-    """
-    arr = np.array(data)
-    
-    if len(arr) < 3:
-        return NormalityTestResult(
-            test_name="Kolmogorov-Smirnov",
-            statistic=0.0,
-            p_value=None,
-            is_normal=True,
-            interpretation="Insufficient data (n < 3)"
-        )
-    
-    # Fit normal distribution to data
-    fitted_mean, fitted_std = stats.norm.fit(arr)
-    
-    # KS test against fitted normal
-    stat, p = stats.kstest(arr, 'norm', args=(fitted_mean, fitted_std))
-    is_normal = p >= alpha
-    
-    return NormalityTestResult(
-        test_name="Kolmogorov-Smirnov",
-        statistic=stat,
-        p_value=p,
-        is_normal=is_normal,
-        interpretation=f"{'Normal' if is_normal else 'Not Normal'} (p={p:.4f})"
-    )
-
-
-def test_normality(data: List[float], alpha: float = 0.05) -> Dict[str, Any]:
-    """
-    Apply all normality tests and provide overall verdict.
-    
-    Args:
-        data: Sample data
-        alpha: Significance level
-        
-    Returns:
-        dict: Results from all tests plus overall verdict
-    """
-    results = {
-        "shapiro_wilk": test_shapiro_wilk(data, alpha),
-        "dagostino_pearson": test_dagostino_pearson(data, alpha),
-        "anderson_darling": test_anderson_darling(data, alpha),
-        "kolmogorov_smirnov": test_kolmogorov_smirnov(data, alpha),
-    }
-    
-    # Count how many tests passed
-    valid_tests = [r for r in results.values() if r.p_value is not None or r.critical_value is not None]
-    tests_normal = sum(1 for r in valid_tests if r.is_normal)
-    
-    # Majority vote
-    verdict = "Normal" if tests_normal > len(valid_tests) / 2 else "Not Normal"
-    
-    return {
-        "tests": {name: {
-            "statistic": r.statistic,
-            "p_value": r.p_value,
-            "is_normal": r.is_normal,
-            "interpretation": r.interpretation,
-        } for name, r in results.items()},
-        "tests_passed": tests_normal,
-        "total_valid_tests": len(valid_tests),
-        "verdict": verdict,
-        "alpha": alpha,
-    }
-
-
-# =============================================================================
-# Noise Impact Analysis
-# =============================================================================
-
-def analyze_noise_impact(
-    ideal_rates: List[float], 
-    noisy_rates: List[float],
-    noise_model: str = "unknown"
-) -> Dict[str, Any]:
-    """
-    Compare ideal vs noisy distributions to quantify noise impact.
-    
-    Args:
-        ideal_rates: Success rates from ideal (no-noise) simulation
-        noisy_rates: Success rates from noisy simulation
-        noise_model: Name of the noise model for labeling
-        
-    Returns:
-        dict: Comprehensive noise impact analysis
-    """
-    ideal = np.array(ideal_rates)
-    noisy = np.array(noisy_rates)
-    
-    ideal_mean = np.mean(ideal)
-    noisy_mean = np.mean(noisy)
-    ideal_std = np.std(ideal, ddof=1) if len(ideal) > 1 else 0
-    noisy_std = np.std(noisy, ddof=1) if len(noisy) > 1 else 0
-    
-    results = {
-        "noise_model": noise_model,
-        
-        # Basic comparison
-        "ideal_mean": ideal_mean,
-        "noisy_mean": noisy_mean,
-        "mean_degradation": ideal_mean - noisy_mean,
-        "degradation_percent": (
-            (ideal_mean - noisy_mean) / ideal_mean * 100 
-            if ideal_mean > 0 else 0
-        ),
-        
-        # Variance comparison
-        "ideal_std": ideal_std,
-        "noisy_std": noisy_std,
-        "variance_ratio": (
-            noisy_std**2 / ideal_std**2 
-            if ideal_std > 0 else float('inf')
-        ),
-        "std_increase": noisy_std - ideal_std,
-        
-        # Signal-to-Noise Ratio
-        "snr_ideal": ideal_mean / ideal_std if ideal_std > 0 else float('inf'),
-        "snr_noisy": noisy_mean / noisy_std if noisy_std > 0 else float('inf'),
-        "snr_degradation": (
-            (ideal_mean / ideal_std - noisy_mean / noisy_std)
-            if ideal_std > 0 and noisy_std > 0 else 0
-        ),
-    }
-    
-    # Statistical tests
-    
-    # Mann-Whitney U Test (non-parametric)
-    if len(ideal) >= 3 and len(noisy) >= 3:
-        stat, p = stats.mannwhitneyu(ideal, noisy, alternative='greater')
-        results["mannwhitney"] = {
-            "statistic": stat,
-            "p_value": p,
-            "significant": p < 0.05,
-            "interpretation": (
-                "Ideal significantly better than Noisy" 
-                if p < 0.05 else "No significant difference"
-            )
-        }
-    
-    # Levene's Test for equality of variances
-    if len(ideal) >= 3 and len(noisy) >= 3:
-        stat, p = stats.levene(ideal, noisy)
-        results["levene_variance"] = {
-            "statistic": stat,
-            "p_value": p,
-            "equal_variance": p >= 0.05,
-            "interpretation": (
-                "Equal variance" 
-                if p >= 0.05 else "Noise increases variance"
-            )
-        }
-    
-    # Effect Size (Cohen's d)
-    if ideal_std > 0 or noisy_std > 0:
-        pooled_std = np.sqrt((ideal_std**2 + noisy_std**2) / 2)
-        cohens_d = (ideal_mean - noisy_mean) / pooled_std if pooled_std > 0 else 0
-        
-        # Interpret effect size
-        if abs(cohens_d) < 0.2:
-            effect_interp = "Negligible"
-        elif abs(cohens_d) < 0.5:
-            effect_interp = "Small"
-        elif abs(cohens_d) < 0.8:
-            effect_interp = "Medium"
-        else:
-            effect_interp = "Large"
-        
-        results["effect_size"] = {
-            "cohens_d": cohens_d,
-            "interpretation": effect_interp
-        }
-    
-    # Kolmogorov-Smirnov 2-sample test
-    if len(ideal) >= 3 and len(noisy) >= 3:
-        stat, p = stats.ks_2samp(ideal, noisy)
-        results["ks_2sample"] = {
-            "statistic": stat,
-            "p_value": p,
-            "same_distribution": p >= 0.05,
-            "interpretation": (
-                "Same distribution" 
-                if p >= 0.05 else "Different distributions"
-            )
-        }
-    
-    return results
-
-
-# =============================================================================
-# Distribution Characterization
-# =============================================================================
-
-def characterize_distribution(data: List[float], label: str = "") -> Dict[str, Any]:
-    """
-    Comprehensive characterization of a distribution.
-    
-    Args:
-        data: Sample data
-        label: Label for the distribution
-        
-    Returns:
-        dict: Complete distribution characterization
-    """
-    desc_stats = compute_descriptive_stats(data)
-    normality = test_normality(data)
-    
-    # Determine distribution shape
-    skew = desc_stats["skewness"]
-    kurt = desc_stats["kurtosis"]
-    
-    if abs(skew) < 0.5:
-        skew_desc = "Symmetric"
-    elif skew > 0:
-        skew_desc = "Right-skewed (positive)"
-    else:
-        skew_desc = "Left-skewed (negative)"
-    
-    if abs(kurt) < 0.5:
-        kurt_desc = "Normal tails (mesokurtic)"
-    elif kurt > 0:
-        kurt_desc = "Heavy tails (leptokurtic)"
-    else:
-        kurt_desc = "Light tails (platykurtic)"
-    
-    return {
-        "label": label,
-        "descriptive_stats": desc_stats,
-        "normality": normality,
-        "shape": {
-            "skewness": skew,
-            "skewness_interpretation": skew_desc,
-            "kurtosis": kurt,
-            "kurtosis_interpretation": kurt_desc,
-        },
-        "summary": {
-            "is_normal": normality["verdict"] == "Normal",
-            "central_tendency": f"Mean={desc_stats['mean']:.4f}, Median={desc_stats['median']:.4f}",
-            "spread": f"Std={desc_stats['std']:.4f}, IQR={desc_stats['iqr']:.4f}",
-            "shape": f"{skew_desc}, {kurt_desc}",
-        }
-    }
-
-
-# =============================================================================
-# Multi-Noise Comparison
-# =============================================================================
-
-def compare_noise_models(
-    results_by_noise: Dict[str, List[float]],
-    baseline_key: str = "IDEAL"
-) -> Dict[str, Any]:
-    """
-    Compare success rate distributions across multiple noise models.
-    
-    Args:
-        results_by_noise: Dictionary mapping noise model names to success rate lists
-        baseline_key: Key for the baseline (no-noise) condition
-        
-    Returns:
-        dict: Comprehensive comparison across all noise models
-    """
-    comparison = {
-        "noise_models": list(results_by_noise.keys()),
-        "baseline": baseline_key,
-        "by_noise_model": {},
-        "ranking": [],
-    }
-    
-    # Get baseline if available
-    baseline_rates = results_by_noise.get(baseline_key)
-    
-    for noise_model, rates in results_by_noise.items():
-        # Characterize this distribution
-        char = characterize_distribution(rates, noise_model)
-        
-        model_results = {
-            "mean": char["descriptive_stats"]["mean"],
-            "std": char["descriptive_stats"]["std"],
-            "median": char["descriptive_stats"]["median"],
-            "is_normal": char["normality"]["verdict"] == "Normal",
-            "skewness": char["shape"]["skewness"],
-            "kurtosis": char["shape"]["kurtosis"],
-        }
-        
-        # Compare to baseline if this isn't the baseline
-        if baseline_rates is not None and noise_model != baseline_key:
-            impact = analyze_noise_impact(baseline_rates, rates, noise_model)
-            model_results["vs_baseline"] = {
-                "degradation_percent": impact["degradation_percent"],
-                "cohens_d": impact.get("effect_size", {}).get("cohens_d", 0),
-                "effect_size": impact.get("effect_size", {}).get("interpretation", "Unknown"),
-            }
-        
-        comparison["by_noise_model"][noise_model] = model_results
-    
-    # Rank noise models by mean success rate (best to worst)
-    ranked = sorted(
-        comparison["by_noise_model"].items(),
-        key=lambda x: x[1]["mean"],
-        reverse=True
-    )
-    comparison["ranking"] = [name for name, _ in ranked]
-    comparison["most_detrimental"] = ranked[-1][0] if ranked else None
-    
-    # Find crossover point (where mean drops below 50%)
-    crossover = None
-    for name, data in ranked:
-        if data["mean"] < 0.5:
-            crossover = name
-            break
-    comparison["crossover_noise_model"] = crossover
-    
-    return comparison
+from qward.algorithms.experiment_analysis import (
+    compute_descriptive_stats,
+    NormalityTestResult,
+    test_shapiro_wilk,
+    test_dagostino_pearson,
+    test_anderson_darling,
+    test_kolmogorov_smirnov,
+    test_normality,
+    analyze_noise_impact,
+    characterize_distribution,
+    compare_noise_models,
+    analyze_config_results_base,
+    load_latest_batch_files,
+    load_batch_results,
+    extract_success_rates,
+    build_results_by_config,
+    build_noise_means,
+    generate_campaign_report,
+)
 
 
 # =============================================================================
 # QFT-Specific Analysis Functions
 # =============================================================================
 
+
 def analyze_scalability(
     results_by_qubits: Dict[int, Dict[str, List[float]]],
-    noise_model: str = "IDEAL"
+    noise_model: str = "IDEAL",
 ) -> Dict[str, Any]:
     """
     Analyze how QFT success rate scales with qubit count.
-    
-    Args:
-        results_by_qubits: Dict mapping qubit count to {noise_model: [rates]}
-        noise_model: Which noise model to analyze
-        
-    Returns:
-        dict: Scalability analysis including trend fitting
     """
     qubits = sorted(results_by_qubits.keys())
     means = []
     stds = []
-    
+
     for n in qubits:
         rates = results_by_qubits[n].get(noise_model, [])
         if rates:
@@ -590,37 +56,33 @@ def analyze_scalability(
         else:
             means.append(np.nan)
             stds.append(np.nan)
-    
-    # Fit exponential decay: success = a * exp(-b * n)
-    # For QFT, we expect exponential decay due to accumulating gate errors
+
     valid_mask = ~np.isnan(means)
     valid_qubits = np.array(qubits)[valid_mask]
     valid_means = np.array(means)[valid_mask]
-    
+
     decay_fit = None
     if len(valid_qubits) >= 3 and all(m > 0 for m in valid_means):
         try:
-            # Log-linear fit: log(success) = log(a) - b*n
             log_means = np.log(valid_means)
             slope, intercept, r_value, p_value, std_err = stats.linregress(
                 valid_qubits, log_means
             )
             decay_fit = {
-                "decay_rate": -slope,  # b in exp(-b*n)
-                "initial_value": np.exp(intercept),  # a
+                "decay_rate": -slope,
+                "initial_value": np.exp(intercept),
                 "r_squared": r_value**2,
                 "p_value": p_value,
-                "half_life_qubits": np.log(2) / (-slope) if slope < 0 else float('inf'),
+                "half_life_qubits": np.log(2) / (-slope) if slope < 0 else float("inf"),
             }
         except Exception:
             pass
-    
-    # Calculate degradation per qubit
+
     degradations = []
     for i in range(1, len(means)):
-        if not np.isnan(means[i]) and not np.isnan(means[i-1]) and means[i-1] > 0:
-            degradations.append((means[i-1] - means[i]) / means[i-1] * 100)
-    
+        if not np.isnan(means[i]) and not np.isnan(means[i - 1]) and means[i - 1] > 0:
+            degradations.append((means[i - 1] - means[i]) / means[i - 1] * 100)
+
     return {
         "noise_model": noise_model,
         "qubits": qubits,
@@ -630,33 +92,26 @@ def analyze_scalability(
         "avg_degradation_per_qubit": np.mean(degradations) if degradations else 0,
         "max_qubits_above_50pct": max(
             [q for q, m in zip(qubits, means) if not np.isnan(m) and m >= 0.5],
-            default=0
+            default=0,
         ),
         "max_qubits_above_90pct": max(
             [q for q, m in zip(qubits, means) if not np.isnan(m) and m >= 0.9],
-            default=0
+            default=0,
         ),
     }
 
 
 def analyze_period_impact(
     results_by_period: Dict[int, Dict[str, List[float]]],
-    noise_model: str = "IDEAL"
+    noise_model: str = "IDEAL",
 ) -> Dict[str, Any]:
     """
     Analyze how period affects QFT success rate in period detection mode.
-    
-    Args:
-        results_by_period: Dict mapping period to {noise_model: [rates]}
-        noise_model: Which noise model to analyze
-        
-    Returns:
-        dict: Period impact analysis
     """
     periods = sorted(results_by_period.keys())
     means = []
     stds = []
-    
+
     for p in periods:
         rates = results_by_period[p].get(noise_model, [])
         if rates:
@@ -665,13 +120,11 @@ def analyze_period_impact(
         else:
             means.append(np.nan)
             stds.append(np.nan)
-    
-    # Larger periods should be easier (more peaks to hit)
-    # Check for positive correlation
+
     valid_mask = ~np.isnan(means)
     valid_periods = np.array(periods)[valid_mask]
     valid_means = np.array(means)[valid_mask]
-    
+
     correlation = None
     if len(valid_periods) >= 3:
         try:
@@ -680,14 +133,16 @@ def analyze_period_impact(
                 "pearson_r": r,
                 "p_value": p,
                 "interpretation": (
-                    "Larger periods → higher success" if r > 0.5 and p < 0.05
-                    else "Larger periods → lower success" if r < -0.5 and p < 0.05
+                    "Larger periods → higher success"
+                    if r > 0.5 and p < 0.05
+                    else "Larger periods → lower success"
+                    if r < -0.5 and p < 0.05
                     else "No clear trend"
-                )
+                ),
             }
         except Exception:
             pass
-    
+
     return {
         "noise_model": noise_model,
         "periods": periods,
@@ -702,27 +157,16 @@ def analyze_period_impact(
 def compare_test_modes(
     roundtrip_rates: List[float],
     period_rates: List[float],
-    noise_model: str = "unknown"
+    noise_model: str = "unknown",
 ) -> Dict[str, Any]:
     """
     Compare roundtrip vs period detection mode performance.
-    
-    Args:
-        roundtrip_rates: Success rates from roundtrip mode
-        period_rates: Success rates from period detection mode
-        noise_model: Noise model being used
-        
-    Returns:
-        dict: Comparison between test modes
     """
     rt_stats = compute_descriptive_stats(roundtrip_rates)
     pd_stats = compute_descriptive_stats(period_rates)
-    
-    # Statistical test for difference
+
     if len(roundtrip_rates) >= 3 and len(period_rates) >= 3:
-        stat, p = stats.mannwhitneyu(
-            roundtrip_rates, period_rates, alternative='two-sided'
-        )
+        stat, p = stats.mannwhitneyu(roundtrip_rates, period_rates, alternative="two-sided")
         test_result = {
             "statistic": stat,
             "p_value": p,
@@ -730,7 +174,7 @@ def compare_test_modes(
         }
     else:
         test_result = None
-    
+
     return {
         "noise_model": noise_model,
         "roundtrip": {
@@ -744,10 +188,7 @@ def compare_test_modes(
             "median": pd_stats["median"],
         },
         "difference": rt_stats["mean"] - pd_stats["mean"],
-        "better_mode": (
-            "roundtrip" if rt_stats["mean"] > pd_stats["mean"] 
-            else "period_detection"
-        ),
+        "better_mode": "roundtrip" if rt_stats["mean"] > pd_stats["mean"] else "period_detection",
         "statistical_test": test_result,
     }
 
@@ -756,15 +197,17 @@ def compare_test_modes(
 # Aggregate Analysis for Experiment
 # =============================================================================
 
+
 @dataclass
 class QFTConfigAnalysis:
     """Complete statistical analysis for a single QFT configuration."""
+
     config_id: str
     noise_model: str
     test_mode: str  # "roundtrip" or "period_detection"
     num_qubits: int
     num_runs: int
-    
+
     # Descriptive statistics
     mean: float
     std: float
@@ -773,24 +216,24 @@ class QFTConfigAnalysis:
     max_val: float
     ci_lower: float
     ci_upper: float
-    
+
     # Shape
     skewness: float
     kurtosis: float
-    
+
     # Normality
     is_normal: bool
     normality_pvalue: Optional[float]
-    
+
     # Noise impact (vs IDEAL)
     degradation_from_ideal: float = 0.0
     cohens_d_vs_ideal: float = 0.0
     effect_size_vs_ideal: str = ""
-    
+
     # Mode-specific
     input_state: Optional[str] = None  # For roundtrip
     period: Optional[int] = None  # For period detection
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for data storage."""
         return {
@@ -826,62 +269,33 @@ def analyze_qft_config_results(
     num_qubits: int,
     input_state: Optional[str] = None,
     period: Optional[int] = None,
-    ideal_rates: Optional[List[float]] = None
+    ideal_rates: Optional[List[float]] = None,
 ) -> QFTConfigAnalysis:
     """
     Complete statistical analysis for a QFT configuration's results.
-    
-    Args:
-        success_rates: List of success rates from multiple runs
-        config_id: Configuration identifier
-        noise_model: Noise model identifier
-        test_mode: "roundtrip" or "period_detection"
-        num_qubits: Number of qubits
-        input_state: Input state (for roundtrip)
-        period: Period (for period detection)
-        ideal_rates: Optional ideal (no-noise) rates for comparison
-        
-    Returns:
-        QFTConfigAnalysis: Complete analysis
     """
-    desc = compute_descriptive_stats(success_rates)
-    norm = test_normality(success_rates)
-    
-    # Get Shapiro-Wilk p-value if available
-    shapiro_p = norm["tests"]["shapiro_wilk"]["p_value"]
-    
-    # Calculate noise impact if ideal rates provided
-    degradation = 0.0
-    cohens_d = 0.0
-    effect_size = ""
-    
-    if ideal_rates is not None and noise_model != "IDEAL":
-        impact = analyze_noise_impact(ideal_rates, success_rates, noise_model)
-        degradation = impact["degradation_percent"]
-        if "effect_size" in impact:
-            cohens_d = impact["effect_size"]["cohens_d"]
-            effect_size = impact["effect_size"]["interpretation"]
-    
+    stats_data = analyze_config_results_base(success_rates, noise_model, ideal_rates)
+
     return QFTConfigAnalysis(
         config_id=config_id,
         noise_model=noise_model,
         test_mode=test_mode,
         num_qubits=num_qubits,
-        num_runs=len(success_rates),
-        mean=desc["mean"],
-        std=desc["std"],
-        median=desc["median"],
-        min_val=desc["min"],
-        max_val=desc["max"],
-        ci_lower=desc["ci_lower"],
-        ci_upper=desc["ci_upper"],
-        skewness=desc["skewness"],
-        kurtosis=desc["kurtosis"],
-        is_normal=norm["verdict"] == "Normal",
-        normality_pvalue=shapiro_p,
-        degradation_from_ideal=degradation,
-        cohens_d_vs_ideal=cohens_d,
-        effect_size_vs_ideal=effect_size,
+        num_runs=stats_data["num_runs"],
+        mean=stats_data["mean"],
+        std=stats_data["std"],
+        median=stats_data["median"],
+        min_val=stats_data["min_val"],
+        max_val=stats_data["max_val"],
+        ci_lower=stats_data["ci_lower"],
+        ci_upper=stats_data["ci_upper"],
+        skewness=stats_data["skewness"],
+        kurtosis=stats_data["kurtosis"],
+        is_normal=stats_data["is_normal"],
+        normality_pvalue=stats_data["normality_pvalue"],
+        degradation_from_ideal=stats_data["degradation_from_ideal"],
+        cohens_d_vs_ideal=stats_data["cohens_d_vs_ideal"],
+        effect_size_vs_ideal=stats_data["effect_size_vs_ideal"],
         input_state=input_state,
         period=period,
     )
@@ -891,12 +305,13 @@ def analyze_qft_config_results(
 # Utility Functions
 # =============================================================================
 
+
 def print_qft_analysis_summary(analysis: QFTConfigAnalysis) -> None:
     """Print formatted analysis summary for QFT."""
     print(f"\n{'=' * 60}")
     print(f"QFT ANALYSIS: {analysis.config_id} ({analysis.noise_model})")
     print(f"{'=' * 60}")
-    
+
     print(f"\nConfiguration:")
     print(f"  Mode:   {analysis.test_mode}")
     print(f"  Qubits: {analysis.num_qubits}")
@@ -904,13 +319,13 @@ def print_qft_analysis_summary(analysis: QFTConfigAnalysis) -> None:
         print(f"  Input:  |{analysis.input_state}⟩")
     if analysis.period:
         print(f"  Period: {analysis.period}")
-    
+
     print(f"\nDescriptive Statistics (n={analysis.num_runs}):")
     print(f"  Mean:   {analysis.mean:.4f} ± {analysis.std:.4f}")
     print(f"  Median: {analysis.median:.4f}")
     print(f"  Range:  [{analysis.min_val:.4f}, {analysis.max_val:.4f}]")
     print(f"  95% CI: [{analysis.ci_lower:.4f}, {analysis.ci_upper:.4f}]")
-    
+
     print(f"\nDistribution Shape:")
     print(f"  Skewness: {analysis.skewness:.3f}")
     print(f"  Kurtosis: {analysis.kurtosis:.3f}")
@@ -919,11 +334,14 @@ def print_qft_analysis_summary(analysis: QFTConfigAnalysis) -> None:
         print(f" (p={analysis.normality_pvalue:.4f})")
     else:
         print()
-    
+
     if analysis.noise_model != "IDEAL" and analysis.degradation_from_ideal != 0:
         print(f"\nNoise Impact (vs IDEAL):")
         print(f"  Degradation: {analysis.degradation_from_ideal:.1f}%")
-        print(f"  Effect Size: {analysis.effect_size_vs_ideal} (d={analysis.cohens_d_vs_ideal:.2f})")
+        print(
+            f"  Effect Size: {analysis.effect_size_vs_ideal} "
+            f"(d={analysis.cohens_d_vs_ideal:.2f})"
+        )
 
 
 def print_qft_comparison_table(analyses: List[QFTConfigAnalysis]) -> None:
@@ -931,41 +349,38 @@ def print_qft_comparison_table(analyses: List[QFTConfigAnalysis]) -> None:
     print(f"\n{'=' * 110}")
     print("QFT COMPARISON TABLE")
     print(f"{'=' * 110}")
-    print(f"{'Config':<12} {'Mode':<10} {'Noise':<12} {'Mean':>8} {'Std':>8} "
-          f"{'Normal':>8} {'Degrad%':>8} {'Effect':>10}")
+    print(
+        f"{'Config':<12} {'Mode':<10} {'Noise':<12} {'Mean':>8} {'Std':>8} "
+        f"{'Normal':>8} {'Degrad%':>8} {'Effect':>10}"
+    )
     print(f"{'-' * 110}")
-    
+
     for a in analyses:
         mode_short = "RT" if a.test_mode == "roundtrip" else "PD"
-        print(f"{a.config_id:<12} {mode_short:<10} {a.noise_model:<12} {a.mean:>8.4f} "
-              f"{a.std:>8.4f} {'Yes' if a.is_normal else 'No':>8} "
-              f"{a.degradation_from_ideal:>7.1f}% {a.effect_size_vs_ideal:>10}")
-    
+        print(
+            f"{a.config_id:<12} {mode_short:<10} {a.noise_model:<12} {a.mean:>8.4f} "
+            f"{a.std:>8.4f} {'Yes' if a.is_normal else 'No':>8} "
+            f"{a.degradation_from_ideal:>7.1f}% {a.effect_size_vs_ideal:>10}"
+        )
+
     print(f"{'=' * 110}")
 
 
 def generate_qft_statistical_report(
     results_by_config: Dict[str, Dict[str, List[float]]],
-    config_metadata: Dict[str, Dict[str, Any]]
+    config_metadata: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
     """
     Generate comprehensive statistical report for QFT experiment.
-    
-    Args:
-        results_by_config: {config_id: {noise_model: [success_rates]}}
-        config_metadata: {config_id: {test_mode, num_qubits, input_state/period}}
-        
-    Returns:
-        dict: Complete statistical report
     """
     all_analyses = []
     by_test_mode = {"roundtrip": [], "period_detection": []}
     by_noise = {}
-    
+
     for config_id, noise_results in results_by_config.items():
         meta = config_metadata.get(config_id, {})
         ideal_rates = noise_results.get("IDEAL")
-        
+
         for noise_model, rates in noise_results.items():
             analysis = analyze_qft_config_results(
                 success_rates=rates,
@@ -978,16 +393,14 @@ def generate_qft_statistical_report(
                 ideal_rates=ideal_rates,
             )
             all_analyses.append(analysis)
-            
-            # Group by test mode
+
             if analysis.test_mode in by_test_mode:
                 by_test_mode[analysis.test_mode].append(analysis)
-            
-            # Group by noise model
+
             if noise_model not in by_noise:
                 by_noise[noise_model] = []
             by_noise[noise_model].append(analysis)
-    
+
     return {
         "all_analyses": [a.to_dict() for a in all_analyses],
         "summary": {
@@ -999,7 +412,11 @@ def generate_qft_statistical_report(
             mode: {
                 "count": len(analyses),
                 "avg_mean": np.mean([a.mean for a in analyses]) if analyses else 0,
-                "avg_degradation": np.mean([a.degradation_from_ideal for a in analyses if a.noise_model != "IDEAL"]) if analyses else 0,
+                "avg_degradation": np.mean(
+                    [a.degradation_from_ideal for a in analyses if a.noise_model != "IDEAL"]
+                )
+                if analyses
+                else 0,
             }
             for mode, analyses in by_test_mode.items()
         },
@@ -1012,3 +429,34 @@ def generate_qft_statistical_report(
             for noise, analyses in by_noise.items()
         },
     }
+
+
+__all__ = [
+    # Shared analysis utilities (re-exported)
+    "compute_descriptive_stats",
+    "NormalityTestResult",
+    "test_shapiro_wilk",
+    "test_dagostino_pearson",
+    "test_anderson_darling",
+    "test_kolmogorov_smirnov",
+    "test_normality",
+    "analyze_noise_impact",
+    "characterize_distribution",
+    "compare_noise_models",
+    "analyze_config_results_base",
+    "load_latest_batch_files",
+    "load_batch_results",
+    "extract_success_rates",
+    "build_results_by_config",
+    "build_noise_means",
+    "generate_campaign_report",
+    # QFT-specific analysis
+    "analyze_scalability",
+    "analyze_period_impact",
+    "compare_test_modes",
+    "QFTConfigAnalysis",
+    "analyze_qft_config_results",
+    "print_qft_analysis_summary",
+    "print_qft_comparison_table",
+    "generate_qft_statistical_report",
+]
