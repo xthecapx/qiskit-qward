@@ -2,12 +2,14 @@
 Quantum Circuit Executor
 
 This module provides a reusable executor class for running quantum circuits
-on different backends including local simulators and qBraid cloud devices.
-It integrates with qward's metrics system for comprehensive circuit analysis.
+on different backends including local simulators, IBM Quantum QPUs, and qBraid
+cloud devices. It integrates with qward's metrics system for comprehensive
+circuit analysis.
 """
 
 import time
-from typing import Dict, Any, Optional, Union, TYPE_CHECKING, cast
+from typing import Dict, Any, Optional, Union, List, TYPE_CHECKING, Callable
+from dataclasses import dataclass, field
 
 import pandas as pd
 from qiskit import QuantumCircuit
@@ -31,6 +33,42 @@ try:
     QBRAID_AVAILABLE = True
 except ImportError:
     QBRAID_AVAILABLE = False
+
+# IBM Quantum imports (optional, will handle import errors gracefully)
+try:
+    from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler, Batch
+    from qiskit.transpiler import generate_preset_pass_manager
+
+    IBM_QUANTUM_AVAILABLE = True
+except ImportError:
+    IBM_QUANTUM_AVAILABLE = False
+
+
+@dataclass
+class IBMJobResult:
+    """Result from an IBM Quantum job execution."""
+
+    job_id: str
+    optimization_level: int
+    status: str
+    counts: Optional[Dict[str, int]] = None
+    circuit_depth: int = 0
+    success_rate: Optional[float] = None
+    error: Optional[str] = None
+    raw_result: Any = None
+
+
+@dataclass
+class IBMBatchResult:
+    """Result from an IBM Quantum batch execution."""
+
+    batch_id: str
+    backend_name: str
+    status: str
+    jobs: List[IBMJobResult] = field(default_factory=list)
+    original_circuit_depth: int = 0
+    qward_metrics: Optional[Dict[str, pd.DataFrame]] = None
+    error: Optional[str] = None
 
 
 class QuantumCircuitExecutor:
@@ -409,3 +447,401 @@ class QuantumCircuitExecutor:
                 "qward_metrics": metrics_data,
                 "device": "simulator_fallback",
             }
+
+    @staticmethod
+    def configure_ibm_account(
+        token: str,
+        channel: str = "ibm_quantum",
+        instance: Optional[str] = None,
+        overwrite: bool = True,
+    ) -> None:
+        """Configure and save IBM Quantum account credentials.
+
+        This method saves IBM Quantum credentials for future use. Call this once
+        before using run_ibm() to set up authentication.
+
+        Args:
+            token: IBM Quantum API token
+            channel: IBM Quantum channel ('ibm_quantum' or 'ibm_cloud')
+            instance: Optional instance name (e.g., 'ibm-q/open/main')
+            overwrite: Whether to overwrite existing saved credentials
+
+        Example:
+            >>> QuantumCircuitExecutor.configure_ibm_account(
+            ...     token="your-api-token",
+            ...     channel="ibm_quantum"
+            ... )
+        """
+        if not IBM_QUANTUM_AVAILABLE:
+            raise ImportError(
+                "IBM Quantum Runtime is not available. "
+                "Install with: pip install qiskit-ibm-runtime"
+            )
+
+        save_kwargs = {
+            "token": token,
+            "channel": channel,
+            "overwrite": overwrite,
+        }
+        if instance:
+            save_kwargs["instance"] = instance
+
+        QiskitRuntimeService.save_account(**save_kwargs)
+        print(f">>> IBM Quantum account configured (channel: {channel})")
+
+    def run_ibm(
+        self,
+        circuit: QuantumCircuit,
+        *,
+        backend_name: Optional[str] = None,
+        optimization_levels: Optional[List[int]] = None,
+        success_criteria: Optional[Callable[[str], bool]] = None,
+        expected_distribution: Optional[Dict[str, float]] = None,
+        timeout: int = 600,
+        poll_interval: int = 10,
+        show_progress: bool = True,
+        channel: Optional[str] = None,
+        token: Optional[str] = None,
+        instance: Optional[str] = None,
+    ) -> IBMBatchResult:
+        """Run circuit on IBM Quantum hardware using Batch mode.
+
+        This method executes a quantum circuit on real IBM Quantum hardware using
+        the IBM Qiskit Runtime service. It supports multiple optimization levels
+        for circuit transpilation and provides comprehensive metrics.
+
+        Args:
+            circuit: The quantum circuit to execute
+            backend_name: Optional IBM backend name. If None, uses the least busy
+                operational backend
+            optimization_levels: List of optimization levels to test (default: [0, 2, 3])
+            success_criteria: Optional function to define success criteria for metrics
+            expected_distribution: Optional expected probability distribution for fidelity
+            timeout: Maximum time to wait for job completion in seconds (default: 600)
+            poll_interval: Time between status checks in seconds (default: 10)
+            show_progress: If True, print progress messages (default: True)
+            channel: IBM Quantum channel ('ibm_quantum' or 'ibm_cloud'). If None,
+                uses saved account
+            token: IBM Quantum API token. If None, uses saved account
+            instance: IBM Quantum instance (e.g., 'ibm-q/open/main')
+
+        Returns:
+            IBMBatchResult containing execution results, metrics, and metadata
+
+        Raises:
+            ImportError: If qiskit-ibm-runtime is not installed
+            RuntimeError: If IBM Quantum service is not configured
+
+        Example:
+            >>> # Option 1: Use saved credentials
+            >>> executor = QuantumCircuitExecutor(shots=1024)
+            >>> result = executor.run_ibm(circuit, optimization_levels=[0, 2])
+            
+            >>> # Option 2: Pass credentials directly
+            >>> result = executor.run_ibm(
+            ...     circuit,
+            ...     channel="ibm_quantum",
+            ...     token="your-api-token",
+            ... )
+            
+            >>> print(f"Batch ID: {result.batch_id}")
+            >>> for job in result.jobs:
+            ...     print(f"Opt {job.optimization_level}: {job.success_rate:.2%}")
+        """
+        if not IBM_QUANTUM_AVAILABLE:
+            raise ImportError(
+                "IBM Quantum Runtime is not available. "
+                "Install with: pip install qiskit-ibm-runtime"
+            )
+
+        if optimization_levels is None:
+            optimization_levels = [0, 2, 3]
+
+        try:
+            # Connect to IBM Quantum service
+            service_kwargs = {}
+            if channel:
+                service_kwargs["channel"] = channel
+            if token:
+                service_kwargs["token"] = token
+            if instance:
+                service_kwargs["instance"] = instance
+
+            service = QiskitRuntimeService(**service_kwargs)
+
+            # Get backend
+            if backend_name:
+                backend = service.backend(backend_name)
+            else:
+                backend = service.least_busy(simulator=False, operational=True)
+
+            if show_progress:
+                print(f">>> Backend: {backend.name}")
+                print(f">>> Pending jobs: {backend.status().pending_jobs}")
+                print(f">>> Circuit qubits: {circuit.num_qubits}")
+                print(f">>> Original depth: {circuit.depth()}")
+
+            # Create batch session
+            batch = Batch(backend=backend)
+
+            if show_progress:
+                print(f">>> Batch ID: {batch.session_id}")
+
+            # Create pass managers for each optimization level
+            pass_managers = {}
+            # Use preset optimization levels with IBM's recommended defaults
+            # Level 0: TrivialLayout + SabreSwap (no optimization)
+            # Level 1: VF2LayoutPostLayout + SabreSwap (light optimization)
+            # Level 2: SabreLayout + SabreSwap with deeper search (medium optimization)
+            # Level 3: SabreLayout + KAK decomposition + unitarity passes (heavy optimization)
+            for opt_level in optimization_levels:
+                pass_managers[opt_level] = generate_preset_pass_manager(
+                    optimization_level=min(opt_level, 3),  # Cap at level 3
+                    backend=backend,
+                )
+
+            # Transpile circuits and submit jobs
+            jobs = {}
+            isa_circuits = {}
+
+            with batch:
+                sampler = Sampler()
+                for opt_level in optimization_levels:
+                    isa_circuits[opt_level] = pass_managers[opt_level].run(circuit)
+                    jobs[opt_level] = sampler.run([isa_circuits[opt_level]], shots=self.shots)
+
+                    if show_progress:
+                        print(
+                            f">>> Submitted job for opt_level={opt_level}, "
+                            f"transpiled depth={isa_circuits[opt_level].depth()}"
+                        )
+
+            # Wait for job completion
+            if show_progress:
+                print(f">>> Waiting for jobs to complete (timeout: {timeout}s)...")
+
+            start_time = time.time()
+            all_completed = False
+
+            while time.time() - start_time < timeout:
+                # Check batch status
+                batch_status = batch.status()
+
+                if show_progress:
+                    elapsed = int(time.time() - start_time)
+                    print(f">>> [{elapsed}s] Batch status: {batch_status}")
+
+                # Check individual job statuses
+                job_statuses = []
+                for opt_level, job in jobs.items():
+                    status = str(job.status())
+                    job_statuses.append(status)
+                    if show_progress:
+                        print(f"    - Opt level {opt_level}: {status}")
+
+                # Check if all jobs are completed
+                completed_states = {"DONE", "CANCELLED", "ERROR"}
+                if all(any(state in status for state in completed_states) for status in job_statuses):
+                    all_completed = True
+                    if show_progress:
+                        print(">>> All jobs completed!")
+                    break
+
+                time.sleep(poll_interval)
+
+            # Close the batch
+            batch.close()
+
+            if show_progress:
+                print(f">>> Batch {batch.session_id} closed")
+
+            # Collect results
+            job_results = []
+            for opt_level in optimization_levels:
+                job = jobs[opt_level]
+                isa_circuit = isa_circuits[opt_level]
+
+                job_result = IBMJobResult(
+                    job_id=job.job_id(),
+                    optimization_level=opt_level,
+                    status=str(job.status()),
+                    circuit_depth=isa_circuit.depth(),
+                )
+
+                try:
+                    if "DONE" in str(job.status()):
+                        result = job.result()
+                        counts = self._extract_counts_from_sampler_result(result)
+                        job_result.counts = counts
+                        job_result.raw_result = result
+
+                        # Calculate success rate if criteria provided
+                        if success_criteria and counts:
+                            total = sum(counts.values())
+                            success = sum(c for k, c in counts.items() if success_criteria(k))
+                            job_result.success_rate = success / total if total > 0 else 0.0
+
+                except Exception as e:
+                    job_result.error = str(e)
+
+                job_results.append(job_result)
+
+            # Get qward metrics for the original circuit
+            qward_metrics = None
+            try:
+                # Use first successful job for metrics
+                first_counts = next(
+                    (jr.counts for jr in job_results if jr.counts), None
+                )
+                if first_counts:
+                    qward_metrics = self.get_circuit_metrics(
+                        circuit,
+                        success_criteria=success_criteria,
+                        expected_distribution=expected_distribution,
+                    )
+            except Exception as e:
+                if show_progress:
+                    print(f">>> Warning: Could not calculate qward metrics: {e}")
+
+            # Build result
+            result = IBMBatchResult(
+                batch_id=batch.session_id,
+                backend_name=backend.name,
+                status="completed" if all_completed else "timeout",
+                jobs=job_results,
+                original_circuit_depth=circuit.depth(),
+                qward_metrics=qward_metrics,
+            )
+
+            if show_progress:
+                self._display_ibm_results(result)
+
+            return result
+
+        except Exception as e:
+            error_msg = str(e)
+            if show_progress:
+                print(f">>> Error running on IBM Quantum: {error_msg}")
+
+            return IBMBatchResult(
+                batch_id="",
+                backend_name=backend_name or "unknown",
+                status="error",
+                error=error_msg,
+            )
+
+    def _extract_counts_from_sampler_result(self, primitive_result) -> Dict[str, int]:
+        """Extract measurement counts from SamplerV2 PrimitiveResult.
+
+        Args:
+            primitive_result: PrimitiveResult object from SamplerV2
+
+        Returns:
+            Dictionary of measurement outcomes and their counts
+        """
+        try:
+            # Get the first pub result
+            pub_result = primitive_result[0]
+
+            # Try to find the classical register data
+            # Common names are 'c', 'meas', or the measurement register name
+            bit_array = None
+            for attr in ['c', 'meas', 'cr']:
+                if hasattr(pub_result.data, attr):
+                    bit_array = getattr(pub_result.data, attr)
+                    break
+
+            if bit_array is None:
+                # Try to get the first available data attribute
+                data_attrs = [a for a in dir(pub_result.data) if not a.startswith('_')]
+                # Filter to only BitArray-like attributes
+                for attr in data_attrs:
+                    obj = getattr(pub_result.data, attr)
+                    if hasattr(obj, 'get_counts') or hasattr(obj, 'num_shots'):
+                        bit_array = obj
+                        break
+
+            if bit_array is None:
+                return {}
+
+            # Method 1: Use get_counts() if available (preferred)
+            if hasattr(bit_array, 'get_counts'):
+                return dict(bit_array.get_counts())
+
+            # Method 2: Use get_bitstrings() if available
+            if hasattr(bit_array, 'get_bitstrings'):
+                from collections import Counter
+                bitstrings = bit_array.get_bitstrings()
+                return dict(Counter(bitstrings))
+
+            # Method 3: Manual extraction from array
+            from collections import Counter
+            num_shots = bit_array.num_shots
+            bit_strings = []
+
+            # Try array-based access
+            if hasattr(bit_array, 'array'):
+                arr = bit_array.array
+                num_bits = bit_array.num_bits
+                for row in arr:
+                    # Convert numpy array row to bitstring
+                    bit_string = ''.join(str(int(b)) for b in row[:num_bits])
+                    bit_strings.append(bit_string)
+            else:
+                # Fallback to index-based access
+                for shot in range(num_shots):
+                    try:
+                        bits = bit_array[shot]
+                        if hasattr(bits, '__iter__') and not isinstance(bits, str):
+                            bit_string = ''.join(str(int(b)) for b in bits)
+                        else:
+                            bit_string = str(bits)
+                        bit_strings.append(bit_string)
+                    except Exception:
+                        continue
+
+            return dict(Counter(bit_strings))
+
+        except Exception as e:
+            print(f">>> Warning: Could not extract counts: {e}")
+            return {}
+
+    def _display_ibm_results(self, result: IBMBatchResult) -> None:
+        """Display IBM Quantum execution results.
+
+        Args:
+            result: IBMBatchResult to display
+        """
+        print("\n" + "=" * 60)
+        print("IBM QUANTUM EXECUTION RESULTS")
+        print("=" * 60)
+        print(f"Batch ID: {result.batch_id}")
+        print(f"Backend: {result.backend_name}")
+        print(f"Status: {result.status}")
+        print(f"Original circuit depth: {result.original_circuit_depth}")
+
+        print("\n--- Job Results ---")
+        for job in result.jobs:
+            print(f"\nOptimization Level {job.optimization_level}:")
+            print(f"  Job ID: {job.job_id}")
+            print(f"  Status: {job.status}")
+            print(f"  Transpiled depth: {job.circuit_depth}")
+
+            if job.counts:
+                total = sum(job.counts.values())
+                print(f"  Total shots: {total}")
+
+                # Show top 5 outcomes
+                sorted_counts = sorted(job.counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                print("  Top outcomes:")
+                for outcome, count in sorted_counts:
+                    pct = (count / total) * 100
+                    print(f"    |{outcome}⟩: {count} ({pct:.1f}%)")
+
+                if job.success_rate is not None:
+                    print(f"  Success rate: {job.success_rate:.2%}")
+
+            if job.error:
+                print(f"  Error: {job.error}")
+
+        print("\n" + "=" * 60)
