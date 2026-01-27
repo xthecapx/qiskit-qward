@@ -14,13 +14,13 @@ Example:
     class MyAlgorithmRunner(BaseExperimentRunner):
         def create_circuit(self, config):
             return MyAlgorithmCircuitGenerator(config).circuit
-        
+
         def calculate_success(self, counts, config, circuit_gen):
             return success_rate(counts, config.target_states)
-        
+
         def create_result(self, ...):
             return MyExperimentResult(...)
-    
+
     runner = MyAlgorithmRunner()
     results = runner.run_campaign(config_ids=['A', 'B'], noise_ids=['IDEAL', 'DEP-MED'])
 """
@@ -71,7 +71,7 @@ AnalysisT = TypeVar("AnalysisT")  # Analysis type
 class BaseExperimentResult:
     """
     Base class for experiment results.
-    
+
     All experiment-specific result classes should inherit from this and add
     their own fields. The common fields provide identification, timing, and
     QWARD metrics for correlation analysis.
@@ -119,7 +119,7 @@ class BaseExperimentResult:
 class BaseBatchResult(Generic[ResultT, AnalysisT]):
     """
     Base class for batch results (multiple runs of the same configuration).
-    
+
     Contains aggregate statistics and optional statistical analysis.
     """
 
@@ -207,10 +207,10 @@ class CampaignProgress:
 class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     """
     Abstract base class for experiment runners.
-    
+
     Provides the common workflow for running experiments across configurations
     and noise models, with incremental saving and resume support.
-    
+
     Subclasses must implement:
         - algorithm_name: Property returning the algorithm name
         - create_circuit: Create quantum circuit from config
@@ -220,7 +220,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         - get_noise_config: Get noise config by ID
         - get_all_config_ids: Get all available config IDs
         - get_all_noise_ids: Get all available noise IDs
-    
+
     Optional overrides:
         - analyze_batch: Statistical analysis for batch results
         - load_result_from_dict: Custom result deserialization
@@ -237,7 +237,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ):
         """
         Initialize the experiment runner.
-        
+
         Args:
             shots: Number of shots per experiment
             num_runs: Default number of runs per batch
@@ -265,10 +265,10 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     def create_circuit(self, config: ConfigT) -> Tuple[QuantumCircuit, Any]:
         """
         Create the quantum circuit from configuration.
-        
+
         Args:
             config: Experiment configuration
-            
+
         Returns:
             Tuple of (circuit, circuit_generator_or_metadata)
             The second element can be used for success calculation
@@ -284,12 +284,12 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> Tuple[float, int]:
         """
         Calculate success metrics from measurement counts.
-        
+
         Args:
             counts: Measurement counts
             config: Experiment configuration
             circuit_metadata: Circuit generator or metadata from create_circuit
-            
+
         Returns:
             Tuple of (success_rate, success_count)
         """
@@ -313,7 +313,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> ResultT:
         """
         Create an experiment result object.
-        
+
         Args:
             config: Experiment configuration
             noise_config: Noise model configuration
@@ -325,7 +325,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             success_count: Number of successful shots
             qward_metrics: QWARD metrics dictionary
             circuit_metadata: Circuit generator or metadata
-            
+
         Returns:
             Algorithm-specific experiment result
         """
@@ -364,15 +364,15 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> Optional[AnalysisT]:
         """
         Perform statistical analysis on batch results.
-        
+
         Override this method to add algorithm-specific statistical analysis.
-        
+
         Args:
             success_rates: List of success rates from runs
             config_id: Configuration ID
             noise_model: Noise model ID
             ideal_rates: Optional ideal rates for comparison
-            
+
         Returns:
             Analysis object or None
         """
@@ -381,7 +381,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     def print_batch_analysis(self, analysis: Optional[AnalysisT]) -> None:
         """
         Print batch analysis summary.
-        
+
         Override to customize analysis output.
         """
         if analysis is not None and hasattr(analysis, "__str__"):
@@ -390,7 +390,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     def load_result_from_dict(self, data: Dict[str, Any]) -> ResultT:
         """
         Reconstruct result from dictionary.
-        
+
         Override for custom deserialization.
         """
         # Default implementation - subclasses should override
@@ -398,12 +398,10 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             "Subclass must implement load_result_from_dict for custom result types"
         )
 
-    def load_analysis_from_dict(
-        self, data: Optional[Dict[str, Any]]
-    ) -> Optional[AnalysisT]:
+    def load_analysis_from_dict(self, data: Optional[Dict[str, Any]]) -> Optional[AnalysisT]:
         """
         Reconstruct analysis from dictionary.
-        
+
         Override for custom analysis deserialization.
         """
         return None  # Default: no analysis reconstruction
@@ -411,7 +409,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     def get_config_description(self, config: ConfigT) -> str:
         """
         Get a description string for the configuration.
-        
+
         Override for custom config descriptions in verbose output.
         """
         if hasattr(config, "num_qubits"):
@@ -432,14 +430,14 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> ResultT:
         """
         Run a single experiment with given configuration.
-        
+
         Args:
             config: Experiment configuration
             noise_config: Noise model configuration
             run_number: Run number (1-indexed)
             shots: Number of shots (defaults to self.shots)
             calculate_qward: Whether to calculate QWARD metrics
-            
+
         Returns:
             Experiment result
         """
@@ -475,9 +473,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         counts = result.get_counts()
 
         # Calculate success metrics
-        success_rate, success_count = self.calculate_success(
-            counts, config, circuit_metadata
-        )
+        success_rate, success_count = self.calculate_success(counts, config, circuit_metadata)
 
         # Create and return result
         return self.create_result(
@@ -506,7 +502,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> BatchT:
         """
         Run multiple experiments with the same configuration.
-        
+
         Args:
             config_id: Configuration ID
             noise_id: Noise model ID
@@ -514,7 +510,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             shots: Shots per run (defaults to self.shots)
             ideal_rates: Optional ideal rates for comparison
             verbose: Print progress
-            
+
         Returns:
             Batch result with aggregate statistics
         """
@@ -619,7 +615,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> Dict[Tuple[str, str], BatchT]:
         """
         Run a full experiment campaign across configurations and noise models.
-        
+
         Args:
             config_ids: List of configuration IDs (None = all)
             noise_ids: List of noise model IDs (None = all)
@@ -631,7 +627,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             incremental_save: Save results after each batch
             session_id: Unique session identifier (auto-generated if None)
             skip_existing: Skip configurations that already have saved results
-            
+
         Returns:
             Dictionary mapping (config_id, noise_id) to BatchResult
         """
@@ -659,8 +655,15 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
 
         if verbose:
             self._print_campaign_header(
-                session_id, config_ids, noise_ids, num_runs, shots,
-                total_batches, incremental_save, skip_existing, raw_path
+                session_id,
+                config_ids,
+                noise_ids,
+                num_runs,
+                shots,
+                total_batches,
+                incremental_save,
+                skip_existing,
+                raw_path,
             )
 
         all_results: Dict[Tuple[str, str], BatchT] = {}
@@ -685,12 +688,10 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
                     if verbose:
                         print(f"\n[{batch_num}/{total_batches}] {batch_key} - SKIPPED (exists)")
                     progress.skipped += 1
-                    
+
                     # Load existing result
                     try:
-                        existing_result = self._load_batch_from_file(
-                            raw_path / f"{batch_key}.json"
-                        )
+                        existing_result = self._load_batch_from_file(raw_path / f"{batch_key}.json")
                         if existing_result:
                             all_results[(config_id, noise_id)] = existing_result
                             if noise_id == "IDEAL":
@@ -729,9 +730,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
 
                     # Incremental save
                     if incremental_save:
-                        self._save_batch_to_file(
-                            batch_result, config_id, noise_id, raw_path
-                        )
+                        self._save_batch_to_file(batch_result, config_id, noise_id, raw_path)
                         if verbose:
                             print(f"    [Saved: {batch_key}.json]")
 
@@ -819,11 +818,13 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
 
         summary = []
         for (config_id, noise_id), batch in results.items():
-            summary.append({
-                "config_id": config_id,
-                "noise_model": noise_id,
-                **batch.to_dict(),
-            })
+            summary.append(
+                {
+                    "config_id": config_id,
+                    "noise_model": noise_id,
+                    **batch.to_dict(),
+                }
+            )
 
         summary_file = agg_path / f"campaign_summary_{session_id}.json"
         with open(summary_file, "w") as f:
@@ -840,14 +841,14 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     ) -> Dict[Tuple[str, str], BatchT]:
         """
         Aggregate all results from a session directory.
-        
+
         Useful for resuming or analyzing a partially completed campaign.
-        
+
         Args:
             session_id: The session ID to aggregate
             output_dir: Output directory
             verbose: Print progress
-            
+
         Returns:
             Dictionary mapping (config_id, noise_id) to BatchResult
         """

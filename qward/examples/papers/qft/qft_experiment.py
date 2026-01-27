@@ -77,9 +77,7 @@ def count_successful_shots(
     success_criteria_func,
 ) -> int:
     """Count number of successful shots."""
-    return sum(
-        count for outcome, count in counts.items() if success_criteria_func(outcome)
-    )
+    return sum(count for outcome, count in counts.items() if success_criteria_func(outcome))
 
 
 # =============================================================================
@@ -142,12 +140,12 @@ class QFTBatchResult(BaseBatchResult[QFTExperimentResult, None]):
 # =============================================================================
 
 
-class QFTExperimentRunner(BaseExperimentRunner[
-    QFTExperimentConfig, QFTExperimentResult, QFTBatchResult, None
-]):
+class QFTExperimentRunner(
+    BaseExperimentRunner[QFTExperimentConfig, QFTExperimentResult, QFTBatchResult, None]
+):
     """
     Experiment runner for QFT algorithm.
-    
+
     Provides systematic evaluation of QFT under various configurations
     and noise models with incremental saving and resume support.
     """
@@ -300,7 +298,7 @@ def run_single_experiment(
 ) -> QFTExperimentResult:
     """
     Run a single experiment with given configuration.
-    
+
     Convenience function for backward compatibility.
     """
     runner = _get_runner()
@@ -317,7 +315,7 @@ def run_batch(
 ) -> QFTBatchResult:
     """
     Run multiple experiments with the same configuration.
-    
+
     Convenience function for backward compatibility.
     """
     runner = _get_runner()
@@ -340,7 +338,7 @@ def run_experiment_campaign(
 ) -> Dict[Tuple[str, str], QFTBatchResult]:
     """
     Run a full experiment campaign across configurations and noise models.
-    
+
     Convenience function that uses the QFTExperimentRunner.
     """
     # Create runner with correct output_dir
@@ -349,7 +347,7 @@ def run_experiment_campaign(
         num_runs=num_runs,
         output_dir=output_dir,
     )
-    
+
     return runner.run_campaign(
         config_ids=config_ids,
         noise_ids=noise_ids,
@@ -498,7 +496,9 @@ def test_period_detection_base_case(verbose: bool = True) -> QFTExperimentResult
             decimal = int(outcome, 2)
             is_peak = decimal in [0, 4, 8, 12]
             marker = "✓" if is_peak else " "
-            print(f"  {marker} |{outcome}⟩ (={decimal:2d}): {count} shots ({count/result.shots*100:.1f}%)")
+            print(
+                f"  {marker} |{outcome}⟩ (={decimal:2d}): {count} shots ({count/result.shots*100:.1f}%)"
+            )
 
     return result
 

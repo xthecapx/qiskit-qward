@@ -7,16 +7,16 @@ circuit configurations, and success metrics.
 
 Quick Start:
     from qward.examples.papers.grover import test_single_config, test_pilot_study
-    
+
     # Test a single configuration
     result = test_single_config("S3-1", "IDEAL", num_runs=3)
-    
+
     # Run a pilot study
     results = test_pilot_study()
 
 Full Experiment:
     from qward.examples.papers.grover import run_experiment_campaign
-    
+
     # Run full campaign
     results = run_experiment_campaign(
         config_ids=["S3-1", "S4-1"],
@@ -90,7 +90,7 @@ from .grover_experiment import (
 __all__ = [
     # Configs
     "ExperimentConfig",
-    "NoiseConfig", 
+    "NoiseConfig",
     "get_config",
     "get_noise_config",
     "get_configs_by_type",
@@ -102,7 +102,6 @@ __all__ = [
     "MARKED_COUNT_CONFIGS",
     "HAMMING_CONFIGS",
     "SYMMETRY_CONFIGS",
-    
     # Success Metrics
     "success_rate",
     "success_count",
@@ -116,7 +115,6 @@ __all__ = [
     "batch_success_consistency",
     "evaluate_job",
     "evaluate_batch",
-    
     # Statistical Analysis
     "compute_descriptive_stats",
     "test_normality",
@@ -125,14 +123,11 @@ __all__ = [
     "compare_noise_models",
     "analyze_config_results",
     "ConfigAnalysis",
-    
     # Result classes
     "GroverExperimentResult",
     "GroverBatchResult",
-    
     # Runner class
     "GroverExperimentRunner",
-    
     # Experiment Runner functions
     "run_single_experiment",
     "run_batch",
@@ -141,7 +136,6 @@ __all__ = [
     "test_single_config",
     "test_pilot_study",
     "test_grover_base_case",
-    
     # Constants
     "SHOTS",
     "NUM_RUNS",

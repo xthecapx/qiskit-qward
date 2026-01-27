@@ -11,44 +11,43 @@ import math
 
 from qward.algorithms.noise_generator import NoiseConfig
 
+
 @dataclass
 class ExperimentConfig:
     """Configuration for a single experiment."""
-    
+
     config_id: str
     experiment_type: str  # "scalability", "marked_count", "hamming", "symmetry"
     num_qubits: int
     marked_states: List[str]
     description: str = ""
-    
+
     @property
     def num_marked(self) -> int:
         """Number of marked states."""
         return len(self.marked_states)
-    
+
     @property
     def search_space(self) -> int:
         """Total search space size (2^n)."""
-        return 2 ** self.num_qubits
-    
+        return 2**self.num_qubits
+
     @property
     def theoretical_iterations(self) -> int:
         """Optimal number of Grover iterations."""
-        return math.floor(
-            math.pi / (4 * math.asin(math.sqrt(self.num_marked / self.search_space)))
-        )
-    
+        return math.floor(math.pi / (4 * math.asin(math.sqrt(self.num_marked / self.search_space))))
+
     @property
     def theoretical_success(self) -> float:
         """Theoretical success probability after optimal iterations."""
         theta = math.asin(math.sqrt(self.num_marked / self.search_space))
         return math.sin((2 * self.theoretical_iterations + 1) * theta) ** 2
-    
+
     @property
     def classical_random_prob(self) -> float:
         """Classical random search success probability."""
         return self.num_marked / self.search_space
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for data storage."""
         return {
@@ -76,70 +75,70 @@ SCALABILITY_CONFIGS = [
         experiment_type="scalability",
         num_qubits=2,
         marked_states=["01"],
-        description="2 qubits, single marked state"
+        description="2 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S3-1",
         experiment_type="scalability",
         num_qubits=3,
         marked_states=["011"],
-        description="3 qubits, single marked state"
+        description="3 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S4-1",
         experiment_type="scalability",
         num_qubits=4,
         marked_states=["0110"],
-        description="4 qubits, single marked state"
+        description="4 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S5-1",
         experiment_type="scalability",
         num_qubits=5,
         marked_states=["01100"],
-        description="5 qubits, single marked state"
+        description="5 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S6-1",
         experiment_type="scalability",
         num_qubits=6,
         marked_states=["011001"],
-        description="6 qubits, single marked state"
+        description="6 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S7-1",
         experiment_type="scalability",
         num_qubits=7,
         marked_states=["0110011"],
-        description="7 qubits, single marked state"
+        description="7 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S8-1",
         experiment_type="scalability",
         num_qubits=8,
         marked_states=["01100110"],
-        description="8 qubits, single marked state"
+        description="8 qubits, single marked state",
     ),
     ExperimentConfig(
         config_id="S10-1",
         experiment_type="scalability",
         num_qubits=10,
         marked_states=["0110011001"],
-        description="10 qubits, single marked state (QPU ONLY)"
+        description="10 qubits, single marked state (QPU ONLY)",
     ),
     ExperimentConfig(
         config_id="S12-1",
         experiment_type="scalability",
         num_qubits=12,
         marked_states=["011001100110"],
-        description="12 qubits, single marked state (QPU ONLY)"
+        description="12 qubits, single marked state (QPU ONLY)",
     ),
     ExperimentConfig(
         config_id="S14-1",
         experiment_type="scalability",
         num_qubits=14,
         marked_states=["01100110011001"],
-        description="14 qubits, single marked state (QPU ONLY - stress test)"
+        description="14 qubits, single marked state (QPU ONLY - stress test)",
     ),
 ]
 
@@ -156,21 +155,21 @@ MARKED_COUNT_CONFIGS = [
         experiment_type="marked_count",
         num_qubits=3,
         marked_states=["000"],
-        description="3 qubits, 1 marked state"
+        description="3 qubits, 1 marked state",
     ),
     ExperimentConfig(
         config_id="M3-2",
         experiment_type="marked_count",
         num_qubits=3,
         marked_states=["000", "111"],
-        description="3 qubits, 2 marked states (extremes)"
+        description="3 qubits, 2 marked states (extremes)",
     ),
     ExperimentConfig(
         config_id="M3-4",
         experiment_type="marked_count",
         num_qubits=3,
         marked_states=["000", "001", "110", "111"],
-        description="3 qubits, 4 marked states"
+        description="3 qubits, 4 marked states",
     ),
     # 4 qubits
     ExperimentConfig(
@@ -178,21 +177,21 @@ MARKED_COUNT_CONFIGS = [
         experiment_type="marked_count",
         num_qubits=4,
         marked_states=["0000"],
-        description="4 qubits, 1 marked state"
+        description="4 qubits, 1 marked state",
     ),
     ExperimentConfig(
         config_id="M4-2",
         experiment_type="marked_count",
         num_qubits=4,
         marked_states=["0000", "1111"],
-        description="4 qubits, 2 marked states (extremes)"
+        description="4 qubits, 2 marked states (extremes)",
     ),
     ExperimentConfig(
         config_id="M4-4",
         experiment_type="marked_count",
         num_qubits=4,
         marked_states=["0000", "0011", "1100", "1111"],
-        description="4 qubits, 4 marked states"
+        description="4 qubits, 4 marked states",
     ),
 ]
 
@@ -209,28 +208,28 @@ HAMMING_CONFIGS = [
         experiment_type="hamming",
         num_qubits=3,
         marked_states=["000"],
-        description="3 qubits, Hamming weight 0 (all zeros)"
+        description="3 qubits, Hamming weight 0 (all zeros)",
     ),
     ExperimentConfig(
         config_id="H3-1",
         experiment_type="hamming",
         num_qubits=3,
         marked_states=["001"],
-        description="3 qubits, Hamming weight 1"
+        description="3 qubits, Hamming weight 1",
     ),
     ExperimentConfig(
         config_id="H3-2",
         experiment_type="hamming",
         num_qubits=3,
         marked_states=["011"],
-        description="3 qubits, Hamming weight 2"
+        description="3 qubits, Hamming weight 2",
     ),
     ExperimentConfig(
         config_id="H3-3",
         experiment_type="hamming",
         num_qubits=3,
         marked_states=["111"],
-        description="3 qubits, Hamming weight 3 (all ones)"
+        description="3 qubits, Hamming weight 3 (all ones)",
     ),
     # 4 qubits - selected Hamming weights
     ExperimentConfig(
@@ -238,21 +237,21 @@ HAMMING_CONFIGS = [
         experiment_type="hamming",
         num_qubits=4,
         marked_states=["0000"],
-        description="4 qubits, Hamming weight 0 (all zeros)"
+        description="4 qubits, Hamming weight 0 (all zeros)",
     ),
     ExperimentConfig(
         config_id="H4-2",
         experiment_type="hamming",
         num_qubits=4,
         marked_states=["0011"],
-        description="4 qubits, Hamming weight 2 (balanced)"
+        description="4 qubits, Hamming weight 2 (balanced)",
     ),
     ExperimentConfig(
         config_id="H4-4",
         experiment_type="hamming",
         num_qubits=4,
         marked_states=["1111"],
-        description="4 qubits, Hamming weight 4 (all ones)"
+        description="4 qubits, Hamming weight 4 (all ones)",
     ),
 ]
 
@@ -268,28 +267,28 @@ SYMMETRY_CONFIGS = [
         experiment_type="symmetry",
         num_qubits=3,
         marked_states=["000", "111"],
-        description="Symmetric: complement pair (extremes)"
+        description="Symmetric: complement pair (extremes)",
     ),
     ExperimentConfig(
         config_id="SYM-2",
         experiment_type="symmetry",
         num_qubits=3,
         marked_states=["001", "110"],
-        description="Symmetric: complement pair (1-bit from extremes)"
+        description="Symmetric: complement pair (1-bit from extremes)",
     ),
     ExperimentConfig(
         config_id="ASYM-1",
         experiment_type="symmetry",
         num_qubits=3,
         marked_states=["000", "001"],
-        description="Asymmetric: adjacent states (1-bit difference)"
+        description="Asymmetric: adjacent states (1-bit difference)",
     ),
     ExperimentConfig(
         config_id="ASYM-2",
         experiment_type="symmetry",
         num_qubits=3,
         marked_states=["000", "011"],
-        description="Asymmetric: 2-bit difference"
+        description="Asymmetric: 2-bit difference",
     ),
 ]
 
@@ -311,12 +310,8 @@ NOISE_CONFIGS = [
     # Ideal (baseline)
     # =========================================================================
     NoiseConfig(
-        noise_id="IDEAL",
-        noise_type="none",
-        parameters={},
-        description="Perfect execution baseline"
+        noise_id="IDEAL", noise_type="none", parameters={}, description="Perfect execution baseline"
     ),
-
     # =========================================================================
     # Generic Depolarizing Noise (for parameter sweeps)
     # =========================================================================
@@ -324,21 +319,20 @@ NOISE_CONFIGS = [
         noise_id="DEP-LOW",
         noise_type="depolarizing",
         parameters={"p1": 0.001, "p2": 0.005},
-        description="Low depolarizing (p1=0.1%, p2=0.5%)"
+        description="Low depolarizing (p1=0.1%, p2=0.5%)",
     ),
     NoiseConfig(
         noise_id="DEP-MED",
         noise_type="depolarizing",
         parameters={"p1": 0.005, "p2": 0.02},
-        description="Medium depolarizing (p1=0.5%, p2=2%)"
+        description="Medium depolarizing (p1=0.5%, p2=2%)",
     ),
     NoiseConfig(
         noise_id="DEP-HIGH",
         noise_type="depolarizing",
         parameters={"p1": 0.01, "p2": 0.05},
-        description="High depolarizing (p1=1%, p2=5%)"
+        description="High depolarizing (p1=1%, p2=5%)",
     ),
-
     # =========================================================================
     # Hardware-Specific: IBM Heron Processors
     # =========================================================================
@@ -347,21 +341,20 @@ NOISE_CONFIGS = [
         noise_id="IBM-HERON-R3",
         noise_type="combined",
         parameters={"p1": 0.0005, "p2": 0.00115, "p_readout": 0.0046},
-        description="IBM Heron r3 (ibm_boston): 2Q=0.113%, readout=0.46%"
+        description="IBM Heron r3 (ibm_boston): 2Q=0.113%, readout=0.46%",
     ),
     NoiseConfig(
         noise_id="IBM-HERON-R2",
         noise_type="combined",
         parameters={"p1": 0.001, "p2": 0.0026, "p_readout": 0.0127},
-        description="IBM Heron r2 (ibm_marrakesh): 2Q=0.26%, readout=1.27%"
+        description="IBM Heron r2 (ibm_marrakesh): 2Q=0.26%, readout=1.27%",
     ),
     NoiseConfig(
         noise_id="IBM-HERON-R1",
         noise_type="combined",
         parameters={"p1": 0.001, "p2": 0.0025, "p_readout": 0.0293},
-        description="IBM Heron r1 (ibm_torino): 2Q=0.25%, readout=2.93%"
+        description="IBM Heron r1 (ibm_torino): 2Q=0.25%, readout=2.93%",
     ),
-
     # =========================================================================
     # Hardware-Specific: Rigetti Ankaa Processors
     # =========================================================================
@@ -370,9 +363,8 @@ NOISE_CONFIGS = [
         noise_id="RIGETTI-ANKAA3",
         noise_type="combined",
         parameters={"p1": 0.002, "p2": 0.005, "p_readout": 0.02},
-        description="Rigetti Ankaa-3 (84q): 99.5% 2Q fidelity (0.5% error)"
+        description="Rigetti Ankaa-3 (84q): 99.5% 2Q fidelity (0.5% error)",
     ),
-
     # =========================================================================
     # Other Noise Types
     # =========================================================================
@@ -380,31 +372,31 @@ NOISE_CONFIGS = [
         noise_id="PAULI",
         noise_type="pauli",
         parameters={"pX": 0.01, "pY": 0.01, "pZ": 0.01},
-        description="Symmetric Pauli errors (1% each X/Y/Z)"
+        description="Symmetric Pauli errors (1% each X/Y/Z)",
     ),
     NoiseConfig(
         noise_id="PAULI-ZBIAS",
         noise_type="pauli",
         parameters={"pX": 0.005, "pY": 0.005, "pZ": 0.02},
-        description="Z-biased Pauli (phase-flip dominant, typical superconducting)"
+        description="Z-biased Pauli (phase-flip dominant, typical superconducting)",
     ),
     NoiseConfig(
         noise_id="THERMAL",
         noise_type="thermal",
         parameters={"T1": 50e-6, "T2": 70e-6, "gate_time": 50e-9},
-        description="T1/T2 relaxation (T1=50μs, T2=70μs)"
+        description="T1/T2 relaxation (T1=50μs, T2=70μs)",
     ),
     NoiseConfig(
         noise_id="READOUT",
         noise_type="readout",
         parameters={"p01": 0.02, "p10": 0.02},
-        description="Readout errors only (2% symmetric flip)"
+        description="Readout errors only (2% symmetric flip)",
     ),
     NoiseConfig(
         noise_id="COMBINED",
         noise_type="combined",
         parameters={"p1": 0.005, "p2": 0.015, "p_readout": 0.02},
-        description="Generic combined noise (realistic NISQ baseline)"
+        description="Generic combined noise (realistic NISQ baseline)",
     ),
 ]
 
@@ -414,10 +406,7 @@ NOISE_CONFIGS = [
 # =============================================================================
 
 ALL_EXPERIMENT_CONFIGS = (
-    SCALABILITY_CONFIGS + 
-    MARKED_COUNT_CONFIGS + 
-    HAMMING_CONFIGS + 
-    SYMMETRY_CONFIGS
+    SCALABILITY_CONFIGS + MARKED_COUNT_CONFIGS + HAMMING_CONFIGS + SYMMETRY_CONFIGS
 )
 
 # Create lookup dictionaries
@@ -449,7 +438,9 @@ def get_noise_config(noise_id: str) -> NoiseConfig:
 def get_configs_by_type(experiment_type: str) -> List[ExperimentConfig]:
     """Get all configurations for a specific experiment type."""
     if experiment_type not in CONFIGS_BY_TYPE:
-        raise ValueError(f"Unknown experiment type: {experiment_type}. Available: {list(CONFIGS_BY_TYPE.keys())}")
+        raise ValueError(
+            f"Unknown experiment type: {experiment_type}. Available: {list(CONFIGS_BY_TYPE.keys())}"
+        )
     return CONFIGS_BY_TYPE[experiment_type]
 
 
@@ -458,14 +449,16 @@ def list_all_configs() -> None:
     print("=" * 80)
     print("GROVER EXPERIMENT CONFIGURATIONS")
     print("=" * 80)
-    
+
     for exp_type, configs in CONFIGS_BY_TYPE.items():
         print(f"\n{exp_type.upper()} ({len(configs)} configs)")
         print("-" * 40)
         for config in configs:
-            print(f"  {config.config_id}: {config.num_qubits}q, {config.num_marked} marked, "
-                  f"P(success)={config.theoretical_success:.3f}")
-    
+            print(
+                f"  {config.config_id}: {config.num_qubits}q, {config.num_marked} marked, "
+                f"P(success)={config.theoretical_success:.3f}"
+            )
+
     print(f"\n{'=' * 80}")
     print(f"TOTAL: {len(ALL_EXPERIMENT_CONFIGS)} experiment configurations")
     print(f"NOISE MODELS: {len(NOISE_CONFIGS)}")
@@ -477,7 +470,7 @@ def list_noise_configs() -> None:
     print("=" * 60)
     print("NOISE MODEL CONFIGURATIONS")
     print("=" * 60)
-    
+
     for noise in NOISE_CONFIGS:
         print(f"\n{noise.noise_id}: {noise.description}")
         if noise.parameters:
@@ -492,4 +485,3 @@ if __name__ == "__main__":
     list_all_configs()
     print()
     list_noise_configs()
-

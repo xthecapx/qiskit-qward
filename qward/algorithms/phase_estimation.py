@@ -366,15 +366,12 @@ class PhaseEstimationCircuitGenerator:
 
         elif test_case == "custom":
             if custom_unitary is None or custom_phase is None:
-                raise ValueError(
-                    "custom_unitary and custom_phase required for 'custom' test case"
-                )
+                raise ValueError("custom_unitary and custom_phase required for 'custom' test case")
             return custom_unitary, custom_phase, custom_prep
 
         else:
             raise ValueError(
-                f"Unknown test_case: {test_case}. "
-                "Use 't_gate', 's_gate', 'z_gate', or 'custom'"
+                f"Unknown test_case: {test_case}. " "Use 't_gate', 's_gate', 'z_gate', or 'custom'"
             )
 
     def success_criteria(self, outcome: str) -> bool:

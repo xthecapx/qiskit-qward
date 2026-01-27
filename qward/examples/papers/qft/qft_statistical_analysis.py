@@ -65,9 +65,7 @@ def analyze_scalability(
     if len(valid_qubits) >= 3 and all(m > 0 for m in valid_means):
         try:
             log_means = np.log(valid_means)
-            slope, intercept, r_value, p_value, std_err = stats.linregress(
-                valid_qubits, log_means
-            )
+            slope, intercept, r_value, p_value, std_err = stats.linregress(valid_qubits, log_means)
             decay_fit = {
                 "decay_rate": -slope,
                 "initial_value": np.exp(intercept),
@@ -135,9 +133,11 @@ def analyze_period_impact(
                 "interpretation": (
                     "Larger periods → higher success"
                     if r > 0.5 and p < 0.05
-                    else "Larger periods → lower success"
-                    if r < -0.5 and p < 0.05
-                    else "No clear trend"
+                    else (
+                        "Larger periods → lower success"
+                        if r < -0.5 and p < 0.05
+                        else "No clear trend"
+                    )
                 ),
             }
         except Exception:
@@ -412,11 +412,13 @@ def generate_qft_statistical_report(
             mode: {
                 "count": len(analyses),
                 "avg_mean": np.mean([a.mean for a in analyses]) if analyses else 0,
-                "avg_degradation": np.mean(
-                    [a.degradation_from_ideal for a in analyses if a.noise_model != "IDEAL"]
-                )
-                if analyses
-                else 0,
+                "avg_degradation": (
+                    np.mean(
+                        [a.degradation_from_ideal for a in analyses if a.noise_model != "IDEAL"]
+                    )
+                    if analyses
+                    else 0
+                ),
             }
             for mode, analyses in by_test_mode.items()
         },

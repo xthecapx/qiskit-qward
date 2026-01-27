@@ -157,7 +157,9 @@ class QFTCircuitGenerator:
             self.tolerance = 1  # Allow ±1 in peak detection
 
         else:
-            raise ValueError(f"Unknown test_mode: {test_mode}. Use 'roundtrip' or 'period_detection'")
+            raise ValueError(
+                f"Unknown test_mode: {test_mode}. Use 'roundtrip' or 'period_detection'"
+            )
 
         # Create the QFT instance
         self.qft = QFT(num_qubits, use_barriers=use_barriers)

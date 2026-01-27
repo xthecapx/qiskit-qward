@@ -128,12 +128,14 @@ class GroverBatchResult(BaseBatchResult[GroverExperimentResult, ConfigAnalysis])
 # =============================================================================
 
 
-class GroverExperimentRunner(BaseExperimentRunner[
-    ExperimentConfig, GroverExperimentResult, GroverBatchResult, ConfigAnalysis
-]):
+class GroverExperimentRunner(
+    BaseExperimentRunner[
+        ExperimentConfig, GroverExperimentResult, GroverBatchResult, ConfigAnalysis
+    ]
+):
     """
     Experiment runner for Grover's algorithm.
-    
+
     Provides systematic evaluation of Grover under various configurations
     and noise models with incremental saving and resume support.
     """
@@ -285,9 +287,7 @@ class GroverExperimentRunner(BaseExperimentRunner[
         """Reconstruct Grover result from dictionary."""
         return GroverExperimentResult.from_dict(data)
 
-    def load_analysis_from_dict(
-        self, data: Optional[Dict[str, Any]]
-    ) -> Optional[ConfigAnalysis]:
+    def load_analysis_from_dict(self, data: Optional[Dict[str, Any]]) -> Optional[ConfigAnalysis]:
         """Reconstruct ConfigAnalysis from dictionary."""
         if data is None:
             return None
@@ -337,7 +337,7 @@ def run_single_experiment(
 ) -> GroverExperimentResult:
     """
     Run a single experiment with given configuration.
-    
+
     Convenience function for backward compatibility.
     """
     runner = _get_runner()
@@ -355,7 +355,7 @@ def run_batch(
 ) -> GroverBatchResult:
     """
     Run multiple experiments with the same configuration.
-    
+
     Convenience function for backward compatibility.
     """
     runner = _get_runner()
@@ -378,7 +378,7 @@ def run_experiment_campaign(
 ) -> Dict[Tuple[str, str], GroverBatchResult]:
     """
     Run a full experiment campaign across configurations and noise models.
-    
+
     Convenience function that uses the GroverExperimentRunner.
     """
     # Create runner with correct output_dir
@@ -387,7 +387,7 @@ def run_experiment_campaign(
         num_runs=num_runs,
         output_dir=output_dir,
     )
-    
+
     return runner.run_campaign(
         config_ids=config_ids,
         noise_ids=noise_ids,

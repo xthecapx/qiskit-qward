@@ -397,7 +397,6 @@ NOISE_CONFIGS = [
         parameters={},
         description="Ideal simulation (no noise)",
     ),
-
     # =========================================================================
     # Generic Depolarizing Noise (for parameter sweeps)
     # =========================================================================
@@ -419,7 +418,6 @@ NOISE_CONFIGS = [
         parameters={"p1": 0.01, "p2": 0.05},
         description="High depolarizing (p1=1%, p2=5%)",
     ),
-
     # =========================================================================
     # Hardware-Specific: IBM Heron Processors
     # =========================================================================
@@ -442,7 +440,6 @@ NOISE_CONFIGS = [
         parameters={"p1": 0.001, "p2": 0.0025, "p_readout": 0.0293},
         description="IBM Heron r1 (ibm_torino): 2Q=0.25%, readout=2.93%",
     ),
-
     # =========================================================================
     # Hardware-Specific: Rigetti Ankaa Processors
     # =========================================================================
@@ -453,7 +450,6 @@ NOISE_CONFIGS = [
         parameters={"p1": 0.002, "p2": 0.005, "p_readout": 0.02},
         description="Rigetti Ankaa-3 (84q): 99.5% 2Q fidelity (0.5% error)",
     ),
-
     # =========================================================================
     # Other Noise Types
     # =========================================================================
@@ -511,7 +507,9 @@ def get_noise_config(noise_id: str) -> NoiseConfig:
     return NOISE_BY_ID[noise_id]
 
 
-def get_configs_by_type(experiment_type: str, include_hardware_only: bool = True) -> List[QFTExperimentConfig]:
+def get_configs_by_type(
+    experiment_type: str, include_hardware_only: bool = True
+) -> List[QFTExperimentConfig]:
     """Get all configurations of a given type."""
     configs = [c for c in ALL_EXPERIMENT_CONFIGS if c.experiment_type == experiment_type]
     if not include_hardware_only:
@@ -539,7 +537,12 @@ def list_all_configs() -> None:
     print("QFT Experiment Configurations")
     print("=" * 60)
 
-    for exp_type in ["scalability_roundtrip", "scalability_period", "period_variation", "input_variation"]:
+    for exp_type in [
+        "scalability_roundtrip",
+        "scalability_period",
+        "period_variation",
+        "input_variation",
+    ]:
         configs = get_configs_by_type(exp_type)
         print(f"\n{exp_type.upper()} ({len(configs)} configs):")
         for c in configs:

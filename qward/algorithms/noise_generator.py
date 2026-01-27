@@ -91,7 +91,7 @@ Literature References
     https://research.ibm.com/publications/benchmarking-the-noise-sensitivity-of-different-parametric-two-qubit-gates-in-a-single-superconducting-quantum-computing-platform
 
 [4] Geller & Zhou. "Efficient error models for fault-tolerant architectures."
-    Nature Scientific Reports 3, 14670 (2013). https://arxiv.org/abs/1305.2021 
+    Nature Scientific Reports 3, 14670 (2013). https://arxiv.org/abs/1305.2021
 
 [5] Swiadek et al. "Enhancing Dispersive Readout of Superconducting Qubits."
     arXiv:2307.07765 (2023). Achieved 0.25% readout error in 100ns.
@@ -189,24 +189,34 @@ from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error, pauli
 # Two-qubit gates include controlled operations and SWAP.
 
 DEFAULT_SINGLE_QUBIT_GATES = (
-    "u1", "u2", "u3",  # Universal single-qubit gates
-    "h",               # Hadamard
-    "x", "y", "z",     # Pauli gates
-    "s", "t",          # Phase gates (S = sqrt(Z), T = sqrt(S))
-    "rx", "ry", "rz",  # Rotation gates
-    "p",               # Phase gate (generalized)
+    "u1",
+    "u2",
+    "u3",  # Universal single-qubit gates
+    "h",  # Hadamard
+    "x",
+    "y",
+    "z",  # Pauli gates
+    "s",
+    "t",  # Phase gates (S = sqrt(Z), T = sqrt(S))
+    "rx",
+    "ry",
+    "rz",  # Rotation gates
+    "p",  # Phase gate (generalized)
 )
 
 DEFAULT_TWO_QUBIT_GATES = (
-    "cx", "cy", "cz",  # Controlled Pauli gates
-    "cp",              # Controlled phase (used in QFT)
-    "swap",            # SWAP gate
+    "cx",
+    "cy",
+    "cz",  # Controlled Pauli gates
+    "cp",  # Controlled phase (used in QFT)
+    "swap",  # SWAP gate
 )
 
 
 # =============================================================================
 # NoiseConfig Dataclass
 # =============================================================================
+
 
 @dataclass
 class NoiseConfig:
@@ -262,6 +272,7 @@ class NoiseConfig:
 # =============================================================================
 # NoiseModelGenerator Class
 # =============================================================================
+
 
 class NoiseModelGenerator:
     """
@@ -601,9 +612,7 @@ class NoiseModelGenerator:
         noise_model.add_all_qubit_quantum_error(depol_2q, list(two_qubit_gates))
 
         # Readout errors (symmetric)
-        readout_err = ReadoutError(
-            [[1 - p_readout, p_readout], [p_readout, 1 - p_readout]]
-        )
+        readout_err = ReadoutError([[1 - p_readout, p_readout], [p_readout, 1 - p_readout]])
         noise_model.add_all_qubit_readout_error(readout_err)
 
         return noise_model
@@ -710,9 +719,7 @@ class NoiseModelGenerator:
         noise_model.add_all_qubit_quantum_error(pauli_2q, list(two_qubit_gates))
 
         # Readout
-        readout_err = ReadoutError(
-            [[1 - noise_level, noise_level], [noise_level, 1 - noise_level]]
-        )
+        readout_err = ReadoutError([[1 - noise_level, noise_level], [noise_level, 1 - noise_level]])
         noise_model.add_all_qubit_readout_error(readout_err)
 
         return noise_model
@@ -740,13 +747,11 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
         parameters={},
         description="No noise - ideal quantum simulation",
     ),
-
     # =========================================================================
     # Depolarizing Noise Presets
     # =========================================================================
     # Based on gate fidelity data from IBM, Google, Rigetti processors.
     # p1: single-qubit error, p2: two-qubit error
-
     "DEP-LOW": NoiseConfig(
         noise_id="DEP-LOW",
         noise_type="depolarizing",
@@ -777,13 +782,11 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: Older/noisy qubits or high crosstalk"
         ),
     ),
-
     # =========================================================================
     # Readout Error Presets
     # =========================================================================
     # Based on measurement fidelity from literature [5, 6].
     # p01: 0→1 flip, p10: 1→0 flip
-
     "READ-LOW": NoiseConfig(
         noise_id="READ-LOW",
         noise_type="readout",
@@ -814,53 +817,39 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: Fast readout or poor signal-to-noise"
         ),
     ),
-
     # =========================================================================
     # Combined Noise Presets (Gate + Readout)
     # =========================================================================
     # Most realistic for NISQ simulation studies.
-
     "COMB-LOW": NoiseConfig(
         noise_id="COMB-LOW",
         noise_type="combined",
         parameters={"p1": 0.001, "p2": 0.005, "p_readout": 0.01},
         description=(
-            "Low combined noise - "
-            "Best-case NISQ scenario for near-term advantage studies"
+            "Low combined noise - " "Best-case NISQ scenario for near-term advantage studies"
         ),
     ),
     "COMB-MED": NoiseConfig(
         noise_id="COMB-MED",
         noise_type="combined",
         parameters={"p1": 0.005, "p2": 0.015, "p_readout": 0.02},
-        description=(
-            "Medium combined noise - "
-            "Realistic IBM/Google-like performance baseline"
-        ),
+        description=("Medium combined noise - " "Realistic IBM/Google-like performance baseline"),
     ),
     "COMB-HIGH": NoiseConfig(
         noise_id="COMB-HIGH",
         noise_type="combined",
         parameters={"p1": 0.01, "p2": 0.05, "p_readout": 0.03},
-        description=(
-            "High combined noise - "
-            "Stress test for algorithm fault tolerance"
-        ),
+        description=("High combined noise - " "Stress test for algorithm fault tolerance"),
     ),
-
     # =========================================================================
     # Pauli Noise Presets
     # =========================================================================
     # For studying error bias (Z-dominated dephasing common in superconducting).
-
     "PAULI-SYM": NoiseConfig(
         noise_id="PAULI-SYM",
         noise_type="pauli",
         parameters={"pX": 0.01, "pY": 0.01, "pZ": 0.01},
-        description=(
-            "Symmetric Pauli noise (1% each) - "
-            "No error bias, uniform X/Y/Z errors"
-        ),
+        description=("Symmetric Pauli noise (1% each) - " "No error bias, uniform X/Y/Z errors"),
     ),
     "PAULI-ZBIAS": NoiseConfig(
         noise_id="PAULI-ZBIAS",
@@ -872,19 +861,16 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: Nature Sci Rep 10.1038/srep14670"
         ),
     ),
-
     # =========================================================================
     # Thermal Noise Presets
     # =========================================================================
     # Based on typical T1/T2 coherence times.
-
     "THERMAL-GOOD": NoiseConfig(
         noise_id="THERMAL-GOOD",
         noise_type="thermal",
         parameters={"T1": 100e-6, "T2": 100e-6, "gate_time": 30e-9},
         description=(
-            "Good coherence (T1=100μs, gate=30ns) - "
-            "Modern IBM/Google qubits. Error ~0.03%"
+            "Good coherence (T1=100μs, gate=30ns) - " "Modern IBM/Google qubits. Error ~0.03%"
         ),
     ),
     "THERMAL-POOR": NoiseConfig(
@@ -892,17 +878,14 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
         noise_type="thermal",
         parameters={"T1": 30e-6, "T2": 40e-6, "gate_time": 100e-9},
         description=(
-            "Poor coherence (T1=30μs, gate=100ns) - "
-            "Older or noisy qubits. Error ~0.3%"
+            "Poor coherence (T1=30μs, gate=100ns) - " "Older or noisy qubits. Error ~0.3%"
         ),
     ),
-
     # =========================================================================
     # Hardware-Specific Presets (Based on Real Calibration Data)
     # =========================================================================
     # These presets match actual QPU specifications from provider dashboards.
     # Data source: quantum.cloud.ibm.com/computers, qcs.rigetti.com/qpus
-
     # --- IBM Heron r3 (Best current IBM hardware) ---
     "IBM-HERON-R3": NoiseConfig(
         noise_id="IBM-HERON-R3",
@@ -914,7 +897,6 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: quantum.cloud.ibm.com Jan 2026 [11]"
         ),
     ),
-
     # --- IBM Heron r2 (Typical current IBM hardware) ---
     "IBM-HERON-R2": NoiseConfig(
         noise_id="IBM-HERON-R2",
@@ -926,7 +908,6 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: quantum.cloud.ibm.com Jan 2026 [11]"
         ),
     ),
-
     # --- IBM Heron r1 (Older Heron generation) ---
     "IBM-HERON-R1": NoiseConfig(
         noise_id="IBM-HERON-R1",
@@ -938,7 +919,6 @@ PRESET_NOISE_CONFIGS: Dict[str, NoiseConfig] = {
             "Ref: quantum.cloud.ibm.com Jan 2026 [11]"
         ),
     ),
-
     # --- Rigetti Ankaa-3 ---
     "RIGETTI-ANKAA3": NoiseConfig(
         noise_id="RIGETTI-ANKAA3",
