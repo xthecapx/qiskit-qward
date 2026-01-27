@@ -4,7 +4,7 @@ Quantum algorithms module for qWard.
 This module contains various quantum algorithm implementations and utilities.
 """
 
-from .executor import QuantumCircuitExecutor
+from .executor import QuantumCircuitExecutor, IBMJobResult, IBMBatchResult
 from .v_tp import (
     QuantumGate,
     BaseTeleportation,
@@ -68,6 +68,8 @@ from .experiment_analysis import (
 __all__ = [
     # Executor
     "QuantumCircuitExecutor",
+    "IBMJobResult",
+    "IBMBatchResult",
     # Teleportation
     "QuantumGate",
     "BaseTeleportation",

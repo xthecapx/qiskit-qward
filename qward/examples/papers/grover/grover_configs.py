@@ -120,6 +120,27 @@ SCALABILITY_CONFIGS = [
         marked_states=["01100110"],
         description="8 qubits, single marked state"
     ),
+    ExperimentConfig(
+        config_id="S10-1",
+        experiment_type="scalability",
+        num_qubits=10,
+        marked_states=["0110011001"],
+        description="10 qubits, single marked state (QPU ONLY)"
+    ),
+    ExperimentConfig(
+        config_id="S12-1",
+        experiment_type="scalability",
+        num_qubits=12,
+        marked_states=["011001100110"],
+        description="12 qubits, single marked state (QPU ONLY)"
+    ),
+    ExperimentConfig(
+        config_id="S14-1",
+        experiment_type="scalability",
+        num_qubits=14,
+        marked_states=["01100110011001"],
+        description="14 qubits, single marked state (QPU ONLY - stress test)"
+    ),
 ]
 
 

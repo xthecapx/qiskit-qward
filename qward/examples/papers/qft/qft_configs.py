@@ -144,6 +144,15 @@ SCALABILITY_ROUNDTRIP_CONFIGS = [
         description="12 qubits, round-trip (HARDWARE ONLY - stress test)",
         hardware_only=True,  # 2^12 = 4096 states, very expensive to simulate
     ),
+    QFTExperimentConfig(
+        config_id="SR14",
+        experiment_type="scalability_roundtrip",
+        num_qubits=14,
+        test_mode="roundtrip",
+        input_state="01100110011001",
+        description="14 qubits, round-trip (HARDWARE ONLY - extreme test)",
+        hardware_only=True,  # 2^14 = 16384 states
+    ),
 ]
 
 
@@ -218,6 +227,33 @@ SCALABILITY_PERIOD_CONFIGS = [
         period=16,
         description="8 qubits, period=16 (HARDWARE ONLY - 9 total qubits)",
         hardware_only=True,  # 8 counting + 1 ancilla = 9 qubits
+    ),
+    QFTExperimentConfig(
+        config_id="SP10-P4",
+        experiment_type="scalability_period",
+        num_qubits=10,
+        test_mode="period_detection",
+        period=4,
+        description="10 qubits, period=4 (HARDWARE ONLY - 11 total qubits)",
+        hardware_only=True,
+    ),
+    QFTExperimentConfig(
+        config_id="SP10-P16",
+        experiment_type="scalability_period",
+        num_qubits=10,
+        test_mode="period_detection",
+        period=16,
+        description="10 qubits, period=16 (HARDWARE ONLY)",
+        hardware_only=True,
+    ),
+    QFTExperimentConfig(
+        config_id="SP12-P8",
+        experiment_type="scalability_period",
+        num_qubits=12,
+        test_mode="period_detection",
+        period=8,
+        description="12 qubits, period=8 (HARDWARE ONLY - extreme test)",
+        hardware_only=True,
     ),
 ]
 
