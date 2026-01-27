@@ -334,12 +334,18 @@ def compare_circuits(results):
         if "CircuitPerformance.aggregate" in metrics:
             perf = metrics["CircuitPerformance.aggregate"]
             if not perf.empty:
-                comparison[circuit_name]["success"] = perf.iloc[0]["success_metrics.mean_success_rate"]
-                comparison[circuit_name]["fidelity"] = perf.iloc[0]["fidelity_metrics.mean_fidelity"]
+                comparison[circuit_name]["success"] = perf.iloc[0][
+                    "success_metrics.mean_success_rate"
+                ]
+                comparison[circuit_name]["fidelity"] = perf.iloc[0][
+                    "fidelity_metrics.mean_fidelity"
+                ]
 
     # Print comparison table
     headers = ["Circuit", "Qubits", "Depth", "Gates", "CNOTs", "Success", "Fidelity"]
-    print(f"{headers[0]:<12} {headers[1]:<7} {headers[2]:<6} {headers[3]:<6} {headers[4]:<6} {headers[5]:<8} {headers[6]:<8}")
+    print(
+        f"{headers[0]:<12} {headers[1]:<7} {headers[2]:<6} {headers[3]:<6} {headers[4]:<6} {headers[5]:<8} {headers[6]:<8}"
+    )
     print("-" * 60)
 
     for name, data in comparison.items():
@@ -422,4 +428,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
