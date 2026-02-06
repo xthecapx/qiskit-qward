@@ -56,14 +56,25 @@ class QFT:
         name = "QFT†" if self.inverse else "QFT"
         qc = QuantumCircuit(self.num_qubits, name=name)
 
-        # Create QFTGate with do_swaps parameter
-        qft_gate = QFTGate(num_qubits=self.num_qubits)
+        # Create QFTGate with do_swaps when supported
+        try:
+            qft_gate = QFTGate(num_qubits=self.num_qubits, do_swaps=self.do_swaps)
+            supports_do_swaps = True
+        except TypeError:
+            qft_gate = QFTGate(num_qubits=self.num_qubits)
+            supports_do_swaps = False
 
         if self.inverse:
             qft_gate = qft_gate.inverse()
 
         # Append to circuit
         qc.append(qft_gate, range(self.num_qubits))
+
+        # Older Qiskit versions always include swaps. If do_swaps is False,
+        # append swaps to cancel them out.
+        if not supports_do_swaps and not self.do_swaps:
+            for i in range(self.num_qubits // 2):
+                qc.swap(i, self.num_qubits - 1 - i)
 
         return qc
 
@@ -155,6 +166,11 @@ class QFTCircuitGenerator:
                 raise ValueError("period must be at least 1")
             self.period = period
             self.tolerance = 1  # Allow ±1 in peak detection
+            N = 2**num_qubits
+            if N % self.period != 0:
+                raise ValueError(
+                    "period must divide 2**num_qubits for exact peak locations"
+                )
 
         else:
             raise ValueError(

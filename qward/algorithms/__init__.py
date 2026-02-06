@@ -64,6 +64,14 @@ from .experiment_analysis import (
     build_noise_means,
     generate_campaign_report,
 )
+from .matrix_product_verification import (
+    VerificationMethod,
+    VerificationResult,
+    MatrixProductVerificationBase,
+    QuantumFreivaldsVerification,
+    BuhrmanSpalekVerification,
+    MatrixProductVerification,
+)
 
 __all__ = [
     # Executor
@@ -121,4 +129,11 @@ __all__ = [
     "build_results_by_config",
     "build_noise_means",
     "generate_campaign_report",
+    # Matrix Product Verification
+    "VerificationMethod",
+    "VerificationResult",
+    "MatrixProductVerificationBase",
+    "QuantumFreivaldsVerification",
+    "BuhrmanSpalekVerification",
+    "MatrixProductVerification",
 ]
