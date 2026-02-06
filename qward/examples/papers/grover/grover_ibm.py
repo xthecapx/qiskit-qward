@@ -334,6 +334,24 @@ class GroverIBMExperiment(IBMExperimentBase[ExperimentConfig]):
         """Get output directory for Grover results."""
         return Path(__file__).parent / "data" / "qpu" / "raw"
 
+    def get_timed_out_batches(self) -> List[Dict[str, Any]]:
+        """Return timed-out batches from Feb 5 2026 campaign."""
+        return [
+            {
+                "batch_id": "265019eb-e251-4c7f-8791-0c449c10f195",
+                "config_id": "M3-1",
+                "backend_name": "ibm_fez",
+                "job_ids": [
+                    "d62jkcjc4tus73fdi0q0",  # opt 0
+                    "d62jkcqo8gvs73f2a6b0",  # opt 1
+                    "d62jkd3c4tus73fdi0rg",  # opt 2
+                    "d62jkdfs6ggc73fgt5b0",  # opt 3
+                ],
+                "transpiled_depths": {0: 306, 1: 165, 2: 144, 3: 140},
+                "original_depth": 4,
+            },
+        ]
+
 
 # =============================================================================
 # Convenience Functions
