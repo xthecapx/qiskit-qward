@@ -1,6 +1,10 @@
 """
 Analyze DSR_result.csv and generate degradation plots.
 
+Supports two data schemas (produced by differential_success_rate_experiment.py):
+  Schema 1 – Grover / QFT: JSON with `individual_results` (unified format)
+  Schema 2 – Teleportation: CSV with per-row histogram
+
 Generates plots per algorithm, grouped by optimization level, showing DSR
 variants vs scaling axes (num_qubits and transpiled_depth).
 """
@@ -52,17 +56,28 @@ ALGORITHM_COLORS = {
     "TELEPORTATION": COLORBREWER_PALETTE[3],  # Purple
 }
 
-# Teleportation filter limits (to focus on range with visible degradation)
-TELEPORTATION_MAX_QUBITS = 3
-TELEPORTATION_MAX_DEPTH = 10000
+# ---------------------------------------------------------------------------
+# Algorithm-specific filter limits
+# These keep plots focused on the ranges where DSR degradation is visible.
+# ---------------------------------------------------------------------------
 
-# Grover filter limits
-GROVER_MAX_DEPTH = 3500
+# Teleportation: restrict to small payload sizes & moderate depth
+# DSR is near-zero above ~1k depth, so cap there for readable plots
+TELEPORTATION_MAX_QUBITS = 3
+TELEPORTATION_MAX_DEPTH = 1000
+
+# Grover: very deep circuits (S7-1, S8-1) push depth to ~50k; cap to keep
+# the interesting region readable while still showing scalability degradation
+GROVER_MAX_DEPTH = 5000
+
+# QFT: circuits up to ~1300 depth; no cap needed (data is naturally bounded)
+QFT_MAX_DEPTH = None  # No filter
 
 # Depth binning for readable boxplots (too many unique depths otherwise)
-DEPTH_BIN_SIZE = 500  # Group depths into bins of this size
+DEPTH_BIN_SIZE = 500  # Default bin size
+DEPTH_BIN_SIZE_FINE = 250  # Finer bins for Grover/QFT (richer data)
 
-# Outlier filter: high DSR at high depth is suspicious
+# Outlier filter: high DSR at high depth is suspicious (teleportation only)
 OUTLIER_DEPTH_THRESHOLD = 2000  # Depths above this
 OUTLIER_DSR_MAX = 0.5  # DSR values above this at high depth are filtered
 
@@ -147,25 +162,21 @@ def _bin_depth(depth: float) -> int:
     return int((depth // DEPTH_BIN_SIZE) * DEPTH_BIN_SIZE)
 
 
-def _filter_grover(rows: List[Dict[str, str]], algorithm: str) -> List[Dict[str, str]]:
-    """
-    Filter Grover rows to focus on the range with visible degradation.
-    
-    Limits transpiled depth to show the meaningful range where DSR degrades.
-    """
-    if algorithm != "GROVER":
-        return rows
-    
+def _filter_by_depth(
+    rows: List[Dict[str, str]],
+    algorithm: str,
+    max_depth: Optional[float],
+) -> List[Dict[str, str]]:
+    """Filter rows for *algorithm* keeping only depth ≤ *max_depth*."""
     filtered = []
     for r in rows:
         if r.get("algorithm") != algorithm:
             continue
-        depth = _to_float(r.get("transpiled_depth", ""))
-        
-        # Apply depth filter
-        if depth is None or depth <= GROVER_MAX_DEPTH:
-            filtered.append(r)
-    
+        if max_depth is not None:
+            depth = _to_float(r.get("transpiled_depth", ""))
+            if depth is not None and depth > max_depth:
+                continue
+        filtered.append(r)
     return filtered
 
 
@@ -174,16 +185,29 @@ def _filter_algorithm(rows: List[Dict[str, str]], algorithm: str) -> Tuple[List[
     Apply algorithm-specific filtering and return filtered rows and whether filtering was applied.
     """
     original_count = len([r for r in rows if r.get("algorithm") == algorithm])
-    
+
     if algorithm == "TELEPORTATION":
         filtered = _filter_teleportation(rows, algorithm)
     elif algorithm == "GROVER":
-        filtered = _filter_grover(rows, algorithm)
+        filtered = _filter_by_depth(rows, algorithm, GROVER_MAX_DEPTH)
+    elif algorithm == "QFT":
+        filtered = _filter_by_depth(rows, algorithm, QFT_MAX_DEPTH)
     else:
         filtered = [r for r in rows if r.get("algorithm") == algorithm]
-    
+
     is_filtered = len(filtered) < original_count
     return filtered, is_filtered
+
+
+def _filter_description(algorithm: str) -> str:
+    """Return a short human-readable description of the filter applied to *algorithm*."""
+    if algorithm == "TELEPORTATION":
+        return f'qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH // 1000}k'
+    if algorithm == "GROVER" and GROVER_MAX_DEPTH is not None:
+        return f'depth < {GROVER_MAX_DEPTH / 1000:.1f}k'.replace('.0k', 'k')
+    if algorithm == "QFT" and QFT_MAX_DEPTH is not None:
+        return f'depth < {QFT_MAX_DEPTH / 1000:.1f}k'.replace('.0k', 'k')
+    return ''
 
 
 def _to_int(value: str) -> Optional[int]:
@@ -385,15 +409,8 @@ def _plot_algorithm_boxplot(
     ax.set_ylabel('DSR (Michelson)', fontsize=LABEL_SIZE, fontweight='bold')
     
     # Add note if data was filtered
-    if is_filtered:
-        if algorithm == "TELEPORTATION":
-            title_suffix = f' (qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH//1000}k)'
-        elif algorithm == "GROVER":
-            title_suffix = f' (depth < {GROVER_MAX_DEPTH/1000:.1f}k)'.replace('.0k', 'k')
-        else:
-            title_suffix = ''
-    else:
-        title_suffix = ''
+    desc = _filter_description(algorithm) if is_filtered else ''
+    title_suffix = f' ({desc})' if desc else ''
     ax.set_title(f'{algorithm} - DSR vs {display_label}{title_suffix}', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
     
     apply_axes_defaults(ax)
@@ -485,15 +502,8 @@ def _plot_algorithm_line(
     ax.set_ylabel('DSR', fontsize=LABEL_SIZE, fontweight='bold')
     
     # Add note if data was filtered
-    if is_filtered:
-        if algorithm == "TELEPORTATION":
-            title_suffix = f' (qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH//1000}k)'
-        elif algorithm == "GROVER":
-            title_suffix = f' (depth < {GROVER_MAX_DEPTH/1000:.1f}k)'.replace('.0k', 'k')
-        else:
-            title_suffix = ''
-    else:
-        title_suffix = ''
+    desc = _filter_description(algorithm) if is_filtered else ''
+    title_suffix = f' ({desc})' if desc else ''
     ax.set_title(f'{algorithm} - DSR Variants vs {x_label}{title_suffix}', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
     
     apply_axes_defaults(ax)
@@ -594,10 +604,9 @@ def _plot_algorithm_heatmap(
     # Build title with notes
     notes = []
     if is_filtered:
-        if algorithm == "TELEPORTATION":
-            notes.append(f'qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH//1000}k')
-        elif algorithm == "GROVER":
-            notes.append(f'depth < {GROVER_MAX_DEPTH/1000:.1f}k'.replace('.0k', 'k'))
+        desc = _filter_description(algorithm)
+        if desc:
+            notes.append(desc)
     if use_log_scale or variant_key == "dsr_michelson":
         notes.append('enhanced contrast')
     title_suffix = f" ({', '.join(notes)})" if notes else ""
@@ -1063,20 +1072,21 @@ def main() -> int:
     _plot_combined_regions_grid(rows, args.out_dir)
     print("Generated DSR regions 2x2 grid (qubits)")
     
-    # DSR vs Circuit Depth (individual + grid), filtered to depth < 1.5k
+    # DSR vs Circuit Depth (individual + grid)
+    # Cap at 2k to keep the region where all three algorithms overlap readable
     _plot_combined_regions_by_optimization(
         rows, args.out_dir,
         x_key="transpiled_depth", x_label="Transpiled Depth", file_suffix="_depth",
-        max_x=1500,
+        max_x=2000,
     )
-    print("Generated DSR region plots by optimization level (depth < 1.5k)")
+    print("Generated DSR region plots by optimization level (depth < 2k)")
     
     _plot_combined_regions_grid(
         rows, args.out_dir,
         x_key="transpiled_depth", x_label="Transpiled Depth", file_suffix="_depth",
-        max_x=1500,
+        max_x=2000,
     )
-    print("Generated DSR regions 2x2 grid (depth < 1.5k)")
+    print("Generated DSR regions 2x2 grid (depth < 2k)")
 
     print(f"\nWrote plots to {args.out_dir}")
     return 0
