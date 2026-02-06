@@ -1,0 +1,3 @@
+## Abstract
+
+Classical success rate reports only $p_{exp}$ and ignores ambiguity in outcome distributions, allowing runs with indistinguishable peaks to appear equally successful. We introduce the Differential Success Rate (DSR), a histogram-only metric that compares the expected peak (mean expected peak height) to the strongest competing peak using Michelson-style contrast~\cite{michelson1927,weissteinFringeVisibility}. Across Grover, QFT, and teleportation datasets, DSR separates cases where $p_{exp}$ is similar but the interpretability of the output differs, aligning metric values with visual distinguishability. DSR is a drop-in metric for QSYS-style benchmarking pipelines to track degradation as circuit scale grows.

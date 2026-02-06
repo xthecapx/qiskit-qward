@@ -376,6 +376,76 @@ class QFTIBMExperiment(IBMExperimentBase[QFTExperimentConfig]):
         """Get output directory for QFT results."""
         return Path(__file__).parent / "data" / "qpu" / "raw"
 
+    def get_timed_out_batches(self) -> List[Dict[str, Any]]:
+        """Return timed-out batches from Feb 5 2026 campaign."""
+        return [
+            {
+                "batch_id": "1ed95be0-3423-494c-aedb-9c7a622fb20f",
+                "config_id": "SP5-P4",
+                "backend_name": "ibm_marrakesh",
+                "job_ids": [
+                    "d62k1urtraac73bg8r4g",  # opt 0
+                    "d62k1v3c4tus73fdig6g",  # opt 1
+                    "d62k1v7s6ggc73fgtk40",  # opt 2
+                    "d62k1vfs6ggc73fgtk50",  # opt 3
+                ],
+                "transpiled_depths": {0: 289, 1: 172, 2: 113, 3: 113},
+                "original_depth": 33,
+            },
+            {
+                "batch_id": "ca57b497-afd6-4040-8864-391e2ea0ba17",
+                "config_id": "SR8",
+                "backend_name": "ibm_fez",
+                "job_ids": [
+                    "d62k99ao8gvs73f2aui0",  # opt 0
+                    "d62k99io8gvs73f2auj0",  # opt 1
+                    "d62k99io8gvs73f2aujg",  # opt 2
+                    "d62k99qo8gvs73f2auk0",  # opt 3
+                ],
+                "transpiled_depths": {0: 840, 1: 631, 2: 451, 3: 420},
+                "original_depth": 34,
+            },
+            {
+                "batch_id": "dbf406ea-ddce-493f-a331-e3f2143d391c",
+                "config_id": "SR10",
+                "backend_name": "ibm_fez",
+                "job_ids": [
+                    "d62ke63traac73bg995g",  # opt 0
+                    "d62ke6ao8gvs73f2b460",  # opt 1
+                    "d62ke6jtraac73bg9970",  # opt 2
+                    "d62ke6qo8gvs73f2b470",  # opt 3
+                ],
+                "transpiled_depths": {0: 1088, 1: 867, 2: 662, 3: 649},
+                "original_depth": 42,
+            },
+            {
+                "batch_id": "d992be90-dbbc-4bcc-9632-185c4676ac35",
+                "config_id": "SP8-P4",
+                "backend_name": "ibm_fez",
+                "job_ids": [
+                    "d62kj3qo8gvs73f2b9tg",  # opt 0
+                    "d62kj43c4tus73fdj3pg",  # opt 1
+                    "d62kj4bc4tus73fdj3r0",  # opt 2
+                    "d62kj4jc4tus73fdj3rg",  # opt 3
+                ],
+                "transpiled_depths": {0: 571, 1: 415, 2: 252, 3: 232},
+                "original_depth": 51,
+            },
+            {
+                "batch_id": "78d22327-2784-4eb2-992a-e082441e08f5",
+                "config_id": "SP10-P4",
+                "backend_name": "ibm_fez",
+                "job_ids": [
+                    "d62ko1ao8gvs73f2bfm0",  # opt 0
+                    "d62ko1ns6ggc73fgucog",  # opt 1
+                    "d62ko1rtraac73bg9k5g",  # opt 2
+                    "d62ko1rtraac73bg9k6g",  # opt 3
+                ],
+                "transpiled_depths": {0: 866, 1: 549, 2: 364, 3: 352},
+                "original_depth": 63,
+            },
+        ]
+
 
 # =============================================================================
 # Convenience Functions
