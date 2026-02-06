@@ -12,6 +12,7 @@ The algorithm uses:
 4. Inverse QFT to extract the phase
 """
 
+import math
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import QFTGate
@@ -212,12 +213,31 @@ class PhaseEstimation:
             N = 2**self.num_counting_qubits
             return {format(i, f"0{self.num_counting_qubits}b"): 1 / N for i in range(N)}
 
-        # Expected measurement is closest integer to φ * 2^n
-        expected_m = round(self.expected_phase * (2**self.num_counting_qubits))
-        expected_m = expected_m % (2**self.num_counting_qubits)
-        expected_state = format(expected_m, f"0{self.num_counting_qubits}b")
+        n = self.num_counting_qubits
+        N = 2**n
+        phi = self.expected_phase % 1.0
 
-        return {expected_state: 1.0}
+        # Ideal QPE distribution over all outcomes
+        expected = {}
+        total_prob = 0.0
+        for m in range(N):
+            delta = phi - (m / N)
+            angle = math.pi * delta
+            if abs(angle) < 1e-12:
+                prob = 1.0
+            else:
+                numerator = math.sin(math.pi * (N * delta))
+                denominator = math.sin(angle)
+                prob = (numerator / denominator) ** 2 / (N**2)
+            state = format(m, f"0{n}b")
+            expected[state] = prob
+            total_prob += prob
+
+        if total_prob > 0:
+            for state in expected:
+                expected[state] /= total_prob
+
+        return expected
 
     def set_expected_phase(self, phase: float) -> "PhaseEstimation":
         """Set the expected phase for success criteria.
