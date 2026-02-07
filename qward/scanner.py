@@ -150,6 +150,7 @@ class Scanner:
                         job=job,
                         success_criteria=strategy.success_criteria,
                         expected_distribution=strategy.expected_distribution,
+                        expected_outcomes=getattr(strategy, "_expected_outcomes", None),
                     )
                     job_metrics = temp_strategy.get_metrics()
                     individual_data = self._extract_individual_fields(job_metrics)
@@ -188,7 +189,15 @@ class Scanner:
             # Include fields that are NOT aggregate-specific
             if not any(
                 aggregate_prefix in key
-                for aggregate_prefix in ["mean_", "std_", "min_", "max_", "total_trials"]
+                for aggregate_prefix in [
+                    "mean_",
+                    "std_",
+                    "min_",
+                    "max_",
+                    "total_trials",
+                    "peak_mismatch_rate",
+                    "total_jobs",
+                ]
             ):
                 individual_fields[key] = value
 
@@ -207,7 +216,15 @@ class Scanner:
             # Include aggregate fields OR common fields like error_rate, method, confidence
             if any(
                 aggregate_prefix in key
-                for aggregate_prefix in ["mean_", "std_", "min_", "max_", "total_trials"]
+                for aggregate_prefix in [
+                    "mean_",
+                    "std_",
+                    "min_",
+                    "max_",
+                    "total_trials",
+                    "peak_mismatch_rate",
+                    "total_jobs",
+                ]
             ) or any(
                 common_field in key for common_field in ["error_rate", "method", "confidence"]
             ):

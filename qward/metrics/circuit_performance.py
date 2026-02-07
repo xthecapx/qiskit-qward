@@ -22,15 +22,22 @@ from qiskit_aer import AerJob
 from qiskit_ibm_runtime import RuntimeJobV2
 
 from qward.metrics.base_metric import MetricCalculator
+from qward.metrics.differential_success_rate import (
+    compute_dsr_log_ratio,
+    compute_dsr_normalized_margin,
+    compute_dsr_ratio,
+    compute_dsr_with_flags,
+)
 from qward.metrics.types import MetricsType, MetricsId
 
 # Import schemas for structured data validation
 try:
     from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
-        SuccessMetricsSchema,
+        DSRVariantsSchema,
         FidelityMetricsSchema,
         StatisticalMetricsSchema,
+        SuccessMetricsSchema,
     )
 
     SCHEMAS_AVAILABLE = True
@@ -98,6 +105,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         jobs: Optional[List[JobType]] = None,
         success_criteria: Optional[Callable[[str], bool]] = None,
         expected_distribution: Optional[Dict[str, float]] = None,
+        expected_outcomes: Optional[List[str]] = None,
     ):
         """
         Initialize a CircuitPerformanceMetrics object.
@@ -108,6 +116,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             jobs: A list of jobs that executed the circuit (for multiple runs)
             success_criteria: Function that determines if a measurement result is successful
             expected_distribution: Expected probability distribution for fidelity calculation
+            expected_outcomes: Expected bitstrings for DSR histogram contrast calculations
         """
         super().__init__(circuit)
         self._job = job
@@ -116,6 +125,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             self._jobs = [job]
         self.success_criteria = success_criteria or self._default_success_criteria()
         self.expected_distribution = expected_distribution
+        self._expected_outcomes = list(expected_outcomes) if expected_outcomes else None
 
     def _get_metric_type(self) -> MetricsType:
         """Get the type of this metric."""
@@ -345,6 +355,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             success_metrics=self.get_success_metrics(),
             fidelity_metrics=self.get_fidelity_metrics(),
             statistical_metrics=self.get_statistical_metrics(),
+            dsr_metrics=self.get_dsr_metrics() if self._expected_outcomes else None,
         )
 
     # =============================================================================
@@ -447,6 +458,43 @@ class CircuitPerformanceMetrics(MetricCalculator):
             raise ValueError("No jobs available to calculate statistical metrics")
 
     # =============================================================================
+    # DSR Metrics
+    # =============================================================================
+
+    def get_dsr_metrics(self) -> "DSRVariantsSchema":
+        """
+        Get Differential Success Rate metrics as a validated schema object.
+
+        Returns:
+            DSRVariantsSchema: Validated DSR metrics schema
+
+        Raises:
+            ImportError: If Pydantic schemas are not available
+            ValueError: If expected outcomes are not configured
+            ValidationError: If metrics data doesn't match schema constraints
+        """
+        self._ensure_schemas_available()
+        dsr_dict = self.get_dsr_metrics_dict()
+        return DSRVariantsSchema(**dsr_dict)
+
+    def get_dsr_metrics_dict(self) -> Dict[str, Any]:
+        """
+        Get Differential Success Rate metrics as a dictionary.
+
+        Returns:
+            Dict[str, Any]: Dictionary containing DSR variant and mismatch metrics
+        """
+        if not self._expected_outcomes:
+            raise ValueError("expected_outcomes is required to calculate DSR metrics")
+
+        if len(self._jobs) > 1:
+            return self._get_multiple_jobs_dsr_metrics()
+        elif len(self._jobs) == 1:
+            return self._get_single_job_dsr_metrics(self._jobs[0])
+        else:
+            raise ValueError("No jobs available to calculate DSR metrics")
+
+    # =============================================================================
     # Single Job Metrics
     # =============================================================================
 
@@ -471,9 +519,12 @@ class CircuitPerformanceMetrics(MetricCalculator):
         success_metrics = self._get_single_job_success_metrics(job_to_use)
         fidelity_metrics = self._get_single_job_fidelity_metrics(job_to_use)
         statistical_metrics = self._get_single_job_statistical_metrics(job_to_use)
+        dsr_metrics = (
+            self._get_single_job_dsr_metrics(job_to_use) if self._expected_outcomes else {}
+        )
 
         # Merge all metrics into a single dictionary
-        combined_metrics = {**success_metrics, **fidelity_metrics, **statistical_metrics}
+        combined_metrics = {**success_metrics, **fidelity_metrics, **statistical_metrics, **dsr_metrics}
 
         return combined_metrics
 
@@ -515,6 +566,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         success_metrics = self._get_multiple_jobs_success_metrics()
         fidelity_metrics = self._get_multiple_jobs_fidelity_metrics()
         statistical_metrics = self._get_multiple_jobs_statistical_metrics()
+        dsr_metrics = self._get_multiple_jobs_dsr_metrics() if self._expected_outcomes else None
 
         # Combine individual job metrics (flatten all categories for each job)
         combined_individual_jobs = []
@@ -543,11 +595,22 @@ class CircuitPerformanceMetrics(MetricCalculator):
                 }
                 combined_job_metrics.update(statistical_job_metrics)
 
+            # Add DSR metrics for this job
+            if dsr_metrics is not None and i < len(dsr_metrics.get("individual_jobs", [])):
+                dsr_job_metrics = dsr_metrics["individual_jobs"][i]
+                # Remove duplicate job_id to avoid conflicts
+                dsr_job_metrics = {k: v for k, v in dsr_job_metrics.items() if k != "job_id"}
+                combined_job_metrics.update(dsr_job_metrics)
+
             combined_individual_jobs.append(combined_job_metrics)
 
         # Combine aggregate metrics
         aggregate_metrics = {}
-        for metrics_dict in [success_metrics, fidelity_metrics, statistical_metrics]:
+        metric_categories = [success_metrics, fidelity_metrics, statistical_metrics]
+        if dsr_metrics is not None:
+            metric_categories.append(dsr_metrics)
+
+        for metrics_dict in metric_categories:
             for key, value in metrics_dict.items():
                 if key != "individual_jobs":
                     aggregate_metrics[key] = value
@@ -633,6 +696,112 @@ class CircuitPerformanceMetrics(MetricCalculator):
             Dict[str, float]: Bell state distribution
         """
         return {"00": 0.5, "11": 0.5}
+
+    # =============================================================================
+    # Helper Methods for DSR Metrics
+    # =============================================================================
+
+    def _get_single_job_dsr_metrics(self, job: JobType) -> Dict[str, Any]:
+        """Calculate DSR metrics from a single job result."""
+        if not self._expected_outcomes:
+            raise ValueError("expected_outcomes is required to calculate DSR metrics")
+
+        counts = self._extract_counts(job)
+        job_id = self._extract_job_id(job)
+
+        if not counts:
+            return {
+                "job_id": job_id,
+                "dsr_michelson": 0.0,
+                "dsr_ratio": 0.0,
+                "dsr_log_ratio": 0.0,
+                "dsr_normalized_margin": 0.0,
+                "peak_mismatch": True,
+                "expected_outcomes": list(self._expected_outcomes),
+            }
+
+        dsr_michelson, peak_mismatch = compute_dsr_with_flags(counts, self._expected_outcomes)
+        dsr_ratio = compute_dsr_ratio(counts, self._expected_outcomes)
+        dsr_log_ratio = compute_dsr_log_ratio(counts, self._expected_outcomes)
+        dsr_normalized_margin = compute_dsr_normalized_margin(counts, self._expected_outcomes)
+
+        return {
+            "job_id": job_id,
+            "dsr_michelson": float(dsr_michelson),
+            "dsr_ratio": float(dsr_ratio),
+            "dsr_log_ratio": float(dsr_log_ratio),
+            "dsr_normalized_margin": float(dsr_normalized_margin),
+            "peak_mismatch": bool(peak_mismatch),
+            "expected_outcomes": list(self._expected_outcomes),
+        }
+
+    def _get_multiple_jobs_dsr_metrics(self) -> Dict[str, Any]:
+        """Calculate aggregate DSR metrics from multiple job results."""
+        if not self._jobs:
+            raise ValueError("Multiple runtime jobs are required to calculate DSR metrics")
+        if not self._expected_outcomes:
+            raise ValueError("expected_outcomes is required to calculate DSR metrics")
+
+        job_metrics = []
+        dsr_michelson_values = []
+        dsr_ratio_values = []
+        dsr_log_ratio_values = []
+        dsr_normalized_margin_values = []
+        peak_mismatch_flags = []
+
+        for job in self._jobs:
+            single_metrics = self._get_single_job_dsr_metrics(job)
+            job_metrics.append(single_metrics)
+            dsr_michelson_values.append(single_metrics["dsr_michelson"])
+            dsr_ratio_values.append(single_metrics["dsr_ratio"])
+            dsr_log_ratio_values.append(single_metrics["dsr_log_ratio"])
+            dsr_normalized_margin_values.append(single_metrics["dsr_normalized_margin"])
+            peak_mismatch_flags.append(bool(single_metrics["peak_mismatch"]))
+
+        if not job_metrics:
+            return {
+                "mean_dsr_michelson": 0.0,
+                "std_dsr_michelson": 0.0,
+                "min_dsr_michelson": 0.0,
+                "max_dsr_michelson": 0.0,
+                "mean_dsr_ratio": 0.0,
+                "std_dsr_ratio": 0.0,
+                "min_dsr_ratio": 0.0,
+                "max_dsr_ratio": 0.0,
+                "mean_dsr_log_ratio": 0.0,
+                "std_dsr_log_ratio": 0.0,
+                "min_dsr_log_ratio": 0.0,
+                "max_dsr_log_ratio": 0.0,
+                "mean_dsr_normalized_margin": 0.0,
+                "std_dsr_normalized_margin": 0.0,
+                "min_dsr_normalized_margin": 0.0,
+                "max_dsr_normalized_margin": 0.0,
+                "peak_mismatch_rate": 0.0,
+                "total_jobs": 0,
+                "expected_outcomes": list(self._expected_outcomes),
+                "individual_jobs": job_metrics,
+            }
+
+        def _aggregate(values: List[float], metric_name: str) -> Dict[str, float]:
+            values_array = np.array(values)
+            return {
+                f"mean_{metric_name}": float(np.mean(values_array)),
+                f"std_{metric_name}": float(np.std(values_array)) if len(values_array) > 1 else 0.0,
+                f"min_{metric_name}": float(np.min(values_array)),
+                f"max_{metric_name}": float(np.max(values_array)),
+            }
+
+        metrics = {
+            **_aggregate(dsr_michelson_values, "dsr_michelson"),
+            **_aggregate(dsr_ratio_values, "dsr_ratio"),
+            **_aggregate(dsr_log_ratio_values, "dsr_log_ratio"),
+            **_aggregate(dsr_normalized_margin_values, "dsr_normalized_margin"),
+            "peak_mismatch_rate": float(np.mean(peak_mismatch_flags)),
+            "total_jobs": len(job_metrics),
+            "expected_outcomes": list(self._expected_outcomes),
+            "individual_jobs": job_metrics,
+        }
+        return metrics
 
     # =============================================================================
     # Helper Methods for Success Metrics

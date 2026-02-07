@@ -165,6 +165,57 @@ class TestScanner(unittest.TestCase):
         for col in expected_columns:
             self.assertIn(col, df.columns, f"Expected column {col} not found")
 
+    def test_calculate_metrics_circuit_performance_with_dsr(self):
+        """Test scanner includes DSR fields for single-job circuit performance."""
+        counts = self.job.result().get_counts()
+        expected_outcomes = [max(counts, key=counts.get)]
+
+        scanner = Scanner(circuit=self.circuit, job=self.job)
+        scanner.add_strategy(
+            CircuitPerformanceMetrics(
+                circuit=self.circuit,
+                job=self.job,
+                expected_outcomes=expected_outcomes,
+            )
+        )
+
+        results = scanner.calculate_metrics()
+        self.assertIn("CircuitPerformance.individual_jobs", results)
+        df = results["CircuitPerformance.individual_jobs"]
+
+        self.assertIn("dsr_metrics.dsr_michelson", df.columns)
+        self.assertIn("dsr_metrics.expected_outcomes", df.columns)
+
+    def test_calculate_metrics_circuit_performance_multi_job_dsr_split(self):
+        """Test scanner splits DSR individual and aggregate fields correctly."""
+        job2 = self.simulator.run(self.circuit, shots=100)
+        counts = self.job.result().get_counts()
+        expected_outcomes = [max(counts, key=counts.get)]
+
+        scanner = Scanner(circuit=self.circuit)
+        scanner.add_strategy(
+            CircuitPerformanceMetrics(
+                circuit=self.circuit,
+                jobs=[self.job, job2],
+                expected_outcomes=expected_outcomes,
+            )
+        )
+
+        results = scanner.calculate_metrics()
+        self.assertIn("CircuitPerformance.individual_jobs", results)
+        self.assertIn("CircuitPerformance.aggregate", results)
+
+        individual_df = results["CircuitPerformance.individual_jobs"]
+        aggregate_df = results["CircuitPerformance.aggregate"]
+
+        self.assertIn("dsr_metrics.dsr_michelson", individual_df.columns)
+        self.assertIn("dsr_metrics.mean_dsr_michelson", aggregate_df.columns)
+        self.assertIn("dsr_metrics.peak_mismatch_rate", aggregate_df.columns)
+        self.assertIn("dsr_metrics.total_jobs", aggregate_df.columns)
+
+        self.assertNotIn("dsr_metrics.peak_mismatch_rate", individual_df.columns)
+        self.assertNotIn("dsr_metrics.total_jobs", individual_df.columns)
+
     def test_calculate_metrics_multiple_strategies(self):
         """Test calculating metrics with multiple strategies."""
         scanner = Scanner(circuit=self.circuit)
