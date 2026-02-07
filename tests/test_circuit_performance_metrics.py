@@ -81,6 +81,57 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         result = metrics.get_metrics()
 
         self.assertIsInstance(result, CircuitPerformanceSchema)
+        self.assertIsNone(result.dsr_metrics)
+
+    def test_get_metrics_with_expected_outcomes_includes_dsr(self):
+        """Test that DSR metrics are included when expected_outcomes is provided."""
+        counts = self.job.result().get_counts()
+        expected_outcomes = [max(counts, key=counts.get)]
+
+        metrics = CircuitPerformanceMetrics(
+            circuit=self.circuit,
+            job=self.job,
+            success_criteria=self.bell_success_criteria,
+            expected_outcomes=expected_outcomes,
+        )
+
+        result = metrics.get_metrics()
+
+        self.assertIsNotNone(result.dsr_metrics)
+        self.assertGreaterEqual(result.dsr_metrics.dsr_michelson, 0.0)
+        self.assertLessEqual(result.dsr_metrics.dsr_michelson, 1.0)
+        self.assertEqual(result.dsr_metrics.expected_outcomes, expected_outcomes)
+
+    def test_get_dsr_metrics_requires_expected_outcomes(self):
+        """Test that DSR methods raise when expected_outcomes is missing."""
+        metrics = CircuitPerformanceMetrics(
+            circuit=self.circuit, job=self.job, success_criteria=self.bell_success_criteria
+        )
+
+        with self.assertRaises(ValueError):
+            metrics.get_dsr_metrics()
+
+    def test_multiple_jobs_dsr_aggregate_metrics(self):
+        """Test DSR aggregate fields for multiple jobs."""
+        job2 = self.simulator.run(self.circuit, shots=500)
+        counts = self.job.result().get_counts()
+        expected_outcomes = [max(counts, key=counts.get)]
+
+        metrics = CircuitPerformanceMetrics(
+            circuit=self.circuit,
+            jobs=[self.job, job2],
+            success_criteria=self.bell_success_criteria,
+            expected_outcomes=expected_outcomes,
+        )
+
+        result = metrics.get_metrics()
+
+        self.assertIsNotNone(result.dsr_metrics)
+        self.assertIsNotNone(result.dsr_metrics.mean_dsr_michelson)
+        self.assertIsNotNone(result.dsr_metrics.std_dsr_michelson)
+        self.assertEqual(result.dsr_metrics.total_jobs, 2)
+        self.assertGreaterEqual(result.dsr_metrics.peak_mismatch_rate, 0.0)
+        self.assertLessEqual(result.dsr_metrics.peak_mismatch_rate, 1.0)
 
     def test_single_job_metrics(self):
         """Test metrics calculation for single job."""
