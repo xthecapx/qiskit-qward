@@ -193,6 +193,66 @@ class StatisticalMetricsSchema(BaseModel):
         return v
 
 
+class DSRVariantsSchema(BaseModel):
+    """
+    Schema for Differential Success Rate (DSR) metrics.
+
+    This schema validates per-job DSR variants and aggregate DSR statistics
+    when multiple jobs are analyzed.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "dsr_michelson": 0.74,
+                "dsr_ratio": 0.87,
+                "dsr_log_ratio": 0.66,
+                "dsr_normalized_margin": 0.71,
+                "peak_mismatch": False,
+                "expected_outcomes": ["00"],
+                "mean_dsr_michelson": 0.69,
+                "std_dsr_michelson": 0.05,
+                "min_dsr_michelson": 0.62,
+                "max_dsr_michelson": 0.75,
+                "peak_mismatch_rate": 0.0,
+                "total_jobs": 3,
+            }
+        }
+    )
+
+    # Single job fields
+    dsr_michelson: Optional[float] = Field(None, ge=0.0, le=1.0)
+    dsr_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    dsr_log_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    dsr_normalized_margin: Optional[float] = Field(None, ge=0.0, le=1.0)
+    peak_mismatch: Optional[bool] = Field(None)
+    expected_outcomes: Optional[List[str]] = Field(None)
+
+    # Multiple jobs aggregate fields
+    mean_dsr_michelson: Optional[float] = Field(None, ge=0.0, le=1.0)
+    std_dsr_michelson: Optional[float] = Field(None, ge=0.0)
+    min_dsr_michelson: Optional[float] = Field(None, ge=0.0, le=1.0)
+    max_dsr_michelson: Optional[float] = Field(None, ge=0.0, le=1.0)
+
+    mean_dsr_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    std_dsr_ratio: Optional[float] = Field(None, ge=0.0)
+    min_dsr_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    max_dsr_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+
+    mean_dsr_log_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    std_dsr_log_ratio: Optional[float] = Field(None, ge=0.0)
+    min_dsr_log_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+    max_dsr_log_ratio: Optional[float] = Field(None, ge=0.0, le=1.0)
+
+    mean_dsr_normalized_margin: Optional[float] = Field(None, ge=0.0, le=1.0)
+    std_dsr_normalized_margin: Optional[float] = Field(None, ge=0.0)
+    min_dsr_normalized_margin: Optional[float] = Field(None, ge=0.0, le=1.0)
+    max_dsr_normalized_margin: Optional[float] = Field(None, ge=0.0, le=1.0)
+
+    peak_mismatch_rate: Optional[float] = Field(None, ge=0.0, le=1.0)
+    total_jobs: Optional[int] = Field(None, ge=0)
+
+
 class CircuitPerformanceSchema(BaseModel):
     """
     Complete schema for circuit performance metrics.
@@ -204,6 +264,9 @@ class CircuitPerformanceSchema(BaseModel):
     success_metrics: SuccessMetricsSchema = Field(..., description="Success rate metrics")
     fidelity_metrics: FidelityMetricsSchema = Field(..., description="Fidelity metrics")
     statistical_metrics: StatisticalMetricsSchema = Field(..., description="Statistical metrics")
+    dsr_metrics: Optional[DSRVariantsSchema] = Field(
+        None, description="DSR metrics (only when expected_outcomes provided)"
+    )
 
     def to_flat_dict(self) -> Dict[str, Any]:
         """
@@ -229,6 +292,12 @@ class CircuitPerformanceSchema(BaseModel):
         for key, value in statistical_dict.items():
             result[f"statistical_metrics.{key}"] = value
 
+        # Flatten DSR metrics when available
+        if self.dsr_metrics is not None:
+            dsr_dict = self.dsr_metrics.model_dump()  # pylint: disable=no-member
+            for key, value in dsr_dict.items():
+                result[f"dsr_metrics.{key}"] = value
+
         return result
 
     @classmethod
@@ -246,6 +315,7 @@ class CircuitPerformanceSchema(BaseModel):
         success_metrics = {}
         fidelity_metrics = {}
         statistical_metrics = {}
+        dsr_metrics = {}
 
         for key, value in flat_dict.items():
             if key.startswith("success_metrics."):
@@ -257,11 +327,15 @@ class CircuitPerformanceSchema(BaseModel):
             elif key.startswith("statistical_metrics."):
                 metric_name = key.replace("statistical_metrics.", "")
                 statistical_metrics[metric_name] = value
+            elif key.startswith("dsr_metrics."):
+                metric_name = key.replace("dsr_metrics.", "")
+                dsr_metrics[metric_name] = value
 
         return cls(
             success_metrics=SuccessMetricsSchema(**success_metrics),
             fidelity_metrics=FidelityMetricsSchema(**fidelity_metrics),
             statistical_metrics=StatisticalMetricsSchema(**statistical_metrics),
+            dsr_metrics=DSRVariantsSchema(**dsr_metrics) if dsr_metrics else None,
         )
 
     model_config = ConfigDict(
@@ -300,6 +374,14 @@ class CircuitPerformanceSchema(BaseModel):
                     "mean_dominant_probability": 0.58,
                     "std_entropy": 0.1,
                     "std_uniformity": 0.05,
+                },
+                "dsr_metrics": {
+                    "dsr_michelson": 0.74,
+                    "dsr_ratio": 0.87,
+                    "dsr_log_ratio": 0.66,
+                    "dsr_normalized_margin": 0.71,
+                    "peak_mismatch": False,
+                    "expected_outcomes": ["00"],
                 },
             },
         }
