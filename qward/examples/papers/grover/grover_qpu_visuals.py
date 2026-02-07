@@ -19,6 +19,7 @@ from typing import Dict, List, Any, Optional
 
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.use("Agg")
 
 
@@ -61,10 +62,14 @@ def extract_metrics(result: Dict[str, Any]) -> Dict[str, Any]:
     summary = result.get("batch_summary", {})
     ind = result.get("individual_results", [])
     # Transpiled depth: use max across optimization levels (worst case on hardware)
-    transpiled_depths = [r.get("transpiled_depth") for r in ind if r.get("transpiled_depth") is not None]
+    transpiled_depths = [
+        r.get("transpiled_depth") for r in ind if r.get("transpiled_depth") is not None
+    ]
     circ_depths = [r.get("circuit_depth") for r in ind if r.get("circuit_depth") is not None]
     success_rates = [r.get("success_rate") for r in ind if r.get("success_rate") is not None]
-    advantage_ratios = [r.get("advantage_ratio") for r in ind if r.get("advantage_ratio") is not None]
+    advantage_ratios = [
+        r.get("advantage_ratio") for r in ind if r.get("advantage_ratio") is not None
+    ]
     return {
         "config_id": config.get("config_id"),
         "num_qubits": config.get("num_qubits"),
@@ -77,7 +82,9 @@ def extract_metrics(result: Dict[str, Any]) -> Dict[str, Any]:
         "theoretical_success": config.get("theoretical_success"),
         "random_chance": config.get("classical_random_prob"),
         "transpiled_depth_max": max(transpiled_depths) if transpiled_depths else None,
-        "transpiled_depth_mean": (sum(transpiled_depths) / len(transpiled_depths)) if transpiled_depths else None,
+        "transpiled_depth_mean": (
+            (sum(transpiled_depths) / len(transpiled_depths)) if transpiled_depths else None
+        ),
         "circuit_depth": circ_depths[0] if circ_depths else None,
         "success_rates_per_run": success_rates,
         "advantage_ratios_per_run": advantage_ratios,
@@ -89,7 +96,11 @@ def plot_success_vs_qubits(rows: List[Dict], out_dir: Path) -> None:
     """Success rate vs num_qubits with theoretical and random reference lines."""
     fig, ax = plt.subplots(figsize=(8, 5))
     # Filter rows with valid num_qubits and mean_success_rate
-    valid = [r for r in rows if r.get("num_qubits") is not None and r.get("mean_success_rate") is not None]
+    valid = [
+        r
+        for r in rows
+        if r.get("num_qubits") is not None and r.get("mean_success_rate") is not None
+    ]
     if not valid:
         return
     qubits = [r["num_qubits"] for r in valid]
@@ -110,15 +121,33 @@ def plot_success_vs_qubits(rows: List[Dict], out_dir: Path) -> None:
 
     x = range(len(qubits))
     std_sr = [float(s) if s is not None else 0.0 for s in std_sr]
-    ax.errorbar(x, mean_sr, yerr=std_sr, fmt="o-", capsize=4, label="QPU mean success rate", color="C0")
+    ax.errorbar(
+        x, mean_sr, yerr=std_sr, fmt="o-", capsize=4, label="QPU mean success rate", color="C0"
+    )
     if any(t is not None for t in theoretical):
-        ax.plot(x, [t if t is not None else 0 for t in theoretical], "s--", alpha=0.8, label="Theoretical (no noise)", color="C1")
+        ax.plot(
+            x,
+            [t if t is not None else 0 for t in theoretical],
+            "s--",
+            alpha=0.8,
+            label="Theoretical (no noise)",
+            color="C1",
+        )
     if any(rc is not None for rc in random_chance):
-        ax.plot(x, [rc if rc is not None else 0 for rc in random_chance], "^--", alpha=0.8, label="Random guess", color="C2")
+        ax.plot(
+            x,
+            [rc if rc is not None else 0 for rc in random_chance],
+            "^--",
+            alpha=0.8,
+            label="Random guess",
+            color="C2",
+        )
     ax.axhline(0.30, color="gray", linestyle=":", alpha=0.7, label="30% threshold")
     ax.axhline(0.50, color="gray", linestyle="-.", alpha=0.7, label="50% threshold")
     ax.set_xticks(x)
-    ax.set_xticklabels([f"{q}\n{c}" for q, c in zip(qubits, config_ids)], fontsize=8, rotation=45, ha="right")
+    ax.set_xticklabels(
+        [f"{q}\n{c}" for q, c in zip(qubits, config_ids)], fontsize=8, rotation=45, ha="right"
+    )
     ax.set_ylabel("Success rate")
     ax.set_xlabel("Config (num_qubits)")
     ax.set_title("Grover QPU: Success rate vs circuit size")
@@ -137,7 +166,9 @@ def plot_success_vs_transpiled_depth(rows: List[Dict], out_dir: Path) -> None:
     mean_sr = [r["mean_success_rate"] for r in rows]
     config_ids = [r["config_id"] for r in rows]
     # Filter valid
-    valid = [(d, s, c) for d, s, c in zip(depth, mean_sr, config_ids) if d is not None and s is not None]
+    valid = [
+        (d, s, c) for d, s, c in zip(depth, mean_sr, config_ids) if d is not None and s is not None
+    ]
     if not valid:
         return
     depth, mean_sr, config_ids = zip(*sorted(valid, key=lambda x: x[0]))
@@ -170,7 +201,9 @@ def plot_advantage_ratio_vs_qubits(rows: List[Dict], out_dir: Path) -> None:
     ax.bar(x, adv, color=colors, alpha=0.8, edgecolor="black", linewidth=0.5)
     ax.axhline(2.0, color="black", linestyle="--", label="Quantum advantage (2× random)")
     ax.set_xticks(x)
-    ax.set_xticklabels([f"{q}\n{c}" for q, c in zip(qubits, config_ids)], fontsize=8, rotation=45, ha="right")
+    ax.set_xticklabels(
+        [f"{q}\n{c}" for q, c in zip(qubits, config_ids)], fontsize=8, rotation=45, ha="right"
+    )
     ax.set_ylabel("Advantage ratio (success / random chance)")
     ax.set_xlabel("Config (num_qubits)")
     ax.set_title("Grover QPU: Quantum advantage ratio by config")
@@ -221,12 +254,13 @@ def plot_threshold_pass(rows: List[Dict], out_dir: Path) -> None:
 def plot_success_by_opt_level(rows: List[Dict], out_dir: Path) -> None:
     """Per-config: success rate by optimization level (0,1,2,3)."""
     from collections import defaultdict
+
     data: Dict[str, Dict[int, float]] = defaultdict(dict)
     for r in rows:
         cid = r.get("config_id")
         if not cid:
             continue
-        for ind in (r.get("individual_results") or []):
+        for ind in r.get("individual_results") or []:
             opt = ind.get("optimization_level")
             sr = ind.get("success_rate")
             if opt is not None and sr is not None:
@@ -234,7 +268,9 @@ def plot_success_by_opt_level(rows: List[Dict], out_dir: Path) -> None:
     if not data:
         return
     # Sort configs by num_qubits then id (use rows for ordering)
-    id_to_qubits = {r.get("config_id"): (r.get("num_qubits") or 0, r.get("config_id") or "") for r in rows}
+    id_to_qubits = {
+        r.get("config_id"): (r.get("num_qubits") or 0, r.get("config_id") or "") for r in rows
+    }
     config_ids = sorted(data.keys(), key=lambda c: id_to_qubits.get(c, (0, c)))
     opts = sorted(set(opt for per in data.values() for opt in per))
     x = range(len(config_ids))
@@ -284,8 +320,12 @@ def run_visualizations(data_dir: Path, out_dir: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Grover QPU metrics visualization")
-    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR, help="QPU raw JSON directory")
-    parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Output directory for plots")
+    parser.add_argument(
+        "--data-dir", type=Path, default=DEFAULT_DATA_DIR, help="QPU raw JSON directory"
+    )
+    parser.add_argument(
+        "--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Output directory for plots"
+    )
     args = parser.parse_args()
     run_visualizations(args.data_dir, args.out_dir)
 

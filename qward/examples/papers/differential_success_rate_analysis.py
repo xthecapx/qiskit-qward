@@ -43,16 +43,16 @@ FIG_SIZE_HEATMAP = (18, 14)
 
 # DSR variant colors using ColorBrewer palette
 DSR_VARIANT_COLORS = {
-    "Michelson": COLORBREWER_PALETTE[1],      # Teal
-    "Ratio": COLORBREWER_PALETTE[2],          # Orange
-    "Log-Ratio": COLORBREWER_PALETTE[3],      # Purple
-    "Norm-Margin": COLORBREWER_PALETTE[4],    # Pink
+    "Michelson": COLORBREWER_PALETTE[1],  # Teal
+    "Ratio": COLORBREWER_PALETTE[2],  # Orange
+    "Log-Ratio": COLORBREWER_PALETTE[3],  # Purple
+    "Norm-Margin": COLORBREWER_PALETTE[4],  # Pink
 }
 
 # Algorithm colors for boxplots
 ALGORITHM_COLORS = {
-    "GROVER": COLORBREWER_PALETTE[1],         # Teal
-    "QFT": COLORBREWER_PALETTE[2],            # Orange
+    "GROVER": COLORBREWER_PALETTE[1],  # Teal
+    "QFT": COLORBREWER_PALETTE[2],  # Orange
     "TELEPORTATION": COLORBREWER_PALETTE[3],  # Purple
 }
 
@@ -91,21 +91,23 @@ DSR_VARIANTS = [
 
 def _apply_plot_style():
     """Apply consistent plot styling using shared styles."""
-    plt.rcParams.update({
-        'font.size': TICK_SIZE,
-        'axes.titlesize': TITLE_SIZE,
-        'axes.labelsize': LABEL_SIZE,
-        'xtick.labelsize': TICK_SIZE,
-        'ytick.labelsize': TICK_SIZE,
-        'legend.fontsize': LEGEND_SIZE,
-        'figure.titlesize': TITLE_SIZE,
-        'axes.linewidth': 1.5,
-        'axes.grid': True,
-        'grid.alpha': 0.7,
-        'grid.linestyle': '--',
-        'lines.linewidth': 3,
-        'lines.markersize': 12,
-    })
+    plt.rcParams.update(
+        {
+            "font.size": TICK_SIZE,
+            "axes.titlesize": TITLE_SIZE,
+            "axes.labelsize": LABEL_SIZE,
+            "xtick.labelsize": TICK_SIZE,
+            "ytick.labelsize": TICK_SIZE,
+            "legend.fontsize": LEGEND_SIZE,
+            "figure.titlesize": TITLE_SIZE,
+            "axes.linewidth": 1.5,
+            "axes.grid": True,
+            "grid.alpha": 0.7,
+            "grid.linestyle": "--",
+            "lines.linewidth": 3,
+            "lines.markersize": 12,
+        }
+    )
 
 
 def _to_float(value: str) -> Optional[float]:
@@ -123,7 +125,7 @@ def _to_float(value: str) -> Optional[float]:
 def _filter_teleportation(rows: List[Dict[str, str]], algorithm: str) -> List[Dict[str, str]]:
     """
     Filter Teleportation rows to focus on the range with visible degradation.
-    
+
     Applies limits on both qubits (payload size) and transpiled depth to
     keep all data points (including zeros) for honest visualization while
     focusing on the meaningful range. Also filters suspicious outliers
@@ -132,7 +134,7 @@ def _filter_teleportation(rows: List[Dict[str, str]], algorithm: str) -> List[Di
     # Only apply filtering to TELEPORTATION
     if algorithm != "TELEPORTATION":
         return rows
-    
+
     filtered = []
     for r in rows:
         if r.get("algorithm") != algorithm:
@@ -140,20 +142,20 @@ def _filter_teleportation(rows: List[Dict[str, str]], algorithm: str) -> List[Di
         qubits = _to_float(r.get("num_qubits", ""))
         depth = _to_float(r.get("transpiled_depth", ""))
         dsr = _to_float(r.get("dsr_michelson", ""))
-        
+
         # Apply qubit and depth filters
         qubits_ok = qubits is not None and qubits <= TELEPORTATION_MAX_QUBITS
         depth_ok = depth is None or depth <= TELEPORTATION_MAX_DEPTH
-        
+
         # Filter suspicious outliers: high DSR at high depth
         outlier_ok = True
         if depth is not None and dsr is not None:
             if depth > OUTLIER_DEPTH_THRESHOLD and dsr > OUTLIER_DSR_MAX:
                 outlier_ok = False
-        
+
         if qubits_ok and depth_ok and outlier_ok:
             filtered.append(r)
-    
+
     return filtered
 
 
@@ -180,7 +182,9 @@ def _filter_by_depth(
     return filtered
 
 
-def _filter_algorithm(rows: List[Dict[str, str]], algorithm: str) -> Tuple[List[Dict[str, str]], bool]:
+def _filter_algorithm(
+    rows: List[Dict[str, str]], algorithm: str
+) -> Tuple[List[Dict[str, str]], bool]:
     """
     Apply algorithm-specific filtering and return filtered rows and whether filtering was applied.
     """
@@ -202,12 +206,12 @@ def _filter_algorithm(rows: List[Dict[str, str]], algorithm: str) -> Tuple[List[
 def _filter_description(algorithm: str) -> str:
     """Return a short human-readable description of the filter applied to *algorithm*."""
     if algorithm == "TELEPORTATION":
-        return f'qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH // 1000}k'
+        return f"qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH // 1000}k"
     if algorithm == "GROVER" and GROVER_MAX_DEPTH is not None:
-        return f'depth < {GROVER_MAX_DEPTH / 1000:.1f}k'.replace('.0k', 'k')
+        return f"depth < {GROVER_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k")
     if algorithm == "QFT" and QFT_MAX_DEPTH is not None:
-        return f'depth < {QFT_MAX_DEPTH / 1000:.1f}k'.replace('.0k', 'k')
-    return ''
+        return f"depth < {QFT_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k")
+    return ""
 
 
 def _to_int(value: str) -> Optional[int]:
@@ -281,7 +285,7 @@ def _median_trend(points: List[Tuple[float, float]]) -> List[Tuple[float, float]
 
 
 def _grid_from_points(
-    points: List[Tuple[float, float, float]]
+    points: List[Tuple[float, float, float]],
 ) -> Tuple[List[float], List[float], np.ndarray]:
     xs = sorted({x for x, _, _ in points})
     ys = sorted({y for _, y, _ in points})
@@ -309,7 +313,9 @@ def _edges_from_centers(values: List[float]) -> List[float]:
 
 def _has_optimization_levels(rows: List[Dict[str, str]], algorithm: str) -> bool:
     """Check if an algorithm has meaningful optimization levels."""
-    opt_levels = {row.get("optimization_level", "") for row in rows if row.get("algorithm") == algorithm}
+    opt_levels = {
+        row.get("optimization_level", "") for row in rows if row.get("algorithm") == algorithm
+    }
     return len(opt_levels) > 1 or (len(opt_levels) == 1 and "" not in opt_levels)
 
 
@@ -333,7 +339,7 @@ def _plot_algorithm_boxplot(
 
     # For depth, bin values into ranges for readable boxplots
     use_binning = x_key == "transpiled_depth"
-    
+
     # Collect data grouped by x value (or binned x value)
     grouped_data: Dict[float, List[float]] = {}
     for r in algo_rows:
@@ -341,27 +347,27 @@ def _plot_algorithm_boxplot(
         dsr_val = _to_float(r.get("dsr_michelson", ""))
         if x_val is None or dsr_val is None:
             continue
-        
+
         # Apply binning for depth
         if use_binning:
             x_val = float(_bin_depth(x_val))
-        
+
         if x_val not in grouped_data:
             grouped_data[x_val] = []
         grouped_data[x_val].append(dsr_val)
-    
+
     if not grouped_data:
         return
 
     # Sort by x value and prepare for plotting
     x_values = sorted(grouped_data.keys())
-    
+
     fig, ax = plt.subplots(figsize=FIG_SIZE)
 
     # Prepare data for boxplots - use Michelson as primary
     box_data = []
     positions = []
-    
+
     for x_val in x_values:
         dsr_values = grouped_data[x_val]
         if dsr_values:
@@ -375,10 +381,10 @@ def _plot_algorithm_boxplot(
     # Calculate appropriate box width based on data spacing
     if len(positions) > 1:
         # Use minimum spacing between positions to set width
-        spacings = [positions[i+1] - positions[i] for i in range(len(positions)-1)]
+        spacings = [positions[i + 1] - positions[i] for i in range(len(positions) - 1)]
         min_spacing = min(spacings)
         x_range = max(positions) - min(positions)
-        
+
         # Box width: 70% of spacing, but capped at 15% of x-axis range
         box_width = min(min_spacing * 0.7, x_range * 0.15)
     else:
@@ -393,29 +399,45 @@ def _plot_algorithm_boxplot(
         widths=box_width,
         patch_artist=True,
         boxprops=dict(facecolor=color, alpha=0.7),
-        medianprops=dict(color='black', linewidth=3),
+        medianprops=dict(color="black", linewidth=3),
         whiskerprops=dict(linewidth=2),
         capprops=dict(linewidth=2),
-        flierprops=dict(marker='o', markerfacecolor='black', markersize=10, alpha=0.8, markeredgecolor='black'),
+        flierprops=dict(
+            marker="o", markerfacecolor="black", markersize=10, alpha=0.8, markeredgecolor="black"
+        ),
     )
 
     # Also overlay median trend line
     medians = [statistics.median(d) for d in box_data]
-    ax.plot(positions, medians, 'o-', color='black', linewidth=3, markersize=14, label='Median DSR', zorder=5)
+    ax.plot(
+        positions,
+        medians,
+        "o-",
+        color="black",
+        linewidth=3,
+        markersize=14,
+        label="Median DSR",
+        zorder=5,
+    )
 
     # Styling
-    display_label = f'{x_label} (binned)' if use_binning else x_label
-    ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight='bold')
-    ax.set_ylabel('DSR (Michelson)', fontsize=LABEL_SIZE, fontweight='bold')
-    
+    display_label = f"{x_label} (binned)" if use_binning else x_label
+    ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+
     # Add note if data was filtered
-    desc = _filter_description(algorithm) if is_filtered else ''
-    title_suffix = f' ({desc})' if desc else ''
-    ax.set_title(f'{algorithm} - DSR vs {display_label}{title_suffix}', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
-    
+    desc = _filter_description(algorithm) if is_filtered else ""
+    title_suffix = f" ({desc})" if desc else ""
+    ax.set_title(
+        f"{algorithm} - DSR vs {display_label}{title_suffix}",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+        pad=20,
+    )
+
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
-    
+
     # Set x-axis ticks with appropriate labels
     ax.set_xticks(positions)
     if use_binning:
@@ -426,31 +448,31 @@ def _plot_algorithm_boxplot(
             end = int(p + DEPTH_BIN_SIZE)
             # Format as "Xk" for thousands
             if start >= 1000:
-                start_str = f'{start/1000:.1f}k'.replace('.0k', 'k')
+                start_str = f"{start/1000:.1f}k".replace(".0k", "k")
             else:
                 start_str = str(start)
             if end >= 1000:
-                end_str = f'{end/1000:.1f}k'.replace('.0k', 'k')
+                end_str = f"{end/1000:.1f}k".replace(".0k", "k")
             else:
                 end_str = str(end)
-            labels.append(f'{start_str}-{end_str}')
-        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=TICK_SIZE - 4)
+            labels.append(f"{start_str}-{end_str}")
+        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=TICK_SIZE - 4)
     else:
-        ax.set_xticklabels([f'{int(p)}' for p in positions])
-    
+        ax.set_xticklabels([f"{int(p)}" for p in positions])
+
     # Add padding to x-axis
     x_padding = (max(positions) - min(positions)) * 0.1 if len(positions) > 1 else 0.5
     ax.set_xlim(min(positions) - x_padding, max(positions) + x_padding)
 
     # Legend
     legend_elements = [
-        Patch(facecolor=color, alpha=0.7, label=f'{algorithm} DSR'),
+        Patch(facecolor=color, alpha=0.7, label=f"{algorithm} DSR"),
     ]
-    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc='upper right')
+    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
     plt.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    fig.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -482,38 +504,62 @@ def _plot_algorithm_line(
             y_val = _to_float(r.get(variant_key, ""))
             if x_val is not None and y_val is not None:
                 points.append((x_val, y_val))
-        
+
         if not points:
             continue
-        
+
         xs, ys = zip(*points)
-        
+
         # Scatter with transparency
-        marker = MARKER_STYLES.get(idx + 1, 'o')
-        ax.scatter(xs, ys, s=MARKER_SIZE, color=color, alpha=0.4, edgecolors='none', marker=marker, label=None)
-        
+        marker = MARKER_STYLES.get(idx + 1, "o")
+        ax.scatter(
+            xs,
+            ys,
+            s=MARKER_SIZE,
+            color=color,
+            alpha=0.4,
+            edgecolors="none",
+            marker=marker,
+            label=None,
+        )
+
         # Median trend line
         trend = _median_trend(points)
         tx, ty = zip(*trend)
-        ax.plot(tx, ty, marker=marker, linestyle='-', color=color, linewidth=3, markersize=14, label=label, zorder=5)
+        ax.plot(
+            tx,
+            ty,
+            marker=marker,
+            linestyle="-",
+            color=color,
+            linewidth=3,
+            markersize=14,
+            label=label,
+            zorder=5,
+        )
 
     # Styling
-    ax.set_xlabel(x_label, fontsize=LABEL_SIZE, fontweight='bold')
-    ax.set_ylabel('DSR', fontsize=LABEL_SIZE, fontweight='bold')
-    
+    ax.set_xlabel(x_label, fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
+
     # Add note if data was filtered
-    desc = _filter_description(algorithm) if is_filtered else ''
-    title_suffix = f' ({desc})' if desc else ''
-    ax.set_title(f'{algorithm} - DSR Variants vs {x_label}{title_suffix}', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
-    
+    desc = _filter_description(algorithm) if is_filtered else ""
+    title_suffix = f" ({desc})" if desc else ""
+    ax.set_title(
+        f"{algorithm} - DSR Variants vs {x_label}{title_suffix}",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+        pad=20,
+    )
+
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
-    
-    ax.legend(fontsize=LEGEND_SIZE, loc='upper right', framealpha=0.9)
+
+    ax.legend(fontsize=LEGEND_SIZE, loc="upper right", framealpha=0.9)
 
     plt.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    fig.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -521,7 +567,7 @@ def _create_log_colormap():
     """Create a colormap that emphasizes low values (for Michelson)."""
     # Use a power-law normalization to spread out low values
     colors = plt.cm.viridis(np.linspace(0, 1, 256))
-    return mcolors.LinearSegmentedColormap.from_list('viridis_enhanced', colors)
+    return mcolors.LinearSegmentedColormap.from_list("viridis_enhanced", colors)
 
 
 def _plot_algorithm_heatmap(
@@ -569,17 +615,22 @@ def _plot_algorithm_heatmap(
         # Power normalization spreads out low values
         norm = mcolors.PowerNorm(gamma=0.5, vmin=0.0, vmax=1.0)
         mesh = ax.pcolormesh(
-            x_edges, y_edges, z_mat,
+            x_edges,
+            y_edges,
+            z_mat,
             cmap="viridis",
             shading="auto",
             norm=norm,
         )
     else:
         mesh = ax.pcolormesh(
-            x_edges, y_edges, z_mat,
+            x_edges,
+            y_edges,
+            z_mat,
             cmap="viridis",
             shading="auto",
-            vmin=0.0, vmax=1.0,
+            vmin=0.0,
+            vmax=1.0,
         )
 
     # Add value annotations on each cell with larger font
@@ -589,18 +640,22 @@ def _plot_algorithm_heatmap(
             val = z_mat[yi, xi]
             if not np.isnan(val):
                 # Choose text color based on background
-                text_color = 'white' if val < 0.5 else 'black'
+                text_color = "white" if val < 0.5 else "black"
                 ax.text(
-                    x, y, f'{val:.2f}',
-                    ha='center', va='center',
-                    fontsize=annotation_size, fontweight='bold',
+                    x,
+                    y,
+                    f"{val:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=annotation_size,
+                    fontweight="bold",
                     color=text_color,
                 )
 
     # Styling
-    ax.set_xlabel('Number of Qubits', fontsize=LABEL_SIZE, fontweight='bold')
-    ax.set_ylabel('Transpiled Depth', fontsize=LABEL_SIZE, fontweight='bold')
-    
+    ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("Transpiled Depth", fontsize=LABEL_SIZE, fontweight="bold")
+
     # Build title with notes
     notes = []
     if is_filtered:
@@ -608,27 +663,29 @@ def _plot_algorithm_heatmap(
         if desc:
             notes.append(desc)
     if use_log_scale or variant_key == "dsr_michelson":
-        notes.append('enhanced contrast')
+        notes.append("enhanced contrast")
     title_suffix = f" ({', '.join(notes)})" if notes else ""
-    
+
     ax.set_title(
-        f'{algorithm} - {variant_label} DSR Heatmap{title_suffix}',
-        fontsize=TITLE_SIZE, fontweight='bold', pad=20
+        f"{algorithm} - {variant_label} DSR Heatmap{title_suffix}",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+        pad=20,
     )
-    
-    ax.tick_params(axis='both', which='major', labelsize=TICK_SIZE)
+
+    ax.tick_params(axis="both", which="major", labelsize=TICK_SIZE)
     ax.set_xticks(xs_grid)
-    ax.set_xticklabels([f'{int(x)}' for x in xs_grid])
+    ax.set_xticklabels([f"{int(x)}" for x in xs_grid])
 
     # Colorbar with larger font
     cbar = fig.colorbar(mesh, ax=ax, shrink=0.8)
     cbar.ax.tick_params(labelsize=TICK_SIZE)
-    cbar.set_label('DSR', fontsize=LABEL_SIZE, fontweight='bold')
+    cbar.set_label("DSR", fontsize=LABEL_SIZE, fontweight="bold")
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     filename = f"{algorithm.lower()}_{variant_key}_heatmap.png"
-    fig.savefig(output_dir / filename, dpi=300, bbox_inches='tight', facecolor='white')
+    fig.savefig(output_dir / filename, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -638,9 +695,9 @@ def _plot_combined_comparison(
 ) -> None:
     """Create a combined comparison plot of all algorithms."""
     algorithms = sorted({r.get("algorithm", "") for r in rows if r.get("algorithm")})
-    
+
     fig, ax = plt.subplots(figsize=FIG_SIZE)
-    
+
     # Apply algorithm-specific filtering and find available qubits
     filtered_data = {}
     algo_qubits = {}
@@ -652,28 +709,28 @@ def _plot_combined_comparison(
             q = _to_float(r.get("num_qubits", ""))
             if q is not None:
                 algo_qubits[algo].add(q)
-    
+
     # Use all qubits from all algorithms (including non-overlapping)
     # This ensures we show the full picture, including where only one algorithm has data
     all_qubits = set()
     for qs in algo_qubits.values():
         all_qubits.update(qs)
-    
+
     qubits = sorted(all_qubits)
-    
+
     if not qubits:
         plt.close(fig)
         return
 
     n_algos = len(algorithms)
     width = 0.25
-    
+
     for i, algo in enumerate(algorithms):
         algo_rows = filtered_data[algo]
-        
+
         box_data = []
         positions = []
-        
+
         for q in qubits:
             dsr_values = [
                 _to_float(r.get("dsr_michelson", ""))
@@ -683,8 +740,8 @@ def _plot_combined_comparison(
             dsr_values = [v for v in dsr_values if v is not None]
             if dsr_values:
                 box_data.append(dsr_values)
-                positions.append(q + (i - n_algos/2 + 0.5) * width)
-        
+                positions.append(q + (i - n_algos / 2 + 0.5) * width)
+
         if box_data:
             color = ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8])
             bp = ax.boxplot(
@@ -694,32 +751,34 @@ def _plot_combined_comparison(
                 patch_artist=True,
                 showfliers=False,  # Hide outliers for cleaner visualization
                 boxprops=dict(facecolor=color, alpha=0.7),
-                medianprops=dict(color='black', linewidth=3),
+                medianprops=dict(color="black", linewidth=3),
                 whiskerprops=dict(linewidth=2),
                 capprops=dict(linewidth=2),
             )
 
     # Styling
-    ax.set_xlabel('Number of Qubits', fontsize=LABEL_SIZE, fontweight='bold')
-    ax.set_ylabel('DSR (Michelson)', fontsize=LABEL_SIZE, fontweight='bold')
-    ax.set_title('DSR Comparison Across Algorithms', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
-    
+    ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_title("DSR Comparison Across Algorithms", fontsize=TITLE_SIZE, fontweight="bold", pad=20)
+
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
-    
+
     ax.set_xticks(qubits)
-    ax.set_xticklabels([f'{int(q)}' for q in qubits])
-    
+    ax.set_xticklabels([f"{int(q)}" for q in qubits])
+
     # Legend
     legend_elements = [
         Patch(facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]), alpha=0.7, label=algo)
         for algo in algorithms
     ]
-    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc='upper right')
+    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_dir / "combined_dsr_comparison.png", dpi=300, bbox_inches='tight', facecolor='white')
+    fig.savefig(
+        output_dir / "combined_dsr_comparison.png", dpi=300, bbox_inches="tight", facecolor="white"
+    )
     plt.close(fig)
 
 
@@ -735,24 +794,25 @@ def _render_region_on_ax(
 ) -> set:
     """
     Render DSR region bands for all algorithms onto a single Axes.
-    
+
     Returns the set of x-values plotted (for tick configuration).
     """
     all_xs = set()
-    
+
     for algo in algorithms:
         algo_rows = filtered_data[algo]
-        
+
         opt_rows = [
-            r for r in algo_rows
+            r
+            for r in algo_rows
             if r.get("optimization_level", "") == opt_level or r.get("optimization_level", "") == ""
         ]
-        
+
         if not opt_rows:
             continue
-        
+
         color = ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8])
-        
+
         # Collect DSR values grouped by x
         grouped = {}
         for r in opt_rows:
@@ -767,28 +827,35 @@ def _render_region_on_ax(
             if x not in grouped:
                 grouped[x] = []
             grouped[x].append(dsr)
-        
+
         if not grouped:
             continue
-        
+
         xs = sorted(grouped.keys())
         all_xs.update(xs)
-        
+
         medians = np.array([np.median(grouped[x]) for x in xs])
         q25s = np.array([np.percentile(grouped[x], 25) for x in xs])
         q75s = np.array([np.percentile(grouped[x], 75) for x in xs])
         q10s = np.array([np.percentile(grouped[x], 10) for x in xs])
         q90s = np.array([np.percentile(grouped[x], 90) for x in xs])
         xs_arr = np.array(xs)
-        
+
         ax.fill_between(xs_arr, q10s, q90s, color=color, alpha=0.15)
         ax.fill_between(xs_arr, q25s, q75s, color=color, alpha=0.4)
         ax.plot(
-            xs_arr, medians, color=color, linewidth=3, linestyle='-',
-            marker='o', markersize=10, markeredgecolor='white', markeredgewidth=2,
+            xs_arr,
+            medians,
+            color=color,
+            linewidth=3,
+            linestyle="-",
+            marker="o",
+            markersize=10,
+            markeredgecolor="white",
+            markeredgewidth=2,
             zorder=5,
         )
-    
+
     return all_xs
 
 
@@ -803,8 +870,8 @@ ALGO_DISPLAY_NAMES = {
 def _format_depth_tick(value: float) -> str:
     """Format a depth value for tick labels (e.g., 1500 -> '1.5k')."""
     if value >= 1000:
-        s = f'{value/1000:.1f}k'
-        return s.replace('.0k', 'k')
+        s = f"{value/1000:.1f}k"
+        return s.replace(".0k", "k")
     return str(int(value))
 
 
@@ -818,61 +885,83 @@ def _plot_combined_regions_by_optimization(
 ) -> None:
     """
     Create DSR region plots, one per optimization level.
-    
+
     This visualization shows shaded regions representing percentile bands
     for each algorithm's DSR decay, separated by optimization level for clarity.
     """
     algorithms = sorted({r.get("algorithm", "") for r in rows if r.get("algorithm")})
-    opt_levels = sorted({r.get("optimization_level", "") for r in rows if r.get("optimization_level")})
-    
+    opt_levels = sorted(
+        {r.get("optimization_level", "") for r in rows if r.get("optimization_level")}
+    )
+
     use_binning = x_key == "transpiled_depth"
-    
+
     # Apply algorithm-specific filtering
     filtered_data = {}
     for algo in algorithms:
         algo_rows, _ = _filter_algorithm(rows, algo)
         filtered_data[algo] = algo_rows
-    
+
     for opt_level in opt_levels:
         fig, ax = plt.subplots(figsize=(12, 8))
-        
+
         all_xs = _render_region_on_ax(
-            ax, [], opt_level, algorithms, filtered_data, x_key, use_binning, max_x,
+            ax,
+            [],
+            opt_level,
+            algorithms,
+            filtered_data,
+            x_key,
+            use_binning,
+            max_x,
         )
-        
+
         if not all_xs:
             plt.close(fig)
             continue
-        
+
         xs = sorted(all_xs)
-        
-        display_label = f'{x_label} (binned)' if use_binning else x_label
-        ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight='bold')
-        ax.set_ylabel('DSR (Michelson)', fontsize=LABEL_SIZE, fontweight='bold')
-        ax.set_title(f'DSR Comparison - Optimization Level {opt_level}', fontsize=TITLE_SIZE, fontweight='bold', pad=20)
-        
+
+        display_label = f"{x_label} (binned)" if use_binning else x_label
+        ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
+        ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+        ax.set_title(
+            f"DSR Comparison - Optimization Level {opt_level}",
+            fontsize=TITLE_SIZE,
+            fontweight="bold",
+            pad=20,
+        )
+
         apply_axes_defaults(ax)
         ax.set_ylim(-0.05, 1.05)
-        
+
         ax.set_xticks(xs)
         if use_binning:
-            ax.set_xticklabels([_format_depth_tick(x) for x in xs], rotation=45, ha='right')
+            ax.set_xticklabels([_format_depth_tick(x) for x in xs], rotation=45, ha="right")
         else:
-            ax.set_xticklabels([f'{int(x)}' for x in xs])
-        
+            ax.set_xticklabels([f"{int(x)}" for x in xs])
+
         x_padding = (max(xs) - min(xs)) * 0.08 if len(xs) > 1 else 0.5
         ax.set_xlim(min(xs) - x_padding, max(xs) + x_padding)
-        
+
         legend_elements = [
-            Patch(facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
-                  alpha=0.6, label=ALGO_DISPLAY_NAMES.get(algo, algo))
+            Patch(
+                facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
+                alpha=0.6,
+                label=ALGO_DISPLAY_NAMES.get(algo, algo),
+            )
             for algo in algorithms
         ]
-        ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc='upper right', framealpha=0.9)
-        
+        ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right", framealpha=0.9)
+
         plt.tight_layout()
         output_dir.mkdir(parents=True, exist_ok=True)
-        fig.savefig(output_dir / f"combined_dsr_regions{file_suffix}_opt{opt_level}.png", dpi=300, bbox_inches='tight', facecolor='white')
+        fig.savefig(
+            output_dir / f"combined_dsr_regions{file_suffix}_opt{opt_level}.png",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
+        )
         plt.close(fig)
 
 
@@ -888,73 +977,97 @@ def _plot_combined_regions_grid(
     Create a single 2x2 figure with all optimization levels side by side.
     """
     algorithms = sorted({r.get("algorithm", "") for r in rows if r.get("algorithm")})
-    opt_levels = sorted({r.get("optimization_level", "") for r in rows if r.get("optimization_level")})
-    
+    opt_levels = sorted(
+        {r.get("optimization_level", "") for r in rows if r.get("optimization_level")}
+    )
+
     if not opt_levels:
         return
-    
+
     use_binning = x_key == "transpiled_depth"
-    
+
     filtered_data = {}
     for algo in algorithms:
         algo_rows, _ = _filter_algorithm(rows, algo)
         filtered_data[algo] = algo_rows
-    
+
     fig, axes = plt.subplots(2, 2, figsize=(20, 14), sharex=False, sharey=True)
     axes_flat = axes.flatten()
-    
+
     for idx, opt_level in enumerate(opt_levels[:4]):
         ax = axes_flat[idx]
-        
+
         all_xs = _render_region_on_ax(
-            ax, [], opt_level, algorithms, filtered_data, x_key, use_binning, max_x,
+            ax,
+            [],
+            opt_level,
+            algorithms,
+            filtered_data,
+            x_key,
+            use_binning,
+            max_x,
         )
-        
+
         if not all_xs:
             continue
-        
+
         xs = sorted(all_xs)
-        
-        ax.set_title(f'Optimization Level {opt_level}', fontsize=TITLE_SIZE - 4, fontweight='bold')
+
+        ax.set_title(f"Optimization Level {opt_level}", fontsize=TITLE_SIZE - 4, fontweight="bold")
         ax.set_ylim(-0.05, 1.05)
         ax.set_xticks(xs)
         if use_binning:
-            ax.set_xticklabels([_format_depth_tick(x) for x in xs], rotation=45, ha='right', fontsize=TICK_SIZE - 4)
+            ax.set_xticklabels(
+                [_format_depth_tick(x) for x in xs], rotation=45, ha="right", fontsize=TICK_SIZE - 4
+            )
         else:
-            ax.set_xticklabels([f'{int(x)}' for x in xs], fontsize=TICK_SIZE - 2)
-        ax.tick_params(axis='y', labelsize=TICK_SIZE - 2)
-        
+            ax.set_xticklabels([f"{int(x)}" for x in xs], fontsize=TICK_SIZE - 2)
+        ax.tick_params(axis="y", labelsize=TICK_SIZE - 2)
+
         x_padding = (max(xs) - min(xs)) * 0.08 if len(xs) > 1 else 0.5
         ax.set_xlim(min(xs) - x_padding, max(xs) + x_padding)
-        
+
         apply_axes_defaults(ax)
-        
-        display_label = f'{x_label} (binned)' if use_binning else x_label
+
+        display_label = f"{x_label} (binned)" if use_binning else x_label
         if idx >= 2:
-            ax.set_xlabel(display_label, fontsize=LABEL_SIZE - 2, fontweight='bold')
+            ax.set_xlabel(display_label, fontsize=LABEL_SIZE - 2, fontweight="bold")
         if idx % 2 == 0:
-            ax.set_ylabel('DSR (Michelson)', fontsize=LABEL_SIZE - 2, fontweight='bold')
-    
+            ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE - 2, fontweight="bold")
+
     legend_elements = [
-        Patch(facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
-              alpha=0.6, label=ALGO_DISPLAY_NAMES.get(algo, algo))
+        Patch(
+            facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
+            alpha=0.6,
+            label=ALGO_DISPLAY_NAMES.get(algo, algo),
+        )
         for algo in algorithms
     ]
     fig.legend(
-        handles=legend_elements, fontsize=LEGEND_SIZE,
-        loc='upper center', ncol=len(algorithms),
-        framealpha=0.9, bbox_to_anchor=(0.5, 0.98),
+        handles=legend_elements,
+        fontsize=LEGEND_SIZE,
+        loc="upper center",
+        ncol=len(algorithms),
+        framealpha=0.9,
+        bbox_to_anchor=(0.5, 0.98),
     )
-    
-    title_axis = 'Qubits' if x_key == 'num_qubits' else 'Circuit Depth'
+
+    title_axis = "Qubits" if x_key == "num_qubits" else "Circuit Depth"
     fig.suptitle(
-        f'DSR vs {title_axis} Across Optimization Levels',
-        fontsize=TITLE_SIZE, fontweight='bold', y=1.01,
+        f"DSR vs {title_axis} Across Optimization Levels",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+        y=1.01,
     )
-    
+
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     output_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_dir / f"combined_dsr_regions{file_suffix}_grid.png", dpi=300, bbox_inches='tight', facecolor='white')
+    fig.savefig(
+        output_dir / f"combined_dsr_regions{file_suffix}_grid.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
     plt.close(fig)
 
 
@@ -999,7 +1112,9 @@ def main() -> int:
     default_csv = repo_root / "examples" / "papers" / "DSR_result.csv"
     default_out = repo_root / "examples" / "papers" / "plots"
 
-    parser = argparse.ArgumentParser(description="Analyze DSR_result.csv and plot degradation trends.")
+    parser = argparse.ArgumentParser(
+        description="Analyze DSR_result.csv and plot degradation trends."
+    )
     parser.add_argument("--input", type=Path, default=default_csv)
     parser.add_argument("--out-dir", type=Path, default=default_out)
     args = parser.parse_args()
@@ -1021,30 +1136,50 @@ def main() -> int:
 
         # Generate boxplot (primary visualization)
         _plot_algorithm_boxplot(
-            rows, algorithm, "num_qubits", "Number of Qubits",
+            rows,
+            algorithm,
+            "num_qubits",
+            "Number of Qubits",
             args.out_dir / f"{algorithm.lower()}_dsr_boxplot_qubits.png",
         )
-        
+
         # Generate line plot with all variants
         _plot_algorithm_line(
-            rows, algorithm, "num_qubits", "Number of Qubits",
+            rows,
+            algorithm,
+            "num_qubits",
+            "Number of Qubits",
             args.out_dir / f"{algorithm.lower()}_dsr_variants_qubits.png",
         )
-        
+
         # Generate depth plots if available
-        if any(_to_float(row.get("transpiled_depth", "")) is not None for row in rows if row.get("algorithm") == algorithm):
+        if any(
+            _to_float(row.get("transpiled_depth", "")) is not None
+            for row in rows
+            if row.get("algorithm") == algorithm
+        ):
             _plot_algorithm_boxplot(
-                rows, algorithm, "transpiled_depth", "Transpiled Depth",
+                rows,
+                algorithm,
+                "transpiled_depth",
+                "Transpiled Depth",
                 args.out_dir / f"{algorithm.lower()}_dsr_boxplot_depth.png",
             )
             _plot_algorithm_line(
-                rows, algorithm, "transpiled_depth", "Transpiled Depth",
+                rows,
+                algorithm,
+                "transpiled_depth",
+                "Transpiled Depth",
                 args.out_dir / f"{algorithm.lower()}_dsr_variants_depth.png",
             )
-            
+
             # Generate heatmap for Michelson only (our selected metric)
             _plot_algorithm_heatmap(
-                rows, algorithm, "dsr_michelson", "Michelson", args.out_dir,
+                rows,
+                algorithm,
+                "dsr_michelson",
+                "Michelson",
+                args.out_dir,
                 use_log_scale=True,
             )
 
@@ -1058,32 +1193,40 @@ def main() -> int:
         print(f"  - Peak mismatch rate: {mismatch_rate:.1f}%")
         if "Michelson" in stats.get("variants", {}):
             mic = stats["variants"]["Michelson"]
-            print(f"  - Michelson DSR: mean={mic['mean']:.3f}, median={mic['median']:.3f}, range=[{mic['min']:.3f}, {mic['max']:.3f}]")
+            print(
+                f"  - Michelson DSR: mean={mic['mean']:.3f}, median={mic['median']:.3f}, range=[{mic['min']:.3f}, {mic['max']:.3f}]"
+            )
         print()
 
     # Generate combined comparison plots
     _plot_combined_comparison(rows, args.out_dir)
     print("Generated combined comparison plot (boxplots)")
-    
+
     # DSR vs Qubits (individual + grid)
     _plot_combined_regions_by_optimization(rows, args.out_dir)
     print("Generated DSR region plots by optimization level (qubits)")
-    
+
     _plot_combined_regions_grid(rows, args.out_dir)
     print("Generated DSR regions 2x2 grid (qubits)")
-    
+
     # DSR vs Circuit Depth (individual + grid)
     # Cap at 2k to keep the region where all three algorithms overlap readable
     _plot_combined_regions_by_optimization(
-        rows, args.out_dir,
-        x_key="transpiled_depth", x_label="Transpiled Depth", file_suffix="_depth",
+        rows,
+        args.out_dir,
+        x_key="transpiled_depth",
+        x_label="Transpiled Depth",
+        file_suffix="_depth",
         max_x=2000,
     )
     print("Generated DSR region plots by optimization level (depth < 2k)")
-    
+
     _plot_combined_regions_grid(
-        rows, args.out_dir,
-        x_key="transpiled_depth", x_label="Transpiled Depth", file_suffix="_depth",
+        rows,
+        args.out_dir,
+        x_key="transpiled_depth",
+        x_label="Transpiled Depth",
+        file_suffix="_depth",
         max_x=2000,
     )
     print("Generated DSR regions 2x2 grid (depth < 2k)")
