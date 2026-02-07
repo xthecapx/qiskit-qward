@@ -32,4 +32,3 @@ class TestMatrixProductVerificationAlgorithm(unittest.TestCase):
 
     def test_bit_order_error_state_mapping(self):
         self.assertTrue(mpv_tests.test_bit_order_error_state_mapping())
-
