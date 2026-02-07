@@ -9,8 +9,11 @@ This module provides:
 These test cases serve as the foundation for validating the quantum implementation.
 """
 
+# Matrix verification examples intentionally use A, B, C notation.
+# pylint: disable=invalid-name
+
 import numpy as np
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Any
 from dataclasses import dataclass
 
 
@@ -67,7 +70,6 @@ def freivalds_verify(
         >>> freivalds_verify(A, B, C)
         True
     """
-    n = A.shape[0]
     p = C.shape[1] if len(C.shape) > 1 else 1
 
     for _ in range(iterations):
@@ -92,23 +94,22 @@ def freivalds_verify(
 
 def freivalds_verify_with_details(
     A: np.ndarray, B: np.ndarray, C: np.ndarray, iterations: int = 10
-) -> Tuple[bool, dict]:
+) -> Tuple[bool, Dict[str, Any]]:
     """
     Freivalds' algorithm with detailed statistics.
 
     Returns verification result and statistics about the verification process.
     """
-    n = A.shape[0]
     p = C.shape[1] if len(C.shape) > 1 else 1
 
-    stats = {
+    stats: Dict[str, Any] = {
         "iterations": iterations,
         "failures": 0,
         "max_difference": 0.0,
         "random_vectors_used": [],
     }
 
-    for i in range(iterations):
+    for _ in range(iterations):
         r = np.random.randint(0, 2, size=(p, 1)).astype(float)
         stats["random_vectors_used"].append(r.flatten().tolist())
 
@@ -271,7 +272,7 @@ def create_test_cases() -> List[VerificationTestCase]:
 # =============================================================================
 
 
-def run_all_tests(verbose: bool = True) -> dict:
+def run_all_tests(verbose: bool = True) -> Dict[str, Any]:
     """
     Run all test cases and report results.
 
@@ -282,7 +283,7 @@ def run_all_tests(verbose: bool = True) -> dict:
         Dictionary with test results summary
     """
     test_cases = create_test_cases()
-    results = {"total": len(test_cases), "passed": 0, "failed": 0, "details": []}
+    results: Dict[str, Any] = {"total": len(test_cases), "passed": 0, "failed": 0, "details": []}
 
     if verbose:
         print("=" * 60)
@@ -386,8 +387,7 @@ def demonstrate_freivalds_algorithm():
             print(f"  Difference = {(ABr - Cr).flatten()} ≠ 0")
             detected = True
             break
-        else:
-            print(f"\nIteration {i+1}: No error detected yet (lucky vector)")
+        print(f"\nIteration {i+1}: No error detected yet (lucky vector)")
 
     if not detected:
         print("\nNote: Error not detected in 10 iterations (very rare!)")

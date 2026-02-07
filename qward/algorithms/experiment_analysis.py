@@ -22,7 +22,7 @@ from scipy import stats
 # =============================================================================
 
 
-def compute_descriptive_stats(success_rates: List[float]) -> Dict[str, float]:
+def compute_descriptive_stats(success_rates: List[float]) -> Dict[str, Any]:
     """
     Compute comprehensive descriptive statistics for success rates.
 
@@ -444,10 +444,11 @@ def compare_noise_models(
     """
     Compare success rate distributions across multiple noise models.
     """
-    comparison = {
+    by_noise_model: Dict[str, Dict[str, Any]] = {}
+    comparison: Dict[str, Any] = {
         "noise_models": list(results_by_noise.keys()),
         "baseline": baseline_key,
-        "by_noise_model": {},
+        "by_noise_model": by_noise_model,
         "ranking": [],
     }
 
@@ -473,10 +474,10 @@ def compare_noise_models(
                 "effect_size": impact.get("effect_size", {}).get("interpretation", "Unknown"),
             }
 
-        comparison["by_noise_model"][noise_model] = model_results
+        by_noise_model[noise_model] = model_results
 
     ranked = sorted(
-        comparison["by_noise_model"].items(),
+        by_noise_model.items(),
         key=lambda x: x[1]["mean"],
         reverse=True,
     )
@@ -602,7 +603,7 @@ def load_batch_results(
     batch_results: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
     for pair, path in latest_files.items():
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             batch_results[pair] = json.load(f)
 
     return batch_results
@@ -639,7 +640,7 @@ def build_noise_means(
     Build {noise_id: [mean_success_rate per config]} for cross-noise comparison.
     """
     results_by_noise: Dict[str, List[float]] = {}
-    for config_id, noise_results in results_by_config.items():
+    for _config_id, noise_results in results_by_config.items():
         for noise_id, rates in noise_results.items():
             if rates:
                 results_by_noise.setdefault(noise_id, []).append(float(np.mean(rates)))

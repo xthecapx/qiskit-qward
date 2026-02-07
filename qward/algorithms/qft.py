@@ -166,8 +166,8 @@ class QFTCircuitGenerator:
                 raise ValueError("period must be at least 1")
             self.period = period
             self.tolerance = 1  # Allow ±1 in peak detection
-            N = 2**num_qubits
-            if N % self.period != 0:
+            num_states = 2**num_qubits
+            if num_states % self.period != 0:
                 raise ValueError("period must divide 2**num_qubits for exact peak locations")
 
         else:
@@ -299,8 +299,8 @@ class QFTCircuitGenerator:
             True if outcome is near an expected peak
         """
         measured_value = int(outcome, 2)
-        N = 2**self.num_qubits
-        expected_peak = N // self.period
+        num_states = 2**self.num_qubits
+        expected_peak = num_states // self.period
 
         # Check if close to any multiple of expected_peak
         if expected_peak == 0:
@@ -330,9 +330,9 @@ class QFTCircuitGenerator:
         Returns:
             Dictionary with expected peaks and their probabilities
         """
-        N = 2**self.num_qubits
+        num_states = 2**self.num_qubits
         peaks = {}
-        expected_peak = N // self.period
+        expected_peak = num_states // self.period
 
         if expected_peak == 0:
             return {"0" * self.num_qubits: 1.0}
@@ -342,7 +342,7 @@ class QFTCircuitGenerator:
         prob_per_peak = 1.0 / num_peaks
 
         for i in range(num_peaks):
-            peak_value = (i * expected_peak) % N
+            peak_value = (i * expected_peak) % num_states
             state = format(peak_value, f"0{self.num_qubits}b")
             peaks[state] = prob_per_peak
 

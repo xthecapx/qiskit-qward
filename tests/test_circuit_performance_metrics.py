@@ -1,5 +1,8 @@
 """Tests for qward CircuitPerformanceMetrics class."""
 
+# Test modules naturally contain many public `test_*` methods.
+# pylint: disable=too-many-public-methods
+
 import unittest
 from unittest.mock import Mock, MagicMock
 from qiskit import QuantumCircuit

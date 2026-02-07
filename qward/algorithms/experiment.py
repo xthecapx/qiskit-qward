@@ -41,6 +41,7 @@ from typing import (
     TypeVar,
     Callable,
     Union,
+    cast,
 )
 
 import numpy as np
@@ -204,6 +205,9 @@ class CampaignProgress:
 # =============================================================================
 
 
+# This abstract runner intentionally exposes broad constructor/method signatures
+# to support multiple algorithm families through one generic interface.
+# pylint: disable=too-many-positional-arguments
 class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
     """
     Abstract base class for experiment runners.
@@ -543,11 +547,14 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         rates = [r.success_rate for r in results]
 
         # Statistical analysis
-        analysis = self.analyze_batch(
-            success_rates=rates,
-            config_id=config_id,
-            noise_model=noise_id,
-            ideal_rates=ideal_rates,
+        analysis = cast(
+            Optional[AnalysisT],
+            self.analyze_batch(
+                success_rates=rates,
+                config_id=config_id,
+                noise_model=noise_id,
+                ideal_rates=ideal_rates,
+            ),
         )
 
         if verbose and analysis is not None:
@@ -580,20 +587,23 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         backend_name: str,
     ) -> BatchT:
         """Create batch result. Override for custom batch result types."""
-        return BaseBatchResult(
-            config_id=config_id,
-            noise_model=noise_model,
-            num_runs=num_runs,
-            shots_per_run=shots_per_run,
-            backend_type=backend_type,
-            backend_name=backend_name,
-            mean_success_rate=float(np.mean(rates)),
-            std_success_rate=float(np.std(rates, ddof=1)) if len(rates) > 1 else 0.0,
-            min_success_rate=float(np.min(rates)),
-            max_success_rate=float(np.max(rates)),
-            median_success_rate=float(np.median(rates)),
-            analysis=analysis,
-            results=results,
+        return cast(
+            BatchT,
+            BaseBatchResult(
+                config_id=config_id,
+                noise_model=noise_model,
+                num_runs=num_runs,
+                shots_per_run=shots_per_run,
+                backend_type=backend_type,
+                backend_name=backend_name,
+                mean_success_rate=float(np.mean(rates)),
+                std_success_rate=float(np.std(rates, ddof=1)) if len(rates) > 1 else 0.0,
+                min_success_rate=float(np.min(rates)),
+                max_success_rate=float(np.max(rates)),
+                median_success_rate=float(np.median(rates)),
+                analysis=analysis,
+                results=results,
+            ),
         )
 
     # =========================================================================
@@ -613,6 +623,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         session_id: Optional[str] = None,
         skip_existing: bool = True,
     ) -> Dict[Tuple[str, str], BatchT]:
+        # pylint: disable=too-many-branches
         """
         Run a full experiment campaign across configurations and noise models.
 
@@ -772,13 +783,13 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             "individual_results": [r.to_dict() for r in batch.results],
         }
 
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=str)
 
     def _load_batch_from_file(self, filepath: Path) -> Optional[BatchT]:
         """Load a batch result from disk."""
         try:
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             summary = data["batch_summary"]
@@ -788,7 +799,9 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             results = [self.load_result_from_dict(r) for r in individual]
 
             # Reconstruct analysis
-            analysis = self.load_analysis_from_dict(summary.get("analysis"))
+            analysis = cast(
+                Optional[AnalysisT], self.load_analysis_from_dict(summary.get("analysis"))
+            )
 
             return self._create_batch_result(
                 config_id=summary.get("config_id", ""),
@@ -827,7 +840,7 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             )
 
         summary_file = agg_path / f"campaign_summary_{session_id}.json"
-        with open(summary_file, "w") as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, default=str)
 
         if verbose:

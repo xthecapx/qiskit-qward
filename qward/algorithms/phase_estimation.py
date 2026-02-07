@@ -14,11 +14,13 @@ The algorithm uses:
 
 import math
 import numpy as np
+from typing import Any, Callable, Optional
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import QFTGate
 from qiskit.circuit import Gate
 
 # Import display with fallback for non-notebook environments
+display: Callable[..., Any]
 try:
     from IPython.display import display
 except ImportError:
@@ -78,7 +80,7 @@ class PhaseEstimation:
         self.num_counting_qubits = num_counting_qubits
         self.eigenvector_prep = eigenvector_prep
         self.use_barriers = use_barriers
-        self.expected_phase = None  # Set via set_expected_phase()
+        self.expected_phase: Optional[float] = None  # Set via set_expected_phase()
 
         # Determine number of qubits for the unitary
         if isinstance(unitary, QuantumCircuit):
@@ -210,25 +212,28 @@ class PhaseEstimation:
         """
         if self.expected_phase is None:
             # Return uniform distribution as fallback
-            N = 2**self.num_counting_qubits
-            return {format(i, f"0{self.num_counting_qubits}b"): 1 / N for i in range(N)}
+            num_states = 2**self.num_counting_qubits
+            return {
+                format(i, f"0{self.num_counting_qubits}b"): 1 / num_states
+                for i in range(num_states)
+            }
 
         n = self.num_counting_qubits
-        N = 2**n
+        num_states = 2**n
         phi = self.expected_phase % 1.0
 
         # Ideal QPE distribution over all outcomes
         expected = {}
         total_prob = 0.0
-        for m in range(N):
-            delta = phi - (m / N)
+        for m in range(num_states):
+            delta = phi - (m / num_states)
             angle = math.pi * delta
             if abs(angle) < 1e-12:
                 prob = 1.0
             else:
-                numerator = math.sin(math.pi * (N * delta))
+                numerator = math.sin(math.pi * (num_states * delta))
                 denominator = math.sin(angle)
-                prob = (numerator / denominator) ** 2 / (N**2)
+                prob = (numerator / denominator) ** 2 / (num_states**2)
             state = format(m, f"0{n}b")
             expected[state] = prob
             total_prob += prob

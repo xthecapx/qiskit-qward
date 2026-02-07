@@ -58,7 +58,7 @@ class TestDifferentialSuccessRate(unittest.TestCase):
         score = compute_dsr(counts, {"01", "10"})
         self.assertAlmostEqual(score, 0.96, places=9)
 
-    def test_multiple_expected_outcomes_strong(self):
+    def test_multiple_expected_outcomes_split_peak(self):
         counts = {"00": 40, "11": 40, "01": 10, "10": 10}
         score = compute_dsr(counts, {"00", "11"})
         self.assertAlmostEqual(score, 0.6, places=9)

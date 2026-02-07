@@ -1,4 +1,5 @@
 import math
+from typing import Any, Callable
 
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import grover_operator, MCMTGate, ZGate
@@ -6,6 +7,7 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_aer import AerSimulator
 
 # Import display with fallback for non-notebook environments
+display: Callable[..., Any]
 try:
     from IPython.display import display
 except ImportError:

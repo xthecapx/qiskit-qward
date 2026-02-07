@@ -14,9 +14,13 @@ References:
     - Freivalds (1979): "Fast probabilistic algorithms"
 """
 
+# Matrix verification literature and notation conventionally use A, B, C, N, M.
+# Keep those symbols for algorithm readability and paper traceability.
+# pylint: disable=invalid-name,too-many-positional-arguments
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any, Callable
+from typing import Optional, List, Dict, Any, Callable, cast
 from enum import Enum
 
 import numpy as np
@@ -271,7 +275,7 @@ class MatrixProductVerificationBase(ABC):
         shots: int = 1024,
         print_diagrams: bool = False,
         diagram_output: str = "text",
-    ) -> VerificationResult:
+    ) -> VerificationResult:  # pylint: disable=not-callable
         """
         Execute the verification circuit and interpret results.
 
@@ -295,13 +299,16 @@ class MatrixProductVerificationBase(ABC):
 
             oracle_fn = getattr(self, "_build_oracle", None)
             if callable(oracle_fn):
+                oracle_builder = cast(Callable[[], QuantumCircuit], oracle_fn)
                 print("\n=== Oracle ===")
-                print(oracle_fn().draw(output=diagram_output))
+                print(oracle_builder().draw(output=diagram_output))  # pylint: disable=not-callable
 
             diffuser_fn = getattr(self, "_build_diffuser", None)
             if callable(diffuser_fn):
+                diffuser_builder = cast(Callable[[], QuantumCircuit], diffuser_fn)
                 print("\n=== Diffuser ===")
-                print(diffuser_fn().draw(output=diagram_output))
+                diffuser_circuit = diffuser_builder()  # pylint: disable=not-callable
+                print(diffuser_circuit.draw(output=diagram_output))
 
         start_time = time.time()
         job = backend.run(self.circuit, shots=shots)
@@ -773,7 +780,7 @@ class QuantumFreivaldsVerification(MatrixProductVerificationBase):
             oracle = self._build_oracle()
             diffuser = self._build_diffuser()
 
-            for i in range(self.grover_iterations):
+            for _ in range(self.grover_iterations):
                 # Apply oracle
                 qc.compose(oracle, inplace=True)
 
