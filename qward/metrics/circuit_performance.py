@@ -524,7 +524,12 @@ class CircuitPerformanceMetrics(MetricCalculator):
         )
 
         # Merge all metrics into a single dictionary
-        combined_metrics = {**success_metrics, **fidelity_metrics, **statistical_metrics, **dsr_metrics}
+        combined_metrics = {
+            **success_metrics,
+            **fidelity_metrics,
+            **statistical_metrics,
+            **dsr_metrics,
+        }
 
         return combined_metrics
 

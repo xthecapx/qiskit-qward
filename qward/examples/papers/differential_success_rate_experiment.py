@@ -98,7 +98,7 @@ def _expected_from_config(config: Dict, result: Dict) -> List[str]:
         except (TypeError, ValueError):
             return []
         if period > 0 and num_qubits > 0:
-            size = 2 ** num_qubits
+            size = 2**num_qubits
             step = size / period
             seen: set[str] = set()
             ordered: List[str] = []
@@ -166,9 +166,7 @@ def compute_dsr_rows(input_paths: List[Path]) -> List[Dict[str, str]]:
                 "backend_type": str(backend_type),
                 "noise_model": str(noise_model),
                 "config_id": str(result.get("config_id", config_id)),
-                "result_id": str(
-                    result.get("experiment_id", result.get("job_id", ""))
-                ),
+                "result_id": str(result.get("experiment_id", result.get("job_id", ""))),
                 "optimization_level": str(result.get("optimization_level", "")),
                 "num_qubits": str(num_qubits),
                 "circuit_depth": str(circuit_depth),
@@ -234,9 +232,7 @@ def _compute_teleportation_dsr_rows(csv_paths: List[Path]) -> List[Dict[str, str
                 circuit_depth = row.get("circuit_depth", "")
                 num_qubits = row.get("num_qubits", "")
 
-                backend_name = row.get(
-                    "ibm_backend", row.get("qbraid_device_id", "")
-                )
+                backend_name = row.get("ibm_backend", row.get("qbraid_device_id", ""))
                 execution_type = row.get("execution_type", "")
                 if any(
                     kw in (execution_type + backend_name).lower()
@@ -250,16 +246,12 @@ def _compute_teleportation_dsr_rows(csv_paths: List[Path]) -> List[Dict[str, str
 
                 result_row = {
                     "algorithm": "TELEPORTATION",
-                    "execution_type": (
-                        execution_type.upper() if execution_type else "QPU"
-                    ),
+                    "execution_type": (execution_type.upper() if execution_type else "QPU"),
                     "backend_name": str(backend_name),
                     "backend_type": str(backend_type),
                     "noise_model": "",
                     "config_id": f"payload_{payload_size}",
-                    "result_id": row.get(
-                        "ibm_job_id", row.get("job_id", "")
-                    ),
+                    "result_id": row.get("ibm_job_id", row.get("job_id", "")),
                     "optimization_level": "",
                     "num_qubits": str(payload_size),
                     "circuit_depth": str(circuit_depth),
@@ -323,9 +315,7 @@ def main() -> int:
     default_teleportation = repo_root / "examples" / "papers" / "teleportation"
     default_output = repo_root / "examples" / "papers" / "DSR_result.csv"
 
-    parser = argparse.ArgumentParser(
-        description="Compute DSR variants from QPU histograms."
-    )
+    parser = argparse.ArgumentParser(description="Compute DSR variants from QPU histograms.")
     parser.add_argument("--grover-dir", type=Path, default=default_grover)
     parser.add_argument("--qft-dir", type=Path, default=default_qft)
     parser.add_argument("--teleportation-dir", type=Path, default=default_teleportation)
@@ -359,8 +349,12 @@ def main() -> int:
 
     print(f"Wrote {len(rows)} rows to {args.output}")
     print(f"  Schema 1 (JSON):")
-    print(f"    Grover:        {grover_count} rows  ({len([p for p in json_paths if 'grover' in str(p)])} files)")
-    print(f"    QFT:           {qft_count} rows  ({len([p for p in json_paths if 'qft' in str(p)])} files)")
+    print(
+        f"    Grover:        {grover_count} rows  ({len([p for p in json_paths if 'grover' in str(p)])} files)"
+    )
+    print(
+        f"    QFT:           {qft_count} rows  ({len([p for p in json_paths if 'qft' in str(p)])} files)"
+    )
     print(f"  Schema 2 (CSV):")
     print(f"    Teleportation: {len(teleportation_rows)} rows  ({len(teleportation_paths)} files)")
     return 0

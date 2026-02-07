@@ -689,11 +689,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             # Print job details
             for job in report.get("jobs", []):
                 counts_status = "has counts" if job["has_counts"] else "EMPTY COUNTS"
-                sr = (
-                    f"{job['success_rate']:.4f}"
-                    if job["success_rate"] is not None
-                    else "null"
-                )
+                sr = f"{job['success_rate']:.4f}" if job["success_rate"] is not None else "null"
                 print(
                     f"       Job opt={job['optimization_level']}: "
                     f"{job['status']} | {counts_status} | SR={sr} | "
@@ -798,21 +794,15 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                         json.dump(data, f, indent=2, default=str)
                     print(f"  Updated and saved: {filepath.name}")
                     updated_count += 1
-                    results_summary.append(
-                        {"file": filepath.name, "status": "updated"}
-                    )
+                    results_summary.append({"file": filepath.name, "status": "updated"})
                 else:
                     print(f"  No updates needed: {filepath.name}")
-                    results_summary.append(
-                        {"file": filepath.name, "status": "no_change"}
-                    )
+                    results_summary.append({"file": filepath.name, "status": "no_change"})
 
             except Exception as e:
                 print(f"  ERROR updating {filepath.name}: {e}")
                 error_count += 1
-                results_summary.append(
-                    {"file": filepath.name, "status": "error", "error": str(e)}
-                )
+                results_summary.append({"file": filepath.name, "status": "error", "error": str(e)})
 
         # Print summary
         print("\n" + "=" * 70)
@@ -912,9 +902,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                     # Extract counts
                     try:
                         primitive_result = ibm_job.result()
-                        new_counts = self._extract_counts_from_primitive_result(
-                            primitive_result
-                        )
+                        new_counts = self._extract_counts_from_primitive_result(primitive_result)
                         if new_counts:
                             result["counts"] = new_counts
                             total_shots = sum(new_counts.values())
@@ -957,9 +945,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         # If old format, convert to new format
         if is_old_format and modified:
             print("  Converting from old format to new format...")
-            data["individual_results"] = self._convert_old_to_new_format(
-                data, results_list
-            )
+            data["individual_results"] = self._convert_old_to_new_format(data, results_list)
             if "jobs" in data:
                 del data["jobs"]
             data["noise_id"] = "IBM-QPU"
@@ -974,9 +960,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
 
         return modified
 
-    def _extract_counts_from_primitive_result(
-        self, primitive_result
-    ) -> Dict[str, int]:
+    def _extract_counts_from_primitive_result(self, primitive_result) -> Dict[str, int]:
         """Extract measurement counts from a PrimitiveResult (SamplerV2 format).
 
         Args:
@@ -996,9 +980,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                     break
 
             if bit_array is None:
-                data_attrs = [
-                    a for a in dir(pub_result.data) if not a.startswith("_")
-                ]
+                data_attrs = [a for a in dir(pub_result.data) if not a.startswith("_")]
                 for attr in data_attrs:
                     obj = getattr(pub_result.data, attr)
                     if hasattr(obj, "get_counts") or hasattr(obj, "num_shots"):
@@ -1117,11 +1099,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             data: The full file data (modified in place)
         """
         results = data.get("individual_results", [])
-        success_rates = [
-            r["success_rate"]
-            for r in results
-            if r.get("success_rate") is not None
-        ]
+        success_rates = [r["success_rate"] for r in results if r.get("success_rate") is not None]
 
         config_id = data.get("config_id", "unknown")
         backend_name = data.get("backend_name", "unknown")
@@ -1140,9 +1118,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 {
                     "mean_success_rate": statistics.mean(success_rates),
                     "std_success_rate": (
-                        statistics.stdev(success_rates)
-                        if len(success_rates) > 1
-                        else 0.0
+                        statistics.stdev(success_rates) if len(success_rates) > 1 else 0.0
                     ),
                     "min_success_rate": min(success_rates),
                     "max_success_rate": max(success_rates),
@@ -1155,23 +1131,15 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 config = self.get_config(config_id)
                 random_chance = self.get_random_chance(config)
                 if random_chance > 0:
-                    mean_advantage = (
-                        batch_summary["mean_success_rate"] / random_chance
-                    )
-                    batch_summary[
-                        "mean_quantum_advantage_ratio"
-                    ] = mean_advantage
-                    batch_summary[
-                        "quantum_advantage_demonstrated"
-                    ] = mean_advantage > 2.0
+                    mean_advantage = batch_summary["mean_success_rate"] / random_chance
+                    batch_summary["mean_quantum_advantage_ratio"] = mean_advantage
+                    batch_summary["quantum_advantage_demonstrated"] = mean_advantage > 2.0
             except Exception:
                 pass
 
             # Statistical analysis
             if len(success_rates) >= 2:
-                analysis = calculate_statistical_analysis(
-                    success_rates, config_id, "IBM-QPU"
-                )
+                analysis = calculate_statistical_analysis(success_rates, config_id, "IBM-QPU")
                 batch_summary["analysis"] = analysis
 
         data["batch_summary"] = batch_summary
@@ -1258,9 +1226,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         # Sort jobs by creation date to match optimization levels
         # IBM jobs from a batch are typically in order: opt0, opt1, opt2, opt3
         try:
-            ibm_jobs_sorted = sorted(
-                ibm_jobs, key=lambda j: j.creation_date or ""
-            )
+            ibm_jobs_sorted = sorted(ibm_jobs, key=lambda j: j.creation_date or "")
         except Exception:
             ibm_jobs_sorted = ibm_jobs
 
@@ -1285,9 +1251,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             if "DONE" in status_str:
                 try:
                     primitive_result = ibm_job.result()
-                    counts = self._extract_counts_from_primitive_result(
-                        primitive_result
-                    )
+                    counts = self._extract_counts_from_primitive_result(primitive_result)
                     if counts:
                         total_shots = sum(counts.values())
                         evaluation = self.evaluate_result(counts, config, total_shots)
@@ -1338,15 +1302,17 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
 
         valid_rates = [r for r in success_rates if r is not None]
         if valid_rates:
-            batch_summary.update({
-                "mean_success_rate": statistics.mean(valid_rates),
-                "std_success_rate": (
-                    statistics.stdev(valid_rates) if len(valid_rates) > 1 else 0.0
-                ),
-                "min_success_rate": min(valid_rates),
-                "max_success_rate": max(valid_rates),
-                "median_success_rate": statistics.median(valid_rates),
-            })
+            batch_summary.update(
+                {
+                    "mean_success_rate": statistics.mean(valid_rates),
+                    "std_success_rate": (
+                        statistics.stdev(valid_rates) if len(valid_rates) > 1 else 0.0
+                    ),
+                    "min_success_rate": min(valid_rates),
+                    "max_success_rate": max(valid_rates),
+                    "median_success_rate": statistics.median(valid_rates),
+                }
+            )
 
             if random_chance > 0:
                 mean_advantage = batch_summary["mean_success_rate"] / random_chance
@@ -1354,9 +1320,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 batch_summary["quantum_advantage_demonstrated"] = mean_advantage > 2.0
 
             if len(valid_rates) >= 2:
-                analysis = calculate_statistical_analysis(
-                    valid_rates, config_id, "IBM-QPU"
-                )
+                analysis = calculate_statistical_analysis(valid_rates, config_id, "IBM-QPU")
                 batch_summary["analysis"] = analysis
 
         # Build complete result
@@ -1472,27 +1436,33 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                     save_path = self._save_results(result, config, backend_name)
                     print(f"Recovered and saved: {save_path}")
                     recovered += 1
-                    results_summary.append({
-                        "config_id": config_id,
-                        "status": "recovered",
-                        "file": str(save_path),
-                    })
+                    results_summary.append(
+                        {
+                            "config_id": config_id,
+                            "status": "recovered",
+                            "file": str(save_path),
+                        }
+                    )
                 else:
                     print(f"Could not recover batch for {config_id}")
-                    results_summary.append({
-                        "config_id": config_id,
-                        "status": "failed",
-                    })
+                    results_summary.append(
+                        {
+                            "config_id": config_id,
+                            "status": "failed",
+                        }
+                    )
                     errors += 1
 
             except Exception as e:
                 print(f"ERROR recovering {config_id}: {e}")
                 errors += 1
-                results_summary.append({
-                    "config_id": config_id,
-                    "status": "error",
-                    "error": str(e),
-                })
+                results_summary.append(
+                    {
+                        "config_id": config_id,
+                        "status": "error",
+                        "error": str(e),
+                    }
+                )
 
         # Print final summary
         print(f"\n{'='*70}")
@@ -1653,17 +1623,21 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 if not parsed.recover_config:
                     print("Error: --recover-config is required with --batch-id")
                     return None
-                batches = [{
-                    "batch_id": parsed.batch_id,
-                    "config_id": parsed.recover_config,
-                    "backend_name": parsed.recover_backend or "unknown",
-                }]
+                batches = [
+                    {
+                        "batch_id": parsed.batch_id,
+                        "config_id": parsed.recover_config,
+                        "backend_name": parsed.recover_backend or "unknown",
+                    }
+                ]
             else:
                 # Use the subclass-defined timed-out batches
                 batches = self.get_timed_out_batches()
                 if not batches:
                     print("No timed-out batches defined for recovery.")
-                    print("Use --batch-id, --recover-config, --recover-backend to recover a specific batch.")
+                    print(
+                        "Use --batch-id, --recover-config, --recover-backend to recover a specific batch."
+                    )
                     return None
 
             result = self.recover_batches(

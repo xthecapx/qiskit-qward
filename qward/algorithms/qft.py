@@ -168,9 +168,7 @@ class QFTCircuitGenerator:
             self.tolerance = 1  # Allow ±1 in peak detection
             N = 2**num_qubits
             if N % self.period != 0:
-                raise ValueError(
-                    "period must divide 2**num_qubits for exact peak locations"
-                )
+                raise ValueError("period must divide 2**num_qubits for exact peak locations")
 
         else:
             raise ValueError(
