@@ -10,7 +10,7 @@ Supports multiple job types:
 - QiskitJob (JobV1): Traditional Qiskit jobs
 - RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)
 
-The performance metrics help evaluate the success rate, fidelity, and statistical
+The performance metrics help evaluate the success rate and statistical
 properties of quantum circuit executions.
 """
 
@@ -35,7 +35,6 @@ try:
     from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
         DSRVariantsSchema,
-        FidelityMetricsSchema,
         StatisticalMetricsSchema,
         SuccessMetricsSchema,
     )
@@ -63,13 +62,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
     The performance metrics include:
     - Success metrics: Success rate, error rate, successful shots analysis
-    - Fidelity metrics: Quantum fidelity between measured and expected distributions
     - Statistical metrics: Entropy, uniformity, concentration analysis
-
-    Fidelity Calculation:
-    - If expected_distribution is provided: Classical fidelity F = Σᵢ √(pᵢ × qᵢ)
-      where pᵢ is measured probability and qᵢ is expected probability
-    - If no expected distribution: Probability of most frequent successful outcome
 
     Example:
         # Basic usage with default success criteria (ground state)
@@ -83,18 +76,15 @@ class CircuitPerformanceMetrics(MetricCalculator):
         performance = CircuitPerformanceMetrics(circuit, job=job)
         success_metrics = performance.get_success_metrics()
 
-        # With custom success criteria and expected distribution
+        # With custom success criteria
         def custom_success(state): return state == "101"
-        expected = {"000": 0.5, "101": 0.5}  # Bell state expectation
 
         performance = CircuitPerformanceMetrics(
             circuit,
             job=job,
-            success_criteria=custom_success,
-            expected_distribution=expected
+            success_criteria=custom_success
         )
         success_metrics = performance.get_success_metrics()
-        fidelity_metrics = performance.get_fidelity_metrics()
     """
 
     def __init__(
@@ -104,7 +94,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
         job: Optional[JobType] = None,
         jobs: Optional[List[JobType]] = None,
         success_criteria: Optional[Callable[[str], bool]] = None,
-        expected_distribution: Optional[Dict[str, float]] = None,
         expected_outcomes: Optional[List[str]] = None,
     ):
         """
@@ -115,7 +104,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             job: A single job that executed the circuit
             jobs: A list of jobs that executed the circuit (for multiple runs)
             success_criteria: Function that determines if a measurement result is successful
-            expected_distribution: Expected probability distribution for fidelity calculation
             expected_outcomes: Expected bitstrings for DSR histogram contrast calculations
         """
         super().__init__(circuit)
@@ -124,7 +112,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
         if job and not self._jobs:
             self._jobs = [job]
         self.success_criteria = success_criteria or self._default_success_criteria()
-        self.expected_distribution = expected_distribution
         self._expected_outcomes = list(expected_outcomes) if expected_outcomes else None
 
     def _get_metric_type(self) -> MetricsType:
@@ -273,67 +260,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
         else:
             raise ValueError(f"Job result of type {type(result)} does not have get_counts method")
 
-    def _calculate_fidelity(self, counts) -> float:
-        """
-        Calculate quantum fidelity between measured and expected distributions.
-
-        If no expected distribution is provided, returns the probability of the most
-        successful outcome according to success_criteria.
-
-        Args:
-            counts: Dictionary of measurement outcomes and their counts
-
-        Returns:
-            float: Fidelity value between 0.0 and 1.0
-        """
-        if not counts:
-            return 0.0
-
-        total_shots = sum(counts.values())
-        if total_shots == 0:
-            return 0.0
-
-        # Convert counts to probabilities
-        measured_probs = {state: count / total_shots for state, count in counts.items()}
-
-        if self.expected_distribution is not None:
-            # Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)
-            fidelity = 0.0
-            all_states = set(measured_probs.keys()) | set(self.expected_distribution.keys())
-
-            for state in all_states:
-                p_measured = measured_probs.get(state, 0.0)
-                p_expected = self.expected_distribution.get(state, 0.0)
-                fidelity += np.sqrt(p_measured * p_expected)
-
-            return float(fidelity)
-        else:
-            # Fallback: return probability of most successful state
-            successful_states = [state for state in counts.keys() if self.success_criteria(state)]
-            if not successful_states:
-                return 0.0
-
-            # Find the most frequent successful state
-            max_successful_count = max(counts[state] for state in successful_states)
-            return float(max_successful_count / total_shots)
-
-    def set_expected_distribution(self, distribution: Dict[str, float]) -> None:
-        """
-        Set the expected probability distribution for fidelity calculation.
-
-        Args:
-            distribution: Dictionary mapping measurement outcomes to expected probabilities
-                         (should sum to 1.0)
-        """
-        # Validate that probabilities sum to approximately 1.0
-        total_prob = sum(distribution.values())
-        if not np.isclose(total_prob, 1.0, atol=1e-6):
-            raise ValueError(
-                f"Expected distribution probabilities must sum to 1.0, got {total_prob}"
-            )
-
-        self.expected_distribution = distribution.copy()
-
     # =============================================================================
     # Main API Methods
     # =============================================================================
@@ -353,7 +279,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
         return CircuitPerformanceSchema(
             success_metrics=self.get_success_metrics(),
-            fidelity_metrics=self.get_fidelity_metrics(),
             statistical_metrics=self.get_statistical_metrics(),
             dsr_metrics=self.get_dsr_metrics() if self._expected_outcomes else None,
         )
@@ -390,39 +315,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             return self._get_single_job_success_metrics(self._jobs[0])
         else:
             raise ValueError("No jobs available to calculate success metrics")
-
-    # =============================================================================
-    # Fidelity Metrics
-    # =============================================================================
-
-    def get_fidelity_metrics(self) -> "FidelityMetricsSchema":
-        """
-        Get quantum fidelity analysis metrics as a validated schema object.
-
-        Returns:
-            FidelityMetricsSchema: Validated fidelity metrics schema
-
-        Raises:
-            ImportError: If Pydantic schemas are not available
-            ValidationError: If metrics data doesn't match schema constraints
-        """
-        self._ensure_schemas_available()
-        fidelity_dict = self.get_fidelity_metrics_dict()
-        return FidelityMetricsSchema(**fidelity_dict)
-
-    def get_fidelity_metrics_dict(self) -> Dict[str, Any]:
-        """
-        Get quantum fidelity analysis metrics as a dictionary.
-
-        Returns:
-            Dict[str, Any]: Dictionary containing fidelity measurements and analysis
-        """
-        if len(self._jobs) > 1:
-            return self._get_multiple_jobs_fidelity_metrics()
-        elif len(self._jobs) == 1:
-            return self._get_single_job_fidelity_metrics(self._jobs[0])
-        else:
-            raise ValueError("No jobs available to calculate fidelity metrics")
 
     # =============================================================================
     # Statistical Metrics
@@ -502,7 +394,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         """
         Calculate circuit performance metrics from a single job result.
 
-        DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.
+        DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.
 
         Args:
             job: Optional job to use for metrics calculation. If None, uses self._job.
@@ -517,7 +409,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
         # Combine all metrics for backward compatibility
         success_metrics = self._get_single_job_success_metrics(job_to_use)
-        fidelity_metrics = self._get_single_job_fidelity_metrics(job_to_use)
         statistical_metrics = self._get_single_job_statistical_metrics(job_to_use)
         dsr_metrics = (
             self._get_single_job_dsr_metrics(job_to_use) if self._expected_outcomes else {}
@@ -526,7 +417,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
         # Merge all metrics into a single dictionary
         combined_metrics = {
             **success_metrics,
-            **fidelity_metrics,
             **statistical_metrics,
             **dsr_metrics,
         }
@@ -559,7 +449,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         """
         Calculate circuit performance metrics from multiple job results.
 
-        DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.
+        DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.
 
         Returns:
             Dict[str, Any]: Circuit performance metrics for multiple jobs with individual and aggregate data
@@ -569,7 +459,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
         # Get metrics for each category
         success_metrics = self._get_multiple_jobs_success_metrics()
-        fidelity_metrics = self._get_multiple_jobs_fidelity_metrics()
         statistical_metrics = self._get_multiple_jobs_statistical_metrics()
         dsr_metrics = self._get_multiple_jobs_dsr_metrics() if self._expected_outcomes else None
 
@@ -581,15 +470,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             # Add success metrics for this job
             if i < len(success_metrics.get("individual_jobs", [])):
                 combined_job_metrics.update(success_metrics["individual_jobs"][i])
-
-            # Add fidelity metrics for this job
-            if i < len(fidelity_metrics.get("individual_jobs", [])):
-                fidelity_job_metrics = fidelity_metrics["individual_jobs"][i]
-                # Remove duplicate job_id to avoid conflicts
-                fidelity_job_metrics = {
-                    k: v for k, v in fidelity_job_metrics.items() if k != "job_id"
-                }
-                combined_job_metrics.update(fidelity_job_metrics)
 
             # Add statistical metrics for this job
             if i < len(statistical_metrics.get("individual_jobs", [])):
@@ -611,7 +491,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
 
         # Combine aggregate metrics
         aggregate_metrics = {}
-        metric_categories = [success_metrics, fidelity_metrics, statistical_metrics]
+        metric_categories = [success_metrics, statistical_metrics]
         if dsr_metrics is not None:
             metric_categories.append(dsr_metrics)
 
@@ -889,67 +769,6 @@ class CircuitPerformanceMetrics(MetricCalculator):
             "max_success_rate": max_success_rate,
             "total_trials": total_trials,
             "error_rate": error_rate,
-            "individual_jobs": job_metrics,
-        }
-
-    # =============================================================================
-    # Helper Methods for Fidelity Metrics
-    # =============================================================================
-
-    def _get_single_job_fidelity_metrics(self, job: JobType) -> Dict[str, Any]:
-        """Calculate fidelity metrics from a single job result."""
-        counts = self._extract_counts(job)
-        job_id = self._extract_job_id(job)
-
-        fidelity = self._calculate_fidelity(counts)
-        method = "theoretical_comparison" if self.expected_distribution else "success_based"
-        confidence = "high" if self.expected_distribution else "medium"
-
-        return {
-            "job_id": job_id,
-            "fidelity": float(fidelity),
-            "method": method,
-            "confidence": confidence,
-            "has_expected_distribution": self.expected_distribution is not None,
-        }
-
-    def _get_multiple_jobs_fidelity_metrics(self) -> Dict[str, Any]:
-        """Calculate fidelity metrics from multiple job results."""
-        if not self._jobs:
-            raise ValueError("Multiple runtime jobs are required to calculate fidelity metrics")
-
-        # Calculate metrics for each job
-        job_metrics = []
-        fidelities = []
-
-        for job in self._jobs:
-            single_metrics = self._get_single_job_fidelity_metrics(job)
-            fidelities.append(single_metrics["fidelity"])
-            job_metrics.append(single_metrics)
-
-        # Calculate aggregate metrics
-        if not fidelities:
-            return {
-                "mean_fidelity": 0.0,
-                "std_fidelity": 0.0,
-                "min_fidelity": 0.0,
-                "max_fidelity": 0.0,
-                "method": "unknown",
-                "confidence": "low",
-                "individual_jobs": job_metrics,
-            }
-
-        fidelities_array = np.array(fidelities)
-        method = job_metrics[0]["method"] if job_metrics else "unknown"
-        confidence = job_metrics[0]["confidence"] if job_metrics else "low"
-
-        return {
-            "mean_fidelity": float(np.mean(fidelities_array)),
-            "std_fidelity": float(np.std(fidelities_array)) if len(fidelities_array) > 1 else 0.0,
-            "min_fidelity": float(np.min(fidelities_array)),
-            "max_fidelity": float(np.max(fidelities_array)),
-            "method": method,
-            "confidence": confidence,
             "individual_jobs": job_metrics,
         }
 

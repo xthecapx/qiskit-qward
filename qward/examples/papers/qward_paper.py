@@ -193,16 +193,10 @@ def bell_success_criteria(result: str) -> bool:
     return clean_result in ["00", "11"]
 
 
-def expected_distribution():
-    # For Bell states, we expect either all 0s or all 1s
-    return {"00": 0.5, "11": 0.5}
-
-
 bell_success = CircuitPerformanceMetrics(
     circuit,
     jobs=simulators_results["jobs"],
     success_criteria=bell_success_criteria,
-    expected_distribution=expected_distribution(),
 )
 
 # Create a scanner with the circuit
@@ -260,16 +254,10 @@ def bell_success_criteria(result: str) -> bool:
     return clean_result in ["00", "11"]
 
 
-def expected_distribution():
-    # For Bell states, we expect either all 0s or all 1s
-    return {"00": 0.5, "11": 0.5}
-
-
 bell_success = CircuitPerformanceMetrics(
     circuit,
     jobs=ibm_results["jobs"],
     success_criteria=bell_success_criteria,
-    expected_distribution=expected_distribution(),
 )
 
 # Create a scanner with the circuit
@@ -469,7 +457,6 @@ visualizer.generate_plots(
     selections={
         Metrics.CIRCUIT_PERFORMANCE: [
             Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
-            Plots.CircuitPerformance.FIDELITY_COMPARISON,
         ]
     },
 )

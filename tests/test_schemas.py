@@ -18,7 +18,6 @@ from qward.schemas.complexity_metrics_schema import (
 from qward.schemas.circuit_performance_schema import (
     CircuitPerformanceSchema,
     SuccessMetricsSchema,
-    FidelityMetricsSchema,
     StatisticalMetricsSchema,
 )
 
@@ -159,34 +158,6 @@ class TestSchemaValidation(unittest.TestCase):
         with self.assertRaises(ValidationError):
             SuccessMetricsSchema(**invalid_data)
 
-    def test_fidelity_metrics_schema_valid(self):
-        """Test FidelityMetricsSchema with valid data."""
-        valid_data = {
-            "fidelity": 0.92,
-            "has_expected_distribution": True,
-            "method": "theoretical_comparison",
-            "confidence": "high",
-        }
-
-        schema = FidelityMetricsSchema(**valid_data)
-
-        self.assertEqual(schema.fidelity, 0.92)
-        self.assertEqual(schema.has_expected_distribution, True)
-        self.assertEqual(schema.method, "theoretical_comparison")
-        self.assertEqual(schema.confidence, "high")
-
-    def test_fidelity_metrics_schema_invalid_range(self):
-        """Test FidelityMetricsSchema with invalid fidelity range."""
-        invalid_data = {
-            "fidelity": 1.5,  # Invalid: > 1.0
-            "has_expected_distribution": True,
-            "method": "theoretical_comparison",
-            "confidence": "high",
-        }
-
-        with self.assertRaises(ValidationError):
-            FidelityMetricsSchema(**invalid_data)
-
     def test_statistical_metrics_schema_valid(self):
         """Test StatisticalMetricsSchema with valid data."""
         valid_data = {
@@ -289,12 +260,6 @@ class TestSchemaValidation(unittest.TestCase):
                 "total_shots": 1000,
                 "successful_shots": 850,
             },
-            "fidelity_metrics": {
-                "fidelity": 0.92,
-                "has_expected_distribution": True,
-                "method": "theoretical_comparison",
-                "confidence": "high",
-            },
             "statistical_metrics": {
                 "entropy": 1.8,
                 "uniformity": 0.75,
@@ -307,7 +272,6 @@ class TestSchemaValidation(unittest.TestCase):
         schema = CircuitPerformanceSchema(**valid_data)
 
         self.assertEqual(schema.success_metrics.success_rate, 0.85)
-        self.assertEqual(schema.fidelity_metrics.fidelity, 0.92)
         self.assertEqual(schema.statistical_metrics.entropy, 1.8)
 
     def test_to_flat_dict_qiskit_metrics(self):
@@ -432,16 +396,16 @@ class TestSchemaValidation(unittest.TestCase):
         """Test type coercion in schemas."""
         # Test that integers are accepted for float fields
         valid_data = {
-            "fidelity": 1,  # Integer instead of float
-            "has_expected_distribution": True,
-            "method": "theoretical_comparison",
-            "confidence": "high",
+            "success_rate": 1,  # Integer instead of float
+            "error_rate": 0,
+            "total_shots": 1000,
+            "successful_shots": 1000,
         }
 
-        schema = FidelityMetricsSchema(**valid_data)
+        schema = SuccessMetricsSchema(**valid_data)
 
-        self.assertEqual(schema.fidelity, 1.0)  # Should be coerced to float
-        self.assertIsInstance(schema.fidelity, float)
+        self.assertEqual(schema.success_rate, 1.0)  # Should be coerced to float
+        self.assertIsInstance(schema.success_rate, float)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ QWARD CircuitPerformance Example
 This example demonstrates CircuitPerformanceMetrics capabilities:
 1. Direct CircuitPerformanceMetrics usage
 2. Schema-based approach with validation
-3. Custom success criteria and fidelity calculation
+3. Custom success criteria
 4. Validation features and error handling
 5. JSON schema generation
 """
@@ -21,7 +21,6 @@ try:
     from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
         SuccessMetricsSchema,
-        FidelityMetricsSchema,
         StatisticalMetricsSchema,
     )
 
@@ -111,7 +110,6 @@ def demo_schema_approach() -> None:
         print("✓ Schema-based metrics (structured object):")
         print(f"   Type: {type(structured_metrics)}")
         print(f"   Success Rate: {structured_metrics.success_metrics.success_rate}")
-        print(f"   Fidelity: {structured_metrics.fidelity_metrics.fidelity}")
         print(f"   Entropy: {structured_metrics.statistical_metrics.entropy}")
 
         print("\n✓ Benefits of schema approach:")
@@ -132,7 +130,6 @@ def demo_schema_approach() -> None:
 
         print("\n✓ Multiple jobs aggregate metrics:")
         print(f"   Mean Success Rate: {aggregate_metrics.success_metrics.mean_success_rate}")
-        print(f"   Mean Fidelity: {aggregate_metrics.fidelity_metrics.mean_fidelity}")
         print(
             f"   Standard Deviation (Success): {aggregate_metrics.success_metrics.std_success_rate}"
         )
@@ -193,7 +190,6 @@ def demo_validation_features() -> None:
     from qward.metrics.schemas import (
         CircuitPerformanceSchema,
         SuccessMetricsSchema,
-        FidelityMetricsSchema,
         StatisticalMetricsSchema,
     )
 
@@ -204,12 +200,6 @@ def demo_validation_features() -> None:
             error_rate=0.15,
             total_shots=1024,
             successful_shots=870,
-        ),
-        fidelity_metrics=FidelityMetricsSchema(
-            fidelity=0.92,
-            method="theoretical_comparison",
-            confidence="high",
-            has_expected_distribution=True,
         ),
         statistical_metrics=StatisticalMetricsSchema(
             entropy=0.85,
@@ -232,14 +222,6 @@ def demo_validation_features() -> None:
             max_success_rate=0.90,
             total_trials=3072,
             error_rate=0.18,
-        ),
-        fidelity_metrics=FidelityMetricsSchema(
-            mean_fidelity=0.89,
-            std_fidelity=0.03,
-            min_fidelity=0.85,
-            max_fidelity=0.92,
-            method="theoretical_comparison",
-            confidence="high",
         ),
         statistical_metrics=StatisticalMetricsSchema(
             mean_entropy=0.83,
@@ -278,8 +260,6 @@ def demo_validation_features() -> None:
 
     print("✓ Real metrics validated successfully:")
     print(f"   Success Rate: {real_metrics.success_metrics.success_rate:.3f}")
-    print(f"   Fidelity: {real_metrics.fidelity_metrics.fidelity:.3f}")
-    print(f"   Method: {real_metrics.fidelity_metrics.method}")
     print(f"   Entropy: {real_metrics.statistical_metrics.entropy:.3f}")
 
 
@@ -299,7 +279,6 @@ def demo_json_schema_generation() -> None:
     from qward.metrics.schemas import (
         CircuitPerformanceSchema,
         SuccessMetricsSchema,
-        FidelityMetricsSchema,
         StatisticalMetricsSchema,
     )
 

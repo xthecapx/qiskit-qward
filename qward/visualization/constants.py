@@ -41,7 +41,6 @@ class Plots:
         """Plot constants for CircuitPerformance visualizations."""
 
         SUCCESS_ERROR_COMPARISON = "success_error_comparison"
-        FIDELITY_COMPARISON = "fidelity_comparison"
         SHOT_DISTRIBUTION = "shot_distribution"
         AGGREGATE_SUMMARY = "aggregate_summary"
 

@@ -337,14 +337,11 @@ def compare_circuits(results):
                 comparison[circuit_name]["success"] = perf.iloc[0][
                     "success_metrics.mean_success_rate"
                 ]
-                comparison[circuit_name]["fidelity"] = perf.iloc[0][
-                    "fidelity_metrics.mean_fidelity"
-                ]
 
     # Print comparison table
-    headers = ["Circuit", "Qubits", "Depth", "Gates", "CNOTs", "Success", "Fidelity"]
+    headers = ["Circuit", "Qubits", "Depth", "Gates", "CNOTs", "Success"]
     print(
-        f"{headers[0]:<12} {headers[1]:<7} {headers[2]:<6} {headers[3]:<6} {headers[4]:<6} {headers[5]:<8} {headers[6]:<8}"
+        f"{headers[0]:<12} {headers[1]:<7} {headers[2]:<6} {headers[3]:<6} {headers[4]:<6} {headers[5]:<8}"
     )
     print("-" * 60)
 
@@ -354,14 +351,11 @@ def compare_circuits(results):
         gates = data.get("gates", "N/A")
         cnots = data.get("cnots", "N/A")
         success = data.get("success", "N/A")
-        fidelity = data.get("fidelity", "N/A")
 
         if isinstance(success, float):
             success = f"{success:.3f}"
-        if isinstance(fidelity, float):
-            fidelity = f"{fidelity:.3f}"
 
-        print(f"{name:<12} {qubits:<7} {depth:<6} {gates:<6} {cnots:<6} {success:<8} {fidelity:<8}")
+        print(f"{name:<12} {qubits:<7} {depth:<6} {gates:<6} {cnots:<6} {success:<8}")
 
 
 def comprehensive_workflow():

@@ -25,22 +25,13 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             dependencies=["success_metrics.success_rate", "success_metrics.error_rate"],
             category="Performance Analysis",
         ),
-        Plots.CircuitPerformance.FIDELITY_COMPARISON: PlotMetadata(
-            name=Plots.CircuitPerformance.FIDELITY_COMPARISON,
-            method_name="plot_fidelity_comparison",
-            description="Visualizes fidelity metrics and quantum state quality measures",
-            plot_type=PlotType.BAR_CHART,
-            filename="fidelity_comparison",
-            dependencies=["fidelity_metrics.state_fidelity", "fidelity_metrics.process_fidelity"],
-            category="Fidelity Analysis",
-        ),
         Plots.CircuitPerformance.SHOT_DISTRIBUTION: PlotMetadata(
             name=Plots.CircuitPerformance.SHOT_DISTRIBUTION,
             method_name="plot_shot_distribution",
             description="Shows the distribution of measurement outcomes across shots",
             plot_type=PlotType.STACKED_BAR,
             filename="shot_distribution",
-            dependencies=["execution_metrics.total_shots", "execution_metrics.unique_outcomes"],
+            dependencies=["success_metrics.total_shots", "success_metrics.successful_shots"],
             category="Execution Analysis",
         ),
         Plots.CircuitPerformance.AGGREGATE_SUMMARY: PlotMetadata(
@@ -49,7 +40,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             description="Comprehensive summary of all performance metrics in a dashboard format",
             plot_type=PlotType.BAR_CHART,
             filename="aggregate_summary",
-            dependencies=["success_metrics", "fidelity_metrics", "execution_metrics"],
+            dependencies=["success_metrics", "statistical_metrics"],
             category="Summary",
         ),
     }
@@ -110,7 +101,6 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
         required_individual_cols = [
             "success_metrics.success_rate",
             "success_metrics.error_rate",
-            "fidelity_metrics.fidelity",
             "success_metrics.total_shots",
             "success_metrics.successful_shots",
         ]
@@ -126,7 +116,6 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
                 "success_metrics.std_success_rate",
                 "success_metrics.min_success_rate",
                 "success_metrics.max_success_rate",
-                "fidelity_metrics.mean_fidelity",
                 "success_metrics.error_rate",
             ]
 
@@ -177,34 +166,6 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
         return self._finalize_plot(
             fig=fig, is_override=is_override, save=save, show=show, filename="success_error_rates"
-        )
-
-    def plot_fidelity_comparison(
-        self,
-        save: bool = False,
-        show: bool = False,
-        fig_ax_override: Optional[tuple[plt.Figure, plt.Axes]] = None,
-        title: Optional[str] = None,
-    ) -> plt.Figure:
-        """Plot fidelity comparison across jobs."""
-        fig, ax, is_override = self._setup_plot_axes(fig_ax_override)
-
-        # Extract fidelity data
-        fidelity_data = {}
-        for i, fidelity in enumerate(self.individual_df["fidelity_metrics.fidelity"]):
-            fidelity_data[f"Job {i+1}"] = fidelity
-
-        self._create_bar_plot_with_labels(
-            data=fidelity_data,
-            ax=ax,
-            title=title or "Fidelity by Job",
-            xlabel="Jobs",
-            ylabel="Fidelity",
-            value_format="{:.3f}",
-        )
-
-        return self._finalize_plot(
-            fig=fig, is_override=is_override, save=save, show=show, filename="fidelity_comparison"
         )
 
     def plot_shot_distribution(
@@ -275,7 +236,6 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
                 "Std Success Rate": self.aggregate_df["success_metrics.std_success_rate"].iloc[0],
                 "Min Success Rate": self.aggregate_df["success_metrics.min_success_rate"].iloc[0],
                 "Max Success Rate": self.aggregate_df["success_metrics.max_success_rate"].iloc[0],
-                "Mean Fidelity": self.aggregate_df["fidelity_metrics.mean_fidelity"].iloc[0],
                 "Mean Error Rate": self.aggregate_df["success_metrics.error_rate"].iloc[0],
             }
         else:
@@ -289,7 +249,6 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
                 ),
                 "Min Success Rate": self.individual_df["success_metrics.success_rate"].min(),
                 "Max Success Rate": self.individual_df["success_metrics.success_rate"].max(),
-                "Mean Fidelity": self.individual_df["fidelity_metrics.fidelity"].mean(),
                 "Mean Error Rate": self.individual_df["success_metrics.error_rate"].mean(),
             }
 
@@ -316,8 +275,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
     ) -> plt.Figure:
         """Create a comprehensive dashboard with all CircuitPerformance plots."""
         if self.aggregate_df is not None and not self.aggregate_df.empty:
-            # Full dashboard with 4 plots
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+            # Full dashboard with 3 plots
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
 
             # Use custom title logic for dashboard
             final_title = self._get_final_title(title or "CircuitPerformance Analysis Dashboard")
@@ -326,12 +285,11 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
             # Create each plot on its designated axes
             self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
-            self.plot_fidelity_comparison(save=False, show=False, fig_ax_override=(fig, ax2))
-            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax3))
-            self.plot_aggregate_summary(save=False, show=False, fig_ax_override=(fig, ax4))
+            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax2))
+            self.plot_aggregate_summary(save=False, show=False, fig_ax_override=(fig, ax3))
         else:
-            # Limited dashboard with 3 plots (no separate aggregate plot needed)
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+            # Limited dashboard with 2 plots (no aggregate plot available)
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
             # Use custom title logic for single job dashboard
             final_title = self._get_final_title(
@@ -342,8 +300,7 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
 
             # Create each plot on its designated axes
             self.plot_success_error_comparison(save=False, show=False, fig_ax_override=(fig, ax1))
-            self.plot_fidelity_comparison(save=False, show=False, fig_ax_override=(fig, ax2))
-            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax3))
+            self.plot_shot_distribution(save=False, show=False, fig_ax_override=(fig, ax2))
 
         plt.tight_layout()
 

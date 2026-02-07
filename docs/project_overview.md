@@ -8,7 +8,7 @@ QWARD (Quantum Workflow Analysis and Runtime Development) is a comprehensive Pyt
 
 ### 🔍 Comprehensive Circuit Analysis
 - **Pre-runtime Analysis**: Circuit structure, complexity, and theoretical metrics
-- **Post-runtime Analysis**: Execution performance, success rates, and fidelity metrics
+- **Post-runtime Analysis**: Execution performance, success rates, and statistical metrics
 - **Multi-dimensional Metrics**: Gate-based, entanglement, standardized, and derived complexity measures
 
 ### 🛡️ Schema-Based Validation
@@ -56,7 +56,6 @@ Calculates comprehensive circuit complexity based on research literature:
 #### CircuitPerformanceMetrics
 Analyzes execution results and performance characteristics:
 - **Success Analysis**: Customizable success criteria and error rate calculation
-- **Fidelity Metrics**: Theoretical and experimental fidelity comparisons
 - **Statistical Analysis**: Shot distribution, entropy, and uniformity measures
 - **Multi-job Support**: Aggregate analysis across multiple execution runs
 - **Returns**: `CircuitPerformanceSchema` with cross-field validation
@@ -160,7 +159,6 @@ QWARD includes a sophisticated visualization system that automatically creates p
 
 #### CircuitPerformanceMetrics Visualizations
 - Success vs error rate comparisons across jobs
-- Fidelity analysis and confidence intervals
 - Shot distribution visualization (successful vs failed)
 - Aggregate statistical summaries
 
@@ -289,4 +287,3 @@ QWARD is designed to be a community-driven project that grows with the quantum c
 QWARD represents a comprehensive solution for quantum circuit analysis that bridges the gap between theoretical quantum computing research and practical circuit development. By providing validated metrics, professional visualizations, and an extensible architecture, QWARD enables researchers, developers, and educators to gain deeper insights into quantum circuit behavior and performance.
 
 The library's schema-based validation system ensures data integrity while providing excellent developer experience through type safety and IDE support. Whether you're conducting academic research, developing quantum applications, or learning about quantum computing, QWARD provides the tools needed for thorough and reliable quantum circuit analysis.
-

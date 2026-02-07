@@ -7,7 +7,7 @@ Welcome to QWARD! This guide will get you up and running with quantum circuit an
 QWARD is a Python library for analyzing quantum circuits and their execution results. It provides:
 
 - **Circuit Analysis**: Extract metrics from quantum circuits (depth, complexity, gate counts)
-- **Performance Analysis**: Analyze execution results (success rates, fidelity, error rates)
+- **Performance Analysis**: Analyze execution results (success rates, error rates, statistical properties)
 - **Schema Validation**: Type-safe, validated metrics with IDE support
 - **Visualization**: Beautiful plots and dashboards for your analysis
 
@@ -150,9 +150,6 @@ metrics = circuit_performance.get_metrics()
 print(f"Success rate: {metrics.success_metrics.success_rate:.3f}")
 print(f"Error rate: {metrics.success_metrics.error_rate:.3f}")
 print(f"Successful shots: {metrics.success_metrics.successful_shots}")
-
-# Fidelity analysis
-print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
 
 # Statistical analysis
 print(f"Entropy: {metrics.statistical_metrics.entropy:.3f}")

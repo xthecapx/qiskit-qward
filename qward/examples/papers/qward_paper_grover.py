@@ -428,7 +428,6 @@ def analyze_grover_results(
         circuit,
         jobs=jobs,
         success_criteria=grover_success_criteria,
-        expected_distribution=grover_gen.grover.expected_distribution(),
     )
 
     # Create scanner
@@ -491,14 +490,6 @@ def visualize_grover_results(
         show=show_plots,
     )
 
-    # Fidelity comparison
-    fidelity_plot = visualizer.generate_plot(
-        metric_name=Metrics.CIRCUIT_PERFORMANCE,
-        plot_name=Plots.CircuitPerformance.FIDELITY_COMPARISON,
-        save=save_plots,
-        show=show_plots,
-    )
-
     # Dashboard
     dashboard = visualizer.create_dashboard(save=save_plots, show=show_plots)
 
@@ -507,7 +498,6 @@ def visualize_grover_results(
     return {
         "visualizer": visualizer,
         "error_plot": error_plot,
-        "fidelity_plot": fidelity_plot,
         "dashboard": dashboard,
     }
 
@@ -751,7 +741,6 @@ def load_qbraid_jobs(
             circuit,
             jobs=jobs_for_analysis,
             success_criteria=grover_success_criteria,
-            expected_distribution=grover_gen.grover.expected_distribution(),
         )
 
         scanner = Scanner(

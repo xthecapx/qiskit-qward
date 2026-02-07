@@ -132,7 +132,6 @@ class QuantumCircuitExecutor:
         circuit: QuantumCircuit,
         *,
         success_criteria=None,
-        expected_distribution=None,
         expected_outcomes: Optional[List[str]] = None,
         show_results: bool = False,
         noise_model: Union[str, NoiseModel, None] = None,
@@ -143,7 +142,6 @@ class QuantumCircuitExecutor:
         Args:
             circuit: The quantum circuit to simulate
             success_criteria: Optional function to define success criteria for CircuitPerformanceMetrics
-            expected_distribution: Optional expected probability distribution for fidelity calculation
             expected_outcomes: Optional expected bitstrings for DSR metric calculations
             show_results: If True, display visualizations of the results using qward
             noise_model: Noise model configuration. Can be:
@@ -188,7 +186,6 @@ class QuantumCircuitExecutor:
             circuit,
             job=job,
             success_criteria=success_criteria,
-            expected_distribution=expected_distribution,
             expected_outcomes=expected_outcomes,
         )
         metrics_data = scanner.calculate_metrics()
@@ -205,7 +202,6 @@ class QuantumCircuitExecutor:
         circuit: QuantumCircuit,
         job=None,
         success_criteria=None,
-        expected_distribution=None,
         expected_outcomes: Optional[List[str]] = None,
     ) -> Dict[str, pd.DataFrame]:
         """Extract comprehensive metrics from a quantum circuit using qward.
@@ -214,7 +210,6 @@ class QuantumCircuitExecutor:
             circuit: The quantum circuit to analyze
             job: Optional job result for performance metrics
             success_criteria: Optional function to define success criteria
-            expected_distribution: Optional expected probability distribution for fidelity calculation
             expected_outcomes: Optional expected bitstrings for DSR metric calculations
 
         Returns:
@@ -224,7 +219,6 @@ class QuantumCircuitExecutor:
             circuit,
             job=job,
             success_criteria=success_criteria,
-            expected_distribution=expected_distribution,
             expected_outcomes=expected_outcomes,
         )
         return scanner.calculate_metrics()
@@ -234,7 +228,6 @@ class QuantumCircuitExecutor:
         circuit: QuantumCircuit,
         job=None,
         success_criteria=None,
-        expected_distribution=None,
         expected_outcomes: Optional[List[str]] = None,
     ) -> Scanner:
         """Create a Scanner with appropriate metrics strategies.
@@ -243,7 +236,6 @@ class QuantumCircuitExecutor:
             circuit: The quantum circuit to analyze
             job: Optional job result for performance metrics
             success_criteria: Optional function to define success criteria
-            expected_distribution: Optional expected probability distribution for fidelity calculation
             expected_outcomes: Optional expected bitstrings for DSR metric calculations
 
         Returns:
@@ -262,7 +254,6 @@ class QuantumCircuitExecutor:
                 circuit=circuit,
                 job=job,
                 success_criteria=success_criteria,
-                expected_distribution=expected_distribution,
                 expected_outcomes=expected_outcomes,
             )
             scanner.add_strategy(circuit_performance)
@@ -513,7 +504,6 @@ class QuantumCircuitExecutor:
         backend_name: Optional[str] = None,
         optimization_levels: Optional[List[int]] = None,
         success_criteria: Optional[Callable[[str], bool]] = None,
-        expected_distribution: Optional[Dict[str, float]] = None,
         expected_outcomes: Optional[List[str]] = None,
         timeout: int = 600,
         poll_interval: int = 10,
@@ -534,7 +524,6 @@ class QuantumCircuitExecutor:
                 operational backend
             optimization_levels: List of optimization levels to test (default: [0, 2, 3])
             success_criteria: Optional function to define success criteria for metrics
-            expected_distribution: Optional expected probability distribution for fidelity
             expected_outcomes: Optional expected bitstrings for DSR metric calculations
             timeout: Maximum time to wait for job completion in seconds (default: 600)
             poll_interval: Time between status checks in seconds (default: 10)
@@ -716,7 +705,6 @@ class QuantumCircuitExecutor:
                     qward_metrics = self.get_circuit_metrics(
                         circuit,
                         success_criteria=success_criteria,
-                        expected_distribution=expected_distribution,
                         expected_outcomes=expected_outcomes,
                     )
             except Exception as e:

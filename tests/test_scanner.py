@@ -160,7 +160,6 @@ class TestScanner(unittest.TestCase):
             "success_metrics.success_rate",
             "success_metrics.error_rate",
             "success_metrics.total_shots",
-            "fidelity_metrics.fidelity",
         ]
         for col in expected_columns:
             self.assertIn(col, df.columns, f"Expected column {col} not found")

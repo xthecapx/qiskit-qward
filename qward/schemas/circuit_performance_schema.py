@@ -67,56 +67,6 @@ class SuccessMetricsSchema(BaseModel):
         return v
 
 
-class FidelityMetricsSchema(BaseModel):
-    """
-    Schema for fidelity metrics.
-
-    This schema validates fidelity-related metrics including
-    quantum fidelity and related measures for both single
-    job and multiple jobs cases.
-    """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "fidelity": 0.92,
-                "has_expected_distribution": True,
-                "method": "theoretical_comparison",
-                "confidence": "high",
-                "mean_fidelity": 0.89,
-                "std_fidelity": 0.03,
-                "min_fidelity": 0.85,
-                "max_fidelity": 0.94,
-            }
-        }
-    )
-
-    # Single job fields
-    fidelity: Optional[float] = Field(
-        None, ge=0.0, le=1.0, description="Quantum fidelity (0.0 to 1.0)"
-    )
-    has_expected_distribution: Optional[bool] = Field(
-        None, description="Whether expected distribution was provided for fidelity calculation"
-    )
-    method: str = Field(
-        ...,
-        description="Method used for fidelity calculation (theoretical_comparison or success_based)",
-    )
-    confidence: str = Field(
-        ..., description="Confidence level of the fidelity calculation (high, medium, low)"
-    )
-
-    # Multiple jobs aggregate fields
-    mean_fidelity: Optional[float] = Field(
-        None, ge=0.0, le=1.0, description="Mean fidelity across jobs"
-    )
-    std_fidelity: Optional[float] = Field(
-        None, ge=0.0, description="Standard deviation of fidelities"
-    )
-    min_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum fidelity")
-    max_fidelity: Optional[float] = Field(None, ge=0.0, le=1.0, description="Maximum fidelity")
-
-
 class StatisticalMetricsSchema(BaseModel):
     """
     Schema for statistical analysis metrics.
@@ -262,7 +212,6 @@ class CircuitPerformanceSchema(BaseModel):
     """
 
     success_metrics: SuccessMetricsSchema = Field(..., description="Success rate metrics")
-    fidelity_metrics: FidelityMetricsSchema = Field(..., description="Fidelity metrics")
     statistical_metrics: StatisticalMetricsSchema = Field(..., description="Statistical metrics")
     dsr_metrics: Optional[DSRVariantsSchema] = Field(
         None, description="DSR metrics (only when expected_outcomes provided)"
@@ -281,11 +230,6 @@ class CircuitPerformanceSchema(BaseModel):
         success_dict = self.success_metrics.model_dump()  # pylint: disable=no-member
         for key, value in success_dict.items():
             result[f"success_metrics.{key}"] = value
-
-        # Flatten fidelity metrics
-        fidelity_dict = self.fidelity_metrics.model_dump()  # pylint: disable=no-member
-        for key, value in fidelity_dict.items():
-            result[f"fidelity_metrics.{key}"] = value
 
         # Flatten statistical metrics
         statistical_dict = self.statistical_metrics.model_dump()  # pylint: disable=no-member
@@ -313,7 +257,6 @@ class CircuitPerformanceSchema(BaseModel):
         """
         # Reconstruct nested structure
         success_metrics = {}
-        fidelity_metrics = {}
         statistical_metrics = {}
         dsr_metrics = {}
 
@@ -321,9 +264,6 @@ class CircuitPerformanceSchema(BaseModel):
             if key.startswith("success_metrics."):
                 metric_name = key.replace("success_metrics.", "")
                 success_metrics[metric_name] = value
-            elif key.startswith("fidelity_metrics."):
-                metric_name = key.replace("fidelity_metrics.", "")
-                fidelity_metrics[metric_name] = value
             elif key.startswith("statistical_metrics."):
                 metric_name = key.replace("statistical_metrics.", "")
                 statistical_metrics[metric_name] = value
@@ -333,7 +273,6 @@ class CircuitPerformanceSchema(BaseModel):
 
         return cls(
             success_metrics=SuccessMetricsSchema(**success_metrics),
-            fidelity_metrics=FidelityMetricsSchema(**fidelity_metrics),
             statistical_metrics=StatisticalMetricsSchema(**statistical_metrics),
             dsr_metrics=DSRVariantsSchema(**dsr_metrics) if dsr_metrics else None,
         )
@@ -351,16 +290,6 @@ class CircuitPerformanceSchema(BaseModel):
                     "min_success_rate": 0.75,
                     "max_success_rate": 0.90,
                     "total_trials": 3072,
-                },
-                "fidelity_metrics": {
-                    "fidelity": 0.92,
-                    "has_expected_distribution": True,
-                    "method": "theoretical_comparison",
-                    "confidence": "high",
-                    "mean_fidelity": 0.89,
-                    "std_fidelity": 0.03,
-                    "min_fidelity": 0.85,
-                    "max_fidelity": 0.94,
                 },
                 "statistical_metrics": {
                     "entropy": 1.8,

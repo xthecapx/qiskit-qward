@@ -22,7 +22,7 @@ Metric calculators are classes that perform specific calculations or data extrac
 
 - `QiskitMetrics`: Extracts basic properties directly available from a `QuantumCircuit` object (e.g., depth, width, gate counts)
 - `ComplexityMetrics`: Calculates a wide range of complexity indicators, including those from "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by D. Shami
-- `CircuitPerformanceMetrics`: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion
+- `CircuitPerformanceMetrics`: Calculates success rates, error rates, and statistical metrics based on execution counts from a job, given a user-defined success criterion
 
 You can also create your own custom metric calculators by subclassing `qward.metrics.base_metric.MetricCalculator`.
 
@@ -171,7 +171,6 @@ performance_schema = circuit_performance.get_metrics()  # Returns CircuitPerform
 print("\n✅ CircuitPerformanceMetrics Schema:")
 print(f"  Success Rate: {performance_schema.success_metrics.success_rate:.3f}")
 print(f"  Error Rate: {performance_schema.success_metrics.error_rate:.3f}")  # Automatically validated
-print(f"  Fidelity: {performance_schema.fidelity_metrics.fidelity:.3f}")
 print(f"  Total Shots: {performance_schema.success_metrics.total_shots}")
 print(f"  Successful Shots: {performance_schema.success_metrics.successful_shots}")
 ```
@@ -193,11 +192,6 @@ try:
             "error_rate": 0.25,
             "total_shots": 1000,
             "successful_shots": 800
-        },
-        fidelity_metrics={
-            "fidelity": 0.8,
-            "method": "theoretical_comparison",
-            "confidence": "high"
         },
         statistical_metrics={
             "entropy": 0.5,
@@ -360,7 +354,6 @@ circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
 metrics = circuit_performance.get_metrics()
 print(f"Success Rate: {metrics.success_metrics.success_rate:.3f}")
 print(f"Error Rate: {metrics.success_metrics.error_rate:.3f}")  # Automatically validated: error_rate = 1 - success_rate
-print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
 print(f"Successful Shots: {metrics.success_metrics.successful_shots}/{metrics.success_metrics.total_shots}")
 
 # Schema validation catches errors automatically
@@ -374,11 +367,6 @@ try:
             "error_rate": 0.30,  # Should be 0.25!
             "total_shots": 1000,
             "successful_shots": 750
-        },
-        fidelity_metrics={
-            "fidelity": 0.8,
-            "method": "theoretical_comparison",
-            "confidence": "high"
         },
         statistical_metrics={
             "entropy": 0.5,
@@ -565,7 +553,6 @@ QWARD provides three specialized visualizers:
 
 #### 3. CircuitPerformanceMetrics Visualizations
 - **Success vs Error Rates**: Comparison across different jobs
-- **Fidelity Analysis**: Fidelity metrics visualization
 - **Shot Distribution**: Successful vs failed shots as stacked bars
 - **Aggregate Summary**: Statistical summary across multiple jobs
 

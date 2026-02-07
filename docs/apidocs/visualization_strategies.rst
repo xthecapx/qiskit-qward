@@ -113,7 +113,6 @@ The `CircuitPerformanceVisualizer` creates performance analysis visualizations f
 
 **Visualization Types:**
 - **Success Analysis**: Success rates, error rates, and performance trends
-- **Fidelity Analysis**: Quantum fidelity measurements and distributions
 - **Statistical Analysis**: Entropy, uniformity, and concentration metrics
 - **Multi-Job Comparison**: Comparative analysis across multiple executions
 - **Performance Dashboard**: Comprehensive performance overview

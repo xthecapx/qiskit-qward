@@ -333,7 +333,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
         # Test CircuitPerformanceVisualizer registry
         perf_plots = CircuitPerformanceVisualizer.get_available_plots()
         self.assertIn(Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON, perf_plots)
-        self.assertIn(Plots.CircuitPerformance.FIDELITY_COMPARISON, perf_plots)
+        self.assertIn(Plots.CircuitPerformance.SHOT_DISTRIBUTION, perf_plots)
 
     def test_metadata_completeness(self):
         """Test that all plots have complete metadata."""

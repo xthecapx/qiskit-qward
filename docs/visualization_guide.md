@@ -38,7 +38,7 @@ The visualization system is built around a powerful and extensible architecture:
 - **Individual Visualizers**: Three specialized visualizers for different metric types:
   - **`QiskitVisualizer`**: Circuit structure and instruction analysis
   - **`ComplexityVisualizer`**: Complexity analysis with radar charts and efficiency metrics
-  - **`CircuitPerformanceVisualizer`**: Performance metrics with success rates and fidelity analysis
+  - **`CircuitPerformanceVisualizer`**: Performance metrics with success rates, shot distribution, and aggregate summaries
 - **`Visualizer`**: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities
 
 ```{mermaid}
@@ -112,7 +112,6 @@ classDiagram
         +get_available_plots() List[str]
         +get_plot_metadata(plot_name) PlotMetadata
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -140,7 +139,7 @@ classDiagram
     note for VisualizationStrategy "Abstract base class with plot registry and metadata system"
     note for QiskitVisualizer "4 plots: circuit_structure, gate_distribution, instruction_metrics, circuit_summary"
     note for ComplexityVisualizer "3 plots: gate_based_metrics, complexity_radar, efficiency_metrics"
-    note for CircuitPerformanceVisualizer "4 plots: success_error_comparison, fidelity_comparison, shot_distribution, aggregate_summary"
+    note for CircuitPerformanceVisualizer "3 plots: success_error_comparison, shot_distribution, aggregate_summary"
     note for Visualizer "Unified entry point with type-safe constants and granular control"
 ```
 
@@ -313,7 +312,7 @@ qiskit_strategy.create_dashboard(save=True, show=False)
 |----------|-------------|----------------|--------------|
 | `QiskitVisualizer` | QiskitMetrics | 4 plots | Circuit structure, gate distribution, instruction metrics, circuit summary |
 | `ComplexityVisualizer` | ComplexityMetrics | 3 plots | Gate-based metrics, complexity radar, efficiency metrics |
-| `CircuitPerformanceVisualizer` | CircuitPerformanceMetrics | 4 plots | Success rates, fidelity, shot distribution, aggregate summary |
+| `CircuitPerformanceVisualizer` | CircuitPerformanceMetrics | 3 plots | Success rates, shot distribution, aggregate summary |
 
 ### 🎛️ Plot Discovery and Metadata
 
@@ -625,7 +624,7 @@ selected_figures = complexity_viz.generate_plots([
 
 ### CircuitPerformanceVisualizer
 
-Visualizes performance metrics from `CircuitPerformanceMetrics` with success rates, fidelity, and execution analysis.
+Visualizes performance metrics from `CircuitPerformanceMetrics` with success rates, shot distribution, and execution analysis.
 
 #### Available Plots (New API)
 
@@ -634,7 +633,6 @@ from qward.visualization.constants import Plots
 
 # All available CircuitPerformanceVisualizer plots:
 Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON  # Success vs error rates
-Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON       # Fidelity across jobs
 Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION         # Successful vs failed shots
 Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY         # Statistical summary
 ```
@@ -648,21 +646,14 @@ Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY         # Statistical summary
    ```
    Shows success and error rates across different jobs as a grouped bar chart.
 
-2. **Fidelity Comparison**
-   ```python
-   # NEW API
-   perf_viz.generate_plot(Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON, save=True, show=False)
-   ```
-   Displays fidelity values for each job with value labels.
-
-3. **Shot Distribution**
+2. **Shot Distribution**
    ```python
    # NEW API
    perf_viz.generate_plot(Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION, save=True, show=False)
    ```
    Shows the distribution of successful vs failed shots as stacked bars with detailed labels.
 
-4. **Aggregate Summary**
+3. **Aggregate Summary**
    ```python
    # NEW API
    perf_viz.generate_plot(Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY, save=True, show=False)
@@ -680,8 +671,7 @@ all_figures = perf_viz.generate_all_plots(save=True, show=False)
 
 # NEW API: Generate selected plots
 selected_figures = perf_viz.generate_plots([
-    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-    Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON
 ], save=True, show=False)
 ```
 
@@ -830,8 +820,7 @@ perf_viz = CircuitPerformanceVisualizer(
 
 # Generate specific plots to analyze noise impact
 noise_analysis_plots = perf_viz.generate_plots([
-    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-    Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON
 ], save=True, show=False)
 
 # Create comprehensive dashboard
@@ -889,8 +878,7 @@ bell_analysis = visualizer.generate_plots({
     Metrics.QISKIT: [Plots.QISKIT.CIRCUIT_STRUCTURE],
     Metrics.COMPLEXITY: [Plots.COMPLEXITY.COMPLEXITY_RADAR],
     Metrics.CIRCUIT_PERFORMANCE: [
-        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON,
-        Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON
+        Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON
     ]
 }, save=True, show=False)
 
@@ -987,7 +975,6 @@ Expects specific DataFrame structures:
 - `job_id`: Unique identifier for each job
 - `success_rate`: Success rate (0.0 to 1.0)
 - `error_rate`: Error rate (0.0 to 1.0)
-- `fidelity`: Quantum fidelity (0.0 to 1.0)
 - `total_shots`: Total number of shots
 - `successful_shots`: Number of successful shots
 
@@ -997,7 +984,6 @@ Expects specific DataFrame structures:
 - `min_success_rate`: Minimum success rate
 - `max_success_rate`: Maximum success rate
 - `total_trials`: Total number of trials across all jobs
-- `fidelity`: Overall fidelity
 - `error_rate`: Overall error rate
 
 ## Creating Custom Visualizers
@@ -1351,7 +1337,6 @@ Plots.COMPLEXITY.EFFICIENCY_METRICS  # "efficiency_metrics"
 
 # CircuitPerformanceMetrics Plot Constants
 Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON  # "success_error_comparison"
-Plots.CIRCUIT_PERFORMANCE.FIDELITY_COMPARISON       # "fidelity_comparison"
 Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION         # "shot_distribution"
 Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY         # "aggregate_summary"
 ```
