@@ -512,6 +512,7 @@ class QuantumCircuitExecutor:
         token: Optional[str] = None,
         instance: Optional[str] = None,
     ) -> IBMBatchResult:
+        # pylint: disable=too-many-branches
         """Run circuit on IBM Quantum hardware using Batch mode.
 
         This method executes a quantum circuit on real IBM Quantum hardware using
