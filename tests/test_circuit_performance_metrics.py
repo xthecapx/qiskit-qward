@@ -156,12 +156,6 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         expected_error_rate = 1.0 - result.success_metrics.success_rate
         self.assertAlmostEqual(result.success_metrics.error_rate, expected_error_rate, places=5)
 
-        # Test fidelity metrics
-        self.assertGreaterEqual(result.fidelity_metrics.fidelity, 0.0)
-        self.assertLessEqual(result.fidelity_metrics.fidelity, 1.0)
-        self.assertIsNotNone(result.fidelity_metrics.method)
-        self.assertIsNotNone(result.fidelity_metrics.confidence)
-
     def test_multiple_jobs_metrics(self):
         """Test metrics calculation for multiple jobs."""
         job2 = self.simulator.run(self.circuit, shots=500)
@@ -252,9 +246,6 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
             "success_metrics.error_rate",
             "success_metrics.total_shots",
             "success_metrics.successful_shots",
-            "fidelity_metrics.fidelity",
-            "fidelity_metrics.method",
-            "fidelity_metrics.confidence",
             "statistical_metrics.entropy",
             "statistical_metrics.uniformity",
         ]
@@ -275,8 +266,6 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         self.assertLessEqual(result.success_metrics.success_rate, 1.0)
         self.assertGreaterEqual(result.success_metrics.error_rate, 0.0)
         self.assertLessEqual(result.success_metrics.error_rate, 1.0)
-        self.assertGreaterEqual(result.fidelity_metrics.fidelity, 0.0)
-        self.assertLessEqual(result.fidelity_metrics.fidelity, 1.0)
 
     def test_schema_cross_field_validation(self):
         """Test schema cross-field validation."""
@@ -324,7 +313,6 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         # Results should be identical for the same job
         self.assertEqual(result1.success_metrics.success_rate, result2.success_metrics.success_rate)
         self.assertEqual(result1.success_metrics.total_shots, result2.success_metrics.total_shots)
-        self.assertEqual(result1.fidelity_metrics.fidelity, result2.fidelity_metrics.fidelity)
 
     def test_different_circuit_types(self):
         """Test with different circuit types."""
@@ -348,8 +336,8 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
         self.assertGreaterEqual(result.success_metrics.success_rate, 0.0)
         self.assertLessEqual(result.success_metrics.success_rate, 1.0)
 
-    def test_high_fidelity_circuit(self):
-        """Test with a circuit that should have high fidelity."""
+    def test_high_success_circuit(self):
+        """Test with a circuit that should have high success rate."""
         # Identity circuit (should have very high success rate)
         identity_circuit = QuantumCircuit(2, 2)
         identity_circuit.measure_all()
@@ -368,7 +356,6 @@ class TestCircuitPerformanceMetrics(unittest.TestCase):
 
         # Should have high success rate (but not necessarily > 0.95 due to noise)
         self.assertGreater(result.success_metrics.success_rate, 0.8)
-        self.assertGreater(result.fidelity_metrics.fidelity, 0.8)
 
     def test_error_handling_invalid_job(self):
         """Test error handling with invalid job."""

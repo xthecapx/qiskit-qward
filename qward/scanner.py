@@ -149,7 +149,6 @@ class Scanner:
                         strategy.circuit,
                         job=job,
                         success_criteria=strategy.success_criteria,
-                        expected_distribution=strategy.expected_distribution,
                         expected_outcomes=getattr(strategy, "_expected_outcomes", None),
                     )
                     job_metrics = temp_strategy.get_metrics()
@@ -213,20 +212,21 @@ class Scanner:
         # Define aggregate relevant fields (exclude individual-specific fields)
         aggregate_fields = {}
         for key, value in all_fields.items():
-            # Include aggregate fields OR common fields like error_rate, method, confidence
-            if any(
-                aggregate_prefix in key
-                for aggregate_prefix in [
-                    "mean_",
-                    "std_",
-                    "min_",
-                    "max_",
-                    "total_trials",
-                    "peak_mismatch_rate",
-                    "total_jobs",
-                ]
-            ) or any(
-                common_field in key for common_field in ["error_rate", "method", "confidence"]
+            # Include aggregate fields OR common fields like error_rate
+            if (
+                any(
+                    aggregate_prefix in key
+                    for aggregate_prefix in [
+                        "mean_",
+                        "std_",
+                        "min_",
+                        "max_",
+                        "total_trials",
+                        "peak_mismatch_rate",
+                        "total_jobs",
+                    ]
+                )
+                or "error_rate" in key
             ):
                 aggregate_fields[key] = value
 
@@ -320,11 +320,8 @@ class Scanner:
         # Show individual job results
         for i, row in individual_df.iterrows():
             success_rate = row.get("success_metrics.success_rate", 0)
-            fidelity = row.get("fidelity_metrics.fidelity", 0)
             total_shots = row.get("success_metrics.total_shots", 0)
-            print(
-                f"   Job {i+1}: {success_rate:.1%} success, {fidelity:.3f} fidelity ({total_shots} shots)"
-            )
+            print(f"   Job {i+1}: {success_rate:.1%} success ({total_shots} shots)")
 
     def _display_aggregate_performance_summary(self, metrics_dict: Dict[str, pd.DataFrame]) -> None:
         """Display aggregate performance summary."""

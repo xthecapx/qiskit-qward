@@ -121,7 +121,6 @@ classDiagram
     
     class CircuitPerformanceSchema {
         +success_metrics: SuccessMetricsSchema
-        +fidelity_metrics: FidelityMetricsSchema
         +statistical_metrics: StatisticalMetricsSchema
         +validate_error_rate()
         +validate_successful_shots()
@@ -222,7 +221,6 @@ classDiagram
         +is_ready() bool
         +get_metrics() CircuitPerformanceSchema
         +get_success_metrics() SuccessMetricsSchema
-        +get_fidelity_metrics() FidelityMetricsSchema
         +get_statistical_metrics() StatisticalMetricsSchema
         +add_job(job)
         +_default_success_criteria() Callable[[str], bool]
@@ -360,7 +358,7 @@ The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, i
 The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
 
 ### CircuitPerformanceMetrics
-The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
+The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
 
 
 ### **ElementMetrics**
@@ -453,7 +451,6 @@ circuit_performance = CircuitPerformanceMetrics(
 # Get validated schema with automatic constraint checking
 metrics = circuit_performance.get_metrics()
 print(f"Success Rate: {metrics.success_metrics.success_rate:.3f}")
-print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
 print(f"Error Rate: {metrics.success_metrics.error_rate:.3f}")  # Automatically validated
 ```
 
@@ -590,7 +587,7 @@ The visualization system is built on the following key components:
 - **Individual Visualizers**: Three concrete visualizers inheriting from `VisualizationStrategy`:
   - **`QiskitVisualizer`**: Visualizes circuit structure and instruction metrics (4 plots)
   - **`ComplexityVisualizer`**: Visualizes complexity analysis with radar charts and efficiency metrics (3 plots)
-  - **`CircuitPerformanceVisualizer`**: Visualizes performance metrics with success rates, fidelity, and shot distributions (4 plots)
+  - **`CircuitPerformanceVisualizer`**: Visualizes performance metrics with success rates, shot distributions, and aggregate summaries (3 plots)
 - **`Visualizer`**: A unified entry point that automatically detects available metrics and provides type-safe visualization capabilities.
 
 ```{mermaid}
@@ -665,7 +662,6 @@ classDiagram
         +get_available_plots() List[str]
         +get_plot_metadata(plot_name) PlotMetadata
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -697,7 +693,7 @@ classDiagram
     note for VisualizationStrategy "Abstract base class with plot registry and metadata system"
     note for QiskitVisualizer "4 plots: circuit_structure, gate_distribution, instruction_metrics, circuit_summary"
     note for ComplexityVisualizer "3 plots: gate_based_metrics, complexity_radar, efficiency_metrics"
-    note for CircuitPerformanceVisualizer "4 plots: success_error_comparison, fidelity_comparison, shot_distribution, aggregate_summary"
+    note for CircuitPerformanceVisualizer "3 plots: success_error_comparison, shot_distribution, aggregate_summary"
     note for Visualizer "Unified entry point with type-safe constants and granular control"
 ```
 
@@ -727,9 +723,8 @@ Three specialized visualizers for different metric types with plot registries:
    - `complexity_radar`: Radar chart for normalized complexity indicators
    - `efficiency_metrics`: Parallelism efficiency and circuit efficiency analysis
 
-3. **`CircuitPerformanceVisualizer`**: Handles execution performance visualization (4 plots)
+3. **`CircuitPerformanceVisualizer`**: Handles execution performance visualization (3 plots)
    - `success_error_comparison`: Success vs error rate comparisons across jobs
-   - `fidelity_comparison`: Fidelity analysis across different executions
    - `shot_distribution`: Distribution of successful vs failed shots
    - `aggregate_summary`: Statistical summary across multiple jobs
 
