@@ -207,7 +207,6 @@ def direct_performance_strategy():
 
     # Generate plots
     strategy.generate_plot(Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON, save=True, show=False)
-    strategy.generate_plot(Plots.CircuitPerformance.FIDELITY_COMPARISON, save=True, show=False)
     strategy.create_dashboard(save=True, show=False)
     print("  ✓ CircuitPerformanceVisualizer plots saved")
 
