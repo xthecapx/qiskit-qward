@@ -35,7 +35,6 @@ from qward.examples.papers.qft.qft_configs import (
     CONFIGS_BY_ID,
 )
 
-
 # =============================================================================
 # Region 1 Configurations (Worth running on QPU)
 # Prioritized by expected success rate from simulator analysis
