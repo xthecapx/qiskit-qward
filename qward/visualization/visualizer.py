@@ -5,12 +5,14 @@ This module provides the unified Visualizer class that acts as the main entry po
 for visualizing metrics from Scanner or custom data sources using pluggable strategies.
 """
 
-from typing import Dict, List, Optional, Type, Union, Any
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from qward.scanner import Scanner
 from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotResult
+
+if TYPE_CHECKING:
+    from qward.scanner import Scanner
 
 
 class Visualizer:
@@ -24,7 +26,7 @@ class Visualizer:
 
     def __init__(
         self,
-        scanner: Optional[Scanner] = None,
+        scanner: Optional["Scanner"] = None,
         metrics_data: Optional[Dict[str, pd.DataFrame]] = None,
         config: Optional[PlotConfig] = None,
         output_dir: str = "qward/examples/img",
@@ -224,7 +226,7 @@ class Visualizer:
         Example:
             results = visualizer.generate_plots(
                 selections={
-                    "CircuitPerformance": ["success_error_comparison", "fidelity_distribution"],
+                    "CircuitPerformance": ["success_error_comparison", "shot_distribution"],
                     "QiskitMetrics": ["basic_metrics_bar"]
                 },
                 save=True,

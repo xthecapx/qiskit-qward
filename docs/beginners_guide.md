@@ -85,6 +85,25 @@ chmod +x start.sh
 
 This will open a Jupyter Lab interface in your browser where you can run the examples and tutorials.
 
+### Quick Start (Fluent API)
+
+```python
+from qiskit import QuantumCircuit
+from qward import Scanner
+
+circuit = QuantumCircuit(2, 2)
+circuit.h(0)
+circuit.cx(0, 1)
+circuit.measure_all()
+
+# Analyze with all pre-runtime metrics
+result = Scanner(circuit).scan()
+print(list(result.keys()))
+
+# Chain summary and visualization
+result.summary().visualize(save=True, show=False)
+```
+
 ### First Steps: The Quantum Coin Flip
 
 Let's analyze a simple quantum coin flip circuit. This uses a single qubit in superposition.
@@ -226,6 +245,21 @@ scanner = Scanner(circuit=circuit, strategies=[qm, cm])
 
 # Calculate metrics
 all_metrics_results = scanner.calculate_metrics()
+```
+
+### Fluent Chaining with add()
+
+```python
+# Chain strategies fluently
+results = (
+    Scanner(circuit=circuit)
+    .add(QiskitMetrics)
+    .add(ComplexityMetrics)
+    .add(CircuitPerformanceMetrics, job=job, success_criteria=coin_flip_success_q0_is_0)
+    .scan()
+)
+
+results.summary()
 ```
 
 ### Understanding the Circuit

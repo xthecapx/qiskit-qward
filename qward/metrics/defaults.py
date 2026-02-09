@@ -18,3 +18,25 @@ def get_default_strategies() -> List[Type[MetricCalculator]]:
         List[Type[MetricCalculator]]: List of default metric strategy classes
     """
     return [QiskitMetrics, ComplexityMetrics]
+
+
+def get_all_pre_runtime_strategies() -> List[Type[MetricCalculator]]:
+    """
+    Get all pre-runtime metric strategy classes.
+
+    Returns:
+        List[Type[MetricCalculator]]: List of all pre-runtime strategy classes
+    """
+    from qward.metrics.behavioral_metrics import BehavioralMetrics
+    from qward.metrics.element_metrics import ElementMetrics
+    from qward.metrics.quantum_specific_metrics import QuantumSpecificMetrics
+    from qward.metrics.structural_metrics import StructuralMetrics
+
+    return [
+        QiskitMetrics,
+        ComplexityMetrics,
+        ElementMetrics,
+        StructuralMetrics,
+        BehavioralMetrics,
+        QuantumSpecificMetrics,
+    ]

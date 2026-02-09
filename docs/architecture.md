@@ -18,7 +18,16 @@ classDiagram
         <<Context>>
         +circuit: QuantumCircuit
         +calculators: List[MetricCalculator]
+        +add(strategy, **kwargs) Scanner
+        +scan(include_all_pre_runtime) ScanResult
         +calculate_metrics() Dict[str, DataFrame]
+    }
+
+    class ScanResult {
+        <<Value Object>>
+        +summary() ScanResult
+        +visualize() ScanResult
+        +to_dict() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
@@ -55,6 +64,7 @@ classDiagram
 
     %% Strategy Pattern Relationships
     Scanner --> MetricCalculator : uses strategies
+    Scanner --> ScanResult : produces
     
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
@@ -83,6 +93,7 @@ classDiagram
 - **Schema Validation**: Pydantic-based data validation ensures type safety and constraint checking
 - **Unified API**: All metric classes use `get_metrics()` to return schema objects directly
 - **Scanner Integration**: Scanner automatically calls `to_flat_dict()` for DataFrame conversion
+- **Pre-runtime helper**: `get_all_pre_runtime_strategies()` provides all pre-runtime strategy classes
 - **Strategy Pattern Benefits**: Runtime strategy switching, extensibility, separation of concerns
 
 ## Schema-Based Data Validation
@@ -162,9 +173,18 @@ classDiagram
         +strategies: List[MetricCalculator]
         +__init__(circuit, job, strategies)
         +add_strategy(metric_calculator)
+        +add(strategy, **kwargs) Scanner
+        +scan(include_all_pre_runtime) ScanResult
         +calculate_metrics() Dict[str, DataFrame]
         +set_circuit(circuit)
         +set_job(job)
+    }
+
+    class ScanResult {
+        <<Value Object>>
+        +summary() ScanResult
+        +visualize() ScanResult
+        +to_dict() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
@@ -243,6 +263,7 @@ classDiagram
 
     %% Strategy Pattern Relationships
     Scanner --> MetricCalculator : uses strategies
+    Scanner --> ScanResult : produces
     
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
@@ -255,6 +276,7 @@ classDiagram
 
     %% Notes about Enhanced Architecture
     note for Scanner "Context: Maintains references to metric calculators and delegates work. Returns dictionary of DataFrames for analysis."
+    note for ScanResult "Fluent wrapper around calculated metric DataFrames."
     
     note for MetricCalculator "Strategy Interface: Common interface returning validated schema objects. Includes schema availability checking."
     
