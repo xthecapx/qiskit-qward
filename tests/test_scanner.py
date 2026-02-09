@@ -372,6 +372,122 @@ class TestScannerFluentAPI(unittest.TestCase):
         for strategy in strategies:
             self.assertTrue(issubclass(strategy, MetricCalculator))
 
+    # ------------------------------------------------------------------
+    # ScanResult dict-like interface
+    # ------------------------------------------------------------------
+    def test_scan_result_len(self):
+        """ScanResult __len__ should report number of metric keys."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics, ComplexityMetrics]).scan()
+        self.assertEqual(len(result), 2)
+
+    def test_scan_result_iter(self):
+        """ScanResult should be iterable over its keys."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        keys = list(result)
+        self.assertEqual(keys, list(result.keys()))
+
+    def test_scan_result_items(self):
+        """ScanResult.items() should yield (key, DataFrame) pairs."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        for key, df in result.items():
+            self.assertIsInstance(key, str)
+            self.assertIsInstance(df, pd.DataFrame)
+
+    def test_scan_result_values(self):
+        """ScanResult.values() should yield DataFrames."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        for df in result.values():
+            self.assertIsInstance(df, pd.DataFrame)
+
+    def test_scan_result_get_existing_key(self):
+        """ScanResult.get() should return DataFrame for existing key."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        df = result.get("QiskitMetrics")
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_scan_result_get_missing_key(self):
+        """ScanResult.get() should return default for missing key."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        value = result.get("NonExistent", "default")
+        self.assertEqual(value, "default")
+
+    def test_scan_result_contains_false(self):
+        """ScanResult __contains__ should return False for missing key."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        self.assertNotIn("NonExistent", result)
+
+    # ------------------------------------------------------------------
+    # scan(include_all_pre_runtime=False)
+    # ------------------------------------------------------------------
+    def test_scan_no_auto_enroll_when_disabled(self):
+        """scan(include_all_pre_runtime=False) with no strategies should return empty result."""
+        result = Scanner(circuit=self.circuit).scan(include_all_pre_runtime=False)
+        self.assertEqual(len(result), 0)
+
+    # ------------------------------------------------------------------
+    # Full fluent chain
+    # ------------------------------------------------------------------
+    def test_full_fluent_chain(self):
+        """Full chain: Scanner(circuit).add(X).scan().summary().visualize()."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = (
+                Scanner(circuit=self.circuit)
+                .add(QiskitMetrics)
+                .add(ComplexityMetrics)
+                .scan()
+                .summary()
+                .visualize(save=True, show=False, output_dir=tmpdir)
+            )
+            from qward.scanner import ScanResult
+
+            self.assertIsInstance(result, ScanResult)
+            self.assertIn("QiskitMetrics", result)
+            self.assertIn("ComplexityMetrics", result)
+
+    # ------------------------------------------------------------------
+    # visualize() with selections
+    # ------------------------------------------------------------------
+    def test_scan_result_visualize_with_selections(self):
+        """visualize(selections=...) should generate selected plots."""
+        from qward.visualization.constants import Metrics, Plots
+
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            returned = result.visualize(
+                save=True,
+                show=False,
+                output_dir=tmpdir,
+                selections={Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE]},
+            )
+            self.assertIs(returned, result)
+
+    # ------------------------------------------------------------------
+    # add() edge cases
+    # ------------------------------------------------------------------
+    def test_add_instance_with_kwargs_raises_type_error(self):
+        """add() with an instance and kwargs should raise TypeError."""
+        scanner = Scanner(circuit=self.circuit)
+        instance = QiskitMetrics(self.circuit)
+        with self.assertRaises(TypeError):
+            scanner.add(instance, some_kwarg="value")
+
+    # ------------------------------------------------------------------
+    # display_summary() without pre-calculated metrics
+    # ------------------------------------------------------------------
+    def test_display_summary_without_metrics(self):
+        """display_summary() without metrics should calculate them first."""
+        scanner = Scanner(circuit=self.circuit, strategies=[QiskitMetrics])
+        # Should not raise; it calculates internally
+        scanner.display_summary()
+
+    # ------------------------------------------------------------------
+    # Scanner positional circuit argument
+    # ------------------------------------------------------------------
+    def test_scanner_positional_circuit(self):
+        """Scanner should accept circuit as positional argument."""
+        scanner = Scanner(self.circuit)
+        self.assertEqual(scanner.circuit, self.circuit)
+
 
 if __name__ == "__main__":
     unittest.main()

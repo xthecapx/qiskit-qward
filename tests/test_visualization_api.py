@@ -402,6 +402,101 @@ class TestNewVisualizationAPI(unittest.TestCase):
             # show() should have been called
             mock_show.assert_called()
 
+    def test_get_metric_summary(self):
+        """Test get_metric_summary returns structure info for each metric."""
+        visualizer = Visualizer(scanner=self.scanner)
+        summary = visualizer.get_metric_summary()
+
+        self.assertIsInstance(summary, dict)
+        self.assertIn(Metrics.QISKIT, summary)
+        self.assertIn(Metrics.COMPLEXITY, summary)
+
+        for metric_name, info in summary.items():
+            self.assertIn("shape", info)
+            self.assertIn("columns", info)
+            self.assertIsInstance(info["columns"], (list, int))
+
+    def test_print_available_metrics(self):
+        """Test print_available_metrics runs without error."""
+        visualizer = Visualizer(scanner=self.scanner)
+        # Should not raise
+        visualizer.print_available_metrics()
+
+    def test_list_registered_strategies(self):
+        """Test list_registered_strategies returns mapping."""
+        visualizer = Visualizer(scanner=self.scanner)
+        registered = visualizer.list_registered_strategies()
+
+        self.assertIsInstance(registered, dict)
+        # At least QiskitMetrics and ComplexityMetrics should be registered
+        self.assertGreater(len(registered), 0)
+
+    def test_register_custom_strategy(self):
+        """Test register_strategy allows adding a custom visualization strategy."""
+        from qward.visualization.base import VisualizationStrategy
+
+        class DummyStrategy(VisualizationStrategy):
+            PLOT_REGISTRY = {
+                "dummy_plot": PlotMetadata(
+                    name="dummy_plot",
+                    method_name="plot_dummy",
+                    description="Dummy plot",
+                    plot_type=PlotType.BAR_CHART,
+                    filename="dummy",
+                    dependencies=[],
+                    category="test",
+                )
+            }
+
+            @classmethod
+            def get_available_plots(cls):
+                return list(cls.PLOT_REGISTRY.keys())
+
+            @classmethod
+            def get_plot_metadata(cls, plot_name):
+                return cls.PLOT_REGISTRY[plot_name]
+
+            def create_dashboard(self, save=False, show=False):
+                fig, ax = plt.subplots()
+                ax.set_title("Dummy")
+                return fig
+
+        import pandas as pd
+
+        visualizer = Visualizer(
+            metrics_data={"DummyMetrics": pd.DataFrame([{"a": 1}])},
+        )
+        visualizer.register_strategy("DummyMetrics", DummyStrategy)
+
+        registered = visualizer.list_registered_strategies()
+        self.assertIn("DummyMetrics", registered)
+
+    def test_get_available_metrics(self):
+        """Test get_available_metrics returns list of metric names."""
+        visualizer = Visualizer(scanner=self.scanner)
+        available = visualizer.get_available_metrics()
+
+        self.assertIsInstance(available, list)
+        self.assertIn(Metrics.QISKIT, available)
+        self.assertIn(Metrics.COMPLEXITY, available)
+
+    def test_visualizer_from_metrics_data_instead_of_scanner(self):
+        """Test creating Visualizer with metrics_data dict instead of scanner."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            visualizer = Visualizer(metrics_data=self.metrics_dict, output_dir=temp_dir)
+
+            available = visualizer.get_available_metrics()
+            self.assertIn(Metrics.QISKIT, available)
+
+            fig = visualizer.generate_plot(
+                metric_name=Metrics.QISKIT,
+                plot_name=Plots.Qiskit.CIRCUIT_STRUCTURE,
+                save=False,
+                show=False,
+            )
+            self.assertIsNotNone(fig)
+            plt.close(fig)
+
 
 if __name__ == "__main__":
     unittest.main()
