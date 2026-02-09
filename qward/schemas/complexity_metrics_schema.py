@@ -2,7 +2,6 @@ from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
-
 # =============================================================================
 # Complexity Metrics Schemas
 # =============================================================================

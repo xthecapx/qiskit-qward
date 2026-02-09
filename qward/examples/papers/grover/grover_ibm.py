@@ -36,7 +36,6 @@ from qward.examples.papers.grover.grover_configs import (
 )
 from qward.examples.papers.grover.grover_success_metrics import evaluate_job
 
-
 # =============================================================================
 # Region 1 Configurations (Worth running on QPU)
 # Prioritized by expected success rate from simulator analysis

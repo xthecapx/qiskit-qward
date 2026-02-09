@@ -52,7 +52,6 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from .noise_generator import NoiseConfig, NoiseModelGenerator
 from .experiment_utils import calculate_qward_metrics
 
-
 # =============================================================================
 # Type Variables for Generic Classes
 # =============================================================================

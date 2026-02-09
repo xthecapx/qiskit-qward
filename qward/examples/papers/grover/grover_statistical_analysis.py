@@ -28,7 +28,6 @@ from qward.algorithms.experiment_analysis import (
     generate_campaign_report,
 )
 
-
 # =============================================================================
 # Aggregate Analysis for Experiment
 # =============================================================================

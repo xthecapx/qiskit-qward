@@ -4,7 +4,6 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from qiskit.circuit import CircuitInstruction
 from qiskit.transpiler import Layout
 
-
 # =============================================================================
 # Basic Circuit Metrics Schema
 # =============================================================================
