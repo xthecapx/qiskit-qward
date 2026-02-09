@@ -12,19 +12,26 @@ QWARD is a comprehensive framework for analyzing quantum circuits and validating
 ```python
 from qiskit import QuantumCircuit
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics
-from qward.visualization import Visualizer
 
 # Create a quantum circuit
 circuit = QuantumCircuit(2)
 circuit.h(0)
 circuit.cx(0, 1)
 
-# Analyze the circuit
+# Analyze with all metrics in one line
+Scanner(circuit).scan().summary()
+```
+
+### Full Control
+
+```python
+from qward import Scanner
+from qward.metrics import QiskitMetrics, ComplexityMetrics
+from qward.visualization import Visualizer
+
+# Build scanner and visualizer explicitly
 scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
 metrics = scanner.calculate_metrics()
-
-# Visualize results
 visualizer = Visualizer(scanner=scanner)
 dashboards = visualizer.create_dashboard(save=True)
 ```

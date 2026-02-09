@@ -27,6 +27,41 @@ def create_bell_circuit() -> QuantumCircuit:
     return circuit
 
 
+def fluent_api_example():
+    """Example 0: New fluent API."""
+    print("=== Example 0: Fluent API ===\n")
+
+    circuit = create_bell_circuit()
+
+    result = Scanner(circuit).scan()
+    print(f"Metrics calculated: {list(result.keys())}")
+
+    result.summary()
+    result.visualize(save=True, show=False, output_dir="qward/examples/img/fluent")
+    print("Plots saved to qward/examples/img/fluent/")
+
+
+def fluent_performance_example():
+    """Example 0b: Fluent API with CircuitPerformanceMetrics."""
+    print("\n=== Example 0b: Fluent API + Performance ===\n")
+
+    circuit = create_bell_circuit()
+    simulator = AerSimulator()
+    job = simulator.run(circuit, shots=1024)
+
+    def bell_success(outcome):
+        return outcome.replace(" ", "") in ["00", "11"]
+
+    result = (
+        Scanner(circuit)
+        .add(CircuitPerformanceMetrics, job=job, success_criteria=bell_success)
+        .scan()
+        .summary()
+    )
+
+    print(f"Metrics: {list(result.keys())}")
+
+
 def basic_metrics_example():
     """Example 1: Basic metrics calculation."""
     print("=== Example 1: Basic Metrics ===\n")
@@ -221,6 +256,8 @@ def main():
     print("🚀 QWARD Quickstart Examples")
     print("=" * 50)
 
+    fluent_api_example()
+    fluent_performance_example()
     basic_metrics_example()
     visualization_example()
     circuit_performance_example()
