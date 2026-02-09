@@ -11,7 +11,6 @@ CircuitPerformanceMetrics analyzes quantum circuit execution performance using t
 
 **Metric Categories:**
 - **Success Metrics**: Success rate, error rate, successful shots analysis
-- **Fidelity Metrics**: Quantum fidelity between measured and expected distributions
 - **Statistical Metrics**: Entropy, uniformity, concentration analysis
 
 **Usage Example:**
@@ -47,7 +46,6 @@ CircuitPerformanceMetrics analyzes quantum circuit execution performance using t
     # Access validated performance data
     print(f"Success rate: {metrics.success_metrics.success_rate:.3f}")
     print(f"Error rate: {metrics.success_metrics.error_rate:.3f}")
-    print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
     print(f"Entropy: {metrics.statistical_metrics.entropy:.3f}")
 
 API Reference

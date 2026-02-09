@@ -73,11 +73,6 @@ Circuit Performance Schemas
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: qward.metrics.schemas.FidelityMetricsSchema
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. autoclass:: qward.metrics.schemas.StatisticalMetricsSchema
    :members:
    :undoc-members:

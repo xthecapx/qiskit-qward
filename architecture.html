@@ -286,7 +286,16 @@
         &lt;&lt;Context&gt;&gt;
         +circuit: QuantumCircuit
         +calculators: List[MetricCalculator]
+        +add(strategy, **kwargs) Scanner
+        +scan(include_all_pre_runtime) ScanResult
         +calculate_metrics() Dict[str, DataFrame]
+    }
+
+    class ScanResult {
+        &lt;&lt;Value Object&gt;&gt;
+        +summary() ScanResult
+        +visualize() ScanResult
+        +to_dict() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
@@ -323,6 +332,7 @@
 
     %% Strategy Pattern Relationships
     Scanner --&gt; MetricCalculator : uses strategies
+    Scanner --&gt; ScanResult : produces
     
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
@@ -350,6 +360,7 @@
 <li><p><strong>Schema Validation</strong>: Pydantic-based data validation ensures type safety and constraint checking</p></li>
 <li><p><strong>Unified API</strong>: All metric classes use <code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code> to return schema objects directly</p></li>
 <li><p><strong>Scanner Integration</strong>: Scanner automatically calls <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> for DataFrame conversion</p></li>
+<li><p><strong>Pre-runtime helper</strong>: <code class="docutils literal notranslate"><span class="pre">get_all_pre_runtime_strategies()</span></code> provides all pre-runtime strategy classes</p></li>
 <li><p><strong>Strategy Pattern Benefits</strong>: Runtime strategy switching, extensibility, separation of concerns</p></li>
 </ul>
 </section>
@@ -389,7 +400,6 @@
     
     class CircuitPerformanceSchema {
         +success_metrics: SuccessMetricsSchema
-        +fidelity_metrics: FidelityMetricsSchema
         +statistical_metrics: StatisticalMetricsSchema
         +validate_error_rate()
         +validate_successful_shots()
@@ -431,9 +441,18 @@
         +strategies: List[MetricCalculator]
         +__init__(circuit, job, strategies)
         +add_strategy(metric_calculator)
+        +add(strategy, **kwargs) Scanner
+        +scan(include_all_pre_runtime) ScanResult
         +calculate_metrics() Dict[str, DataFrame]
         +set_circuit(circuit)
         +set_job(job)
+    }
+
+    class ScanResult {
+        &lt;&lt;Value Object&gt;&gt;
+        +summary() ScanResult
+        +visualize() ScanResult
+        +to_dict() Dict[str, DataFrame]
     }
 
     class MetricCalculator {
@@ -490,7 +509,6 @@
         +is_ready() bool
         +get_metrics() CircuitPerformanceSchema
         +get_success_metrics() SuccessMetricsSchema
-        +get_fidelity_metrics() FidelityMetricsSchema
         +get_statistical_metrics() StatisticalMetricsSchema
         +add_job(job)
         +_default_success_criteria() Callable[[str], bool]
@@ -513,6 +531,7 @@
 
     %% Strategy Pattern Relationships
     Scanner --&gt; MetricCalculator : uses strategies
+    Scanner --&gt; ScanResult : produces
     
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
@@ -525,6 +544,7 @@
 
     %% Notes about Enhanced Architecture
     note for Scanner &quot;Context: Maintains references to metric calculators and delegates work. Returns dictionary of DataFrames for analysis.&quot;
+    note for ScanResult &quot;Fluent wrapper around calculated metric DataFrames.&quot;
     
     note for MetricCalculator &quot;Strategy Interface: Common interface returning validated schema objects. Includes schema availability checking.&quot;
     
@@ -634,7 +654,7 @@
 </section>
 <section id="circuitperformancemetrics">
 <h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
-<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate, fidelity, and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
 </section>
 <section id="elementmetrics">
 <h3><strong>ElementMetrics</strong><a class="headerlink" href="#elementmetrics" title="Link to this heading">¶</a></h3>
@@ -732,7 +752,6 @@
 <span class="c1"># Get validated schema with automatic constraint checking</span>
 <span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Automatically validated</span>
 </pre></div>
 </div>
@@ -898,7 +917,7 @@
 <ul>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Visualizes circuit structure and instruction metrics (4 plots)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Visualizes complexity analysis with radar charts and efficiency metrics (3 plots)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Visualizes performance metrics with success rates, fidelity, and shot distributions (4 plots)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Visualizes performance metrics with success rates, shot distributions, and aggregate summaries (3 plots)</p></li>
 </ul>
 </li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></strong>: A unified entry point that automatically detects available metrics and provides type-safe visualization capabilities.</p></li>
@@ -975,7 +994,6 @@
         +get_available_plots() List[str]
         +get_plot_metadata(plot_name) PlotMetadata
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -1007,7 +1025,7 @@
     note for VisualizationStrategy &quot;Abstract base class with plot registry and metadata system&quot;
     note for QiskitVisualizer &quot;4 plots: circuit_structure, gate_distribution, instruction_metrics, circuit_summary&quot;
     note for ComplexityVisualizer &quot;3 plots: gate_based_metrics, complexity_radar, efficiency_metrics&quot;
-    note for CircuitPerformanceVisualizer &quot;4 plots: success_error_comparison, fidelity_comparison, shot_distribution, aggregate_summary&quot;
+    note for CircuitPerformanceVisualizer &quot;3 plots: success_error_comparison, shot_distribution, aggregate_summary&quot;
     note for Visualizer &quot;Unified entry point with type-safe constants and granular control&quot;
     </pre></section>
 <section id="key-components">
@@ -1044,10 +1062,9 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">efficiency_metrics</span></code>: Parallelism efficiency and circuit efficiency analysis</p></li>
 </ul>
 </li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Handles execution performance visualization (4 plots)</p>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Handles execution performance visualization (3 plots)</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">success_error_comparison</span></code>: Success vs error rate comparisons across jobs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fidelity_comparison</span></code>: Fidelity analysis across different executions</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">shot_distribution</span></code>: Distribution of successful vs failed shots</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aggregate_summary</span></code>: Statistical summary across multiple jobs</p></li>
 </ul>

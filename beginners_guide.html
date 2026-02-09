@@ -294,7 +294,7 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">QiskitMetrics</span></code>: Extracts basic properties directly available from a <code class="docutils literal notranslate"><span class="pre">QuantumCircuit</span></code> object (e.g., depth, width, gate counts)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ComplexityMetrics</span></code>: Calculates a wide range of complexity indicators, including those from “Character Complexity: A Novel Measure for Quantum Circuit Analysis” by D. Shami</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code>: Calculates success rates, error rates, and fidelity based on execution counts from a job, given a user-defined success criterion</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code>: Calculates success rates, error rates, and statistical metrics based on execution counts from a job, given a user-defined success criterion</p></li>
 </ul>
 <p>You can also create your own custom metric calculators by subclassing <code class="docutils literal notranslate"><span class="pre">qward.metrics.base_metric.MetricCalculator</span></code>.</p>
 </section>
@@ -357,6 +357,25 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 </div>
 <p>This will open a Jupyter Lab interface in your browser where you can run the examples and tutorials.</p>
 </section>
+</section>
+<section id="quick-start-fluent-api">
+<h3>Quick Start (Fluent API)<a class="headerlink" href="#quick-start-fluent-api" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="c1"># Analyze with all pre-runtime metrics</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+<span class="c1"># Chain summary and visualization</span>
+<span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="first-steps-the-quantum-coin-flip">
 <h3>First Steps: The Quantum Coin Flip<a class="headerlink" href="#first-steps-the-quantum-coin-flip" title="Link to this heading">¶</a></h3>
@@ -442,7 +461,6 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ CircuitPerformanceMetrics Schema:&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Success Rate: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Error Rate: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Automatically validated</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Fidelity: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Shots: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">total_shots</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Successful Shots: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">successful_shots</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -463,11 +481,6 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
             <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
             <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
             <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">800</span>
-        <span class="p">},</span>
-        <span class="n">fidelity_metrics</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span>
         <span class="p">},</span>
         <span class="n">statistical_metrics</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -501,6 +514,21 @@ chmod<span class="w"> </span>+x<span class="w"> </span>start.sh
 
 <span class="c1"># Calculate metrics</span>
 <span class="n">all_metrics_results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="fluent-chaining-with-add">
+<h3>Fluent Chaining with add()<a class="headerlink" href="#fluent-chaining-with-add" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chain strategies fluently</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">coin_flip_success_q0_is_0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">scan</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">results</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -631,7 +659,6 @@ c: 2/═══════════╩══╩═
 <span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error Rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Automatically validated: error_rate = 1 - success_rate</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successful Shots: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">successful_shots</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">total_shots</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="c1"># Schema validation catches errors automatically</span>
@@ -645,11 +672,6 @@ c: 2/═══════════╩══╩═
             <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="mf">0.30</span><span class="p">,</span>  <span class="c1"># Should be 0.25!</span>
             <span class="s2">&quot;total_shots&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
             <span class="s2">&quot;successful_shots&quot;</span><span class="p">:</span> <span class="mi">750</span>
-        <span class="p">},</span>
-        <span class="n">fidelity_metrics</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
-            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;theoretical_comparison&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;high&quot;</span>
         <span class="p">},</span>
         <span class="n">statistical_metrics</span><span class="o">=</span><span class="p">{</span>
             <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -850,7 +872,6 @@ c: 2/═══════════╩══╩═
 <h4>3. CircuitPerformanceMetrics Visualizations<a class="headerlink" href="#circuitperformancemetrics-visualizations" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p><strong>Success vs Error Rates</strong>: Comparison across different jobs</p></li>
-<li><p><strong>Fidelity Analysis</strong>: Fidelity metrics visualization</p></li>
 <li><p><strong>Shot Distribution</strong>: Successful vs failed shots as stacked bars</p></li>
 <li><p><strong>Aggregate Summary</strong>: Statistical summary across multiple jobs</p></li>
 </ul>
@@ -966,9 +987,11 @@ c: 2/═══════════╩══╩═
 <li><a class="reference internal" href="#option-2-using-docker">Option 2: Using Docker</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#quick-start-fluent-api">Quick Start (Fluent API)</a></li>
 <li><a class="reference internal" href="#first-steps-the-quantum-coin-flip">First Steps: The Quantum Coin Flip</a></li>
 <li><a class="reference internal" href="#understanding-schema-validation">Understanding Schema Validation</a></li>
 <li><a class="reference internal" href="#alternative-using-constructor-with-calculators">Alternative: Using Constructor with Calculators</a></li>
+<li><a class="reference internal" href="#fluent-chaining-with-add">Fluent Chaining with add()</a></li>
 <li><a class="reference internal" href="#understanding-the-circuit">Understanding the Circuit</a></li>
 </ul>
 </li>

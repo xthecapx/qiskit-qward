@@ -276,7 +276,7 @@
 <p>QWARD is a Python library for analyzing quantum circuits and their execution results. It provides:</p>
 <ul class="simple">
 <li><p><strong>Circuit Analysis</strong>: Extract metrics from quantum circuits (depth, complexity, gate counts)</p></li>
-<li><p><strong>Performance Analysis</strong>: Analyze execution results (success rates, fidelity, error rates)</p></li>
+<li><p><strong>Performance Analysis</strong>: Analyze execution results (success rates, error rates, statistical properties)</p></li>
 <li><p><strong>Schema Validation</strong>: Type-safe, validated metrics with IDE support</p></li>
 <li><p><strong>Visualization</strong>: Beautiful plots and dashboards for your analysis</p></li>
 </ul>
@@ -292,6 +292,28 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="quick-example">
 <h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading">¶</a></h2>
+<section id="fastest-way-new-fluent-api">
+<h3>Fastest Way (New Fluent API)<a class="headerlink" href="#fastest-way-new-fluent-api" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
+
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
+
+<span class="c1"># One-liner: analyze with all pre-runtime metrics and visualize</span>
+<span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Or pick specific metrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="detailed-way-full-control">
+<h3>Detailed Way (Full Control)<a class="headerlink" href="#detailed-way-full-control" title="Link to this heading">¶</a></h3>
 <p>Let’s analyze a simple Bell state circuit:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
@@ -326,6 +348,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of qubits: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">basic_metrics</span><span class="o">.</span><span class="n">num_qubits</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="core-concepts">
 <h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">¶</a></h2>
@@ -420,9 +443,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successful shots: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">successful_shots</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="c1"># Fidelity analysis</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fidelity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
 <span class="c1"># Statistical analysis</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entropy: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">statistical_metrics</span><span class="o">.</span><span class="n">entropy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uniformity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">statistical_metrics</span><span class="o">.</span><span class="n">uniformity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -456,35 +476,48 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metrics</span><span class="p">,</span> <span class="n">Plots</span>
 
+<span class="c1"># New fluent way</span>
+<span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Existing approach (still fully supported)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_analysis&quot;</span><span class="p">)</span>
+<span class="n">visualizer</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
 <span class="c1"># Calculate metrics first</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
-<span class="c1"># Create unified visualizer</span>
+<span class="c1"># Create unified visualizer for full control APIs</span>
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;my_analysis&quot;</span><span class="p">)</span>
 
 <span class="c1"># NEW API: Generate specific plots with type-safe constants</span>
-<span class="n">selected_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">GATE_DISTRIBUTION</span>
-    <span class="p">],</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span>
-    <span class="p">]</span>
-<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">selected_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">(</span>
+    <span class="n">selections</span><span class="o">=</span><span class="p">{</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">Plots</span><span class="o">.</span><span class="n">Qiskit</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">,</span>
+            <span class="n">Plots</span><span class="o">.</span><span class="n">Qiskit</span><span class="o">.</span><span class="n">GATE_DISTRIBUTION</span>
+        <span class="p">],</span>
+        <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span>
+        <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1"># NEW API: Generate all plots for specific metrics</span>
-<span class="n">all_qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># None = all plots</span>
-<span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">all_qiskit_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">(</span>
+    <span class="n">selections</span><span class="o">=</span><span class="p">{</span><span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>  <span class="c1"># None = all plots</span>
+    <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1"># NEW API: Generate single plot</span>
 <span class="n">single_plot</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span> 
-    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span> 
+    <span class="n">metric_name</span><span class="o">=</span><span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span>
+    <span class="n">plot_name</span><span class="o">=</span><span class="n">Plots</span><span class="o">.</span><span class="n">CircuitPerformance</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span>
     <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
     <span class="n">show</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
@@ -512,16 +545,21 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
     <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">scanner</span><span class="o">=</span><span class="n">scanner</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;analysis_</span><span class="si">{</span><span class="n">circuit_variant</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     
     <span class="c1"># Generate all plots without displaying (memory efficient)</span>
-    <span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
-        <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="kc">None</span>
-    <span class="p">})</span>  <span class="c1"># Default: save=False, show=False</span>
+    <span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">(</span>
+        <span class="n">selections</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="p">}</span>
+    <span class="p">)</span>  <span class="c1"># Default: save=False, show=False</span>
     
     <span class="c1"># Only save specific plots of interest</span>
-    <span class="n">important_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
-        <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">],</span>
-        <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">]</span>
-    <span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">important_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">(</span>
+        <span class="n">selections</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">Qiskit</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">],</span>
+            <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">Complexity</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -622,7 +660,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#">QWARD Quickstart Guide</a><ul>
 <li><a class="reference internal" href="#what-is-qward">What is QWARD?</a></li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#quick-example">Quick Example</a></li>
+<li><a class="reference internal" href="#quick-example">Quick Example</a><ul>
+<li><a class="reference internal" href="#fastest-way-new-fluent-api">Fastest Way (New Fluent API)</a></li>
+<li><a class="reference internal" href="#detailed-way-full-control">Detailed Way (Full Control)</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#core-concepts">Core Concepts</a><ul>
 <li><a class="reference internal" href="#unified-api">Unified API</a></li>
 <li><a class="reference internal" href="#schema-validation">Schema Validation</a></li>

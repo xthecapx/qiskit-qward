@@ -322,7 +322,7 @@
 <ul>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">QiskitVisualizer</span></code></strong>: Circuit structure and instruction analysis</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">ComplexityVisualizer</span></code></strong>: Complexity analysis with radar charts and efficiency metrics</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Performance metrics with success rates and fidelity analysis</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></strong>: Performance metrics with success rates, shot distribution, and aggregate summaries</p></li>
 </ul>
 </li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></strong>: A unified entry point that automatically detects available metrics and provides comprehensive visualization capabilities</p></li>
@@ -398,7 +398,6 @@
         +get_available_plots() List[str]
         +get_plot_metadata(plot_name) PlotMetadata
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -426,7 +425,7 @@
     note for VisualizationStrategy &quot;Abstract base class with plot registry and metadata system&quot;
     note for QiskitVisualizer &quot;4 plots: circuit_structure, gate_distribution, instruction_metrics, circuit_summary&quot;
     note for ComplexityVisualizer &quot;3 plots: gate_based_metrics, complexity_radar, efficiency_metrics&quot;
-    note for CircuitPerformanceVisualizer &quot;4 plots: success_error_comparison, fidelity_comparison, shot_distribution, aggregate_summary&quot;
+    note for CircuitPerformanceVisualizer &quot;3 plots: success_error_comparison, shot_distribution, aggregate_summary&quot;
     note for Visualizer &quot;Unified entry point with type-safe constants and granular control&quot;
     </pre></section>
 <section id="quick-start">
@@ -619,8 +618,8 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></p></td>
 <td><p>CircuitPerformanceMetrics</p></td>
-<td><p>4 plots</p></td>
-<td><p>Success rates, fidelity, shot distribution, aggregate summary</p></td>
+<td><p>3 plots</p></td>
+<td><p>Success rates, shot distribution, aggregate summary</p></td>
 </tr>
 </tbody>
 </table>
@@ -950,14 +949,13 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 </section>
 <section id="circuitperformancevisualizer">
 <h3>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h3>
-<p>Visualizes performance metrics from <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> with success rates, fidelity, and execution analysis.</p>
+<p>Visualizes performance metrics from <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> with success rates, shot distribution, and execution analysis.</p>
 <section id="id4">
 <h4>Available Plots (New API)<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plots</span>
 
 <span class="c1"># All available CircuitPerformanceVisualizer plots:</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>  <span class="c1"># Success vs error rates</span>
-<span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span>       <span class="c1"># Fidelity across jobs</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SHOT_DISTRIBUTION</span>         <span class="c1"># Successful vs failed shots</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">AGGREGATE_SUMMARY</span>         <span class="c1"># Statistical summary</span>
 </pre></div>
@@ -972,13 +970,6 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 </pre></div>
 </div>
 <p>Shows success and error rates across different jobs as a grouped bar chart.</p>
-</li>
-<li><p><strong>Fidelity Comparison</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># NEW API</span>
-<span class="n">perf_viz</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span><span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Displays fidelity values for each job with value labels.</p>
 </li>
 <li><p><strong>Shot Distribution</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># NEW API</span>
@@ -1006,8 +997,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 
 <span class="c1"># NEW API: Generate selected plots</span>
 <span class="n">selected_figures</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">([</span>
-    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span>
-    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span>
+    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>
 <span class="p">],</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1160,8 +1150,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 
 <span class="c1"># Generate specific plots to analyze noise impact</span>
 <span class="n">noise_analysis_plots</span> <span class="o">=</span> <span class="n">perf_viz</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">([</span>
-    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span>
-    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span>
+    <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>
 <span class="p">],</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="c1"># Create comprehensive dashboard</span>
@@ -1219,8 +1208,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
     <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">],</span>
     <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">],</span>
     <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">:</span> <span class="p">[</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span>
-        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span>
+        <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>
     <span class="p">]</span>
 <span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -1324,7 +1312,6 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <li><p><code class="docutils literal notranslate"><span class="pre">job_id</span></code>: Unique identifier for each job</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">success_rate</span></code>: Success rate (0.0 to 1.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">error_rate</span></code>: Error rate (0.0 to 1.0)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fidelity</span></code>: Quantum fidelity (0.0 to 1.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">total_shots</span></code>: Total number of shots</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">successful_shots</span></code>: Number of successful shots</p></li>
 </ul>
@@ -1337,7 +1324,6 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <li><p><code class="docutils literal notranslate"><span class="pre">min_success_rate</span></code>: Minimum success rate</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_success_rate</span></code>: Maximum success rate</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">total_trials</span></code>: Total number of trials across all jobs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fidelity</span></code>: Overall fidelity</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">error_rate</span></code>: Overall error rate</p></li>
 </ul>
 </section>
@@ -1710,7 +1696,6 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 
 <span class="c1"># CircuitPerformanceMetrics Plot Constants</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>  <span class="c1"># &quot;success_error_comparison&quot;</span>
-<span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">FIDELITY_COMPARISON</span>       <span class="c1"># &quot;fidelity_comparison&quot;</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SHOT_DISTRIBUTION</span>         <span class="c1"># &quot;shot_distribution&quot;</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">AGGREGATE_SUMMARY</span>         <span class="c1"># &quot;aggregate_summary&quot;</span>
 </pre></div>
