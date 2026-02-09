@@ -13,7 +13,6 @@ from qward.metrics import (
     QuantumSpecificMetrics,
 )
 
-
 DEFAULT_METRIC_STRATEGIES = [
     QiskitMetrics,
     ComplexityMetrics,

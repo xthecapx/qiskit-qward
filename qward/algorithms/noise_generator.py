@@ -180,7 +180,6 @@ from typing import Dict, Optional, Iterable
 
 from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error, pauli_error
 
-
 # =============================================================================
 # Default Gate Sets
 # =============================================================================
