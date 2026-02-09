@@ -275,7 +275,7 @@
 <span class="sd">- QiskitJob (JobV1): Traditional Qiskit jobs</span>
 <span class="sd">- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</span>
 
-<span class="sd">The performance metrics help evaluate the success rate, fidelity, and statistical</span>
+<span class="sd">The performance metrics help evaluate the success rate and statistical</span>
 <span class="sd">properties of quantum circuit executions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -287,15 +287,21 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_ibm_runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeJobV2</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.base_metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.differential_success_rate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_dsr_log_ratio</span><span class="p">,</span>
+    <span class="n">compute_dsr_normalized_margin</span><span class="p">,</span>
+    <span class="n">compute_dsr_ratio</span><span class="p">,</span>
+    <span class="n">compute_dsr_with_flags</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsType</span><span class="p">,</span> <span class="n">MetricsId</span>
 
 <span class="c1"># Import schemas for structured data validation</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">qward.schemas.circuit_performance_schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">CircuitPerformanceSchema</span><span class="p">,</span>
-        <span class="n">SuccessMetricsSchema</span><span class="p">,</span>
-        <span class="n">FidelityMetricsSchema</span><span class="p">,</span>
+        <span class="n">DSRVariantsSchema</span><span class="p">,</span>
         <span class="n">StatisticalMetricsSchema</span><span class="p">,</span>
+        <span class="n">SuccessMetricsSchema</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">SCHEMAS_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
@@ -323,13 +329,7 @@
 
 <span class="sd">    The performance metrics include:</span>
 <span class="sd">    - Success metrics: Success rate, error rate, successful shots analysis</span>
-<span class="sd">    - Fidelity metrics: Quantum fidelity between measured and expected distributions</span>
 <span class="sd">    - Statistical metrics: Entropy, uniformity, concentration analysis</span>
-
-<span class="sd">    Fidelity Calculation:</span>
-<span class="sd">    - If expected_distribution is provided: Classical fidelity F = Σᵢ √(pᵢ × qᵢ)</span>
-<span class="sd">      where pᵢ is measured probability and qᵢ is expected probability</span>
-<span class="sd">    - If no expected distribution: Probability of most frequent successful outcome</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        # Basic usage with default success criteria (ground state)</span>
@@ -343,18 +343,15 @@
 <span class="sd">        performance = CircuitPerformanceMetrics(circuit, job=job)</span>
 <span class="sd">        success_metrics = performance.get_success_metrics()</span>
 
-<span class="sd">        # With custom success criteria and expected distribution</span>
+<span class="sd">        # With custom success criteria</span>
 <span class="sd">        def custom_success(state): return state == &quot;101&quot;</span>
-<span class="sd">        expected = {&quot;000&quot;: 0.5, &quot;101&quot;: 0.5}  # Bell state expectation</span>
 
 <span class="sd">        performance = CircuitPerformanceMetrics(</span>
 <span class="sd">            circuit,</span>
 <span class="sd">            job=job,</span>
-<span class="sd">            success_criteria=custom_success,</span>
-<span class="sd">            expected_distribution=expected</span>
+<span class="sd">            success_criteria=custom_success</span>
 <span class="sd">        )</span>
 <span class="sd">        success_metrics = performance.get_success_metrics()</span>
-<span class="sd">        fidelity_metrics = performance.get_fidelity_metrics()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -364,7 +361,7 @@
         <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">jobs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">success_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">expected_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expected_outcomes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a CircuitPerformanceMetrics object.</span>
@@ -374,7 +371,7 @@
 <span class="sd">            job: A single job that executed the circuit</span>
 <span class="sd">            jobs: A list of jobs that executed the circuit (for multiple runs)</span>
 <span class="sd">            success_criteria: Function that determines if a measurement result is successful</span>
-<span class="sd">            expected_distribution: Expected probability distribution for fidelity calculation</span>
+<span class="sd">            expected_outcomes: Expected bitstrings for DSR histogram contrast calculations</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span>
@@ -382,7 +379,7 @@
         <span class="k">if</span> <span class="n">job</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span> <span class="o">=</span> <span class="n">success_criteria</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_success_criteria</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="o">=</span> <span class="n">expected_distribution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">expected_outcomes</span><span class="p">)</span> <span class="k">if</span> <span class="n">expected_outcomes</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the type of this metric.&quot;&quot;&quot;</span>
@@ -533,70 +530,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job result of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not have get_counts method&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_fidelity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate quantum fidelity between measured and expected distributions.</span>
-
-<span class="sd">        If no expected distribution is provided, returns the probability of the most</span>
-<span class="sd">        successful outcome according to success_criteria.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            counts: Dictionary of measurement outcomes and their counts</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            float: Fidelity value between 0.0 and 1.0</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mf">0.0</span>
-
-        <span class="n">total_shots</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">total_shots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mf">0.0</span>
-
-        <span class="c1"># Convert counts to probabilities</span>
-        <span class="n">measured_probs</span> <span class="o">=</span> <span class="p">{</span><span class="n">state</span><span class="p">:</span> <span class="n">count</span> <span class="o">/</span> <span class="n">total_shots</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Calculate classical fidelity: F = Σᵢ √(pᵢ × qᵢ)</span>
-            <span class="n">fidelity</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="n">all_states</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">measured_probs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-
-            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">all_states</span><span class="p">:</span>
-                <span class="n">p_measured</span> <span class="o">=</span> <span class="n">measured_probs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">p_expected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">fidelity</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p_measured</span> <span class="o">*</span> <span class="n">p_expected</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">fidelity</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Fallback: return probability of most successful state</span>
-            <span class="n">successful_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">successful_states</span><span class="p">:</span>
-                <span class="k">return</span> <span class="mf">0.0</span>
-
-            <span class="c1"># Find the most frequent successful state</span>
-            <span class="n">max_successful_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">successful_states</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_successful_count</span> <span class="o">/</span> <span class="n">total_shots</span><span class="p">)</span>
-
-<div class="viewcode-block" id="CircuitPerformanceMetrics.set_expected_distribution">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.set_expected_distribution">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_expected_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distribution</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the expected probability distribution for fidelity calculation.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            distribution: Dictionary mapping measurement outcomes to expected probabilities</span>
-<span class="sd">                         (should sum to 1.0)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Validate that probabilities sum to approximately 1.0</span>
-        <span class="n">total_prob</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">distribution</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">total_prob</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Expected distribution probabilities must sum to 1.0, got </span><span class="si">{</span><span class="n">total_prob</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
-
-
     <span class="c1"># =============================================================================</span>
     <span class="c1"># Main API Methods</span>
     <span class="c1"># =============================================================================</span>
@@ -618,8 +551,8 @@
 
         <span class="k">return</span> <span class="n">CircuitPerformanceSchema</span><span class="p">(</span>
             <span class="n">success_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_metrics</span><span class="p">(),</span>
-            <span class="n">fidelity_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics</span><span class="p">(),</span>
             <span class="n">statistical_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_statistical_metrics</span><span class="p">(),</span>
+            <span class="n">dsr_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dsr_metrics</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -663,45 +596,6 @@
 
 
     <span class="c1"># =============================================================================</span>
-    <span class="c1"># Fidelity Metrics</span>
-    <span class="c1"># =============================================================================</span>
-
-<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FidelityMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get quantum fidelity analysis metrics as a validated schema object.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            FidelityMetricsSchema: Validated fidelity metrics schema</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            ImportError: If Pydantic schemas are not available</span>
-<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
-        <span class="n">fidelity_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics_dict</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">FidelityMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">fidelity_dict</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics_dict">
-<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get quantum fidelity analysis metrics as a dictionary.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Any]: Dictionary containing fidelity measurements and analysis</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_fidelity_metrics</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate fidelity metrics&quot;</span><span class="p">)</span></div>
-
-
-    <span class="c1"># =============================================================================</span>
     <span class="c1"># Statistical Metrics</span>
     <span class="c1"># =============================================================================</span>
 
@@ -741,6 +635,49 @@
 
 
     <span class="c1"># =============================================================================</span>
+    <span class="c1"># DSR Metrics</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_dsr_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dsr_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DSRVariantsSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Differential Success Rate metrics as a validated schema object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DSRVariantsSchema: Validated DSR metrics schema</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Pydantic schemas are not available</span>
+<span class="sd">            ValueError: If expected outcomes are not configured</span>
+<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">dsr_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dsr_metrics_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">DSRVariantsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">dsr_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_dsr_metrics_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dsr_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Differential Success Rate metrics as a dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Dictionary containing DSR variant and mismatch metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expected_outcomes is required to calculate DSR metrics&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_dsr_metrics</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_dsr_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate DSR metrics&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># =============================================================================</span>
     <span class="c1"># Single Job Metrics</span>
     <span class="c1"># =============================================================================</span>
 
@@ -750,7 +687,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate circuit performance metrics from a single job result.</span>
 
-<span class="sd">        DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.</span>
+<span class="sd">        DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            job: Optional job to use for metrics calculation. If None, uses self._job.</span>
@@ -765,11 +702,17 @@
 
         <span class="c1"># Combine all metrics for backward compatibility</span>
         <span class="n">success_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_success_metrics</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">)</span>
-        <span class="n">fidelity_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_fidelity_metrics</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">)</span>
         <span class="n">statistical_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_statistical_metrics</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">)</span>
+        <span class="n">dsr_metrics</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_dsr_metrics</span><span class="p">(</span><span class="n">job_to_use</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">)</span>
 
         <span class="c1"># Merge all metrics into a single dictionary</span>
-        <span class="n">combined_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">success_metrics</span><span class="p">,</span> <span class="o">**</span><span class="n">fidelity_metrics</span><span class="p">,</span> <span class="o">**</span><span class="n">statistical_metrics</span><span class="p">}</span>
+        <span class="n">combined_metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">success_metrics</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">statistical_metrics</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">dsr_metrics</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">combined_metrics</span></div>
 
@@ -805,7 +748,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate circuit performance metrics from multiple job results.</span>
 
-<span class="sd">        DEPRECATED: Use get_success_metrics(), get_fidelity_metrics(), or get_statistical_metrics() instead.</span>
+<span class="sd">        DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Circuit performance metrics for multiple jobs with individual and aggregate data</span>
@@ -815,8 +758,8 @@
 
         <span class="c1"># Get metrics for each category</span>
         <span class="n">success_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_success_metrics</span><span class="p">()</span>
-        <span class="n">fidelity_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_fidelity_metrics</span><span class="p">()</span>
         <span class="n">statistical_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_statistical_metrics</span><span class="p">()</span>
+        <span class="n">dsr_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_multiple_jobs_dsr_metrics</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># Combine individual job metrics (flatten all categories for each job)</span>
         <span class="n">combined_individual_jobs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -827,15 +770,6 @@
             <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">,</span> <span class="p">[])):</span>
                 <span class="n">combined_job_metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">success_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
 
-            <span class="c1"># Add fidelity metrics for this job</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">fidelity_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">,</span> <span class="p">[])):</span>
-                <span class="n">fidelity_job_metrics</span> <span class="o">=</span> <span class="n">fidelity_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
-                <span class="c1"># Remove duplicate job_id to avoid conflicts</span>
-                <span class="n">fidelity_job_metrics</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fidelity_job_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;job_id&quot;</span>
-                <span class="p">}</span>
-                <span class="n">combined_job_metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fidelity_job_metrics</span><span class="p">)</span>
-
             <span class="c1"># Add statistical metrics for this job</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">statistical_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">,</span> <span class="p">[])):</span>
                 <span class="n">statistical_job_metrics</span> <span class="o">=</span> <span class="n">statistical_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
@@ -845,11 +779,22 @@
                 <span class="p">}</span>
                 <span class="n">combined_job_metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">statistical_job_metrics</span><span class="p">)</span>
 
+            <span class="c1"># Add DSR metrics for this job</span>
+            <span class="k">if</span> <span class="n">dsr_metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dsr_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">,</span> <span class="p">[])):</span>
+                <span class="n">dsr_job_metrics</span> <span class="o">=</span> <span class="n">dsr_metrics</span><span class="p">[</span><span class="s2">&quot;individual_jobs&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="c1"># Remove duplicate job_id to avoid conflicts</span>
+                <span class="n">dsr_job_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dsr_job_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;job_id&quot;</span><span class="p">}</span>
+                <span class="n">combined_job_metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dsr_job_metrics</span><span class="p">)</span>
+
             <span class="n">combined_individual_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined_job_metrics</span><span class="p">)</span>
 
         <span class="c1"># Combine aggregate metrics</span>
         <span class="n">aggregate_metrics</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">metrics_dict</span> <span class="ow">in</span> <span class="p">[</span><span class="n">success_metrics</span><span class="p">,</span> <span class="n">fidelity_metrics</span><span class="p">,</span> <span class="n">statistical_metrics</span><span class="p">]:</span>
+        <span class="n">metric_categories</span> <span class="o">=</span> <span class="p">[</span><span class="n">success_metrics</span><span class="p">,</span> <span class="n">statistical_metrics</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dsr_metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metric_categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dsr_metrics</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">metrics_dict</span> <span class="ow">in</span> <span class="n">metric_categories</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span>
                     <span class="n">aggregate_metrics</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -953,6 +898,112 @@
 
 
     <span class="c1"># =============================================================================</span>
+    <span class="c1"># Helper Methods for DSR Metrics</span>
+    <span class="c1"># =============================================================================</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_single_job_dsr_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">JobType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate DSR metrics from a single job result.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expected_outcomes is required to calculate DSR metrics&quot;</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_counts</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_job_id</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
+                <span class="s2">&quot;dsr_michelson&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;dsr_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;dsr_log_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;peak_mismatch&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;expected_outcomes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">),</span>
+            <span class="p">}</span>
+
+        <span class="n">dsr_michelson</span><span class="p">,</span> <span class="n">peak_mismatch</span> <span class="o">=</span> <span class="n">compute_dsr_with_flags</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
+        <span class="n">dsr_ratio</span> <span class="o">=</span> <span class="n">compute_dsr_ratio</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
+        <span class="n">dsr_log_ratio</span> <span class="o">=</span> <span class="n">compute_dsr_log_ratio</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
+        <span class="n">dsr_normalized_margin</span> <span class="o">=</span> <span class="n">compute_dsr_normalized_margin</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
+            <span class="s2">&quot;dsr_michelson&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dsr_michelson</span><span class="p">),</span>
+            <span class="s2">&quot;dsr_ratio&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dsr_ratio</span><span class="p">),</span>
+            <span class="s2">&quot;dsr_log_ratio&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dsr_log_ratio</span><span class="p">),</span>
+            <span class="s2">&quot;dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dsr_normalized_margin</span><span class="p">),</span>
+            <span class="s2">&quot;peak_mismatch&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">peak_mismatch</span><span class="p">),</span>
+            <span class="s2">&quot;expected_outcomes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_multiple_jobs_dsr_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate aggregate DSR metrics from multiple job results.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple runtime jobs are required to calculate DSR metrics&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expected_outcomes is required to calculate DSR metrics&quot;</span><span class="p">)</span>
+
+        <span class="n">job_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dsr_michelson_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dsr_ratio_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dsr_log_ratio_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dsr_normalized_margin_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">peak_mismatch_flags</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
+            <span class="n">single_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_dsr_metrics</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+            <span class="n">job_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">)</span>
+            <span class="n">dsr_michelson_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;dsr_michelson&quot;</span><span class="p">])</span>
+            <span class="n">dsr_ratio_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;dsr_ratio&quot;</span><span class="p">])</span>
+            <span class="n">dsr_log_ratio_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;dsr_log_ratio&quot;</span><span class="p">])</span>
+            <span class="n">dsr_normalized_margin_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;dsr_normalized_margin&quot;</span><span class="p">])</span>
+            <span class="n">peak_mismatch_flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;peak_mismatch&quot;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">job_metrics</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;mean_dsr_michelson&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;std_dsr_michelson&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;min_dsr_michelson&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;max_dsr_michelson&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;mean_dsr_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;std_dsr_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;min_dsr_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;max_dsr_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;mean_dsr_log_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;std_dsr_log_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;min_dsr_log_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;max_dsr_log_ratio&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;mean_dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;std_dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;min_dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;max_dsr_normalized_margin&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;peak_mismatch_rate&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">&quot;total_jobs&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;expected_outcomes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">),</span>
+                <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_aggregate</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+            <span class="n">values_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="sa">f</span><span class="s2">&quot;mean_</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values_array</span><span class="p">)),</span>
+                <span class="sa">f</span><span class="s2">&quot;std_</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">values_array</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values_array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;min_</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">values_array</span><span class="p">)),</span>
+                <span class="sa">f</span><span class="s2">&quot;max_</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">values_array</span><span class="p">)),</span>
+            <span class="p">}</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">dsr_michelson_values</span><span class="p">,</span> <span class="s2">&quot;dsr_michelson&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">dsr_ratio_values</span><span class="p">,</span> <span class="s2">&quot;dsr_ratio&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">dsr_log_ratio_values</span><span class="p">,</span> <span class="s2">&quot;dsr_log_ratio&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">dsr_normalized_margin_values</span><span class="p">,</span> <span class="s2">&quot;dsr_normalized_margin&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;peak_mismatch_rate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">peak_mismatch_flags</span><span class="p">)),</span>
+            <span class="s2">&quot;total_jobs&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">job_metrics</span><span class="p">),</span>
+            <span class="s2">&quot;expected_outcomes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">),</span>
+            <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">metrics</span>
+
+    <span class="c1"># =============================================================================</span>
     <span class="c1"># Helper Methods for Success Metrics</span>
     <span class="c1"># =============================================================================</span>
 
@@ -1033,67 +1084,6 @@
             <span class="s2">&quot;max_success_rate&quot;</span><span class="p">:</span> <span class="n">max_success_rate</span><span class="p">,</span>
             <span class="s2">&quot;total_trials&quot;</span><span class="p">:</span> <span class="n">total_trials</span><span class="p">,</span>
             <span class="s2">&quot;error_rate&quot;</span><span class="p">:</span> <span class="n">error_rate</span><span class="p">,</span>
-            <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
-        <span class="p">}</span>
-
-    <span class="c1"># =============================================================================</span>
-    <span class="c1"># Helper Methods for Fidelity Metrics</span>
-    <span class="c1"># =============================================================================</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_single_job_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">JobType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate fidelity metrics from a single job result.&quot;&quot;&quot;</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_counts</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-        <span class="n">job_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_job_id</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-
-        <span class="n">fidelity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_fidelity</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
-        <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;theoretical_comparison&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="k">else</span> <span class="s2">&quot;success_based&quot;</span>
-        <span class="n">confidence</span> <span class="o">=</span> <span class="s2">&quot;high&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="k">else</span> <span class="s2">&quot;medium&quot;</span>
-
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
-            <span class="s2">&quot;fidelity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">fidelity</span><span class="p">),</span>
-            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span>
-            <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="n">confidence</span><span class="p">,</span>
-            <span class="s2">&quot;has_expected_distribution&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">expected_distribution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="p">}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_multiple_jobs_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate fidelity metrics from multiple job results.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple runtime jobs are required to calculate fidelity metrics&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Calculate metrics for each job</span>
-        <span class="n">job_metrics</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">fidelities</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
-            <span class="n">single_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_single_job_fidelity_metrics</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-            <span class="n">fidelities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">[</span><span class="s2">&quot;fidelity&quot;</span><span class="p">])</span>
-            <span class="n">job_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_metrics</span><span class="p">)</span>
-
-        <span class="c1"># Calculate aggregate metrics</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">fidelities</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span>
-                <span class="s2">&quot;mean_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;std_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;min_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;max_fidelity&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
-            <span class="p">}</span>
-
-        <span class="n">fidelities_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fidelities</span><span class="p">)</span>
-        <span class="n">method</span> <span class="o">=</span> <span class="n">job_metrics</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">job_metrics</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span>
-        <span class="n">confidence</span> <span class="o">=</span> <span class="n">job_metrics</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">job_metrics</span> <span class="k">else</span> <span class="s2">&quot;low&quot;</span>
-
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;mean_fidelity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">)),</span>
-            <span class="s2">&quot;std_fidelity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="s2">&quot;min_fidelity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">)),</span>
-            <span class="s2">&quot;max_fidelity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fidelities_array</span><span class="p">)),</span>
-            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span>
-            <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="n">confidence</span><span class="p">,</span>
             <span class="s2">&quot;individual_jobs&quot;</span><span class="p">:</span> <span class="n">job_metrics</span><span class="p">,</span>
         <span class="p">}</span>
 
@@ -1223,39 +1213,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.esm.min.mjs"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
-    <script type="module">
-document.addEventListener('DOMContentLoaded', function() {
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: 'default',
-        themeVariables: {
-            primaryColor: '#ff6b6b',
-            primaryTextColor: '#333',
-            primaryBorderColor: '#ff6b6b',
-            lineColor: '#333',
-            secondaryColor: '#4ecdc4',
-            tertiaryColor: '#ffe66d'
-        },
-        flowchart: {
-            useMaxWidth: true,
-            htmlLabels: true
-        },
-        classDiagram: {
-            useMaxWidth: true
-        }
-    });
-    
-    // Force re-render of mermaid diagrams
-    mermaid.run();
-});
-</script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
     <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.esm.min.mjs";
 
-const defaultStyle = document.createElement('style');
-defaultStyle.textContent = `pre.mermaid {
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
     /* Same as .mermaid-container > pre */
     display: block;
     width: 100%;
@@ -1266,12 +1233,11 @@ pre.mermaid > svg {
     height: 500px;
     width: 100%;
     max-width: 100% !important;
-}
-`;
-document.head.appendChild(defaultStyle);
+}`;
+    document.head.appendChild(defaultStyle);
 
-const fullscreenStyle = document.createElement('style');
-fullscreenStyle.textContent = `.mermaid-container {
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -1423,10 +1389,32 @@ fullscreenStyle.textContent = `.mermaid-container {
 .mermaid-fullscreen-modal .mermaid-fullscreen-btn {
     display: none !important;
 }`;
-document.head.appendChild(fullscreenStyle);
+    document.head.appendChild(fullscreenStyle);
+}
 
 // Detect if page has dark background
 const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
     const bgColor = window.getComputedStyle(document.body).backgroundColor;
     const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
@@ -1434,15 +1422,45 @@ const isDarkTheme = () => {
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
         return brightness < 128;
     }
+    // console.log("No dark or light theme detected, defaulting to light theme");
     return false;
 };
 
-const load = async () => {
-    await mermaid.run();
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
 
-    const all_mermaids = document.querySelectorAll(".mermaid");
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
     const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
 
     if ("False" === "True") {
@@ -1450,10 +1468,10 @@ const load = async () => {
         if(mermaids_to_add_zoom > 0) {
             var svgs = d3.selectAll("");
             if(all_mermaids.length !== mermaids_processed.length) {
-                setTimeout(load, 200);
+                setTimeout(() => runMermaid(false), 200);
                 return;
             } else if(svgs.size() !== mermaids_to_add_zoom) {
-                setTimeout(load, 200);
+                setTimeout(() => runMermaid(false), 200);
                 return;
             } else {
                 svgs.each(function() {
@@ -1469,16 +1487,21 @@ const load = async () => {
         }
     } else if(all_mermaids.length !== mermaids_processed.length) {
         // Wait for mermaid to process all diagrams
-        setTimeout(load, 200);
+        setTimeout(() => runMermaid(false), 200);
         return;
     }
-
-    const darkTheme = isDarkTheme();
 
     // Stop here if not adding fullscreen capability
     if ("True" !== "True") return;
 
-    const modal = document.createElement('div');
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
     modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
@@ -1489,10 +1512,8 @@ const load = async () => {
     `;
     document.body.appendChild(modal);
 
-    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
     const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
-
-    let previousScrollOffset = [window.scrollX, window.scrollY];
 
     const closeModal = () => {
         modal.classList.remove('active');
@@ -1511,11 +1532,14 @@ const load = async () => {
         }
     });
 
-    const allButtons = [];
-
     document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
         if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
             mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
             return;
         }
 
@@ -1573,46 +1597,57 @@ const load = async () => {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
-
         container.appendChild(fullscreenBtn);
-        allButtons.push(fullscreenBtn);
-    });
-
-    // Update theme classes when theme changes
-    const updateTheme = () => {
-        const dark = isDarkTheme();
-        allButtons.forEach(btn => {
-            if (dark) {
-                btn.classList.add('dark-theme');
-            } else {
-                btn.classList.remove('dark-theme');
-            }
-        });
-        if (dark) {
-            modal.classList.add('dark-theme');
-            modalContent.classList.add('dark-theme');
-            closeBtn.classList.add('dark-theme');
-        } else {
-            modal.classList.remove('dark-theme');
-            modalContent.classList.remove('dark-theme');
-            closeBtn.classList.remove('dark-theme');
-        }
-    };
-
-    // Watch for theme changes
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class', 'style', 'data-theme']
-    });
-    observer.observe(document.body, {
-        attributes: true,
-        attributeFilter: ['class', 'style']
     });
 };
 
-window.addEventListener("load", load);
-</script>
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);</script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
     <script src="../../../_static/mermaid-init.js?v=05525452"></script>
     </body>

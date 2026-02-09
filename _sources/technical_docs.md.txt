@@ -174,7 +174,7 @@ The visualization system is built on the following key components:
 - **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
     - **`QiskitVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
     - **`ComplexityVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
-    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
+    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, shot distributions, and aggregate summaries.
 
 - **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
     - A unified entry point that automatically detects available metrics and provides appropriate visualizations.
@@ -232,7 +232,6 @@ classDiagram
     class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -253,7 +252,7 @@ classDiagram
     note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
     note for QiskitVisualizer "Visualizes circuit structure and instruction analysis"
     note for ComplexityVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
-    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
+    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and statistical analysis"
     note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
     BaseVisualizer <|-- QiskitVisualizer
@@ -289,7 +288,6 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
-- `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
 - `plot_aggregate_summary()`: Creates summary plots of aggregate statistics
 - `create_dashboard()`: Generates a comprehensive dashboard with multiple plot types
@@ -490,7 +488,7 @@ The visualization system is built on the following key components:
 - **Individual Visualizers**: Three concrete visualizers inheriting from `BaseVisualizer`:
     - **`QiskitVisualizer`** (`qward.visualization.qiskit_metrics_visualizer.QiskitVisualizer`): Visualizes circuit structure, instruction breakdown, and scheduling metrics.
     - **`ComplexityVisualizer`** (`qward.visualization.complexity_metrics_visualizer.ComplexityVisualizer`): Visualizes complexity analysis with radar charts, gate metrics, and efficiency analysis.
-    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, fidelity, and shot distributions.
+    - **`CircuitPerformanceVisualizer`** (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`): Visualizes performance metrics with success rates, shot distributions, and aggregate summaries.
 
 - **`Visualizer`** (`qward.visualization.visualizer.Visualizer`):
     - A unified entry point that automatically detects available metrics and provides appropriate visualizations.
@@ -548,7 +546,6 @@ classDiagram
     class CircuitPerformanceVisualizer {
         +metrics_dict: Dict[str, DataFrame]
         +plot_success_error_comparison()
-        +plot_fidelity_comparison()
         +plot_shot_distribution()
         +plot_aggregate_summary()
         +create_dashboard()
@@ -569,7 +566,7 @@ classDiagram
     note for BaseVisualizer "Abstract base class providing core visualization functionality with common utilities"
     note for QiskitVisualizer "Visualizes circuit structure and instruction analysis"
     note for ComplexityVisualizer "Visualizes complexity analysis with radar charts and efficiency metrics"
-    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and fidelity analysis"
+    note for CircuitPerformanceVisualizer "Visualizes performance metrics with success rates and statistical analysis"
     note for Visualizer "Unified entry point with auto-detection and comprehensive visualization capabilities"
 
     BaseVisualizer <|-- QiskitVisualizer
@@ -605,7 +602,6 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
-- `plot_fidelity_comparison()`: Visualizes fidelity metrics across different jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
 - `plot_aggregate_summary()`: Creates summary plots of aggregate statistics
 - `create_dashboard()`: Generates a comprehensive dashboard with multiple plot types

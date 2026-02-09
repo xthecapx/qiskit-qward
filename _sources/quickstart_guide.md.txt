@@ -7,7 +7,7 @@ Welcome to QWARD! This guide will get you up and running with quantum circuit an
 QWARD is a Python library for analyzing quantum circuits and their execution results. It provides:
 
 - **Circuit Analysis**: Extract metrics from quantum circuits (depth, complexity, gate counts)
-- **Performance Analysis**: Analyze execution results (success rates, fidelity, error rates)
+- **Performance Analysis**: Analyze execution results (success rates, error rates, statistical properties)
 - **Schema Validation**: Type-safe, validated metrics with IDE support
 - **Visualization**: Beautiful plots and dashboards for your analysis
 
@@ -21,6 +21,28 @@ pip install -e .
 ```
 
 ## Quick Example
+
+### Fastest Way (New Fluent API)
+
+```python
+from qiskit import QuantumCircuit
+from qward import Scanner
+
+circuit = QuantumCircuit(2, 2)
+circuit.h(0)
+circuit.cx(0, 1)
+circuit.measure_all()
+
+# One-liner: analyze with all pre-runtime metrics and visualize
+Scanner(circuit).scan().summary().visualize(save=True, show=False)
+
+# Or pick specific metrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics
+results = Scanner(circuit, strategies=[QiskitMetrics, ComplexityMetrics]).scan()
+print(results["QiskitMetrics"])
+```
+
+### Detailed Way (Full Control)
 
 Let's analyze a simple Bell state circuit:
 
@@ -151,9 +173,6 @@ print(f"Success rate: {metrics.success_metrics.success_rate:.3f}")
 print(f"Error rate: {metrics.success_metrics.error_rate:.3f}")
 print(f"Successful shots: {metrics.success_metrics.successful_shots}")
 
-# Fidelity analysis
-print(f"Fidelity: {metrics.fidelity_metrics.fidelity:.3f}")
-
 # Statistical analysis
 print(f"Entropy: {metrics.statistical_metrics.entropy:.3f}")
 print(f"Uniformity: {metrics.statistical_metrics.uniformity:.3f}")
@@ -188,35 +207,48 @@ Create beautiful visualizations of your analysis with the new type-safe API:
 from qward.visualization import Visualizer
 from qward.visualization.constants import Metrics, Plots
 
+# New fluent way
+Scanner(circuit).scan().visualize(save=True, show=False)
+
+# Existing approach (still fully supported)
+visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
+visualizer.create_dashboard(save=True, show=False)
+
 # Calculate metrics first
 scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
 scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
 
-# Create unified visualizer
+# Create unified visualizer for full control APIs
 visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
 
 # NEW API: Generate specific plots with type-safe constants
-selected_plots = visualizer.generate_plots({
-    Metrics.QISKIT: [
-        Plots.QISKIT.CIRCUIT_STRUCTURE,
-        Plots.QISKIT.GATE_DISTRIBUTION
-    ],
-    Metrics.COMPLEXITY: [
-        Plots.COMPLEXITY.COMPLEXITY_RADAR
-    ]
-}, save=True, show=False)
+selected_plots = visualizer.generate_plots(
+    selections={
+        Metrics.QISKIT: [
+            Plots.Qiskit.CIRCUIT_STRUCTURE,
+            Plots.Qiskit.GATE_DISTRIBUTION
+        ],
+        Metrics.COMPLEXITY: [
+            Plots.Complexity.COMPLEXITY_RADAR
+        ]
+    },
+    save=True,
+    show=False,
+)
 
 # NEW API: Generate all plots for specific metrics
-all_qiskit_plots = visualizer.generate_plots({
-    Metrics.QISKIT: None  # None = all plots
-}, save=True, show=False)
+all_qiskit_plots = visualizer.generate_plots(
+    selections={Metrics.QISKIT: None},  # None = all plots
+    save=True,
+    show=False,
+)
 
 # NEW API: Generate single plot
 single_plot = visualizer.generate_plot(
-    Metrics.CIRCUIT_PERFORMANCE, 
-    Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, 
+    metric_name=Metrics.CIRCUIT_PERFORMANCE,
+    plot_name=Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
     save=True, 
     show=False
 )
@@ -246,16 +278,21 @@ for circuit_variant in circuit_variants:
     visualizer = Visualizer(scanner=scanner, output_dir=f"analysis_{circuit_variant.name}")
     
     # Generate all plots without displaying (memory efficient)
-    all_plots = visualizer.generate_plots({
-        Metrics.QISKIT: None,
-        Metrics.COMPLEXITY: None
-    })  # Default: save=False, show=False
+    all_plots = visualizer.generate_plots(
+        selections={
+            Metrics.QISKIT: None,
+            Metrics.COMPLEXITY: None
+        }
+    )  # Default: save=False, show=False
     
     # Only save specific plots of interest
-    important_plots = visualizer.generate_plots({
-        Metrics.QISKIT: [Plots.QISKIT.CIRCUIT_STRUCTURE],
-        Metrics.COMPLEXITY: [Plots.COMPLEXITY.COMPLEXITY_RADAR]
-    }, save=True)
+    important_plots = visualizer.generate_plots(
+        selections={
+            Metrics.QISKIT: [Plots.Qiskit.CIRCUIT_STRUCTURE],
+            Metrics.COMPLEXITY: [Plots.Complexity.COMPLEXITY_RADAR]
+        },
+        save=True,
+    )
 ```
 
 ## Error Handling
