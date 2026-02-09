@@ -1,5 +1,6 @@
 """Tests for qward Scanner class."""
 
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 from qiskit import QuantumCircuit
@@ -7,7 +8,12 @@ from qiskit_aer import AerSimulator
 import pandas as pd
 
 from qward.scanner import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import (
+    CircuitPerformanceMetrics,
+    ComplexityMetrics,
+    MetricCalculator,
+    QiskitMetrics,
+)
 
 
 class TestScanner(unittest.TestCase):
@@ -73,7 +79,7 @@ class TestScanner(unittest.TestCase):
         """Test adding strategy class."""
         scanner = Scanner(circuit=self.circuit)
 
-        scanner.add_strategy(QiskitMetrics(self.circuit))
+        scanner.add_strategy(QiskitMetrics)
 
         self.assertEqual(len(scanner.strategies), 1)
         self.assertIsInstance(scanner.strategies[0], QiskitMetrics)
@@ -275,6 +281,96 @@ class TestScanner(unittest.TestCase):
         # Should raise the exception since Scanner doesn't handle errors gracefully
         with self.assertRaises(Exception):
             scanner.calculate_metrics()
+
+
+class TestScannerFluentAPI(unittest.TestCase):
+    """Tests for fluent Scanner API: add(), scan(), and ScanResult."""
+
+    def setUp(self):
+        self.circuit = QuantumCircuit(2, 2)
+        self.circuit.h(0)
+        self.circuit.cx(0, 1)
+        self.circuit.measure_all()
+        self.simulator = AerSimulator()
+        self.job = self.simulator.run(self.circuit, shots=100)
+
+    def test_add_strategy_accepts_class(self):
+        """add_strategy() should accept class and auto-instantiate."""
+        scanner = Scanner(circuit=self.circuit)
+        scanner.add_strategy(QiskitMetrics)
+        self.assertEqual(len(scanner.strategies), 1)
+        self.assertIsInstance(scanner.strategies[0], QiskitMetrics)
+
+    def test_add_returns_self(self):
+        """add() should return scanner for chaining."""
+        scanner = Scanner(circuit=self.circuit)
+        result = scanner.add(QiskitMetrics)
+        self.assertIs(result, scanner)
+
+    def test_add_chaining(self):
+        """add() should support chaining multiple strategies."""
+        scanner = Scanner(circuit=self.circuit).add(QiskitMetrics).add(ComplexityMetrics)
+        self.assertEqual(len(scanner.strategies), 2)
+
+    def test_add_with_kwargs(self):
+        """add() should forward kwargs to constructor for strategy classes."""
+        scanner = Scanner(circuit=self.circuit)
+        scanner.add(CircuitPerformanceMetrics, job=self.job)
+        self.assertEqual(len(scanner.strategies), 1)
+        self.assertIsInstance(scanner.strategies[0], CircuitPerformanceMetrics)
+
+    def test_scan_returns_scan_result(self):
+        """scan() should return ScanResult."""
+        from qward.scanner import ScanResult
+
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        self.assertIsInstance(result, ScanResult)
+
+    def test_scan_auto_enrolls_all_pre_runtime(self):
+        """scan() should auto-enroll all pre-runtime strategies when none registered."""
+        result = Scanner(circuit=self.circuit).scan()
+        self.assertEqual(len(result.keys()), 6)
+
+    def test_scan_respects_explicit_strategies(self):
+        """scan() should not auto-enroll when strategies are explicitly registered."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        self.assertIn("QiskitMetrics", result.keys())
+        self.assertEqual(len(list(result.keys())), 1)
+
+    def test_scan_result_dict_access(self):
+        """ScanResult should support dict-style access."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        self.assertIn("QiskitMetrics", result)
+        df = result["QiskitMetrics"]
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_scan_result_to_dict(self):
+        """ScanResult.to_dict() should return plain dict."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        as_dict = result.to_dict()
+        self.assertIsInstance(as_dict, dict)
+
+    def test_scan_result_summary_returns_self(self):
+        """summary() should return self for fluent chaining."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        returned = result.summary()
+        self.assertIs(returned, result)
+
+    def test_scan_result_visualize_returns_self(self):
+        """visualize() should return self for fluent chaining."""
+        result = Scanner(circuit=self.circuit, strategies=[QiskitMetrics]).scan()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            returned = result.visualize(save=True, show=False, output_dir=tmpdir)
+            self.assertIs(returned, result)
+
+    def test_get_all_pre_runtime_strategies(self):
+        """get_all_pre_runtime_strategies() should return 6 strategy classes."""
+        from qward.metrics.defaults import get_all_pre_runtime_strategies
+
+        strategies = get_all_pre_runtime_strategies()
+        self.assertEqual(len(strategies), 6)
+        for strategy in strategies:
+            self.assertTrue(issubclass(strategy, MetricCalculator))
 
 
 if __name__ == "__main__":

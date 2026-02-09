@@ -248,7 +248,7 @@ def custom_data_example():
 
     # Generate plots
     figures = visualizer.generate_plots(
-        {Metrics.QISKIT: None},
+        selections={Metrics.QISKIT: None},
         save=True,
         show=False,
     )
@@ -312,7 +312,7 @@ def custom_strategy_example():
     )
     visualizer.register_strategy("CustomMetrics", CustomMetricsStrategy)
 
-    figures = visualizer.generate_plots({"CustomMetrics": None}, save=True, show=False)
+    figures = visualizer.generate_plots(selections={"CustomMetrics": None}, save=True, show=False)
     print(f"Created {len(figures['CustomMetrics'])} custom plots")
 
 
@@ -401,7 +401,7 @@ def plot_metadata_exploration():
             structure_plots[metric_name] = metric_structure
 
     if structure_plots:
-        figures = visualizer.generate_plots(structure_plots, save=True, show=False)
+        figures = visualizer.generate_plots(selections=structure_plots, save=True, show=False)
         total = sum(len(p) for p in figures.values())
         print(f"  Created {total} structure-related plots")
 

@@ -189,6 +189,18 @@ def scanner_strategies_example():
     scanner1.display_summary(metrics1)
 
 
+def fluent_scanner_example():
+    """Demonstrate fluent Scanner add()/scan() workflow."""
+    print("\n=== Example 5b: Fluent Scanner API ===\n")
+
+    circuit = create_test_circuit()
+    result = Scanner(circuit=circuit).add(QiskitMetrics).add(ComplexityMetrics).scan()
+
+    print(f"Calculated {len(result)} metric types")
+    print(f"Available metrics: {list(result.keys())}")
+    result.summary()
+
+
 def circuit_mismatch_example():
     """Demonstrate circuit mismatch error handling."""
     print("\n=== Example 6: Circuit Mismatch Handling ===\n")
@@ -255,6 +267,7 @@ def main():
 
     # Scanner patterns
     scanner_strategies_example()
+    fluent_scanner_example()
     circuit_mismatch_example()
 
     # Conversions

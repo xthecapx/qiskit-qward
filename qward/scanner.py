@@ -91,14 +91,35 @@ class Scanner:
         """
         return self._strategies
 
-    def add_strategy(self, strategy: MetricCalculator) -> None:
+    def add_strategy(self, strategy) -> None:
         """
         Add a metric strategy to the scanner.
 
         Args:
             strategy: The metric strategy to add
         """
-        self._strategies.append(strategy)
+        self._add_strategy_to_list(strategy)
+
+    def add(self, strategy, **kwargs) -> "Scanner":
+        """
+        Add a metric strategy and return self for fluent chaining.
+
+        Args:
+            strategy: Metric strategy class or instance
+            **kwargs: Extra constructor keyword arguments when strategy is a class
+
+        Returns:
+            Scanner: This scanner instance
+        """
+        if isinstance(strategy, type):
+            self._strategies.append(strategy(self._circuit, **kwargs))
+            return self
+
+        if kwargs:
+            raise TypeError("Keyword arguments are only supported when strategy is a class.")
+
+        self._add_strategy_to_list(strategy)
+        return self
 
     def calculate_metrics(self) -> Dict[str, pd.DataFrame]:
         """
@@ -124,6 +145,26 @@ class Scanner:
                 self._process_standard_metrics(metric_name, metric_results, metric_dataframes)
 
         return metric_dataframes
+
+    def scan(self, include_all_pre_runtime: bool = True) -> "ScanResult":
+        """
+        Calculate metrics and return a ScanResult wrapper.
+
+        Args:
+            include_all_pre_runtime: If True and no strategies are registered, auto-add all
+                pre-runtime strategy classes.
+
+        Returns:
+            ScanResult: Wrapper with fluent helper methods.
+        """
+        if not self._strategies and include_all_pre_runtime:
+            from qward.metrics.defaults import get_all_pre_runtime_strategies
+
+            for strategy_class in get_all_pre_runtime_strategies():
+                self._strategies.append(strategy_class(self._circuit))
+
+        metrics = self.calculate_metrics()
+        return ScanResult(metrics, scanner=self)
 
     def _process_circuit_performance_metrics(self, strategy, metric_results, metric_dataframes):
         """Process CircuitPerformanceMetrics using schema-based API with proper column separation."""
@@ -394,3 +435,73 @@ class Scanner:
                 return f"{value:.1f}"
         else:
             return str(value)
+
+
+class ScanResult:
+    """Thin wrapper around scanner metrics with fluent post-processing helpers."""
+
+    def __init__(self, metrics: Dict[str, pd.DataFrame], scanner: Scanner):
+        self._metrics = metrics
+        self._scanner = scanner
+
+    def __getitem__(self, key):
+        return self._metrics[key]
+
+    def __contains__(self, key):
+        return key in self._metrics
+
+    def __iter__(self):
+        return iter(self._metrics)
+
+    def __len__(self):
+        return len(self._metrics)
+
+    def keys(self):
+        return self._metrics.keys()
+
+    def items(self):
+        return self._metrics.items()
+
+    def values(self):
+        return self._metrics.values()
+
+    def get(self, key, default=None):
+        return self._metrics.get(key, default)
+
+    def to_dict(self) -> Dict[str, pd.DataFrame]:
+        """Return a shallow copy of the wrapped metrics dictionary."""
+        return dict(self._metrics)
+
+    def summary(self) -> "ScanResult":
+        """Display scanner summary and return self for chaining."""
+        self._scanner.display_summary(self._metrics)
+        return self
+
+    def visualize(
+        self,
+        *,
+        save: bool = False,
+        show: bool = True,
+        output_dir: str = "qward/examples/img",
+        config=None,
+        selections=None,
+    ) -> "ScanResult":
+        """
+        Visualize wrapped metrics and return self for chaining.
+
+        If selections are provided, generate selected plots. Otherwise, generate dashboards.
+        """
+        from qward.visualization import PlotConfig, Visualizer
+
+        visualizer = Visualizer(
+            metrics_data=self._metrics,
+            config=config or PlotConfig(),
+            output_dir=output_dir,
+        )
+
+        if selections:
+            visualizer.generate_plots(selections=selections, save=save, show=show)
+        else:
+            visualizer.create_dashboard(save=save, show=show)
+
+        return self
