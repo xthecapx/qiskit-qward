@@ -14,17 +14,23 @@ The algorithm uses:
 
 import math
 import numpy as np
-from typing import Any, Callable, Optional
+from typing import Optional
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import QFTGate
 from qiskit.circuit import Gate
 
-# Import display with fallback for non-notebook environments
-display: Callable[..., Any]
-try:
-    from IPython.display import display
-except ImportError:
-    display = print
+
+def _get_display():
+    """Get display function, falling back to print for non-notebook environments."""
+    try:
+        from IPython.display import display
+
+        return display
+    except ImportError:
+        return print
+
+
+display = _get_display()
 
 
 class PhaseEstimation:
