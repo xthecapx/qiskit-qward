@@ -82,6 +82,40 @@ Explore comprehensive examples in the [`qward/examples/`](qward/examples/) direc
 - **[Visualization Demo](qward/examples/visualization_demo.py)** - Visualization capabilities
 - **[Aer Integration](qward/examples/aer.py)** - Using QWARD with Qiskit Aer
 
+## 🧪 Development & Linting
+
+### Quick Local Check
+
+Use `verify.sh` for a fast local validation against your active Python environment:
+
+```bash
+./verify.sh
+```
+
+### Replicating CI Exactly
+
+CI runs `tox -elint` with **Python 3.10** in an isolated environment. To replicate this locally:
+
+```bash
+# Requires Python 3.10 available via pyenv
+PYENV_VERSION=3.10.4 pyenv exec tox -elint
+```
+
+This creates the same isolated environment as CI (same Python version, same pinned tool versions, no extra packages like IPython) and runs:
+1. `black --check .` - Code formatting
+2. `pylint -rn --ignore-paths=qward/examples qward tests` - Linting
+3. `mypy --exclude qward/examples qward tests` - Type checking
+
+### Running Tests
+
+```bash
+# Quick local test run
+python -m pytest tests/ -v
+
+# Full CI-equivalent test run with tox
+PYENV_VERSION=3.10.4 pyenv exec tox -epy310
+```
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.md) for details on:
