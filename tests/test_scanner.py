@@ -283,7 +283,7 @@ class TestScanner(unittest.TestCase):
             scanner.calculate_metrics()
 
 
-class TestScannerFluentAPI(unittest.TestCase):
+class TestScannerFluentAPI(unittest.TestCase):  # pylint: disable=too-many-public-methods
     """Tests for fluent Scanner API: add(), scan(), and ScanResult."""
 
     def setUp(self):
