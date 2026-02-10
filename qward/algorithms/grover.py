@@ -1,17 +1,22 @@
 import math
-from typing import Any, Callable
 
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import grover_operator, MCMTGate, ZGate
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_aer import AerSimulator
 
-# Import display with fallback for non-notebook environments
-display: Callable[..., Any]
-try:
-    from IPython.display import display
-except ImportError:
-    display = print
+
+def _get_display():
+    """Get display function, falling back to print for non-notebook environments."""
+    try:
+        from IPython.display import display
+
+        return display
+    except ImportError:
+        return print
+
+
+display = _get_display()
 
 
 class GroverOracle:
