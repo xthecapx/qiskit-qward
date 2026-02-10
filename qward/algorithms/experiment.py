@@ -545,15 +545,12 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
         # Calculate aggregate statistics
         rates = [r.success_rate for r in results]
 
-        # Statistical analysis
-        analysis = cast(
-            Optional[AnalysisT],
-            self.analyze_batch(
-                success_rates=rates,
-                config_id=config_id,
-                noise_model=noise_id,
-                ideal_rates=ideal_rates,
-            ),
+        # Statistical analysis (subclasses override analyze_batch)
+        analysis = self.analyze_batch(  # pylint: disable=assignment-from-none
+            success_rates=rates,
+            config_id=config_id,
+            noise_model=noise_id,
+            ideal_rates=ideal_rates,
         )
 
         if verbose and analysis is not None:
@@ -797,9 +794,9 @@ class BaseExperimentRunner(ABC, Generic[ConfigT, ResultT, BatchT, AnalysisT]):
             # Reconstruct results
             results = [self.load_result_from_dict(r) for r in individual]
 
-            # Reconstruct analysis
-            analysis = cast(
-                Optional[AnalysisT], self.load_analysis_from_dict(summary.get("analysis"))
+            # Reconstruct analysis (subclasses override load_analysis_from_dict)
+            analysis = self.load_analysis_from_dict(  # pylint: disable=assignment-from-none
+                summary.get("analysis")
             )
 
             return self._create_batch_result(
