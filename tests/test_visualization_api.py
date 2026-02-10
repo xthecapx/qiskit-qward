@@ -411,7 +411,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
         self.assertIn(Metrics.QISKIT, summary)
         self.assertIn(Metrics.COMPLEXITY, summary)
 
-        for metric_name, info in summary.items():
+        for _metric_name, info in summary.items():
             self.assertIn("shape", info)
             self.assertIn("columns", info)
             self.assertIsInstance(info["columns"], (list, int))
@@ -435,7 +435,7 @@ class TestNewVisualizationAPI(unittest.TestCase):
         """Test register_strategy allows adding a custom visualization strategy."""
         from qward.visualization.base import VisualizationStrategy
 
-        class DummyStrategy(VisualizationStrategy):
+        class DummyStrategy(VisualizationStrategy):  # pylint: disable=missing-class-docstring
             PLOT_REGISTRY = {
                 "dummy_plot": PlotMetadata(
                     name="dummy_plot",
