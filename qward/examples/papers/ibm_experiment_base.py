@@ -15,7 +15,6 @@ Subclass `IBMExperimentBase` to create algorithm-specific implementations
 import argparse
 import json
 import statistics
-import math
 import glob as glob_module
 from abc import ABC, abstractmethod
 from collections import Counter
@@ -27,8 +26,10 @@ from typing import Optional, Dict, Any, List, Callable, TypeVar, Generic
 from qiskit import QuantumCircuit
 
 from qward.algorithms import QuantumCircuitExecutor, IBMBatchResult
-from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics
+from qward.examples.papers.experiment_helpers import (
+    calculate_qward_metrics,
+    calculate_statistical_analysis,
+)
 
 # IBM Quantum imports (optional)
 try:
@@ -41,113 +42,6 @@ except ImportError:
 
 # Type variable for config classes
 ConfigT = TypeVar("ConfigT")
-
-
-def calculate_qward_metrics(circuit: QuantumCircuit) -> Dict[str, Any]:
-    """
-    Calculate QWARD metrics for a circuit BEFORE execution.
-
-    This should be called on the original circuit, not the transpiled one,
-    as we want to measure the circuit we designed, not the hardware-specific
-    version.
-
-    Args:
-        circuit: The original quantum circuit to analyze
-
-    Returns:
-        Dictionary with QWARD metrics, or error dict if calculation fails
-    """
-    try:
-        scanner = Scanner(circuit=circuit)
-        scanner.add_strategy(QiskitMetrics(circuit))
-        scanner.add_strategy(ComplexityMetrics(circuit))
-
-        metrics_dict = scanner.calculate_metrics()
-
-        # Convert DataFrames to dictionaries
-        result = {}
-        for metric_name, df in metrics_dict.items():
-            if df is not None and hasattr(df, "empty") and not df.empty:
-                row = df.iloc[0]
-                result[metric_name] = {}
-                for col in df.columns:
-                    val = row[col]
-                    # Convert to JSON-serializable format
-                    if isinstance(val, (int, float, str, bool, type(None))):
-                        result[metric_name][col] = val
-                    elif hasattr(val, "item"):  # numpy types
-                        result[metric_name][col] = val.item()
-                    elif isinstance(val, (list, tuple)):
-                        result[metric_name][col] = [str(v) for v in val]
-                    else:
-                        result[metric_name][col] = str(val)
-
-        return result
-
-    except Exception as e:
-        return {"error": str(e)}
-
-
-def calculate_statistical_analysis(
-    success_rates: List[float], config_id: str, noise_model: str
-) -> Dict[str, Any]:
-    """
-    Calculate statistical analysis for batch results.
-
-    Similar to simulator analysis including CI, skewness, kurtosis, normality tests.
-
-    Args:
-        success_rates: List of success rates from individual runs
-        config_id: Configuration ID
-        noise_model: Noise model identifier
-
-    Returns:
-        Dictionary with statistical analysis
-    """
-    n = len(success_rates)
-    if n < 2:
-        return {}
-
-    mean = statistics.mean(success_rates)
-    std = statistics.stdev(success_rates)
-
-    # Confidence interval (95%)
-    se = std / math.sqrt(n)
-    t_value = 1.96  # Approximate for large samples
-    ci_lower = mean - t_value * se
-    ci_upper = mean + t_value * se
-
-    # Skewness
-    if std > 0:
-        skewness = sum((x - mean) ** 3 for x in success_rates) / (n * std**3)
-    else:
-        skewness = 0.0
-
-    # Kurtosis (excess kurtosis)
-    if std > 0:
-        kurtosis = sum((x - mean) ** 4 for x in success_rates) / (n * std**4) - 3
-    else:
-        kurtosis = 0.0
-
-    # Simple normality check (Shapiro-Wilk would be better but requires scipy)
-    # For now, just check if skewness and kurtosis are within normal range
-    is_normal = abs(skewness) < 2 and abs(kurtosis) < 7
-
-    return {
-        "config_id": config_id,
-        "noise_model": noise_model,
-        "num_runs": n,
-        "mean": mean,
-        "std": std,
-        "median": statistics.median(success_rates),
-        "min": min(success_rates),
-        "max": max(success_rates),
-        "ci_lower": ci_lower,
-        "ci_upper": ci_upper,
-        "skewness": skewness,
-        "kurtosis": kurtosis,
-        "is_normal": is_normal,
-    }
 
 
 @dataclass
