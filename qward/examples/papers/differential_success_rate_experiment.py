@@ -276,13 +276,56 @@ def _compute_teleportation_dsr_rows(csv_paths: List[Path]) -> List[Dict[str, str
 # =============================================================================
 
 
-def _collect_json_paths(grover_dir: Path, qft_dir: Path) -> List[Path]:
+def _collect_raw_dirs(data_path: Path, provider: Optional[str] = None) -> List[Path]:
+    """Collect JSON result directories from a data root or explicit path.
+
+    Supports:
+    - Preferred layout: ``.../data/qpu/raw`` (IBM), ``.../data/qpu/aws`` (AWS).
+    - Legacy layout: ``.../data/aws/raw``.
+    - Legacy direct raw path ``.../data/qpu/raw``.
+    - Explicit result path containing JSON files.
+    """
+    if not data_path.exists():
+        return []
+
+    # Explicit directory containing result JSON files
+    if data_path.is_dir() and any(data_path.glob("*.json")):
+        return [data_path]
+
+    candidates: List[Path] = []
+    if provider == "qpu":
+        candidates.append(data_path / "qpu" / "raw")
+    elif provider == "aws":
+        candidates.extend([data_path / "qpu" / "aws", data_path / "aws" / "raw"])
+    elif provider:
+        candidates.extend([data_path / "qpu" / provider, data_path / provider / "raw"])
+    else:
+        candidates.extend([data_path / "qpu" / "raw", data_path / "qpu" / "aws"])
+        for provider_dir in sorted(p for p in data_path.iterdir() if p.is_dir()):
+            provider_raw = provider_dir / "raw"
+            if provider_raw.exists():
+                candidates.append(provider_raw)
+
+    unique_existing: List[Path] = []
+    seen: set[Path] = set()
+    for path in candidates:
+        if path.exists() and path not in seen:
+            seen.add(path)
+            unique_existing.append(path)
+    return unique_existing
+
+
+def _collect_json_paths(
+    grover_data: Path, qft_data: Path, provider: Optional[str] = None
+) -> List[Path]:
     """Collect JSON input paths for Grover and QFT experiments."""
     paths: List[Path] = []
-    if grover_dir.exists():
-        paths.extend(sorted(grover_dir.glob("*.json")))
-    if qft_dir.exists():
-        paths.extend(sorted(qft_dir.glob("*.json")))
+
+    for raw_dir in _collect_raw_dirs(grover_data, provider):
+        paths.extend(sorted(raw_dir.glob("*.json")))
+    for raw_dir in _collect_raw_dirs(qft_data, provider):
+        paths.extend(sorted(raw_dir.glob("*.json")))
+
     return paths
 
 
@@ -309,20 +352,26 @@ def _collect_teleportation_paths(teleportation_dir: Path) -> List[Path]:
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
-    default_grover = repo_root / "examples" / "papers" / "grover" / "data" / "qpu" / "raw"
-    default_qft = repo_root / "examples" / "papers" / "qft" / "data" / "qpu" / "raw"
+    default_grover = repo_root / "examples" / "papers" / "grover" / "data"
+    default_qft = repo_root / "examples" / "papers" / "qft" / "data"
     default_teleportation = repo_root / "examples" / "papers" / "teleportation"
     default_output = repo_root / "examples" / "papers" / "DSR_result.csv"
 
     parser = argparse.ArgumentParser(description="Compute DSR variants from QPU histograms.")
     parser.add_argument("--grover-dir", type=Path, default=default_grover)
     parser.add_argument("--qft-dir", type=Path, default=default_qft)
+    parser.add_argument(
+        "--provider",
+        type=str,
+        default=None,
+        help="Provider filter under each data root (e.g. qpu, aws)",
+    )
     parser.add_argument("--teleportation-dir", type=Path, default=default_teleportation)
     parser.add_argument("--output", type=Path, default=default_output)
     args = parser.parse_args()
 
     # ----- Schema 1: Grover / QFT (JSON, individual_results) -----
-    json_paths = _collect_json_paths(args.grover_dir, args.qft_dir)
+    json_paths = _collect_json_paths(args.grover_dir, args.qft_dir, provider=args.provider)
     grover_qft_rows = compute_dsr_rows(json_paths)
 
     grover_count = sum(1 for r in grover_qft_rows if r["algorithm"] == "GROVER")
