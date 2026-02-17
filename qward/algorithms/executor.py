@@ -2,11 +2,12 @@
 Quantum Circuit Executor
 
 This module provides a reusable executor class for running quantum circuits
-on different backends including local simulators, IBM Quantum QPUs, and qBraid
-cloud devices. It integrates with qward's metrics system for comprehensive
-circuit analysis.
+on different backends including local simulators, IBM Quantum QPUs, qBraid
+cloud devices, and AWS Braket devices. It integrates with qward's metrics
+system for comprehensive circuit analysis.
 """
 
+import os
 import time
 from typing import Dict, Any, Optional, Union, List, TYPE_CHECKING, Callable
 from dataclasses import dataclass, field
@@ -18,6 +19,13 @@ from qiskit_aer.noise import NoiseModel
 
 from qward import Scanner, Visualizer
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics.differential_success_rate import (
+    compute_dsr,
+    compute_dsr_ratio,
+    compute_dsr_log_ratio,
+    compute_dsr_normalized_margin,
+    compute_dsr_with_flags,
+)
 from .noise_generator import NoiseConfig, NoiseModelGenerator
 
 if TYPE_CHECKING:
@@ -42,6 +50,14 @@ try:
     IBM_QUANTUM_AVAILABLE = True
 except ImportError:
     IBM_QUANTUM_AVAILABLE = False
+
+# AWS Braket imports via qiskit-braket-provider (optional)
+try:
+    from qiskit_braket_provider import BraketProvider, BraketLocalBackend
+
+    AWS_BRAKET_AVAILABLE = True
+except ImportError:
+    AWS_BRAKET_AVAILABLE = False
 
 
 @dataclass
@@ -71,17 +87,52 @@ class IBMBatchResult:
     error: Optional[str] = None
 
 
+@dataclass
+class AWSJobResult:
+    """Result from an AWS Braket job execution.
+
+    The primary quality metric is the Differential Success Rate (DSR), computed
+    from the observed counts and the caller-supplied ``expected_outcomes``.  All
+    four DSR variants (Michelson, ratio, log-ratio, normalized margin) are stored
+    so downstream analyses can pick the contrast measure that best fits their
+    needs.  A ``peak_mismatch`` flag indicates whether the highest-count outcome
+    was *not* among the expected outcomes.
+    """
+
+    job_id: str
+    device_name: str
+    status: str
+    counts: Optional[Dict[str, int]] = None
+    circuit_depth: int = 0
+    original_circuit_depth: int = 0
+    # DSR metrics (primary quality indicator)
+    dsr_michelson: Optional[float] = None
+    dsr_ratio: Optional[float] = None
+    dsr_log_ratio: Optional[float] = None
+    dsr_normalized_margin: Optional[float] = None
+    peak_mismatch: Optional[bool] = None
+    expected_outcomes: Optional[List[str]] = None
+    error: Optional[str] = None
+    raw_result: Any = None
+    qward_metrics: Optional[Dict[str, pd.DataFrame]] = None
+    region: str = "us-west-1"
+
+
 class QuantumCircuitExecutor:
-    """Reusable class for executing quantum circuits on simulators and qBraid devices.
+    """Reusable class for executing quantum circuits on simulators, IBM Quantum,
+    qBraid, and AWS Braket devices.
 
     This class provides a unified interface for running quantum circuits on different
-    backends, including local simulators and qBraid cloud devices. It integrates with
-    qward's comprehensive metrics and visualization system to provide detailed analysis
+    backends, including local simulators, qBraid cloud devices, IBM Quantum hardware,
+    and AWS Braket devices (via qiskit-braket-provider). It integrates with qward's
+    comprehensive metrics and visualization system to provide detailed analysis
     and visual feedback of circuit execution results.
 
     Features:
     - Local Aer simulator execution with comprehensive qward metrics
     - qBraid cloud device execution (when available)
+    - IBM Quantum hardware execution with batch mode
+    - AWS Braket execution via qiskit-braket-provider (Rigetti, IonQ, etc.)
     - Automatic generation of QiskitMetrics, ComplexityMetrics, and CircuitPerformanceMetrics
     - Optional visualization display using qward's Visualizer
     - Structured results with pandas DataFrames
@@ -89,7 +140,7 @@ class QuantumCircuitExecutor:
 
     Args:
         save_statevector: Whether to save intermediate statevectors during simulation
-        timeout: Timeout in seconds for qBraid job completion (default: 300)
+        timeout: Timeout in seconds for job completion (default: 300)
         shots: Number of shots for quantum execution (default: 1024)
     """
 
@@ -97,6 +148,26 @@ class QuantumCircuitExecutor:
         self.save_statevector = save_statevector
         self.timeout = timeout
         self.shots = shots
+
+    @staticmethod
+    def _configure_aws_environment(
+        region: str,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+    ) -> None:
+        """Configure AWS credentials and region for Braket provider calls.
+
+        The explicit ``region`` argument takes precedence over pre-existing
+        environment settings so callers can deterministically target a region.
+        """
+        if aws_access_key_id:
+            os.environ["AWS_ACCESS_KEY_ID"] = aws_access_key_id
+        if aws_secret_access_key:
+            os.environ["AWS_SECRET_ACCESS_KEY"] = aws_secret_access_key
+
+        # Keep both variables aligned for boto3/braket compatibility.
+        os.environ["AWS_DEFAULT_REGION"] = region
+        os.environ["AWS_REGION"] = region
 
     def _get_noise_model(
         self, noise_model_config: Union[str, NoiseModel, None], noise_level: float = 0.05
@@ -738,6 +809,564 @@ class QuantumCircuitExecutor:
                 status="error",
                 error=error_msg,
             )
+
+    def run_aws(
+        self,
+        circuit: QuantumCircuit,
+        *,
+        device_id: str = "Ankaa-3",
+        region: str = "us-west-1",
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        expected_outcomes: Optional[List[str]] = None,
+        timeout: int = 600,
+        poll_interval: int = 10,
+        show_progress: bool = True,
+        wait_for_results: bool = True,
+        max_local_gate_count: int = 3_333,
+    ) -> AWSJobResult:
+        # pylint: disable=too-many-branches,too-many-statements
+        """Run circuit on AWS Braket hardware via qiskit-braket-provider.
+
+        This method executes a quantum circuit on AWS Braket devices (e.g. Rigetti
+        Ankaa-3, IonQ, etc.) using the qiskit-braket-provider package. It handles
+        barrier removal, endianness conversion, job polling, and integrates with
+        QWARD metrics.
+
+        The primary quality indicator is the **Differential Success Rate (DSR)**,
+        computed from the observed hardware counts and the caller-supplied
+        ``expected_outcomes``.  All four DSR variants (Michelson, ratio, log-ratio,
+        normalized-margin) are returned in the result so downstream analyses can
+        pick the contrast measure that best fits their needs.
+
+        AWS credentials can be provided directly via parameters, read from
+        environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY), or
+        pre-configured via ``aws configure``.
+
+        Args:
+            circuit: The quantum circuit to execute
+            device_id: AWS Braket device name (default: "Ankaa-3" for Rigetti)
+            region: AWS region where the device is hosted (default: "us-west-1")
+            aws_access_key_id: Optional AWS access key ID. If None, uses
+                environment variable or pre-configured credentials
+            aws_secret_access_key: Optional AWS secret access key. If None, uses
+                environment variable or pre-configured credentials
+            expected_outcomes: Expected bitstrings (marked states) for DSR
+                calculation.  For example ``["000"]`` for a 3-qubit circuit whose
+                correct answer is all-zeros.
+            timeout: Maximum time to wait for job completion in seconds (default: 600)
+            poll_interval: Time between status checks in seconds (default: 10)
+            show_progress: If True, print progress messages (default: True)
+            wait_for_results: If True, poll until job completes. If False, submit
+                and return immediately with status "submitted" (default: True)
+            max_local_gate_count: Maximum allowed *local* gate count for the
+                prepared circuit (before Braket device compilation). Braket's
+                on-device compiler typically inflates gate counts by 3-6x, so
+                the default of 3,333 maps to ~20,000 device gates which is
+                Ankaa-3's hard limit. Empirically, S6-1 (2,748 local gates)
+                passes while S7-1 (5,742) fails at 36,442 device gates. Set
+                to 0 to disable the check.
+
+        Returns:
+            AWSJobResult containing execution results, DSR metrics, and metadata
+
+        Raises:
+            ImportError: If qiskit-braket-provider is not installed
+
+        Example:
+            >>> executor = QuantumCircuitExecutor(shots=1024)
+            >>> result = executor.run_aws(
+            ...     circuit,
+            ...     device_id="Ankaa-3",
+            ...     expected_outcomes=["000"],
+            ... )
+            >>> print(f"Job ID: {result.job_id}")
+            >>> print(f"Counts: {result.counts}")
+            >>> print(f"DSR (Michelson): {result.dsr_michelson:.4f}")
+
+            >>> # Fire-and-forget (non-blocking)
+            >>> result = executor.run_aws(circuit, wait_for_results=False)
+            >>> print(f"Job ARN: {result.job_id}")  # retrieve later
+        """
+        if not AWS_BRAKET_AVAILABLE:
+            raise ImportError(
+                "qiskit-braket-provider is not available. "
+                "Install with: pip install qiskit-braket-provider"
+            )
+
+        # -----------------------------------------------------------
+        # Pre-flight: prepare circuit and validate gate count
+        # BEFORE contacting AWS, so oversized circuits fail fast.
+        # -----------------------------------------------------------
+        circuit_clean = self._prepare_circuit_for_aws(circuit)
+        local_gate_count = circuit_clean.size()
+
+        if show_progress:
+            print(f">>> Circuit qubits: {circuit.num_qubits}")
+            print(f">>> Original depth: {circuit.depth()}")
+            print(f">>> Prepared circuit depth: {circuit_clean.depth()}")
+            print(f">>> Prepared circuit gates: {local_gate_count}")
+
+        if max_local_gate_count > 0 and local_gate_count > max_local_gate_count:
+            error_msg = (
+                f"Circuit has {local_gate_count} local gates which exceeds the "
+                f"pre-submission limit of {max_local_gate_count}. "
+                f"Braket device compilation typically inflates gate counts by "
+                f"3-6x, so ~{local_gate_count * 6} device gates are expected "
+                f"(Ankaa-3 limit: 20,000). Refusing to submit."
+            )
+            if show_progress:
+                print(f">>> BLOCKED: {error_msg}")
+            return AWSJobResult(
+                job_id="",
+                device_name=device_id,
+                status="error",
+                error=error_msg,
+                original_circuit_depth=circuit.depth(),
+                circuit_depth=circuit_clean.depth(),
+                expected_outcomes=expected_outcomes,
+                region=region,
+            )
+
+        try:
+            # Configure AWS credentials/region for this execution.
+            self._configure_aws_environment(
+                region=region,
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+            )
+
+            if show_progress:
+                print(f">>> Setting up AWS Braket provider (region: {region})...")
+
+            provider = BraketProvider()
+
+            # Get the specified device
+            if show_progress:
+                print(f">>> Getting device: {device_id}")
+
+            aws_backend = provider.get_backend(device_id)
+
+            if show_progress:
+                print(f">>> Device obtained: {aws_backend}")
+                print(f">>> Submitting to {device_id} with {self.shots} shots...")
+
+            # Submit job
+            job = aws_backend.run(circuit_clean, shots=self.shots)
+            job_arn = job.job_id()
+
+            if show_progress:
+                print(f">>> Job submitted successfully!")
+                print(f">>> Job ARN: {job_arn}")
+
+            # If fire-and-forget mode, return immediately
+            if not wait_for_results:
+                # Still get pre-execution qward metrics
+                qward_metrics = None
+                try:
+                    qward_metrics = self.get_circuit_metrics(
+                        circuit,
+                        expected_outcomes=expected_outcomes,
+                    )
+                except Exception as e:
+                    if show_progress:
+                        print(f">>> Warning: Could not calculate qward metrics: {e}")
+
+                return AWSJobResult(
+                    job_id=job_arn,
+                    device_name=device_id,
+                    status="submitted",
+                    original_circuit_depth=circuit.depth(),
+                    circuit_depth=circuit_clean.depth(),
+                    expected_outcomes=expected_outcomes,
+                    qward_metrics=qward_metrics,
+                    region=region,
+                )
+
+            # Wait for job completion
+            if show_progress:
+                print(f">>> Waiting for job to complete (timeout: {timeout}s)...")
+
+            start_time = time.time()
+
+            while time.time() - start_time < timeout:
+                status = job.status()
+                status_str = str(status).rsplit(".", maxsplit=1)[-1].upper()
+
+                if show_progress:
+                    elapsed = int(time.time() - start_time)
+                    print(f">>> [{elapsed}s] Job status: {status}")
+
+                if status_str in ["DONE", "COMPLETED"]:
+                    if show_progress:
+                        print(">>> Job completed!")
+
+                    # Extract counts (Braket big-endian → Qiskit little-endian)
+                    counts = self._extract_counts_from_aws_result(job)
+
+                    # Compute DSR from hardware counts
+                    dsr_fields = self._compute_dsr_from_counts(
+                        counts, expected_outcomes, show_progress
+                    )
+
+                    # Get qward metrics for the original circuit
+                    qward_metrics = None
+                    try:
+                        qward_metrics = self.get_circuit_metrics(
+                            circuit,
+                            expected_outcomes=expected_outcomes,
+                        )
+                    except Exception as e:
+                        if show_progress:
+                            print(f">>> Warning: Could not calculate qward metrics: {e}")
+
+                    result = AWSJobResult(
+                        job_id=job_arn,
+                        device_name=device_id,
+                        status="completed",
+                        counts=counts,
+                        circuit_depth=circuit_clean.depth(),
+                        original_circuit_depth=circuit.depth(),
+                        expected_outcomes=expected_outcomes,
+                        qward_metrics=qward_metrics,
+                        region=region,
+                        **dsr_fields,
+                    )
+
+                    if show_progress:
+                        self._display_aws_results(result)
+
+                    return result
+
+                elif status_str in ["FAILED", "CANCELLED", "CANCELED"]:
+                    error_msg = f"Job {status_str.lower()}"
+                    if show_progress:
+                        print(f">>> Job failed: {error_msg}")
+
+                    return AWSJobResult(
+                        job_id=job_arn,
+                        device_name=device_id,
+                        status="failed",
+                        original_circuit_depth=circuit.depth(),
+                        circuit_depth=circuit_clean.depth(),
+                        expected_outcomes=expected_outcomes,
+                        error=error_msg,
+                        region=region,
+                    )
+
+                elif status_str in ["QUEUED", "RUNNING", "INITIALIZING", "CREATED"]:
+                    pass  # Continue waiting
+                else:
+                    if show_progress:
+                        print(f">>> Unknown status: {status} ({status_str})")
+
+                time.sleep(poll_interval)
+
+            # Timeout case
+            if show_progress:
+                print(f">>> Job timed out after {timeout} seconds")
+
+            return AWSJobResult(
+                job_id=job_arn,
+                device_name=device_id,
+                status="timeout",
+                original_circuit_depth=circuit.depth(),
+                circuit_depth=circuit_clean.depth(),
+                expected_outcomes=expected_outcomes,
+                region=region,
+            )
+
+        except Exception as e:
+            error_msg = str(e)
+            if show_progress:
+                print(f">>> Error running on AWS Braket: {error_msg}")
+
+            return AWSJobResult(
+                job_id="",
+                device_name=device_id,
+                status="error",
+                original_circuit_depth=circuit.depth(),
+                error=error_msg,
+                region=region,
+            )
+
+    def retrieve_aws_job(
+        self,
+        job_id: str,
+        *,
+        device_id: str = "Ankaa-3",
+        region: str = "us-west-1",
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        expected_outcomes: Optional[List[str]] = None,
+        show_progress: bool = True,
+    ) -> AWSJobResult:
+        """Retrieve results from a previously submitted AWS Braket job.
+
+        Use this method to get results from jobs submitted with
+        ``wait_for_results=False``, or to re-fetch results using a saved job ARN.
+        If ``expected_outcomes`` is provided, DSR is computed from the retrieved
+        counts.
+
+        Args:
+            job_id: AWS Braket job ARN
+                (e.g. "arn:aws:braket:us-west-1:ACCOUNT:quantum-task/UUID")
+            device_id: Device name used for the original submission (default: "Ankaa-3")
+            region: AWS region (default: "us-west-1")
+            aws_access_key_id: Optional AWS access key ID
+            aws_secret_access_key: Optional AWS secret access key
+            expected_outcomes: Expected bitstrings (marked states) for DSR
+                calculation
+            show_progress: If True, print progress messages (default: True)
+
+        Returns:
+            AWSJobResult with counts, DSR metrics, and status
+
+        Example:
+            >>> result = executor.retrieve_aws_job(
+            ...     "arn:aws:braket:us-west-1:123456:quantum-task/abc-def",
+            ...     expected_outcomes=["000"],
+            ... )
+            >>> print(f"Counts: {result.counts}")
+            >>> print(f"DSR: {result.dsr_michelson:.4f}")
+        """
+        if not AWS_BRAKET_AVAILABLE:
+            raise ImportError(
+                "qiskit-braket-provider is not available. "
+                "Install with: pip install qiskit-braket-provider"
+            )
+
+        try:
+            # Configure AWS credentials/region for retrieval.
+            self._configure_aws_environment(
+                region=region,
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+            )
+
+            if show_progress:
+                print(f">>> Retrieving AWS job: {job_id}")
+
+            provider = BraketProvider()
+            aws_backend = provider.get_backend(device_id)
+            job = aws_backend.retrieve_job(job_id)
+
+            status = job.status()
+            status_str = str(status).rsplit(".", maxsplit=1)[-1].upper()
+
+            if show_progress:
+                print(f">>> Job status: {status}")
+
+            if status_str in ["DONE", "COMPLETED"]:
+                counts = self._extract_counts_from_aws_result(job)
+
+                # Compute DSR from counts
+                dsr_fields = self._compute_dsr_from_counts(counts, expected_outcomes, show_progress)
+
+                result = AWSJobResult(
+                    job_id=job_id,
+                    device_name=device_id,
+                    status="completed",
+                    counts=counts,
+                    expected_outcomes=expected_outcomes,
+                    region=region,
+                    **dsr_fields,
+                )
+
+                if show_progress:
+                    self._display_aws_results(result)
+
+                return result
+
+            else:
+                return AWSJobResult(
+                    job_id=job_id,
+                    device_name=device_id,
+                    status=status_str.lower(),
+                    expected_outcomes=expected_outcomes,
+                    region=region,
+                )
+
+        except Exception as e:
+            error_msg = str(e)
+            if show_progress:
+                print(f">>> Error retrieving AWS job: {error_msg}")
+
+            return AWSJobResult(
+                job_id=job_id,
+                device_name=device_id,
+                status="error",
+                error=error_msg,
+                region=region,
+            )
+
+    @staticmethod
+    def _compute_dsr_from_counts(
+        counts: Dict[str, int],
+        expected_outcomes: Optional[List[str]],
+        show_progress: bool = True,
+    ) -> Dict[str, Any]:
+        """Compute all DSR variants from raw counts and expected outcomes.
+
+        Returns a dict suitable for unpacking into an ``AWSJobResult`` constructor
+        (keys match the DSR field names of the dataclass).
+
+        Args:
+            counts: Measurement outcome counts (little-endian / Qiskit convention)
+            expected_outcomes: Expected bitstrings (marked states)
+            show_progress: Whether to print warnings on failure
+
+        Returns:
+            Dict with keys ``dsr_michelson``, ``dsr_ratio``, ``dsr_log_ratio``,
+            ``dsr_normalized_margin``, and ``peak_mismatch``.  All values are
+            ``None`` when ``expected_outcomes`` is not provided or counts are empty.
+        """
+        empty: Dict[str, Any] = {
+            "dsr_michelson": None,
+            "dsr_ratio": None,
+            "dsr_log_ratio": None,
+            "dsr_normalized_margin": None,
+            "peak_mismatch": None,
+        }
+
+        if not expected_outcomes or not counts:
+            return empty
+
+        try:
+            dsr_michelson_val, peak_mismatch_val = compute_dsr_with_flags(counts, expected_outcomes)
+            return {
+                "dsr_michelson": float(dsr_michelson_val),
+                "dsr_ratio": float(compute_dsr_ratio(counts, expected_outcomes)),
+                "dsr_log_ratio": float(compute_dsr_log_ratio(counts, expected_outcomes)),
+                "dsr_normalized_margin": float(
+                    compute_dsr_normalized_margin(counts, expected_outcomes)
+                ),
+                "peak_mismatch": bool(peak_mismatch_val),
+            }
+        except Exception as e:
+            if show_progress:
+                print(f">>> Warning: Could not compute DSR: {e}")
+            return empty
+
+    @staticmethod
+    def _prepare_circuit_for_aws(circuit: QuantumCircuit) -> QuantumCircuit:
+        """Prepare a Qiskit circuit for AWS Braket submission.
+
+        This method:
+        1. **Decomposes** opaque/composed operators (e.g. ``grover_op.power(n)``,
+           library meta-gates) into standard gates that the
+           ``qiskit-braket-provider`` adapter can translate directly.
+           Without this step the adapter converts opaque gates to a unitary
+           matrix, which degrades results on real hardware.
+        2. Removes barrier instructions (unsupported by AWS Braket).
+        3. Normalises final measurements.
+
+        We intentionally do **not** run a full transpiler pass (no layout,
+        routing, or optimisation) so that qubit ordering is preserved and
+        Braket's own device compiler can perform hardware-aware compilation.
+
+        Args:
+            circuit: The original Qiskit quantum circuit
+
+        Returns:
+            A new QuantumCircuit ready for AWS Braket submission
+        """
+        from qiskit.circuit import Barrier
+
+        # Step 1: Recursively decompose opaque/composite gates until only
+        # standard gates remain.  ``reps=10`` is generous enough for deeply
+        # nested library gates (e.g. power -> grover_operator -> MCMT -> CCX).
+        circuit_decomposed = circuit.decompose(reps=10)
+
+        # Step 2: Normalise measurements
+        circuit_decomposed.remove_final_measurements()
+        circuit_decomposed.measure_all()
+
+        # Step 3: Remove barriers (AWS Braket incompatible)
+        circuit_clean = circuit_decomposed.copy()
+        circuit_clean.data = [
+            (gate, qubits, clbits)
+            for gate, qubits, clbits in circuit_decomposed.data
+            if not isinstance(gate, Barrier)
+        ]
+
+        return circuit_clean
+
+    @staticmethod
+    def _extract_counts_from_aws_result(job) -> Dict[str, int]:
+        """Extract measurement counts from an AWS Braket job result.
+
+        Fetches the raw Braket ``measurement_counts`` and reverses bitstrings
+        from Braket convention (big-endian, leftmost = q0) to Qiskit
+        convention (little-endian, rightmost = q0).
+
+        Args:
+            job: A BraketQuantumTask / qiskit-braket-provider job object.
+
+        Returns:
+            Dictionary of measurement outcomes in Qiskit (little-endian)
+            convention and their counts.
+        """
+        try:
+            # pylint: disable=protected-access
+            braket_result = job._tasks[0].result()
+            raw_counts = dict(braket_result.measurement_counts)
+            # Calibration note (2026-02-17, Ankaa-3):
+            # 3-qubit test circuit X(q0) produced dominant "001" only when
+            # reversing Braket counts, so this conversion is required.
+            # Reverse: Braket big-endian -> Qiskit little-endian
+            return {k[::-1]: v for k, v in raw_counts.items()}
+        except Exception:
+            try:
+                return dict(job.result().get_counts())
+            except Exception as exc:
+                print(f">>> Warning: Could not extract counts: {exc}")
+                return {}
+
+    def _display_aws_results(self, result: AWSJobResult) -> None:
+        """Display AWS Braket execution results.
+
+        Args:
+            result: AWSJobResult to display
+        """
+        print("\n" + "=" * 60)
+        print("AWS BRAKET EXECUTION RESULTS")
+        print("=" * 60)
+        print(f"Job ARN: {result.job_id}")
+        print(f"Device: {result.device_name}")
+        print(f"Region: {result.region}")
+        print(f"Status: {result.status}")
+
+        if result.original_circuit_depth:
+            print(f"Original circuit depth: {result.original_circuit_depth}")
+        if result.circuit_depth:
+            print(f"Submitted circuit depth: {result.circuit_depth}")
+
+        if result.counts:
+            total = sum(result.counts.values())
+            print(f"\nTotal shots: {total}")
+            print(f"Unique outcomes: {len(result.counts)}")
+
+            # Show top 5 outcomes
+            sorted_counts = sorted(result.counts.items(), key=lambda x: x[1], reverse=True)[:5]
+            print("Top outcomes:")
+            for outcome, count in sorted_counts:
+                pct = (count / total) * 100
+                print(f"  |{outcome}⟩: {count} ({pct:.1f}%)")
+
+        # Display DSR metrics
+        if result.dsr_michelson is not None:
+            print(f"\n--- DSR Metrics (expected: {result.expected_outcomes}) ---")
+            print(f"  DSR Michelson:         {result.dsr_michelson:.4f}")
+            print(f"  DSR Ratio:             {result.dsr_ratio:.4f}")
+            print(f"  DSR Log-Ratio:         {result.dsr_log_ratio:.4f}")
+            print(f"  DSR Normalized Margin: {result.dsr_normalized_margin:.4f}")
+            print(f"  Peak Mismatch:         {result.peak_mismatch}")
+
+        if result.error:
+            print(f"\nError: {result.error}")
+
+        print("=" * 60)
 
     def _extract_counts_from_sampler_result(self, primitive_result) -> Dict[str, int]:
         """Extract measurement counts from SamplerV2 PrimitiveResult.
