@@ -28,7 +28,7 @@ method-rgx = "(([a-z_][a-z0-9_]{2,49})|(assert[A-Z][a-zA-Z0-9]{2,43})|(test_[_a-
 variable-rgx = "[a-z_][a-z0-9_]{1,30}$"
 
 [tool.pylint.format]
-max-line-length = 105 # default 100
+max-line-length = 100
 
 [tool.pylint."messages control"]
 disable = [
@@ -44,6 +44,7 @@ disable = [
 "no-else-return", # relax "elif" after a clause with a return
 "docstring-first-line-empty", # relax docstring style
 "import-outside-toplevel", "import-error", # overzealous with our optionals/dynamic packages
+"invalid-name", # reduce convention churn for scientific and integration code
 # TODO(#9614): these were added in modern Pylint. Decide if we want to enable them. If so,
 # remove from here and fix the issues. Else, move it above this section and add a comment
 # with the rationale
@@ -82,3 +83,8 @@ enable = [
 [tool.pylint.spelling]
 spelling-private-dict-file = ".pylintdict"
 spelling-store-unknown-words = "n"
+
+[tool.qward.dev-tools]
+black = "26.1.0"
+pylint = "4.0.4"
+mypy = "1.19.1"
