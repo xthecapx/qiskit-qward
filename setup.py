@@ -87,6 +87,7 @@ setuptools.setup(
     keywords="qiskit sdk quantum validation analysis metrics quality",
     packages=setuptools.find_packages(include=["qward", "qward.*"]),
     install_requires=REQUIREMENTS,
+    extras_require={"dev": []},
     include_package_data=True,
     python_requires=">=3.10",
     project_urls={
