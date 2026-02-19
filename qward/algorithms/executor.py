@@ -11,6 +11,7 @@ system for comprehensive circuit analysis.
 
 import os
 import time
+import importlib.util
 from typing import Dict, Any, Optional, Union, List, TYPE_CHECKING, Callable
 from dataclasses import dataclass, field
 
@@ -53,13 +54,15 @@ try:
 except ImportError:
     IBM_QUANTUM_AVAILABLE = False
 
-# AWS Braket imports via qiskit-braket-provider (optional)
-try:
-    from qiskit_braket_provider import BraketProvider, BraketLocalBackend
+# AWS Braket dependency check (avoid importing provider at module import time).
+AWS_BRAKET_AVAILABLE = importlib.util.find_spec("qiskit_braket_provider") is not None
 
-    AWS_BRAKET_AVAILABLE = True
-except ImportError:
-    AWS_BRAKET_AVAILABLE = False
+
+def _get_braket_provider_class():
+    """Load BraketProvider lazily to avoid heavy import-time dependencies."""
+    from qiskit_braket_provider import BraketProvider
+
+    return BraketProvider
 
 
 @dataclass
@@ -941,7 +944,8 @@ class QuantumCircuitExecutor:
             if show_progress:
                 print(f">>> Setting up AWS Braket provider (region: {region})...")
 
-            provider = BraketProvider()
+            braket_provider_class = _get_braket_provider_class()
+            provider = braket_provider_class()
 
             # Get the specified device
             if show_progress:
@@ -1149,7 +1153,8 @@ class QuantumCircuitExecutor:
             if show_progress:
                 print(f">>> Retrieving AWS job: {job_id}")
 
-            provider = BraketProvider()
+            braket_provider_class = _get_braket_provider_class()
+            provider = braket_provider_class()
             aws_backend = provider.get_backend(device_id)
             job = aws_backend.retrieve_job(job_id)
 
