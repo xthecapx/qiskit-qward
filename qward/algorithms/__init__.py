@@ -4,7 +4,7 @@ Quantum algorithms module for qWard.
 This module contains various quantum algorithm implementations and utilities.
 """
 
-from .executor import QuantumCircuitExecutor, IBMJobResult, IBMBatchResult
+from .executor import QuantumCircuitExecutor, IBMJobResult, IBMBatchResult, AWSJobResult
 from .v_tp import (
     QuantumGate,
     BaseTeleportation,
@@ -72,12 +72,22 @@ from .matrix_product_verification import (
     BuhrmanSpalekVerification,
     MatrixProductVerification,
 )
+from .eigensolver import (
+    QuantumEigensolver,
+    ClassicalEigensolver,
+    EigensolverResult,
+    EigensolverBase,
+    PauliDecomposition,
+    pauli_decompose,
+    build_ansatz,
+)
 
 __all__ = [
     # Executor
     "QuantumCircuitExecutor",
     "IBMJobResult",
     "IBMBatchResult",
+    "AWSJobResult",
     # Teleportation
     "QuantumGate",
     "BaseTeleportation",
@@ -136,4 +146,12 @@ __all__ = [
     "QuantumFreivaldsVerification",
     "BuhrmanSpalekVerification",
     "MatrixProductVerification",
+    # Eigensolver
+    "QuantumEigensolver",
+    "ClassicalEigensolver",
+    "EigensolverResult",
+    "EigensolverBase",
+    "PauliDecomposition",
+    "pauli_decompose",
+    "build_ansatz",
 ]
