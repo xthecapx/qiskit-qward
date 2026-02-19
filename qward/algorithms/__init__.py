@@ -72,6 +72,15 @@ from .matrix_product_verification import (
     BuhrmanSpalekVerification,
     MatrixProductVerification,
 )
+from .eigensolver import (
+    QuantumEigensolver,
+    ClassicalEigensolver,
+    EigensolverResult,
+    EigensolverBase,
+    PauliDecomposition,
+    pauli_decompose,
+    build_ansatz,
+)
 
 __all__ = [
     # Executor
@@ -137,4 +146,12 @@ __all__ = [
     "QuantumFreivaldsVerification",
     "BuhrmanSpalekVerification",
     "MatrixProductVerification",
+    # Eigensolver
+    "QuantumEigensolver",
+    "ClassicalEigensolver",
+    "EigensolverResult",
+    "EigensolverBase",
+    "PauliDecomposition",
+    "pauli_decompose",
+    "build_ansatz",
 ]
