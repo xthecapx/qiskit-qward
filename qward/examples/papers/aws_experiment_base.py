@@ -423,9 +423,18 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
         log_path = log_dir / "aws_job_log.csv"
 
         header = [
-            "timestamp", "config_id", "device", "region", "job_arn",
-            "status", "shots", "circuit_depth", "transpiled_depth",
-            "success_rate", "dsr_michelson", "notes",
+            "timestamp",
+            "config_id",
+            "device",
+            "region",
+            "job_arn",
+            "status",
+            "shots",
+            "circuit_depth",
+            "transpiled_depth",
+            "success_rate",
+            "dsr_michelson",
+            "notes",
         ]
         write_header = not log_path.exists()
 
@@ -433,20 +442,26 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
             writer = csv.writer(fh)
             if write_header:
                 writer.writerow(header)
-            writer.writerow([
-                datetime.now().isoformat(),
-                config_id,
-                device_name,
-                region,
-                aws_result.job_id,
-                aws_result.status,
-                sum(aws_result.counts.values()) if aws_result.counts else self.shots,
-                circuit_depth,
-                transpiled_depth,
-                f"{aws_result.dsr_michelson:.4f}" if aws_result.dsr_michelson is not None else "",
-                f"{aws_result.dsr_ratio:.4f}" if aws_result.dsr_ratio is not None else "",
-                notes,
-            ])
+            writer.writerow(
+                [
+                    datetime.now().isoformat(),
+                    config_id,
+                    device_name,
+                    region,
+                    aws_result.job_id,
+                    aws_result.status,
+                    sum(aws_result.counts.values()) if aws_result.counts else self.shots,
+                    circuit_depth,
+                    transpiled_depth,
+                    (
+                        f"{aws_result.dsr_michelson:.4f}"
+                        if aws_result.dsr_michelson is not None
+                        else ""
+                    ),
+                    f"{aws_result.dsr_ratio:.4f}" if aws_result.dsr_ratio is not None else "",
+                    notes,
+                ]
+            )
 
     # =========================================================================
     # Batch Execution Methods
