@@ -1,9 +1,20 @@
+# pylint: disable=too-many-lines
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
 from qiskit_aer import AerSimulator
 
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.visualization import plot_histogram
-from IPython.display import display
+
+from typing import Any
+
+_display: Any = None
+try:
+    from IPython.display import display as _ipython_display
+
+    _display = _ipython_display
+except ImportError:
+    pass
+
 import numpy as np
 import random
 import os
@@ -19,18 +30,31 @@ from qbraid.transpiler import transpile as qbraid_transpile
 from qbraid.runtime import QbraidProvider, load_job
 from qbraid.runtime import JobLoaderError
 
-try:
-    from qbraid.runtime.aws import BraketProvider as QbraidBraketProvider
-except ImportError:
-    QbraidBraketProvider = None
-try:
-    from qiskit_braket_provider import BraketProvider as QiskitBraketProvider
-except ImportError:
-    QiskitBraketProvider = None
+
+def _load_qbraid_braket_provider_cls() -> Any:
+    try:
+        from qbraid.runtime.aws import BraketProvider
+    except ImportError:
+        return None
+    return BraketProvider
+
+
+def _load_qiskit_braket_provider_cls() -> Any:
+    try:
+        from qiskit_braket_provider import BraketProvider
+    except ImportError:
+        return None
+    return BraketProvider
+
+
+qbraid_braket_provider_cls: Any = _load_qbraid_braket_provider_cls()
+qiskit_braket_provider_cls: Any = _load_qiskit_braket_provider_cls()
 # from qbraid import circuit_wrapper
 
 
 class QbraidDevice(Enum):
+    """Enum of supported qBraid/AWS device identifiers."""
+
     IONQ = "aws_ionq"
     QIR = "qbraid_qir_simulator"
     LUCY = "aws_oqc_lucy"
@@ -44,6 +68,8 @@ load_dotenv()
 
 
 class QuantumGate:
+    """Single-qubit gate with optional parameters for application to a circuit."""
+
     def __init__(self, name, params=None):
         self.name = name
         self.params = params or []
@@ -65,6 +91,8 @@ class QuantumGate:
 
 
 class TeleportationProtocol:
+    """Quantum teleportation protocol circuit (message + Bell pair)."""
+
     def __init__(self, use_barriers: bool = True):
         self.message_qubit = QuantumRegister(1, "M")
         self.alice_entangled = QuantumRegister(1, "A")
@@ -97,6 +125,8 @@ class TeleportationProtocol:
 
 
 class TeleportationValidator:
+    """Validator that runs teleportation circuits with configurable payload and gates."""
+
     def __init__(
         self,
         payload_size: int = 3,
@@ -104,7 +134,7 @@ class TeleportationValidator:
         use_barriers: bool = True,
         save_statevector: bool = False,
     ):
-        self.gates = {}
+        self.gates: dict[int, Any] = {}
         self.payload_size = payload_size
         self.use_barriers = use_barriers
         self.save_statevector = save_statevector
@@ -245,11 +275,14 @@ class TeleportationValidator:
     def draw(self):
         return self.circuit.draw(output="mpl")
 
-    def _simulate(self):
+    def _simulate(self, shots: int | None = None):
         simulator = AerSimulator()
         if self.save_statevector:
             simulator = AerSimulator(method="statevector")
-        result = simulator.run(self.circuit).result()
+        run_kwargs: dict[str, int] = {}
+        if shots is not None:
+            run_kwargs["shots"] = shots
+        result = simulator.run(self.circuit, **run_kwargs).result()
         counts = result.get_counts()
         data = {"counts": counts}
 
@@ -260,9 +293,9 @@ class TeleportationValidator:
 
         return data
 
-    def run_simulation(self, show_histogram=True):
+    def run_simulation(self, show_histogram: bool = True, shots: int | None = None):
         # Get simulation results
-        data = self._simulate()
+        data = self._simulate(shots=shots)
 
         # Results-based metrics
         results_metrics = {
@@ -292,7 +325,7 @@ class TeleportationValidator:
         }
 
         # Custom gate distribution from our tracking
-        gate_distribution = {}
+        gate_distribution: dict[str, int] = {}
         for qubit_gates in self.gates.values():
             if isinstance(qubit_gates, list):
                 for gate in qubit_gates:
@@ -301,16 +334,16 @@ class TeleportationValidator:
                 # Single gate case
                 gate_distribution[qubit_gates.name] = gate_distribution.get(qubit_gates.name, 0) + 1
 
-        if show_histogram:
-            display(plot_histogram(data["counts"]))
+        if show_histogram and _display is not None:
+            _display(plot_histogram(data["counts"]))
 
-        if self.save_statevector:
+        if self.save_statevector and _display is not None:
             print("\nState vector after payload:")
-            display(data["after_payload"].draw("latex"))
+            _display(data["after_payload"].draw("latex"))
             print("\nState vector before validation:")
-            display(data["before_validation"].draw("latex"))
+            _display(data["before_validation"].draw("latex"))
             print("\nState vector after validation:")
-            display(data["after_validation"].draw("latex"))
+            _display(data["after_validation"].draw("latex"))
 
         result = {
             "results_metrics": results_metrics,
@@ -371,7 +404,11 @@ class TeleportationValidator:
                 print(f"Job status: {status}")
 
                 # Convert enum to string for easier comparison
-                status_str = str(status).split(".")[-1] if hasattr(status, "name") else str(status)
+                status_str = (
+                    str(status).rsplit(".", maxsplit=1)[-1]
+                    if hasattr(status, "name")
+                    else str(status)
+                )
 
                 if status_str in ["COMPLETED", "DONE"]:
                     result = job.result()
@@ -393,7 +430,7 @@ class TeleportationValidator:
                     try:
                         if hasattr(job, "metadata") and job.metadata():
                             error_msg += f": {job.metadata()}"
-                    except:
+                    except Exception:
                         pass
 
                     # Update job_info with failure data
@@ -448,7 +485,7 @@ class TeleportationValidator:
         Returns:
             dict: Job results and information
         """
-        if QiskitBraketProvider is None:
+        if qiskit_braket_provider_cls is None:
             return {"status": "error", "error": "qiskit-braket-provider not available"}
 
         try:
@@ -459,7 +496,7 @@ class TeleportationValidator:
                 os.environ["AWS_DEFAULT_REGION"] = region
 
             print(f"Retrieving AWS job: {job_id}")
-            provider = QiskitBraketProvider()
+            provider = qiskit_braket_provider_cls()
 
             backend = provider.get_backend("Ankaa-3")
             if not backend:
@@ -524,7 +561,7 @@ class TeleportationValidator:
         Returns:
             dict: Summary of processing results
         """
-        if QiskitBraketProvider is None:
+        if qiskit_braket_provider_cls is None:
             print("❌ qiskit-braket-provider not available")
             return {"status": "error", "error": "qiskit-braket-provider not available"}
 
@@ -603,7 +640,7 @@ class TeleportationValidator:
             df.to_csv(output_path, index=False)
 
             # Print summary
-            print(f"\n📊 Processing Summary:")
+            print("\n📊 Processing Summary:")
             print(f"   • Total processed: {processed}")
             print(f"   • Completed jobs: {completed}")
             print(f"   • Errors: {errors}")
@@ -633,7 +670,7 @@ class TeleportationValidator:
         Returns:
             dict: Job information and results
         """
-        if QiskitBraketProvider is None:
+        if qiskit_braket_provider_cls is None:
             print("❌ qiskit-braket-provider not available or incompatible.")
             print(
                 "This is likely due to a version compatibility issue between Qiskit and qiskit-braket-provider."
@@ -678,8 +715,8 @@ class TeleportationValidator:
                 os.environ["AWS_DEFAULT_REGION"] = region
                 print(f"Setting AWS region to: {region}")
 
-            print(f"Setting up AWS Braket provider...")
-            provider = QiskitBraketProvider()
+            print("Setting up AWS Braket provider...")
+            provider = qiskit_braket_provider_cls()
 
             # Get the specified device
             print(f"Getting device: {device_id}")
@@ -710,7 +747,7 @@ class TeleportationValidator:
             print(f"📊 Shots: {shots}")
             job = aws_device.run(circuit_without_barriers, shots=shots)
 
-            print(f"✅ Job submitted successfully!")
+            print("✅ Job submitted successfully!")
             print(f"🆔 Job ID: {job.job_id()}")
 
             # Return job information for CSV (without waiting for execution)
@@ -765,6 +802,8 @@ class TeleportationValidator:
 
 
 class Experiments:
+    """Container for experiment results and helpers to run/export them."""
+
     def __init__(self):
         self.results_df = pd.DataFrame()
 
@@ -776,7 +815,7 @@ class Experiments:
         """Convert JSON string back to dictionary"""
         return json.loads(json_str) if pd.notna(json_str) else {}
 
-    def _prepare_result_data(
+    def _prepare_result_data(  # pylint: disable=too-many-positional-arguments
         self,
         validator,
         status,
@@ -830,8 +869,8 @@ class Experiments:
 
             validator = TeleportationValidator(payload_size=size, gates=size, use_barriers=True)
 
-            if show_circuit:
-                display(validator.draw())
+            if show_circuit and _display is not None:
+                _display(validator.draw())
 
             # Determine execution type and run experiment
             if use_qbraid:
@@ -939,7 +978,7 @@ class Experiments:
 
         return self.results_df
 
-    def run_fixed_payload_varying_gates(
+    def run_fixed_payload_varying_gates(  # pylint: disable=too-many-positional-arguments
         self,
         payload_size: int,
         start_gates: int = 1,
@@ -958,8 +997,8 @@ class Experiments:
                 payload_size=payload_size, gates=num_gates, use_barriers=True
             )
 
-            if show_circuit:
-                display(validator.draw())
+            if show_circuit and _display is not None:
+                _display(validator.draw())
 
             # Determine execution type and run experiment
             if use_qbraid:
@@ -1048,7 +1087,7 @@ class Experiments:
 
         return self.results_df
 
-    def run_dynamic_payload_gates(
+    def run_dynamic_payload_gates(  # pylint: disable=too-many-positional-arguments,too-many-branches
         self,
         payload_range: tuple,
         gates_range: tuple,
@@ -1085,19 +1124,19 @@ class Experiments:
                     payload_size=payload_size, gates=num_gates, use_barriers=False
                 )
 
-                if show_circuit:
-                    display(validator.draw())
+                if show_circuit and _display is not None:
+                    _display(validator.draw())
 
                 # Determine execution type and run experiment
                 if use_aws:
                     # Check if AWS is available, otherwise suggest qBraid alternative
-                    if QiskitBraketProvider is None:
-                        print(f"⚠️  AWS Braket provider not available due to dependency conflicts.")
+                    if qiskit_braket_provider_cls is None:
+                        print("⚠️  AWS Braket provider not available due to dependency conflicts.")
                         print(
                             f"💡 Suggestion: Use qBraid instead - it can access AWS devices including {aws_device_id}"
                         )
-                        print(f"   Set use_qbraid=True instead of use_aws=True")
-                        print(f"   Falling back to simulation for this run...")
+                        print("   Set use_qbraid=True instead of use_aws=True")
+                        print("   Falling back to simulation for this run...")
 
                         # Fallback to simulation with helpful message
                         sim_result = validator.run_simulation()
@@ -1328,18 +1367,13 @@ class Experiments:
         Args:
             filename (str): Name of the CSV file to save the results
         """
-        # If file exists, check for header
-        header = True
-        if os.path.exists(filename):
-            header = False
-
         # Write the DataFrame to CSV (mode='w' to overwrite the file)
         self.results_df.to_csv(filename, index=False, mode="w")
         print(f"Results exported to {filename}")
 
-    def run_controlled_depth_experiment(
+    def run_controlled_depth_experiment(  # pylint: disable=too-many-positional-arguments
         self,
-        payload_sizes: list = [1, 2, 3, 4, 5],
+        payload_sizes: list | None = None,
         max_depth: int = 5,
         use_qbraid: bool = False,
         show_circuit: bool = False,
@@ -1365,6 +1399,8 @@ class Experiments:
             show_circuit: Whether to display the circuit diagram
             show_histogram: Whether to display histograms of measurement results
         """
+        if payload_sizes is None:
+            payload_sizes = [1, 2, 3, 4, 5]
         # Create output filename with timestamp for this experiment run
         timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
         output_file = f"experiment_results_controlled_depth_{timestamp}.csv"
@@ -1382,8 +1418,8 @@ class Experiments:
                     payload_size=payload_size, gates=gates, use_barriers=True
                 )
 
-                if show_circuit:
-                    display(validator.draw())
+                if show_circuit and _display is not None:
+                    _display(validator.draw())
 
                 # Determine execution type and run experiment
                 if use_qbraid:
@@ -1473,7 +1509,7 @@ class Experiments:
 
         return self.results_df
 
-    def run_target_depth_experiment(
+    def run_target_depth_experiment(  # pylint: disable=too-many-positional-arguments,too-many-branches
         self,
         target_depths: list = None,
         max_payload_size: int = 5,
@@ -1535,7 +1571,7 @@ class Experiments:
             # If we have valid combinations, duplicate them to reach min_experiments_per_depth
             if valid_combinations:
                 # Duplicate combinations if needed
-                combinations_to_run = []
+                combinations_to_run: list[tuple[int, int]] = []
                 while len(combinations_to_run) < min_experiments_per_depth:
                     for combo in valid_combinations:
                         if len(combinations_to_run) < min_experiments_per_depth:
@@ -1562,8 +1598,8 @@ class Experiments:
                     payload_size=payload_size, gates=gates, use_barriers=True
                 )
 
-                if show_circuit:
-                    display(validator.draw())
+                if show_circuit and _display is not None:
+                    _display(validator.draw())
 
                 # Determine execution type and run experiment
                 if use_qbraid:
@@ -1823,7 +1859,7 @@ class Experiments:
 
         try:
             quantum_job = load_job(job_id, provider=provider)
-            print(f"✓ Job loaded successfully")
+            print("✓ Job loaded successfully")
 
             # Extract all job data
             self._extract_job_data(df, idx, quantum_job, job_id, provider)
@@ -1833,7 +1869,9 @@ class Experiments:
             print(f"✗ Error loading job: {e}")
             self._handle_job_error(df, idx, job_id, provider, e, stats)
 
-    def _handle_job_error(self, df, idx, job_id, provider, error, stats):
+    def _handle_job_error(  # pylint: disable=too-many-positional-arguments
+        self, df, idx, job_id, provider, error, stats
+    ):
         """Handle job loading errors."""
         error_msg = str(error)
         df.at[idx, "qbraid_job_id"] = job_id
@@ -1899,7 +1937,9 @@ class Experiments:
         """Determine provider based on job ID format."""
         return "aws" if job_id.startswith("arn:aws:braket:") else "qbraid"
 
-    def _extract_job_data(self, df, idx, quantum_job, job_id, provider):
+    def _extract_job_data(  # pylint: disable=too-many-positional-arguments
+        self, df, idx, quantum_job, job_id, provider
+    ):
         """Extract comprehensive data from a loaded job."""
         # Basic info
         df.at[idx, "qbraid_job_id"] = job_id
@@ -1916,7 +1956,7 @@ class Experiments:
             queue_pos = quantum_job.queue_position()
             if queue_pos is not None:
                 df.at[idx, "queue_position"] = queue_pos
-        except:
+        except Exception:
             pass
 
     def _extract_metadata(self, df, idx, quantum_job):
@@ -1934,10 +1974,10 @@ class Experiments:
                 device_id_lower = device_id.lower()
                 if "rigetti" in device_id_lower:
                     df.at[idx, "vendor"] = "rigetti"
-                    print(f"  ✓ Vendor: rigetti")
+                    print("  ✓ Vendor: rigetti")
                 elif "ibm" in device_id_lower:
                     df.at[idx, "vendor"] = "ibm"
-                    print(f"  ✓ Vendor: ibm")
+                    print("  ✓ Vendor: ibm")
 
             # Job details
             status = metadata.get("status", "")
@@ -1985,7 +2025,9 @@ class Experiments:
 
             traceback.print_exc()
 
-    def _extract_result_data(self, df, idx, quantum_job):
+    def _extract_result_data(  # pylint: disable=too-many-branches,too-many-nested-blocks
+        self, df, idx, quantum_job
+    ):
         """Extract result data from job."""
         try:
             result = quantum_job.result()
@@ -2064,7 +2106,7 @@ class Experiments:
                                 break
 
             if not cost_found:
-                print(f"  ❌ No cost attribute found in result")
+                print("  ❌ No cost attribute found in result")
 
             # COMPREHENSIVE CIRCUIT METADATA SEARCH
             metadata_found = False
@@ -2228,7 +2270,7 @@ class Experiments:
                             break
 
             if not metadata_found:
-                print(f"  ❌ No circuit metadata found")
+                print("  ❌ No circuit metadata found")
 
             # Additional fields
             for attr in ["shots", "device_id"]:
@@ -2269,15 +2311,15 @@ class Experiments:
         # Status breakdown
         if "job_status" in df.columns:
             status_counts = df["job_status"].value_counts()
-            print(f"\nJob Status Breakdown:")
+            print("\nJob Status Breakdown:")
             for status, count in status_counts.items():
                 if pd.notna(status):
                     print(f"  {status}: {count}")
 
         # Data source breakdown
-        print(f"\nData Source Breakdown:")
-        print(f"  Quantum hardware results: {quantum_data_rows}")
-        print(f"  Simulation fallback results: {simulation_data_rows}")
+        print("\nData Source Breakdown:")
+        print("  Quantum hardware results:", quantum_data_rows)
+        print("  Simulation fallback results:", simulation_data_rows)
 
         # Cost information if available
         if "cost" in df.columns:
@@ -2288,9 +2330,9 @@ class Experiments:
         # Data verification summary
         if "measurement_counts_sdk" in df.columns:
             sdk_data_rows = len(df[pd.notna(df["measurement_counts_sdk"])])
-            print(f"\nData Verification:")
-            print(f"  Jobs with SDK measurement data: {sdk_data_rows}")
-            print(f"  Jobs with existing CSV data: {total_job_rows}")
+            print("\nData Verification:")
+            print("  Jobs with SDK measurement data:", sdk_data_rows)
+            print("  Jobs with existing CSV data:", total_job_rows)
 
         print("=" * 60)
 
@@ -2337,7 +2379,7 @@ class Experiments:
 
         return df
 
-    def run_fixed_payload_experiments(
+    def run_fixed_payload_experiments(  # pylint: disable=too-many-positional-arguments
         self,
         payload_gates_map: dict = None,
         iterations: int = 10,
@@ -2387,8 +2429,8 @@ class Experiments:
                     payload_size=payload_size, gates=num_gates, use_barriers=True
                 )
 
-                if show_circuit:
-                    display(validator.draw())
+                if show_circuit and _display is not None:
+                    _display(validator.draw())
 
                 # Determine execution type and run experiment
                 if use_qbraid:
