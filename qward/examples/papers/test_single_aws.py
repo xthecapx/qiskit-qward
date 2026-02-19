@@ -130,14 +130,14 @@ def _run_on_qpu(circuit, expected_outcomes, args) -> None:
 
     if aws_result.counts:
         total = sum(aws_result.counts.values())
-        success_count = sum(
-            v for k, v in aws_result.counts.items() if k in expected_outcomes
-        )
+        success_count = sum(v for k, v in aws_result.counts.items() if k in expected_outcomes)
         success_rate = success_count / total if total > 0 else 0.0
         print(f"Total shots:     {total}")
         print(f"Success count:   {success_count}")
         print(f"Success rate:    {success_rate:.2%}")
-        print(f"Top 5 counts:    {dict(sorted(aws_result.counts.items(), key=lambda x: -x[1])[:5])}")
+        print(
+            f"Top 5 counts:    {dict(sorted(aws_result.counts.items(), key=lambda x: -x[1])[:5])}"
+        )
     else:
         print("No counts yet (job may still be running).")
         print(f"  Job ARN: {aws_result.job_id}")
