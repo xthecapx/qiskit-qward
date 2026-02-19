@@ -6,7 +6,7 @@ This guide provides essential information for developers contributing to QWARD, 
 
 ### Prerequisites
 
-- Python 3.10, 3.11, or 3.12
+- Python 3.11 or 3.12
 - Git
 - Virtual environment (recommended)
 
@@ -60,13 +60,13 @@ black .
 #### 2. Linting
 ```bash
 # Run pylint on core library and tests (should get 10.00/10)
-pylint -rn qward tests
+pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests
 ```
 
 #### 3. Type Checking
 ```bash
 # Run mypy type checking (should show no errors)
-mypy qward tests
+mypy --exclude qward/examples qward
 ```
 
 #### 4. Unit Tests
@@ -82,8 +82,8 @@ python -m pytest tests/test_validator.py -v
 ```bash
 # Run all essential checks at once
 black --check . && \
-pylint -rn qward tests && \
-mypy qward tests && \
+pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests && \
+mypy --exclude qward/examples qward && \
 python -m pytest tests/ -v
 ```
 
@@ -96,7 +96,7 @@ tox -e lint
 tox -e coverage
 
 # Run tests for specific Python version
-tox -e py310  # or py311, py312
+tox -e py311  # or py312
 ```
 
 #### 7. Optional: Notebook Linting (if nbqa is installed)
@@ -114,7 +114,7 @@ nbqa pylint -rn docs/
 ### Quick Verification (Minimum Required)
 ```bash
 # Essential checks only (fastest)
-black --check . && pylint -rn qward tests && mypy qward tests
+black --check . && pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests && mypy --exclude qward/examples qward
 ```
 
 ## Configuration Notes

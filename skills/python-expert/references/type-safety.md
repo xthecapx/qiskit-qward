@@ -16,7 +16,7 @@ def analyze(circuits: list[QuantumCircuit]) -> dict[str, pd.DataFrame]: ...
 def run(circuit: QuantumCircuit, shots: int = 1024,
         criteria: Optional[Callable[[str], bool]] = None) -> dict: ...
 
-# Union (Python 3.10+ use |)
+# Union (Python 3.11+ use |)
 JobType = Union[AerJob, RuntimeJob]
 # or: JobType = AerJob | RuntimeJob
 ```
