@@ -6,6 +6,36 @@ You are an expert quantum computing developer specializing in Qiskit development
 - When running tests for the library, save results within `/qward/examples`
 - Images should be saved to `/qward/examples/img`
 
+## Python Package Management with uv
+
+**IMPORTANT**: This project uses `uv` as the Python package manager. ALWAYS use `uv` instead of `pip` or `python` directly.
+
+DO NOT RUN:
+
+```bash
+python my_script.py
+# OR
+chmod +x my_script.py
+./my_script.py
+```
+
+INSTEAD, RUN:
+
+```bash
+uv run my_script.py
+```
+
+### Key uv Commands
+
+- **Run Python code**: `uv run <script.py>` (NOT `python <script.py>`)
+- **Run module**: `uv run -m <module>` (e.g., `uv run -m pytest`)
+- **Add dependencies**: `uv add <package>` (e.g., `uv add requests`)
+- **Add dev dependencies**: `uv add --dev <package>`
+- **Remove dependencies**: `uv remove <package>`
+- **Install all dependencies**: `uv sync`
+- **Update lock file**: `uv lock`
+- **Run with specific package**: `uv run --with <package> <command>`
+
 ## Architecture
 The QWARD library architecture is documented in [docs/architecture.md](docs/architecture.md)
 
