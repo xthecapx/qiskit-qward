@@ -7,6 +7,8 @@ cloud devices, and AWS Braket devices. It integrates with qward's metrics
 system for comprehensive circuit analysis.
 """
 
+# pylint: disable=too-many-lines
+
 import os
 import time
 from typing import Dict, Any, Optional, Union, List, TYPE_CHECKING, Callable
@@ -907,7 +909,7 @@ class QuantumCircuitExecutor:
             print(f">>> Prepared circuit depth: {circuit_clean.depth()}")
             print(f">>> Prepared circuit gates: {local_gate_count}")
 
-        if max_local_gate_count > 0 and local_gate_count > max_local_gate_count:
+        if local_gate_count > max_local_gate_count > 0:
             error_msg = (
                 f"Circuit has {local_gate_count} local gates which exceeds the "
                 f"pre-submission limit of {max_local_gate_count}. "
@@ -956,7 +958,7 @@ class QuantumCircuitExecutor:
             job_arn = job.job_id()
 
             if show_progress:
-                print(f">>> Job submitted successfully!")
+                print(">>> Job submitted successfully!")
                 print(f">>> Job ARN: {job_arn}")
 
             # If fire-and-forget mode, return immediately
