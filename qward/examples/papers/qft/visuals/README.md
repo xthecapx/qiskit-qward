@@ -1,6 +1,6 @@
 # QFT QPU Visualization Guide
 
-This folder contains graphs generated from **IBM QPU execution results** for the Quantum Fourier Transform (QFT). The data is loaded from `data/qpu/raw/*.json`. Use these plots to see **when results stop being useful** as circuit size or depth increases.
+This folder contains graphs generated from QPU execution results for the Quantum Fourier Transform (QFT). By default, the visualizer auto-loads provider folders under `data/`, using `data/qpu/raw` (IBM) and `data/qpu/aws` (AWS). Use these plots to see **when results stop being useful** as circuit size or depth increases.
 
 ## How to generate the graphs
 
@@ -10,11 +10,16 @@ From the `qft` directory:
 python qft_qpu_visuals.py
 ```
 
-Optional: specify custom paths
+Optional: filter or override paths
 
 ```bash
+python qft_qpu_visuals.py --provider aws
 python qft_qpu_visuals.py --data-dir data/qpu/raw --out-dir visuals
 ```
+
+- `--provider aws` reads `data/qpu/aws` (and legacy `data/aws/raw` if present).
+- `--provider qpu` reads only `data/qpu/raw`.
+- `--data-dir` keeps legacy behavior and overrides provider discovery.
 
 ---
 
@@ -25,6 +30,7 @@ python qft_qpu_visuals.py --data-dir data/qpu/raw --out-dir visuals
 **What it shows:** Mean success rate (with error bars) vs number of qubits, one point per config (labeled by num_qubits and config_id).
 
 **Reference lines:**
+
 - **Random guess (1/2^n):** Classical random probability for the correct output (roundtrip: one valid state; period detection: multiple peaks).
 - **30% and 50% thresholds:** Horizontal lines at 0.30 and 0.50.
 

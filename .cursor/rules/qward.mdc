@@ -1,11 +1,15 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # Quantum Computing Developer - Qiskit & Python Expert
 
-You are an expert quantum computing developer specializing in Qiskit development and Python library design. Your role is to assist in designing and improving quantum computing libraries that extend and enhance the Qiskit ecosystem, leveraging your deep expertise in both quantum computing and Python software engineering.
+You are an expert quantum computing developer specializing in Qiskit development and Python library design. Your role is to assist in designing and improving quantum computing libraries that extend and enhance the Qiskit ecosystem.
+
+## Important
+1. Before doing any change, first let me know the plan, so we can discuss if it's the way to go or not. Always confirm before doing changes into the code.
+2. Do not suggest running the code in the terminal, I will do it manually and let you know the results.
 
 ## Core Responsibilities
 - Provide expert guidance on quantum computing concepts and Qiskit implementation
@@ -18,4 +22,47 @@ You are an expert quantum computing developer specializing in Qiskit development
 ## Architecture Overview
 The QWARD library follows this class structure: [architecture.md](mdc:docs/architecture.md)
 
-!important: when you run test of the library, always save results within /qward/examples, so images should be /qward/examples/img
+## Collaborative Workflow
+This project uses a multi-agent workflow. See [workflows/collaborative-development.md](mdc:workflows/collaborative-development.md)
+
+### Available Agents
+- **quantum-research-lead**: Strategy, synthesis, risk assessment
+- **quantum-computing-researcher**: Algorithm design, Hamiltonians, proofs
+- **python-architect**: OOP design, Qiskit implementation, testing
+- **quantum-data-scientist**: Statistics, visualization, benchmarking
+
+## Project Standards
+
+### Code Style (`.pylintrc`)
+- Max line length: **100 characters**
+- Max arguments: 15, Max locals: 25
+- Ignored: `CVS`, `examples` directories
+
+### Available Libraries (`requirements.qward.txt`)
+```
+qiskit==2.1.2
+qiskit-aer==0.17.1
+qiskit-ibm-runtime==0.41.1
+qbraid[braket]==0.11.0
+qiskit-braket-provider>=0.11.0
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+statsmodels
+torch==2.8.0
+```
+
+### QWARD Executor
+Use `qward.algorithms.QuantumCircuitExecutor` for unified execution:
+- `simulate()` - Local with optional noise models
+- `run_ibm()` - IBM Quantum (batch mode)
+- `run_qbraid()` - Rigetti via qBraid
+
+### Noise Presets
+```python
+from qward.algorithms import get_preset_noise_config
+# "IBM-HERON-R1", "IBM-HERON-R2", "IBM-HERON-R3", "RIGETTI-ANKAA3"
+```
+
+## Test Output Location
+When running tests, save results within `/qward/examples`, images to `/qward/examples/img`

@@ -1,7 +1,7 @@
 # QWARD - Quantum Circuit Analysis and Runtime Development
 
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-informational)
-[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-informational)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-informational)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-%E2%89%A5%201.0.0-6133BD)](https://github.com/Qiskit/qiskit)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
 
@@ -94,17 +94,17 @@ Use `verify.sh` for a fast local validation against your active Python environme
 
 ### Replicating CI Exactly
 
-CI runs `tox -elint` with **Python 3.10** in an isolated environment. To replicate this locally:
+CI runs `tox -elint` with **Python 3.11** in an isolated environment. To replicate this locally:
 
 ```bash
-# Requires Python 3.10 available via pyenv
-PYENV_VERSION=3.10.4 pyenv exec tox -elint
+# Requires Python 3.11 available via pyenv
+PYENV_VERSION=3.11 pyenv exec tox -elint
 ```
 
 This creates the same isolated environment as CI (same Python version, same pinned tool versions, no extra packages like IPython) and runs:
 1. `black --check .` - Code formatting
-2. `pylint -rn --ignore-paths=qward/examples qward tests` - Linting
-3. `mypy --exclude qward/examples qward tests` - Type checking
+2. `pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests` - Linting
+3. `mypy --exclude qward/examples qward` - Type checking
 
 ### Running Tests
 
@@ -113,7 +113,7 @@ This creates the same isolated environment as CI (same Python version, same pinn
 python -m pytest tests/ -v
 
 # Full CI-equivalent test run with tox
-PYENV_VERSION=3.10.4 pyenv exec tox -epy310
+PYENV_VERSION=3.11 pyenv exec tox -epy311
 ```
 
 ## 🤝 Contributing

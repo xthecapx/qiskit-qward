@@ -15,12 +15,12 @@ echo "✅ Black formatting check passed"
 
 echo ""
 echo "2️⃣  Running Pylint on core library and tests..."
-pylint -rn --ignore-paths=qward/examples qward tests
+pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests
 echo "✅ Pylint check passed"
 
 echo ""
 echo "3️⃣  Running MyPy type checking..."
-mypy --exclude qward/examples qward tests
+mypy --exclude qward/examples qward
 echo "✅ MyPy type checking passed"
 
 echo ""

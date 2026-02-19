@@ -2,20 +2,22 @@
 """
 QFT QPU Metrics Visualization
 
-Loads QPU result JSONs from data/qpu/raw/, aggregates by config_id (latest run),
+Loads QPU result JSONs from provider folders under data/ (primary layout:
+qpu/raw for IBM and qpu/aws for AWS), aggregates by config_id (latest run),
 and produces plots to understand when results stop being useful.
 
 Output: visuals/ folder with PNGs and README.md.
 
 Usage:
     python qft_qpu_visuals.py
+    python qft_qpu_visuals.py --provider aws
     python qft_qpu_visuals.py --data-dir data/qpu/raw --out-dir visuals
 """
 
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -24,21 +26,60 @@ matplotlib.use("Agg")
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_DATA_DIR = SCRIPT_DIR / "data" / "qpu" / "raw"
+DEFAULT_DATA_ROOT = SCRIPT_DIR / "data"
 DEFAULT_OUT_DIR = SCRIPT_DIR / "visuals"
 
 
-def load_qpu_results(data_dir: Path) -> List[Dict[str, Any]]:
-    """Load all JSON files from data_dir."""
-    if not data_dir.exists():
+def collect_raw_dirs(data_root: Path, provider: Optional[str] = None) -> List[Path]:
+    """Collect result directories from data root.
+
+    Args:
+        data_root: Root directory containing provider subdirectories.
+        provider: Optional provider filter (e.g. ``qpu`` or ``aws``).
+
+    Returns:
+        List of existing result directories. Supports:
+        - Preferred layout: ``data/qpu/raw`` (IBM), ``data/qpu/aws`` (AWS)
+        - Legacy layout: ``data/aws/raw``
+    """
+    if not data_root.exists():
         return []
+
+    candidates: List[Path] = []
+    if provider == "qpu":
+        candidates.append(data_root / "qpu" / "raw")
+    elif provider == "aws":
+        candidates.extend([data_root / "qpu" / "aws", data_root / "aws" / "raw"])
+    elif provider:
+        candidates.extend([data_root / "qpu" / provider, data_root / provider / "raw"])
+    else:
+        candidates.extend([data_root / "qpu" / "raw", data_root / "qpu" / "aws"])
+        for provider_dir in sorted(p for p in data_root.iterdir() if p.is_dir()):
+            raw_dir = provider_dir / "raw"
+            if raw_dir.exists():
+                candidates.append(raw_dir)
+
+    unique_existing: List[Path] = []
+    seen: set[Path] = set()
+    for path in candidates:
+        if path.exists() and path not in seen:
+            seen.add(path)
+            unique_existing.append(path)
+    return unique_existing
+
+
+def load_qpu_results(data_dirs: List[Path]) -> List[Dict[str, Any]]:
+    """Load all JSON files from one or more raw data directories."""
     results = []
-    for path in sorted(data_dir.glob("*.json")):
-        try:
-            with open(path, "r") as f:
-                results.append(json.load(f))
-        except (json.JSONDecodeError, IOError):
+    for data_dir in data_dirs:
+        if not data_dir.exists():
             continue
+        for path in sorted(data_dir.glob("*.json")):
+            try:
+                with open(path, "r") as f:
+                    results.append(json.load(f))
+            except (json.JSONDecodeError, IOError):
+                continue
     return results
 
 
@@ -266,11 +307,12 @@ def plot_success_by_opt_level(rows: List[Dict], out_dir: Path) -> None:
     plt.close()
 
 
-def run_visualizations(data_dir: Path, out_dir: Path) -> None:
-    """Load data, build metrics, generate all plots."""
-    results = load_qpu_results(data_dir)
+def run_visualizations(data_dirs: List[Path], out_dir: Path) -> None:
+    """Load data from provider raw dirs, build metrics, generate plots."""
+    results = load_qpu_results(data_dirs)
     if not results:
-        print(f"No JSON files found in {data_dir}")
+        joined = ", ".join(str(d) for d in data_dirs) if data_dirs else "<none>"
+        print(f"No JSON files found in: {joined}")
         return
     by_config = latest_per_config(results)
     rows = []
@@ -291,13 +333,32 @@ def run_visualizations(data_dir: Path, out_dir: Path) -> None:
 def main():
     parser = argparse.ArgumentParser(description="QFT QPU metrics visualization")
     parser.add_argument(
-        "--data-dir", type=Path, default=DEFAULT_DATA_DIR, help="QPU raw JSON directory"
+        "--data-dir",
+        type=Path,
+        default=None,
+        help="Raw JSON directory (legacy override; takes precedence)",
+    )
+    parser.add_argument(
+        "--data-root",
+        type=Path,
+        default=DEFAULT_DATA_ROOT,
+        help="Data root containing provider folders (default: data/)",
+    )
+    parser.add_argument(
+        "--provider",
+        type=str,
+        default=None,
+        help="Provider filter under data root (e.g. qpu, aws)",
     )
     parser.add_argument(
         "--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Output directory for plots"
     )
     args = parser.parse_args()
-    run_visualizations(args.data_dir, args.out_dir)
+    if args.data_dir is not None:
+        data_dirs = [args.data_dir]
+    else:
+        data_dirs = collect_raw_dirs(args.data_root, args.provider)
+    run_visualizations(data_dirs, args.out_dir)
 
 
 if __name__ == "__main__":
