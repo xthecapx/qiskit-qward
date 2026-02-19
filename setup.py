@@ -79,7 +79,6 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering",
@@ -89,7 +88,7 @@ setuptools.setup(
     install_requires=REQUIREMENTS,
     extras_require={"dev": []},
     include_package_data=True,
-    python_requires=">=3.10",
+    python_requires=">=3.11",
     project_urls={
         "Bug Tracker": "https://github.com/xthecapx/qiskit-qward/issues",
         "Documentation": "https://xthecapx.github.io/qiskit-qward/",

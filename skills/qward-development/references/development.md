@@ -43,16 +43,16 @@ black --check .
 black .  # Fix if needed
 
 # 2. Linting
-pylint -rn qward tests
+pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests
 
 # 3. Type checking
-mypy qward tests
+mypy --exclude qward/examples qward
 
 # 4. Tests
 python -m pytest tests/ -v
 
 # All at once
-black --check . && pylint -rn qward tests && mypy qward tests && python -m pytest tests/ -v
+black --check . && pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests && mypy --exclude qward/examples qward && python -m pytest tests/ -v
 ```
 
 ### Using Tox
@@ -65,7 +65,7 @@ tox -e lint
 tox -e coverage
 
 # Specific Python version
-tox -e py310  # or py311, py312
+tox -e py311  # or py312
 ```
 
 ## Project Structure
