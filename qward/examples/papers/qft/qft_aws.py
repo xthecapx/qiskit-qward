@@ -10,6 +10,10 @@ Usage:
     python qft_aws.py                        # Run default config (SR2)
     python qft_aws.py --config SR4           # Run specific config
     python qft_aws.py --list                 # List available configs
+    python qft_aws.py --characterize         # Run Rigetti small-scale batch (see plan)
+
+Rigetti: uses optimization_level=3 (mirror Grover findings). Execution plan:
+  qft/plan_aws_rigetti.md (Phase 1: SR2×5, Phase 2: SR3×3, Phase 3: SR4+SP4-P2×3).
 
 Example:
     >>> from qward.examples.papers.qft.qft_aws import QFTAWSExperiment
@@ -18,6 +22,7 @@ Example:
     >>> print(f"DSR: {result['batch_summary']['mean_dsr_michelson']:.4f}")
 """
 
+import argparse
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -28,6 +33,11 @@ from qward.examples.papers.aws_experiment_base import AWSExperimentBase
 from qward.examples.papers.qft.qft_configs import CONFIGS_BY_ID, QFTExperimentConfig, get_config
 from qward.examples.papers.qft.qft_ibm import REGION1_PRIORITY
 
+# Rigetti: use optimization_level=3 (same as Grover); small-scale config set for plan
+RIGETTI_OPTIMIZATION_LEVEL = 3
+# Phase 1–3 from plan_aws_rigetti.md: 2q, 3q, 4q roundtrip + one period
+RIGETTI_QFT_CONFIGS = ["SR2", "SR3", "SR4", "SP4-P2"]
+
 
 class QFTAWSExperiment(AWSExperimentBase[QFTExperimentConfig]):
     """QFT algorithm experiment runner for AWS Braket."""
@@ -35,6 +45,29 @@ class QFTAWSExperiment(AWSExperimentBase[QFTExperimentConfig]):
     @property
     def algorithm_name(self) -> str:
         return "QFT"
+
+    def run(
+        self,
+        config_id: str,
+        device_id: str = "Ankaa-3",
+        region: str = "us-west-1",
+        save_results: bool = True,
+        wait_for_results: bool = True,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        optimization_level: Optional[int] = RIGETTI_OPTIMIZATION_LEVEL,
+    ) -> Dict[str, Any]:
+        """Run on AWS with optimization_level=3 by default for Rigetti."""
+        return super().run(
+            config_id=config_id,
+            device_id=device_id,
+            region=region,
+            save_results=save_results,
+            wait_for_results=wait_for_results,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            optimization_level=optimization_level,
+        )
 
     def get_config(self, config_id: str) -> QFTExperimentConfig:
         """Get QFT experiment configuration."""
@@ -189,6 +222,33 @@ class QFTAWSExperiment(AWSExperimentBase[QFTExperimentConfig]):
     def get_priority_configs(self) -> List[Dict[str, Any]]:
         """Get prioritized configurations for QPU execution."""
         return REGION1_PRIORITY
+
+    def create_argument_parser(self) -> argparse.ArgumentParser:
+        """Add --characterize for Rigetti small-scale QFT batch."""
+        parser = super().create_argument_parser()
+        parser.add_argument(
+            "--characterize",
+            "-C",
+            action="store_true",
+            help="Run Rigetti small-scale batch (SR2, SR3, SR4, SP4-P2), one job per config",
+        )
+        return parser
+
+    def run_cli(self, args: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
+        """Handle --characterize then delegate to base CLI."""
+        parser = self.create_argument_parser()
+        parsed = parser.parse_args(args)
+        if getattr(parsed, "characterize", False):
+            return self.run_batch(
+                config_ids=RIGETTI_QFT_CONFIGS,
+                device_id=parsed.device or "Ankaa-3",
+                region=parsed.region or "us-west-1",
+                save_results=not getattr(parsed, "no_save", False),
+                batch_timeout=600,
+                aws_access_key_id=parsed.aws_access_key_id,
+                aws_secret_access_key=parsed.aws_secret_access_key,
+            )
+        return super().run_cli(args)
 
     def get_output_dir(self) -> Path:
         """Get output directory for QFT AWS results."""
