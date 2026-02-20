@@ -71,6 +71,110 @@ This approach fails when:
 | `python-architect` | 4 | Encoding library, QML models, pipelines |
 | `quantum-data-scientist` | 5 | Statistical analysis, encoding comparison, visualizations |
 | All | 6 | Review, iteration, conclusions |
+| `technical-writer` | 7 | LaTeX paper compilation from phase reports |
+
+---
+
+## Phase Report Requirements
+
+**CRITICAL**: Every phase MUST produce a structured report that will be passed to the Technical Writer for the final LaTeX publication. These reports are the primary input for creating the `.tex` file.
+
+### Report Format Standard
+
+Each phase report should follow this structure:
+
+```markdown
+# Phase [N] Report: [Phase Name]
+
+## Summary
+- One paragraph executive summary of work completed
+
+## Token Usage (REQUIRED)
+| Metric | Count |
+|--------|-------|
+| Input tokens | X,XXX |
+| Output tokens | X,XXX |
+| Total tokens | X,XXX |
+| Estimated cost | $X.XX |
+| Agents spawned | N |
+| Agent sessions | List agent names and their token usage |
+
+## Key Findings
+- Bullet points of main discoveries/decisions
+
+## Methodology
+- How the work was conducted
+- Tools and techniques used
+
+## Results
+- Detailed outcomes with data/evidence
+
+## Figures & Tables
+- List of figures generated (with file paths)
+- Tables of data to include in paper
+
+## LaTeX-Ready Content
+- Key equations in LaTeX format
+- Algorithm pseudocode
+- Important definitions
+
+## References
+- Papers cited during this phase
+- External resources consulted
+
+## Handoff Notes
+- What the next phase needs to know
+- Open questions for future phases
+```
+
+### Token Budget Tracking
+
+**CRITICAL**: Every phase MUST report token usage for budget management.
+
+**Token Tracking Table** (maintain in `reports/token_budget.md`):
+```markdown
+| Phase | Input Tokens | Output Tokens | Total | Cost | Agents Used |
+|-------|--------------|---------------|-------|------|-------------|
+| 1     | -            | -             | -     | -    | Lead, Researcher |
+| 2     | -            | -             | -     | -    | Researcher |
+| 3     | -            | -             | -     | -    | Test Engineer |
+| 4     | -            | -             | -     | -    | Architect |
+| 5     | -            | -             | -     | -    | Data Scientist |
+| 6     | -            | -             | -     | -    | All |
+| 7     | -            | -             | -     | -    | Technical Writer |
+| **TOTAL** | -        | -             | -     | -    | - |
+```
+
+**Cost Estimation** (approximate rates):
+- Claude Opus: ~$15/M input, ~$75/M output
+- Claude Sonnet: ~$3/M input, ~$15/M output
+
+**Budget Alerts**:
+- Lead should review token usage after each phase
+- If a phase exceeds expected budget, document why
+- Consider model downgrades (Opus → Sonnet) for less critical tasks
+
+### Report Location
+
+All phase reports should be saved to:
+```
+qml-data-encoding/reports/
+  token_budget.md     # REQUIRED: Running token usage tracker
+  phase1_report.md    # Ideation & Research Scoping
+  phase2_report.md    # Theoretical Design
+  phase3_report.md    # Test Design
+  phase4_report.md    # Implementation
+  phase5_report.md    # Execution & Analysis
+  phase6_report.md    # Review & Synthesis (final synthesis)
+```
+
+### Technical Writer Integration
+
+The `technical-writer` agent will:
+1. Collect all phase reports from `reports/` directory
+2. Synthesize into coherent paper structure
+3. Format equations, algorithms, and figures for LaTeX
+4. Produce publication-ready `.tex` file in `qml-data-encoding/paper/`
 
 ---
 
@@ -102,7 +206,14 @@ qml-data-encoding/
   phase1_dataset_selection.md      # Target datasets with justification
   phase1_evaluation_framework.md   # Metrics and comparison methodology
   phase1_nisq_constraints.md       # Hardware limitations analysis
+  reports/phase1_report.md         # REQUIRED: Phase report for Technical Writer
 ```
+
+**Phase 1 Report Must Include:**
+- Literature review summary with key citations (BibTeX format)
+- Dataset selection rationale with statistical profiles
+- Evaluation metrics definitions (LaTeX equations)
+- NISQ constraints that affect encoding choices
 
 ### Target Datasets
 
@@ -203,7 +314,15 @@ qml-data-encoding/
   phase2_expressibility_analysis.md # Expressibility bounds and proofs
   phase2_preprocessing_theory.md    # Classical transformation analysis
   phase2_experimental_design.md     # Controlled experiment framework
+  reports/phase2_report.md          # REQUIRED: Phase report for Technical Writer
 ```
+
+**Phase 2 Report Must Include:**
+- All encoding method definitions in LaTeX (quantum feature maps)
+- Expressibility metric derivations with proofs
+- Kernel connections and mathematical framework
+- Experimental design with controlled/independent variables
+- Circuit diagrams for each encoding (qcircuit or quantikz format)
 
 ### Mathematical Specifications
 
@@ -692,12 +811,27 @@ def test_classical_preprocessing_correctness():
     assert X_scaled.max() == 1
 ```
 
+### Deliverables
+```
+qml-data-encoding/
+  tests/                              # Complete test suite
+  reports/phase3_report.md            # REQUIRED: Phase report for Technical Writer
+```
+
+**Phase 3 Report Must Include:**
+- Test methodology overview for paper's "Validation" section
+- List of test categories with coverage explanation
+- Statistical thresholds used for quantum tests
+- Fixture descriptions for reproducibility
+- Classical baseline validation approach
+
 ### Handoff Checklist
 - [ ] All test files created
 - [ ] Classical baseline tests PASS
 - [ ] Encoding tests FAIL (red phase - implementation needed)
 - [ ] Test documentation complete
 - [ ] Fixtures cover benchmark and real-world datasets
+- [ ] Phase report written to `reports/phase3_report.md`
 
 ---
 
@@ -1337,6 +1471,20 @@ def analyze_encoding_circuit(encoding, sample_data):
 scanner.visualize(save=True, show=False, output_path='img/')
 ```
 
+### Deliverables
+```
+qml-data-encoding/
+  src/                                # Complete implementation
+  reports/phase4_report.md            # REQUIRED: Phase report for Technical Writer
+```
+
+**Phase 4 Report Must Include:**
+- Architecture overview with class diagrams
+- API documentation for paper's "Implementation" section
+- Design pattern justifications
+- QWARD integration details
+- Code complexity metrics (for reproducibility section)
+
 ### Handoff Checklist
 - [ ] All tests pass (green phase)
 - [ ] Code follows .pylintrc standards
@@ -1344,6 +1492,7 @@ scanner.visualize(save=True, show=False, output_path='img/')
 - [ ] Sklearn-compatible API
 - [ ] QWARD integration verified
 - [ ] All 5 encoding methods implemented
+- [ ] Phase report written to `reports/phase4_report.md`
 
 ---
 
@@ -1527,12 +1676,30 @@ for encoding_name, encoding in encodings.items():
    - Rank encodings by noise robustness
    - Identify noise-optimal encodings
 
+### Deliverables
+```
+qml-data-encoding/
+  results/                            # All experimental data
+  img/                                # All visualizations
+  analysis/                           # Analysis reports
+  reports/phase5_report.md            # REQUIRED: Phase report for Technical Writer
+```
+
+**Phase 5 Report Must Include:**
+- All statistical results in LaTeX table format
+- Figure captions and descriptions
+- Significance test results (p-values, effect sizes)
+- Key findings for each hypothesis (H1-H4)
+- Data→Encoding mapping recommendations
+- Limitations and caveats section
+
 ### Handoff Checklist
 - [ ] All experiments completed
 - [ ] Statistical analysis with significance tests
 - [ ] Visualizations saved to img/
 - [ ] Data→Encoding recommendations documented
 - [ ] Limitations and failure modes identified
+- [ ] Phase report written to `reports/phase5_report.md`
 
 ---
 
@@ -1608,7 +1775,25 @@ qml-data-encoding/
   final_report.md                      # Comprehensive findings
   encoding_selection_guide.md          # Practical recommendations
   decision_tree.png                    # Visual decision aid
+  reports/
+    phase1_report.md                   # Ideation report
+    phase2_report.md                   # Theory report
+    phase3_report.md                   # Test design report
+    phase4_report.md                   # Implementation report
+    phase5_report.md                   # Analysis report
+    phase6_report.md                   # Final synthesis report
+  paper/
+    main.tex                           # Final LaTeX paper
+    references.bib                     # Bibliography
+    figures/                           # Publication-ready figures
 ```
+
+**Phase 6 Report Must Include:**
+- Executive summary of all findings
+- Validated/refuted status for each hypothesis
+- Final conclusions and contributions
+- Future work recommendations
+- All content approved for publication
 
 ### Encoding Selection Decision Tree (Final Output)
 
@@ -1663,6 +1848,99 @@ qml-data-encoding/
 
 ---
 
+## Phase 7: Documentation & Publication (Technical Writer)
+
+### Objective
+Compile all phase reports into a publication-ready LaTeX paper.
+
+### Tasks
+
+- [ ] Collect and review all phase reports from `reports/` directory
+- [ ] Structure paper following standard academic format
+- [ ] Typeset all equations, algorithms, and circuit diagrams
+- [ ] Create publication-ready figures from analysis outputs
+- [ ] Format tables with proper captions and references
+- [ ] Compile bibliography from all phase citations
+- [ ] Ensure consistent notation throughout
+- [ ] Add acknowledgments and author contributions
+
+### Input Documents
+
+The Technical Writer receives:
+```
+reports/
+  phase1_report.md    # Background, literature, datasets
+  phase2_report.md    # Theory, equations, proofs
+  phase3_report.md    # Test methodology
+  phase4_report.md    # Implementation details
+  phase5_report.md    # Results, figures, statistics
+  phase6_report.md    # Conclusions, future work
+```
+
+### Output Documents
+
+```
+paper/
+  main.tex                # Complete LaTeX paper
+  abstract.tex            # Standalone abstract
+  references.bib          # BibTeX bibliography
+  figures/
+    encoding_comparison.pdf
+    accuracy_heatmap.pdf
+    convergence_plots.pdf
+    decision_tree.pdf
+    circuit_diagrams/
+  supplementary.tex       # Extended derivations and data
+  README.md               # Compilation instructions
+```
+
+### Paper Structure
+
+```latex
+\documentclass[twocolumn]{article}
+
+\begin{document}
+\title{Quantum Machine Learning Data Encoding: A Systematic Study}
+\maketitle
+
+\begin{abstract}
+% From phase6_report.md executive summary
+\end{abstract}
+
+\section{Introduction}           % From phase1_report.md
+\section{Background}             % From phase1_report.md + phase2_report.md
+\section{Encoding Methods}       % From phase2_report.md (theory)
+\section{Experimental Design}    % From phase2_report.md + phase3_report.md
+\section{Implementation}         % From phase4_report.md
+\section{Results}                % From phase5_report.md
+\section{Discussion}             % From phase5_report.md + phase6_report.md
+\section{Conclusion}             % From phase6_report.md
+\section*{Acknowledgments}
+
+\printbibliography
+\end{document}
+```
+
+### Quality Checklist
+
+- [ ] All equations compile without errors
+- [ ] Figures are high-resolution (300+ DPI)
+- [ ] Citations are complete with DOIs where available
+- [ ] Notation is consistent throughout
+- [ ] Abstract is within word limit (typically 150-250 words)
+- [ ] Paper compiles with pdflatex without warnings
+
+### Handoff to Publication
+
+Final deliverables for submission:
+- `main.pdf` - Compiled paper
+- `main.tex` + supporting `.tex` files
+- `figures/` - All figures in PDF format
+- `references.bib` - Complete bibliography
+- `supplementary.pdf` - If applicable
+
+---
+
 ## Success Metrics Summary
 
 | Metric | Target | Owner |
@@ -1674,6 +1952,10 @@ qml-data-encoding/
 | Practical guidelines | Actionable decision tree | Lead |
 | All tests pass | 100% | Test Engineer |
 | Code coverage | ≥ 80% | Architect |
+| Phase reports completed | 6/6 phases | All agents |
+| Publication-ready paper | Compiles without errors | Technical Writer |
+| Token budget tracked | Every phase reports usage | All agents |
+| Total cost | Within allocated budget | Lead |
 
 ---
 
@@ -1682,18 +1964,26 @@ qml-data-encoding/
 ```
 Phase 1 (Research Scoping)
     │
+    ├──► Write phase1_report.md
+    │
     ├──────────────────────────────────┐
     │                                  │
     ▼                                  ▼
 Phase 2a (Encoding Theory)     Phase 2b (Experimental Design)
+    │                                  │
+    ├──► Write phase2_report.md        │
     │                                  │
     └──────────────┬───────────────────┘
                    │
                    ▼
            Phase 3 (Test Design)
                    │
+                   ├──► Write phase3_report.md
+                   │
                    ▼
            Phase 4 (Implementation)
+                   │
+                   ├──► Write phase4_report.md
                    │
     ┌──────────────┼──────────────┐
     │              │              │
@@ -1706,15 +1996,26 @@ Phase 5a       Phase 5b       Phase 5c
                    ▼
            Phase 5d (Synthesis)
                    │
+                   ├──► Write phase5_report.md
+                   │
                    ▼
            Phase 6 (Review)
+                   │
+                   ├──► Write phase6_report.md
                    │
           ┌────────┴────────┐
           │                 │
           ▼                 ▼
-       [DONE]          [Iterate]
-                          │
-                          └──→ Return to Phase 2, 4, or 5
+    [Iterate]           [Approved]
+          │                 │
+          └──→ Phase 2-5    ▼
+                      Phase 7 (Technical Writer)
+                            │
+                            ├──► Compile all reports
+                            ├──► Create main.tex
+                            │
+                            ▼
+                       [PUBLICATION]
 ```
 
 ---
