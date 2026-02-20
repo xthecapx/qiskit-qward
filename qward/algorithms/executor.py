@@ -45,10 +45,12 @@ try:
 except ImportError:
     QBRAID_AVAILABLE = False
 
+# Transpiler (used by both IBM and AWS optimization paths)
+from qiskit.transpiler import generate_preset_pass_manager
+
 # IBM Quantum imports (optional, will handle import errors gracefully)
 try:
     from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler, Batch
-    from qiskit.transpiler import generate_preset_pass_manager
 
     IBM_QUANTUM_AVAILABLE = True
 except ImportError:
@@ -829,6 +831,7 @@ class QuantumCircuitExecutor:
         show_progress: bool = True,
         wait_for_results: bool = True,
         max_local_gate_count: int = 3_333,
+        optimization_level: Optional[int] = None,
     ) -> AWSJobResult:
         # pylint: disable=too-many-branches,too-many-statements
         """Run circuit on AWS Braket hardware via qiskit-braket-provider.
@@ -871,6 +874,11 @@ class QuantumCircuitExecutor:
                 Ankaa-3's hard limit. Empirically, S6-1 (2,748 local gates)
                 passes while S7-1 (5,742) fails at 36,442 device gates. Set
                 to 0 to disable the check.
+            optimization_level: If set (e.g. 3), transpile the circuit with
+                the Braket backend using this Qiskit optimization level before
+                submission. When None (default), only decomposition and barrier
+                removal are applied so Braket's compiler does all optimization.
+                Use 3 to mirror IBM behaviour where optimization level 3 helps.
 
         Returns:
             AWSJobResult containing execution results, DSR metrics, and metadata
@@ -899,39 +907,9 @@ class QuantumCircuitExecutor:
                 "Install with: pip install qiskit-braket-provider"
             )
 
-        # -----------------------------------------------------------
-        # Pre-flight: prepare circuit and validate gate count
-        # BEFORE contacting AWS, so oversized circuits fail fast.
-        # -----------------------------------------------------------
-        circuit_clean = self._prepare_circuit_for_aws(circuit)
-        local_gate_count = circuit_clean.size()
-
         if show_progress:
             print(f">>> Circuit qubits: {circuit.num_qubits}")
             print(f">>> Original depth: {circuit.depth()}")
-            print(f">>> Prepared circuit depth: {circuit_clean.depth()}")
-            print(f">>> Prepared circuit gates: {local_gate_count}")
-
-        if local_gate_count > max_local_gate_count > 0:
-            error_msg = (
-                f"Circuit has {local_gate_count} local gates which exceeds the "
-                f"pre-submission limit of {max_local_gate_count}. "
-                f"Braket device compilation typically inflates gate counts by "
-                f"3-6x, so ~{local_gate_count * 6} device gates are expected "
-                f"(Ankaa-3 limit: 20,000). Refusing to submit."
-            )
-            if show_progress:
-                print(f">>> BLOCKED: {error_msg}")
-            return AWSJobResult(
-                job_id="",
-                device_name=device_id,
-                status="error",
-                error=error_msg,
-                original_circuit_depth=circuit.depth(),
-                circuit_depth=circuit_clean.depth(),
-                expected_outcomes=expected_outcomes,
-                region=region,
-            )
 
         try:
             # Configure AWS credentials/region for this execution.
@@ -947,11 +925,45 @@ class QuantumCircuitExecutor:
             braket_provider_class = _get_braket_provider_class()
             provider = braket_provider_class()
 
-            # Get the specified device
             if show_progress:
                 print(f">>> Getting device: {device_id}")
 
             aws_backend = provider.get_backend(device_id)
+
+            # Prepare circuit: with optional Qiskit optimization or decompose-only
+            if optimization_level is not None:
+                if show_progress:
+                    print(f">>> Preparing circuit with optimization_level={optimization_level}")
+                circuit_clean = self._prepare_circuit_for_aws_with_optimization(
+                    circuit, aws_backend, optimization_level
+                )
+            else:
+                circuit_clean = self._prepare_circuit_for_aws(circuit)
+
+            local_gate_count = circuit_clean.size()
+            if show_progress:
+                print(f">>> Prepared circuit depth: {circuit_clean.depth()}")
+                print(f">>> Prepared circuit gates: {local_gate_count}")
+
+            if local_gate_count > max_local_gate_count > 0:
+                error_msg = (
+                    f"Circuit has {local_gate_count} local gates which exceeds the "
+                    f"pre-submission limit of {max_local_gate_count}. "
+                    f"Braket device compilation typically inflates gate counts by "
+                    f"3-6x, so ~{local_gate_count * 6} device gates are expected."
+                )
+                if show_progress:
+                    print(f">>> BLOCKED: {error_msg}")
+                return AWSJobResult(
+                    job_id="",
+                    device_name=device_id,
+                    status="error",
+                    error=error_msg,
+                    original_circuit_depth=circuit.depth(),
+                    circuit_depth=circuit_clean.depth(),
+                    expected_outcomes=expected_outcomes,
+                    region=region,
+                )
 
             if show_progress:
                 print(f">>> Device obtained: {aws_backend}")
@@ -1254,6 +1266,43 @@ class QuantumCircuitExecutor:
             if show_progress:
                 print(f">>> Warning: Could not compute DSR: {e}")
             return empty
+
+    @staticmethod
+    def _remove_barriers(circuit: QuantumCircuit) -> QuantumCircuit:
+        """Return a copy of the circuit with all Barrier instructions removed."""
+        from qiskit.circuit import Barrier
+
+        out = circuit.copy()
+        out.data = [
+            (gate, qubits, clbits)
+            for gate, qubits, clbits in circuit.data
+            if not isinstance(gate, Barrier)
+        ]
+        return out
+
+    def _prepare_circuit_for_aws_with_optimization(
+        self,
+        circuit: QuantumCircuit,
+        backend: Any,
+        optimization_level: int,
+    ) -> QuantumCircuit:
+        """Prepare circuit for AWS with Qiskit transpiler optimization.
+
+        Decomposes the circuit, runs the preset pass manager at the given
+        optimization level targeting the Braket backend, then removes barriers.
+        Use this to mirror IBM behaviour where e.g. optimization_level=3
+        improves success on hardware.
+        """
+        circuit_decomposed = circuit.decompose(reps=10)
+        circuit_decomposed.remove_final_measurements()
+        circuit_decomposed.measure_all()
+
+        pm = generate_preset_pass_manager(
+            backend=backend,
+            optimization_level=min(optimization_level, 3),
+        )
+        circuit_opt = pm.run(circuit_decomposed)
+        return self._remove_barriers(circuit_opt)
 
     @staticmethod
     def _prepare_circuit_for_aws(circuit: QuantumCircuit) -> QuantumCircuit:
