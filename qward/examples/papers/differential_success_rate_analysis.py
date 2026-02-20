@@ -66,11 +66,12 @@ ALGORITHM_COLORS = {
 TELEPORTATION_MAX_QUBITS = 3
 TELEPORTATION_MAX_DEPTH = 1000
 
-# Grover: very deep circuits (S7-1, S8-1) push depth to ~50k; cap to keep
-# the interesting region readable while still showing scalability degradation
+# Grover: max 3 qubits for AWS Rigetti plots; depth cap for readability
+GROVER_MAX_QUBITS = 3
 GROVER_MAX_DEPTH = 5000
 
-# QFT: circuits up to ~1300 depth; no cap needed (data is naturally bounded)
+# QFT: max 5 qubits for AWS Rigetti plots; no depth cap (data naturally bounded)
+QFT_MAX_QUBITS = 5
 QFT_MAX_DEPTH = None  # No filter
 
 # Depth binning for readable boxplots (too many unique depths otherwise)
@@ -186,11 +187,28 @@ def _filter_by_depth(
     return filtered
 
 
+def _filter_by_qubits(
+    rows: List[Dict[str, str]], algorithm: str, max_qubits: Optional[int]
+) -> List[Dict[str, str]]:
+    """Filter rows for *algorithm* keeping only num_qubits ≤ *max_qubits*."""
+    if max_qubits is None:
+        return rows
+    filtered = []
+    for r in rows:
+        if r.get("algorithm") != algorithm:
+            continue
+        nq = _to_float(r.get("num_qubits", ""))
+        if nq is not None and nq <= max_qubits:
+            filtered.append(r)
+    return filtered
+
+
 def _filter_algorithm(
     rows: List[Dict[str, str]], algorithm: str
 ) -> Tuple[List[Dict[str, str]], bool]:
     """
     Apply algorithm-specific filtering and return filtered rows and whether filtering was applied.
+    Uses algorithm-specific max qubits (Grover 3, QFT 5) and depth caps for readable plots.
     """
     original_count = len([r for r in rows if r.get("algorithm") == algorithm])
 
@@ -198,8 +216,10 @@ def _filter_algorithm(
         filtered = _filter_teleportation(rows, algorithm)
     elif algorithm == "GROVER":
         filtered = _filter_by_depth(rows, algorithm, GROVER_MAX_DEPTH)
+        filtered = _filter_by_qubits(filtered, algorithm, GROVER_MAX_QUBITS)
     elif algorithm == "QFT":
         filtered = _filter_by_depth(rows, algorithm, QFT_MAX_DEPTH)
+        filtered = _filter_by_qubits(filtered, algorithm, QFT_MAX_QUBITS)
     else:
         filtered = [r for r in rows if r.get("algorithm") == algorithm]
 
@@ -211,10 +231,20 @@ def _filter_description(algorithm: str) -> str:
     """Return a short human-readable description of the filter applied to *algorithm*."""
     if algorithm == "TELEPORTATION":
         return f"qubits ≤ {TELEPORTATION_MAX_QUBITS}, depth < {TELEPORTATION_MAX_DEPTH // 1000}k"
-    if algorithm == "GROVER" and GROVER_MAX_DEPTH is not None:
-        return f"depth < {GROVER_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k")
-    if algorithm == "QFT" and QFT_MAX_DEPTH is not None:
-        return f"depth < {QFT_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k")
+    if algorithm == "GROVER":
+        parts = []
+        if GROVER_MAX_QUBITS is not None:
+            parts.append(f"qubits ≤ {GROVER_MAX_QUBITS}")
+        if GROVER_MAX_DEPTH is not None:
+            parts.append(f"depth < {GROVER_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k"))
+        return ", ".join(parts) if parts else ""
+    if algorithm == "QFT":
+        parts = []
+        if QFT_MAX_QUBITS is not None:
+            parts.append(f"qubits ≤ {QFT_MAX_QUBITS}")
+        if QFT_MAX_DEPTH is not None:
+            parts.append(f"depth < {QFT_MAX_DEPTH / 1000:.1f}k".replace(".0k", "k"))
+        return ", ".join(parts) if parts else ""
     return ""
 
 
@@ -341,9 +371,10 @@ def _plot_algorithm_boxplot(
     if not algo_rows:
         return
 
-    # For depth, bin values into ranges for readable boxplots
+    # For depth, bin values into ranges for readable boxplots (algorithm-specific)
     use_binning = x_key == "transpiled_depth"
     depth_bin_size = DEPTH_BIN_SIZE
+    depth_axis_max_cap: Optional[float] = None  # algorithm-specific cap for x-axis
     if use_binning and algo_rows:
         raw_depths = [
             _to_float(r.get("transpiled_depth", ""))
@@ -352,12 +383,26 @@ def _plot_algorithm_boxplot(
         ]
         if raw_depths:
             max_d = max(raw_depths)
-            if max_d <= 300:
-                # All data in 0-250: use extra-fine bins (0-50, 50-100, 100-150, ...)
-                depth_bin_size = DEPTH_BIN_SIZE_EXTRA_FINE
-            elif max_d < 1500:
-                # 0-1.5k range: 0-250, 250-500, ...
-                depth_bin_size = DEPTH_BIN_SIZE_FINE
+            if algorithm == "GROVER":
+                # Grover (max 3q): shallow circuits; fine bins, cap axis so no empty high bins
+                depth_bin_size = 100
+                depth_axis_max_cap = min(500, max(400, max_d + 100))
+            elif algorithm == "QFT":
+                # QFT (max 5q): data often 0-300; extra-fine or fine, cap to useful range
+                if max_d <= 300:
+                    depth_bin_size = DEPTH_BIN_SIZE_EXTRA_FINE  # 50
+                    depth_axis_max_cap = min(300, max_d + 100)
+                elif max_d < 600:
+                    depth_bin_size = 100
+                    depth_axis_max_cap = min(600, max_d + 100)
+                else:
+                    depth_bin_size = DEPTH_BIN_SIZE_FINE  # 250
+                    depth_axis_max_cap = min(1500, max_d + 250)
+            else:
+                if max_d <= 300:
+                    depth_bin_size = DEPTH_BIN_SIZE_EXTRA_FINE
+                elif max_d < 1500:
+                    depth_bin_size = DEPTH_BIN_SIZE_FINE
 
     # Collect data grouped by x value (or binned x value)
     grouped_data: Dict[float, List[float]] = {}
@@ -381,11 +426,17 @@ def _plot_algorithm_boxplot(
     # Sort by x value and prepare for plotting
     x_values = sorted(grouped_data.keys())
 
-    # For depth binning: show full range (e.g. 0 to 1000 or 1200) so empty bins are visible
+    # For depth binning: algorithm-specific axis cap to avoid empty high-depth bins
     if use_binning and raw_depths:
         max_depth_val = max(raw_depths)
-        if depth_bin_size == DEPTH_BIN_SIZE_EXTRA_FINE and DEPTH_DISPLAY_CAP_EXTRA_FINE is not None:
-            # Focus on useful range: 0 up to cap (e.g. 150)
+        if depth_axis_max_cap is not None:
+            # Grover/QFT: use algorithm-specific cap so groups match data
+            depth_axis_max = depth_axis_max_cap
+            num_bins = max(4, int(depth_axis_max // depth_bin_size))
+        elif (
+            depth_bin_size == DEPTH_BIN_SIZE_EXTRA_FINE
+            and DEPTH_DISPLAY_CAP_EXTRA_FINE is not None
+        ):
             depth_axis_max = DEPTH_DISPLAY_CAP_EXTRA_FINE
             num_bins = int(depth_axis_max // depth_bin_size)
         else:
@@ -405,22 +456,20 @@ def _plot_algorithm_boxplot(
         depth_axis_max = None
 
     if not box_data_nonempty:
-        plt.close(fig)
         return
 
     fig, ax = plt.subplots(figsize=FIG_SIZE)
 
-    # Calculate appropriate box width based on data spacing
+    # Calculate appropriate box width (half width for clearer dispersion brackets)
     if use_binning and depth_axis_max is not None:
-        box_width = depth_bin_size * 0.5
+        box_width = depth_bin_size * 0.25
     elif len(positions) > 1:
-        # Use minimum spacing between positions to set width
         spacings = [positions[i + 1] - positions[i] for i in range(len(positions) - 1)]
         min_spacing = min(spacings)
         x_range = max(positions) - min(positions)
-        box_width = min(min_spacing * 0.7, x_range * 0.15)
+        box_width = min(min_spacing * 0.35, x_range * 0.075)
     else:
-        box_width = depth_bin_size * 0.5 if use_binning else 0.4
+        box_width = depth_bin_size * 0.25 if use_binning else 0.2
 
     # Create boxplot with good-plots.py style (only non-empty bins)
     color = ALGORITHM_COLORS.get(algorithm, COLORBREWER_PALETTE[1])
@@ -456,24 +505,27 @@ def _plot_algorithm_boxplot(
     ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
     ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
 
-    # Add note if data was filtered
-    desc = _filter_description(algorithm) if is_filtered else ""
-    title_suffix = f" ({desc})" if desc else ""
-    ax.set_title(
-        f"{algorithm} - DSR vs {display_label}{title_suffix}",
-        fontsize=TITLE_SIZE,
-        fontweight="bold",
-        pad=20,
-    )
-
     apply_axes_defaults(ax)
-    ax.set_ylim(-0.05, 1.05)
 
-    # Set x-axis ticks with appropriate labels
+    # Tighten y-axis to data range to reduce blank space (keep [0, 1] if data spans it)
+    all_dsr = [v for d in box_data_nonempty for v in d]
+    if all_dsr:
+        y_min_data = min(all_dsr)
+        y_max_data = max(all_dsr)
+        padding = 0.08
+        ax.set_ylim(
+            max(0.0, y_min_data - padding),
+            min(1.0, y_max_data + padding),
+        )
+    else:
+        ax.set_ylim(-0.05, 1.05)
+
+    # Set x-axis: for depth boxplot show only bins with data (no empty bins = less blank space)
     if use_binning and depth_axis_max is not None:
-        ax.set_xticks(positions_for_axis)
+        # Use only positions that have data so empty bins don't create blank space
+        ax.set_xticks(positions)
         labels = []
-        for p in positions_for_axis:
+        for p in positions:
             start = int(p)
             end = int(p + depth_bin_size)
             if start >= 1000:
@@ -485,8 +537,11 @@ def _plot_algorithm_boxplot(
             else:
                 end_str = str(end)
             labels.append(f"{start_str}-{end_str}")
-        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=TICK_SIZE - 4)
-        ax.set_xlim(-depth_bin_size * 0.15, depth_axis_max + depth_bin_size * 0.15)
+        # Fewer bins = easier to read; use smaller rotation and full tick size
+        rotation = 25 if len(positions) <= 4 else 45
+        ax.set_xticklabels(labels, rotation=rotation, ha="right", fontsize=TICK_SIZE)
+        x_pad = depth_bin_size * 0.25
+        ax.set_xlim(min(positions) - x_pad, max(positions) + x_pad)
     else:
         ax.set_xticks(positions)
         if use_binning:
@@ -588,15 +643,6 @@ def _plot_algorithm_line(
     ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
 
     # Add note if data was filtered
-    desc = _filter_description(algorithm) if is_filtered else ""
-    title_suffix = f" ({desc})" if desc else ""
-    ax.set_title(
-        f"{algorithm} - DSR Variants vs {x_label}{title_suffix}",
-        fontsize=TITLE_SIZE,
-        fontweight="bold",
-        pad=20,
-    )
-
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -711,13 +757,6 @@ def _plot_algorithm_heatmap(
         notes.append("enhanced contrast")
     title_suffix = f" ({', '.join(notes)})" if notes else ""
 
-    ax.set_title(
-        f"{algorithm} - {variant_label} DSR Heatmap{title_suffix}",
-        fontsize=TITLE_SIZE,
-        fontweight="bold",
-        pad=20,
-    )
-
     ax.tick_params(axis="both", which="major", labelsize=TICK_SIZE)
     ax.set_xticks(xs_grid)
     ax.set_xticklabels([f"{int(x)}" for x in xs_grid])
@@ -804,8 +843,6 @@ def _plot_combined_comparison(
     # Styling
     ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
     ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_title("DSR Comparison Across Algorithms", fontsize=TITLE_SIZE, fontweight="bold", pad=20)
-
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -970,12 +1007,6 @@ def _plot_combined_regions_by_optimization(
         display_label = f"{x_label} (binned)" if use_binning else x_label
         ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
         ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
-        ax.set_title(
-            f"DSR Comparison - Optimization Level {opt_level}",
-            fontsize=TITLE_SIZE,
-            fontweight="bold",
-            pad=20,
-        )
 
         apply_axes_defaults(ax)
         ax.set_ylim(-0.05, 1.05)
@@ -1058,7 +1089,6 @@ def _plot_combined_regions_grid(
 
         xs = sorted(all_xs)
 
-        ax.set_title(f"Optimization Level {opt_level}", fontsize=TITLE_SIZE - 4, fontweight="bold")
         ax.set_ylim(-0.05, 1.05)
         ax.set_xticks(xs)
         if use_binning:
