@@ -75,7 +75,10 @@ QFT_MAX_DEPTH = None  # No filter
 
 # Depth binning for readable boxplots (too many unique depths otherwise)
 DEPTH_BIN_SIZE = 500  # Default bin size
-DEPTH_BIN_SIZE_FINE = 250  # Finer bins for Grover/QFT (richer data)
+DEPTH_BIN_SIZE_FINE = 250  # Finer bins for 0-1.5k range
+DEPTH_BIN_SIZE_EXTRA_FINE = 50  # When all data is in 0-250, show 0-50, 50-100, ...
+# When using extra-fine bins, cap display at this depth so plot focuses on useful range
+DEPTH_DISPLAY_CAP_EXTRA_FINE = 150
 
 # Outlier filter: high DSR at high depth is suspicious (teleportation only)
 OUTLIER_DEPTH_THRESHOLD = 2000  # Depths above this
@@ -159,9 +162,10 @@ def _filter_teleportation(rows: List[Dict[str, str]], algorithm: str) -> List[Di
     return filtered
 
 
-def _bin_depth(depth: float) -> int:
+def _bin_depth(depth: float, bin_size: Optional[int] = None) -> int:
     """Bin depth value into a range for readable boxplots."""
-    return int((depth // DEPTH_BIN_SIZE) * DEPTH_BIN_SIZE)
+    size = bin_size if bin_size is not None else DEPTH_BIN_SIZE
+    return int((depth // size) * size)
 
 
 def _filter_by_depth(
@@ -339,6 +343,21 @@ def _plot_algorithm_boxplot(
 
     # For depth, bin values into ranges for readable boxplots
     use_binning = x_key == "transpiled_depth"
+    depth_bin_size = DEPTH_BIN_SIZE
+    if use_binning and algo_rows:
+        raw_depths = [
+            _to_float(r.get("transpiled_depth", ""))
+            for r in algo_rows
+            if _to_float(r.get("transpiled_depth", "")) is not None
+        ]
+        if raw_depths:
+            max_d = max(raw_depths)
+            if max_d <= 300:
+                # All data in 0-250: use extra-fine bins (0-50, 50-100, 100-150, ...)
+                depth_bin_size = DEPTH_BIN_SIZE_EXTRA_FINE
+            elif max_d < 1500:
+                # 0-1.5k range: 0-250, 250-500, ...
+                depth_bin_size = DEPTH_BIN_SIZE_FINE
 
     # Collect data grouped by x value (or binned x value)
     grouped_data: Dict[float, List[float]] = {}
@@ -350,7 +369,7 @@ def _plot_algorithm_boxplot(
 
         # Apply binning for depth
         if use_binning:
-            x_val = float(_bin_depth(x_val))
+            x_val = float(_bin_depth(x_val, depth_bin_size))
 
         if x_val not in grouped_data:
             grouped_data[x_val] = []
@@ -362,39 +381,51 @@ def _plot_algorithm_boxplot(
     # Sort by x value and prepare for plotting
     x_values = sorted(grouped_data.keys())
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    # For depth binning: show full range (e.g. 0 to 1000 or 1200) so empty bins are visible
+    if use_binning and raw_depths:
+        max_depth_val = max(raw_depths)
+        if depth_bin_size == DEPTH_BIN_SIZE_EXTRA_FINE and DEPTH_DISPLAY_CAP_EXTRA_FINE is not None:
+            # Focus on useful range: 0 up to cap (e.g. 150)
+            depth_axis_max = DEPTH_DISPLAY_CAP_EXTRA_FINE
+            num_bins = int(depth_axis_max // depth_bin_size)
+        else:
+            num_bins = max(4, int(max_depth_val // depth_bin_size) + 1)
+            depth_axis_max = num_bins * depth_bin_size
+        all_bin_starts = [i * depth_bin_size for i in range(num_bins)]
+        # Use full range for positions/labels; only bins with data get a box
+        positions_for_axis = all_bin_starts
+        box_data = [grouped_data.get(float(b), []) for b in all_bin_starts]
+        positions = [b for b in all_bin_starts if grouped_data.get(float(b))]
+        # Filter to boxes that have data for the actual boxplot
+        box_data_nonempty = [grouped_data[float(p)] for p in positions]
+    else:
+        positions_for_axis = x_values
+        box_data_nonempty = [grouped_data[x_val] for x_val in x_values]
+        positions = x_values
+        depth_axis_max = None
 
-    # Prepare data for boxplots - use Michelson as primary
-    box_data = []
-    positions = []
-
-    for x_val in x_values:
-        dsr_values = grouped_data[x_val]
-        if dsr_values:
-            box_data.append(dsr_values)
-            positions.append(x_val)
-
-    if not box_data:
+    if not box_data_nonempty:
         plt.close(fig)
         return
 
+    fig, ax = plt.subplots(figsize=FIG_SIZE)
+
     # Calculate appropriate box width based on data spacing
-    if len(positions) > 1:
+    if use_binning and depth_axis_max is not None:
+        box_width = depth_bin_size * 0.5
+    elif len(positions) > 1:
         # Use minimum spacing between positions to set width
         spacings = [positions[i + 1] - positions[i] for i in range(len(positions) - 1)]
         min_spacing = min(spacings)
         x_range = max(positions) - min(positions)
-
-        # Box width: 70% of spacing, but capped at 15% of x-axis range
         box_width = min(min_spacing * 0.7, x_range * 0.15)
     else:
-        # Single box - use reasonable default
-        box_width = DEPTH_BIN_SIZE * 0.5 if use_binning else 0.4
+        box_width = depth_bin_size * 0.5 if use_binning else 0.4
 
-    # Create boxplot with good-plots.py style
+    # Create boxplot with good-plots.py style (only non-empty bins)
     color = ALGORITHM_COLORS.get(algorithm, COLORBREWER_PALETTE[1])
     bp = ax.boxplot(
-        box_data,
+        box_data_nonempty,
         positions=positions,
         widths=box_width,
         patch_artist=True,
@@ -408,7 +439,7 @@ def _plot_algorithm_boxplot(
     )
 
     # Also overlay median trend line
-    medians = [statistics.median(d) for d in box_data]
+    medians = [statistics.median(d) for d in box_data_nonempty]
     ax.plot(
         positions,
         medians,
@@ -439,14 +470,12 @@ def _plot_algorithm_boxplot(
     ax.set_ylim(-0.05, 1.05)
 
     # Set x-axis ticks with appropriate labels
-    ax.set_xticks(positions)
-    if use_binning:
-        # Show bin ranges for depth (e.g., "0-0.5k", "0.5k-1k")
+    if use_binning and depth_axis_max is not None:
+        ax.set_xticks(positions_for_axis)
         labels = []
-        for p in positions:
+        for p in positions_for_axis:
             start = int(p)
-            end = int(p + DEPTH_BIN_SIZE)
-            # Format as "Xk" for thousands
+            end = int(p + depth_bin_size)
             if start >= 1000:
                 start_str = f"{start/1000:.1f}k".replace(".0k", "k")
             else:
@@ -457,12 +486,28 @@ def _plot_algorithm_boxplot(
                 end_str = str(end)
             labels.append(f"{start_str}-{end_str}")
         ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=TICK_SIZE - 4)
+        ax.set_xlim(-depth_bin_size * 0.15, depth_axis_max + depth_bin_size * 0.15)
     else:
-        ax.set_xticklabels([f"{int(p)}" for p in positions])
-
-    # Add padding to x-axis
-    x_padding = (max(positions) - min(positions)) * 0.1 if len(positions) > 1 else 0.5
-    ax.set_xlim(min(positions) - x_padding, max(positions) + x_padding)
+        ax.set_xticks(positions)
+        if use_binning:
+            labels = []
+            for p in positions:
+                start = int(p)
+                end = int(p + depth_bin_size)
+                if start >= 1000:
+                    start_str = f"{start/1000:.1f}k".replace(".0k", "k")
+                else:
+                    start_str = str(start)
+                if end >= 1000:
+                    end_str = f"{end/1000:.1f}k".replace(".0k", "k")
+                else:
+                    end_str = str(end)
+                labels.append(f"{start_str}-{end_str}")
+            ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=TICK_SIZE - 4)
+        else:
+            ax.set_xticklabels([f"{int(p)}" for p in positions])
+        x_padding = (max(positions) - min(positions)) * 0.1 if len(positions) > 1 else 0.5
+        ax.set_xlim(min(positions) - x_padding, max(positions) + x_padding)
 
     # Legend
     legend_elements = [
@@ -1117,10 +1162,45 @@ def main() -> int:
     )
     parser.add_argument("--input", type=Path, default=default_csv)
     parser.add_argument("--out-dir", type=Path, default=default_out)
+    parser.add_argument(
+        "--max-qubits",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Keep only rows with num_qubits < N (e.g. 4 for 2 and 3 qubits only)",
+    )
+    parser.add_argument(
+        "--max-depth",
+        type=float,
+        default=None,
+        metavar="D",
+        help="Keep only rows with transpiled_depth < D (e.g. 1000 for depth < 1k)",
+    )
     args = parser.parse_args()
 
     _apply_plot_style()
     rows = _load_rows(args.input)
+
+    # Optional global filters (e.g. for AWS Rigetti: focus on 2q/3q and depth < 1k)
+    if args.max_qubits is not None:
+        before = len(rows)
+        rows = [
+            r
+            for r in rows
+            if _to_float(r.get("num_qubits", "")) is not None
+            and _to_float(r.get("num_qubits", "")) < args.max_qubits
+        ]
+        print(f"Filter num_qubits < {args.max_qubits}: {before} -> {len(rows)} rows")
+    if args.max_depth is not None:
+        before = len(rows)
+        rows = [
+            r
+            for r in rows
+            if _to_float(r.get("transpiled_depth", "")) is None
+            or _to_float(r.get("transpiled_depth", "")) < args.max_depth
+        ]
+        print(f"Filter transpiled_depth < {args.max_depth}: {before} -> {len(rows)} rows")
+
     algorithms = sorted({row.get("algorithm", "") for row in rows})
     if not algorithms:
         print("No algorithms found in input.")

@@ -162,8 +162,14 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
         wait_for_results: bool = True,
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
+        optimization_level: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Run the algorithm on AWS Braket hardware."""
+        """Run the algorithm on AWS Braket hardware.
+
+        Args:
+            optimization_level: If set (e.g. 3), transpile with Qiskit at this
+                level before submission. None uses Braket-only compilation.
+        """
         config = self.get_config(config_id)
 
         self._print_header(config)
@@ -200,6 +206,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
             poll_interval=10,
             show_progress=True,
             wait_for_results=wait_for_results,
+            optimization_level=optimization_level,
         )
 
         result = self._build_rich_result(
