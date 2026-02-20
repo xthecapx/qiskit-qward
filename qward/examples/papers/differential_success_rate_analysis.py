@@ -434,8 +434,7 @@ def _plot_algorithm_boxplot(
             depth_axis_max = depth_axis_max_cap
             num_bins = max(4, int(depth_axis_max // depth_bin_size))
         elif (
-            depth_bin_size == DEPTH_BIN_SIZE_EXTRA_FINE
-            and DEPTH_DISPLAY_CAP_EXTRA_FINE is not None
+            depth_bin_size == DEPTH_BIN_SIZE_EXTRA_FINE and DEPTH_DISPLAY_CAP_EXTRA_FINE is not None
         ):
             depth_axis_max = DEPTH_DISPLAY_CAP_EXTRA_FINE
             num_bins = int(depth_axis_max // depth_bin_size)

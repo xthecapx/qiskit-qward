@@ -54,13 +54,13 @@ RIGETTI_CHARACTERIZATION_2Q = ["S2-00", "S2-1", "S2-10", "S2-11"]
 
 # 3 qubits: scalability, marked count, Hamming weight, symmetry (algorithm coverage)
 RIGETTI_CHARACTERIZATION_3Q = [
-    "S3-1",    # scalability: 1 marked
-    "M3-1",    # marked count: 1
-    "M3-2",    # marked count: 2 (extremes)
-    "H3-0",    # Hamming weight 0
-    "H3-2",    # Hamming weight 2
-    "H3-3",    # Hamming weight 3
-    "SYM-1",   # symmetric (complement pair)
+    "S3-1",  # scalability: 1 marked
+    "M3-1",  # marked count: 1
+    "M3-2",  # marked count: 2 (extremes)
+    "H3-0",  # Hamming weight 0
+    "H3-2",  # Hamming weight 2
+    "H3-3",  # Hamming weight 3
+    "SYM-1",  # symmetric (complement pair)
     "ASYM-1",  # asymmetric (adjacent)
     "ASYM-2",  # asymmetric (2-bit diff)
 ]
