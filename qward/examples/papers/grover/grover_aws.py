@@ -10,10 +10,12 @@ Usage:
     python grover_aws.py                     # Run default config (S2-1) with opt level 3
     python grover_aws.py --config S3-1       # Run specific config
     python grover_aws.py --list               # List available configs
+    python grover_aws.py --list-devices       # List AWS Braket devices (key for -d/--device)
     python grover_aws.py --characterize      # Run full 2q+3q Rigetti characterization
+    python grover_aws.py -c S2-1 -d Forte-1 --shots 128  # IonQ (region set from device)
 
-Rigetti uses Qiskit optimization_level=3 by default (RIGETTI_OPTIMIZATION_LEVEL).
-Characterization: RIGETTI_CHARACTERIZATION_2Q (4 configs) + RIGETTI_CHARACTERIZATION_3Q (9).
+Rigetti uses Qiskit optimization_level=3 by default. IonQ Forte: use --device Forte-1 --shots 128 or 256;
+region is set automatically (us-east-1). Plan: plan_aws_ionq.md.
 
 Example:
     >>> from qward.examples.papers.grover.grover_aws import GroverAWSExperiment
@@ -23,6 +25,7 @@ Example:
 """
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Callable, Optional
 
@@ -66,6 +69,12 @@ RIGETTI_CHARACTERIZATION_3Q = [
 ]
 
 RIGETTI_CHARACTERIZATION_CONFIGS = RIGETTI_CHARACTERIZATION_2Q + RIGETTI_CHARACTERIZATION_3Q
+
+# =============================================================================
+# IonQ Forte (AWS Braket) — expensive: use --shots 128 or 256; see plan_aws_ionq.md
+# =============================================================================
+IONQ_FORTE_DEVICE = "Forte-1"
+IONQ_FORTE_REGION = "us-east-1"
 
 # =============================================================================
 # Region 1 Configurations (Worth running on QPU)
@@ -410,18 +419,39 @@ class GroverAWSExperiment(AWSExperimentBase[ExperimentConfig]):
             action="store_true",
             help="Run full Rigetti characterization (2q + 3q configs), one job per config",
         )
+        parser.add_argument(
+            "--list-devices",
+            action="store_true",
+            help="List available AWS Braket devices (use with -r REGION to filter)",
+        )
         return parser
 
     def run_cli(self, args: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-        """Handle --characterize then delegate to base CLI."""
+        """Handle --list-devices, --characterize and IonQ region, then delegate to base CLI."""
         parser = self.create_argument_parser()
         parsed = parser.parse_args(args)
+        if getattr(parsed, "list_devices", False):
+            list_aws_braket_devices(region=parsed.region)
+            return None
+        device = parsed.device or "Ankaa-3"
+        region = parsed.region or "us-west-1"
+        # IonQ devices (e.g. Forte-1) exist only in us-east-1; region is set from device
+        if device == IONQ_FORTE_DEVICE:
+            region = IONQ_FORTE_REGION
+            # Base re-parses args; inject region so user does not need to pass --region
+            args_list = list(args) if args is not None else sys.argv[1:]
+            if "--region" in args_list:
+                i = args_list.index("--region")
+                if i + 1 < len(args_list):
+                    args_list[i + 1] = region
+            else:
+                args_list.extend(["--region", region])
+            args = args_list
         if getattr(parsed, "characterize", False):
-            # Full characterization: 2q + 3q with long timeout per job
             return self.run_batch(
                 config_ids=RIGETTI_CHARACTERIZATION_CONFIGS,
-                device_id=parsed.device or "Ankaa-3",
-                region=parsed.region or "us-west-1",
+                device_id=device,
+                region=region,
                 save_results=not getattr(parsed, "no_save", False),
                 batch_timeout=600,
                 aws_access_key_id=parsed.aws_access_key_id,
@@ -467,6 +497,72 @@ def list_configs() -> None:
     """List available Grover configurations."""
     experiment = GroverAWSExperiment()
     experiment.list_configs()
+
+
+def list_aws_braket_devices(region: Optional[str] = None) -> None:
+    """List available AWS Braket devices (QPUs and simulators).
+
+    Prints the device name to use as --device / device_id (e.g. for IonQ: Forte-1
+    or the exact name shown). Requires AWS credentials and network access.
+
+    Args:
+        region: AWS region to query (e.g. us-east-1, us-west-1). If None,
+            uses default from AWS config/env.
+    """
+    try:
+        from qiskit_braket_provider import BraketProvider
+    except ImportError:
+        print("qiskit-braket-provider is not installed. Install with: pip install qiskit-braket-provider")
+        return
+
+    if region:
+        import os
+        os.environ["AWS_DEFAULT_REGION"] = region
+
+    try:
+        provider = BraketProvider()
+        backends = provider.backends()
+    except Exception as exc:
+        print("Could not list AWS Braket devices (check credentials and network):")
+        print(f"  {exc}")
+        return
+
+    if not backends:
+        print("No Braket devices returned for this region.")
+        return
+
+    try:
+        from braket.aws import AwsDevice
+    except ImportError:
+        AwsDevice = None
+
+    print("=" * 70)
+    print("AWS BRAKET DEVICES (use --device <name> or device_id=<name>)")
+    print("=" * 70)
+    print(f"{'Device (key)':<28} {'Provider':<18} {'Region':<14}")
+    print("-" * 70)
+
+    for backend in backends:
+        name = getattr(backend, "name", str(backend))
+        provider_name = ""
+        device_region = ""
+        device = getattr(backend, "_device", None)
+        if device is not None and AwsDevice is not None:
+            provider_name = getattr(device, "provider_name", "") or ""
+            arn = getattr(device, "arn", "")
+            if arn:
+                try:
+                    device_region = AwsDevice.get_device_region(arn)
+                except Exception:
+                    pass
+        is_ionq = "ionq" in provider_name.lower() if provider_name else False
+        marker = "  [IonQ]" if is_ionq else ""
+        print(f"{name:<28} {provider_name:<18} {device_region:<14}{marker}")
+
+    print("=" * 70)
+    print("Example: python grover_aws.py -c S2-1 -d <Device> --shots 128")
+    print("IonQ devices (e.g. Forte-1) are typically in us-east-1.")
+    print("=" * 70)
 
 
 # =============================================================================
