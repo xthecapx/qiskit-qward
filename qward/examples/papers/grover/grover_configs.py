@@ -70,12 +70,34 @@ class ExperimentConfig:
 # Testing how success rate degrades as qubit count increases
 
 SCALABILITY_CONFIGS = [
+    # 2 qubits: full single-marked characterization (Rigetti 2q)
     ExperimentConfig(
         config_id="S2-1",
         experiment_type="scalability",
         num_qubits=2,
         marked_states=["01"],
-        description="2 qubits, single marked state",
+        description="2 qubits, single marked state (01)",
+    ),
+    ExperimentConfig(
+        config_id="S2-00",
+        experiment_type="scalability",
+        num_qubits=2,
+        marked_states=["00"],
+        description="2 qubits, single marked state (00)",
+    ),
+    ExperimentConfig(
+        config_id="S2-10",
+        experiment_type="scalability",
+        num_qubits=2,
+        marked_states=["10"],
+        description="2 qubits, single marked state (10)",
+    ),
+    ExperimentConfig(
+        config_id="S2-11",
+        experiment_type="scalability",
+        num_qubits=2,
+        marked_states=["11"],
+        description="2 qubits, single marked state (11)",
     ),
     ExperimentConfig(
         config_id="S3-1",

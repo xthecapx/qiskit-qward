@@ -7,9 +7,13 @@ AWSExperimentBase framework. It reuses Region 1 prioritized configurations
 identified through simulator analysis.
 
 Usage:
-    python grover_aws.py                     # Run default config (S2-1)
+    python grover_aws.py                     # Run default config (S2-1) with opt level 3
     python grover_aws.py --config S3-1       # Run specific config
-    python grover_aws.py --list              # List available configs
+    python grover_aws.py --list               # List available configs
+    python grover_aws.py --characterize      # Run full 2q+3q Rigetti characterization
+
+Rigetti uses Qiskit optimization_level=3 by default (RIGETTI_OPTIMIZATION_LEVEL).
+Characterization: RIGETTI_CHARACTERIZATION_2Q (4 configs) + RIGETTI_CHARACTERIZATION_3Q (9).
 
 Example:
     >>> from qward.examples.papers.grover.grover_aws import GroverAWSExperiment
@@ -18,6 +22,7 @@ Example:
     >>> print(f"DSR: {result['batch_summary']['mean_dsr_michelson']:.4f}")
 """
 
+import argparse
 from pathlib import Path
 from typing import Any, Dict, List, Callable, Optional
 
@@ -31,6 +36,36 @@ from qward.examples.papers.grover.grover_configs import (
     get_config,
 )
 from qward.examples.papers.grover.grover_success_metrics import evaluate_job
+
+# =============================================================================
+# Rigetti optimization (mirror IBM: level 3 matters)
+# =============================================================================
+
+RIGETTI_OPTIMIZATION_LEVEL = 3
+
+# Five example configs for optimization-level trial (2q + four 3q)
+RIGETTI_OPT_EXAMPLE_CONFIGS = ["S2-1", "ASYM-1", "ASYM-2", "M3-2", "SYM-1"]
+
+# =============================================================================
+# Rigetti characterization: 2q and 3q configs to characterize Grover on Ankaa-3
+# =============================================================================
+# 2 qubits: all four single-marked states (position/bitstring sensitivity)
+RIGETTI_CHARACTERIZATION_2Q = ["S2-00", "S2-1", "S2-10", "S2-11"]
+
+# 3 qubits: scalability, marked count, Hamming weight, symmetry (algorithm coverage)
+RIGETTI_CHARACTERIZATION_3Q = [
+    "S3-1",  # scalability: 1 marked
+    "M3-1",  # marked count: 1
+    "M3-2",  # marked count: 2 (extremes)
+    "H3-0",  # Hamming weight 0
+    "H3-2",  # Hamming weight 2
+    "H3-3",  # Hamming weight 3
+    "SYM-1",  # symmetric (complement pair)
+    "ASYM-1",  # asymmetric (adjacent)
+    "ASYM-2",  # asymmetric (2-bit diff)
+]
+
+RIGETTI_CHARACTERIZATION_CONFIGS = RIGETTI_CHARACTERIZATION_2Q + RIGETTI_CHARACTERIZATION_3Q
 
 # =============================================================================
 # Region 1 Configurations (Worth running on QPU)
@@ -204,11 +239,39 @@ REGION1_PRIORITY = [
 
 
 class GroverAWSExperiment(AWSExperimentBase[ExperimentConfig]):
-    """Grover's algorithm experiment runner for AWS Braket."""
+    """Grover's algorithm experiment runner for AWS Braket.
+
+    Uses optimization_level=3 for Rigetti (RIGETTI_OPTIMIZATION_LEVEL) so
+    Qiskit transpiler optimizes before submission; run 5 examples with
+    RIGETTI_OPT_EXAMPLE_CONFIGS to compare with no-optimization runs.
+    """
 
     @property
     def algorithm_name(self) -> str:
         return "GROVER"
+
+    def run(
+        self,
+        config_id: str,
+        device_id: str = "Ankaa-3",
+        region: str = "us-west-1",
+        save_results: bool = True,
+        wait_for_results: bool = True,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        optimization_level: Optional[int] = RIGETTI_OPTIMIZATION_LEVEL,
+    ) -> Dict[str, Any]:
+        """Run on AWS with optimization_level=3 by default for Rigetti."""
+        return super().run(
+            config_id=config_id,
+            device_id=device_id,
+            region=region,
+            save_results=save_results,
+            wait_for_results=wait_for_results,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            optimization_level=optimization_level,
+        )
 
     def get_config(self, config_id: str) -> ExperimentConfig:
         """Get Grover experiment configuration."""
@@ -337,6 +400,34 @@ class GroverAWSExperiment(AWSExperimentBase[ExperimentConfig]):
     def get_priority_configs(self) -> List[Dict[str, Any]]:
         """Get prioritized configurations for QPU execution."""
         return REGION1_PRIORITY
+
+    def create_argument_parser(self) -> argparse.ArgumentParser:
+        """Add --characterize for Rigetti 2q/3q characterization."""
+        parser = super().create_argument_parser()
+        parser.add_argument(
+            "--characterize",
+            "-C",
+            action="store_true",
+            help="Run full Rigetti characterization (2q + 3q configs), one job per config",
+        )
+        return parser
+
+    def run_cli(self, args: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
+        """Handle --characterize then delegate to base CLI."""
+        parser = self.create_argument_parser()
+        parsed = parser.parse_args(args)
+        if getattr(parsed, "characterize", False):
+            # Full characterization: 2q + 3q with long timeout per job
+            return self.run_batch(
+                config_ids=RIGETTI_CHARACTERIZATION_CONFIGS,
+                device_id=parsed.device or "Ankaa-3",
+                region=parsed.region or "us-west-1",
+                save_results=not getattr(parsed, "no_save", False),
+                batch_timeout=600,
+                aws_access_key_id=parsed.aws_access_key_id,
+                aws_secret_access_key=parsed.aws_secret_access_key,
+            )
+        return super().run_cli(args)
 
     def get_output_dir(self) -> Path:
         """Get output directory for Grover AWS results."""
