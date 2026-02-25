@@ -1,0 +1,271 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+% \usepackage{hyperref}
+% \usepackage{svg}
+\usepackage{enumitem}
+
+% custom packages
+\usepackage{subfiles}
+\usepackage{physics}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{comment}
+\usepackage{tabularx}
+
+% Define custom colors for Python syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}       % Green for comments
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}        % Gray for line numbers
+\definecolor{codepurple}{rgb}{0.58,0,0.82}     % Purple for strings and special literals
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}   % Light beige for background
+\definecolor{builtincolor}{rgb}{0.2, 0.2, 0.7}   % Blue for built-ins
+\definecolor{defclasscolor}{rgb}{0.1, 0.5, 0.1} % Dark Green for def/class
+\definecolor{docstringcolor}{rgb}{0.25,0.5,0.35} % Desaturated green for docstrings
+% Standard magenta (LaTeX built-in) is used for general keywords
+
+\lstdefinestyle{pythonStyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    commentstyle=\color{codegreen},
+    stringstyle=\color{codepurple},
+    keywordstyle=\color{magenta},
+    numbers=left,
+    numberstyle=\tiny\color{codegray},
+    numbersep=5pt,
+    xleftmargin=\parindent,
+    tabsize=2,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    keepspaces=true,
+    captionpos=bl
+}
+
+\lstset{style=pythonStyle}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Differential Success Rate (DSR): A Distribution-Aware Metric for Validating Quantum Algorithm Outputs}
+
+% \author{\IEEEauthorblockN{1\textsuperscript{st} Cristian Marquez}
+% \IEEEauthorblockA{\textit{Department of Systems and Computing Engineering} \\
+% \textit{Universidad de los Andes}\\
+% Bogotá, Colombia \\
+% c.marquezb$@$uniandes.edu.co}
+% \and
+% \IEEEauthorblockN{2\textsuperscript{st} Daniel Sierra}
+% \IEEEauthorblockA{\textit{Electrical Engineering and Computer Science} \\
+% \textit{The Catholic University of America, Washington}\\
+% DC, 20064 \\
+% sierrasosa$@$cua.edu}
+% \and
+% \IEEEauthorblockN{3\textsuperscript{nd} Kelly Garcés}
+% \IEEEauthorblockA{\textit{Department of Systems and Computing Engineering} \\
+% \textit{Universidad de los Andes}\\
+% Bogotá, Colombia \\
+% kj.garces971$@$uniandes.edu.co}
+% }
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Cristian Marquez}
+\IEEEauthorblockA{\textit{Department of Systems} \\
+\textit{and Computing Engineering}\\
+\textit{Universidad de los Andes}\\
+Bogotá, Colombia \\
+c.marquezb$@$uniandes.edu.co}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Daniel Sierra}
+\IEEEauthorblockA{\textit{Electrical Engineering} \\
+\textit{and Computer Science} \\
+\textit{The Catholic University of America}\\
+Washington DC, 20064 \\
+sierrasosa$@$cua.edu}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Kelly Garc\'es}
+\IEEEauthorblockA{\textit{Department of Systems} \\
+\textit{and Computing Engineering}\\
+\textit{Universidad de los Andes}\\
+Bogotá, Colombia \\
+kj.garces971$@$uniandes.edu.co}
+\and
+}
+
+
+\maketitle
+
+\begin{abstract}
+
+A fundamental requirement in software engineering is the ability to validate that a program execution produced the intended result. In classical computing, the deterministic nature of execution enables direct validation by comparing the observed output against an expected value. In contrast, quantum computing (QC) is inherently stochastic, so the outcome of an execution is a probability distribution rather than a single deterministic value. This shifts validation from checking a single output to evaluating whether the expected outcome(s) stand out prominently in the observed distribution. To address this need, this paper presents the \emph{Differential Success Rate (DSR)}, a metric designed to improve the interpretability of quantum algorithm runs by quantifying how clearly the expected outcome(s) can be distinguished from the remaining observed outcomes.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+Quantum computing, software quality, Qiskit, quantum metrics
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Ensuring successful execution of a program is a key requirement in software engineering. In classical computing, this process is done by directly comparing the observed output against an expected value. In other words, each execution produces a reproducible output. However, this deterministic validation model is not applicable in the QC realm, since in order to take advantage of quantum mechanics, it is required to run an algorithm multiple times and then analyze all the possible values to determine the successful execution of the code.
+
+A single run of a quantum algorithm produces a single classical state \cite{nielsenQuantumComputationQuantuma_2010}. Yet, to take advantage of quantum phenomena such as entanglement, superposition, and interference, it is necessary to construct a probability distribution over all possible outcomes by running the algorithm multiple times. Today, a histogram is typically used to represent this output, where the x-axis corresponds to the possible bit-string outcomes, and the y-axis counts the frequency of the observed values. By contrast, in hardware based on quantum annealing \cite{Hauke_2020_2020}, the output corresponds to the physical configuration of the system (a specific bit string) that represents the ground state (or a low-energy configuration). Another alternative to histograms is seen in variational algorithms \cite{McClean_2016_2016}, where quantum hardware outputs a real scalar value (the expected value of a cost function, such as energy), which is used as input to a classical optimizer to finally produce a bit-string result.
+
+Today, the most common hardware for QC is superconducting qubits. These devices are available to the public through software development kits (SDKs) or APIs, which allow users to submit jobs and obtain the results from quantum processing units (QPUs). A common feature of such SDKs is the ability to compute histograms of execution outcomes. This motivates the creation of a metric that quantifies how distinctly the expected outcomes stand out within the observed distribution.
+
+The application of classical performance metrics to quantum software is a viable approach; although doing so restricts the evaluation of quantum success to a classical paradigm in which the observed outcomes are fundamentally stochastic. More precisely, classical success measures can be defined at the shot level, but, because quantum processes require repeated executions to obtain meaningful results, the success measure should be formulated at the job level and, in some scenarios, even at the batch level.
+
+In the literature, several metrics aim to quantify the degree to which a value can be distinguished from the rest of the distribution. Mohapatra et al. (2025) identify commonly used metrics to evaluate outcome fidelity in the presence of noise, including density matrix-based fidelity, Hellinger fidelity, Total Variation Distance (TVD), Estimated Success Probability (ESP) and Probability of Successful Trials (PST) \cite{mohapatraBenchmarkingFidelityMetrics_2025}. These metrics are designed to measure the fidelity of the quantum hardware, rather than to quantify how distinctly a target outcome emerges in the observed distribution or how effectively an algorithm will execute on the device.
+
+In this paper, we introduce the differential success rate (DSR), a quantitative metric designed to measure the level of distinction of a target quantum state within a given histogram. The DSR is expressed as a percentage, thereby serving as an indicator of how clearly the expected quantum state emerges relative to the observed probability distribution generated by current noisy intermediate-scale quantum (NISQ) devices.
+
+To characterize the behavior of DSR, we first execute the Grover and quantum Fourier transform algorithms using the AER simulator parameterized with the hardware calibration values reported for QPUs commonly available from major quantum service providers. The DSR metric is then integrated into qWard, a Python-based framework for the analysis of quantum circuits. Finally, we run the corresponding circuits on the physical QPUs \textit{ibm\_fez} and \textit{ibm\_torino} accessed via the quantum IBM service, as well as, on the Rigetti Ankaa-3 device accessed via Amazon Web Services (AWS).
+
+Our experiments demonstrate the usefulness of the DSR metric for improving the interpretability of quantum jobs by defining clear ranges of success for the Grover and QFT algorithms, on two quantum providers (3 different QPUs). Such intervals were determined by systematically scaling and executing the algorithms, computing the DSR, and correlating its values with the corresponding number of qubits and the circuit depth.
+
+The remainder of this paper is organized as follows. Section II reviews related work. Section III introduces the criteria and methodology for measuring success, while Section IV describes the DSR approach. Section V details the proposed workflow, and Section VI reports the empirical results. Section VII provides a critical discussion of the findings, and Section VIII concludes the paper.
+
+\section{Background}
+\label{sec:background}
+
+This study builds on two previous studies. The first is the qWard project, a Python-based framework library designed for the analysis of quantum circuits and their executions. The second study presents our initial investigation into the execution success of quantum algorithms, as reported in IEEE Access in early 2026. In that work, we introduced a variation of the quantum teleportation protocol and proposed a systematic methodology to evaluate its success.
+
+With qWard, our aim was to describe quantum algorithms through a set of quantitative metrics computed prior to algorithm execution (designated as pre-runtime metrics). Following the execution of the algorithm, qWard further provides tools to analyze the resulting probability distribution by using a set of post-runtime metrics, with the aim of facilitating the identification of correlations between pre-runtime and post-runtime characteristics.
+
+To provide evidence for a correlation between pre-runtime and post-runtime metrics, we conducted a follow-up study examining how these metrics evolve under a variation of the teleportation protocol. Specifically, we first prepare a quantum circuit to transmit a message and then apply its transposed version with the objective of reconstructing the original input state before applying the measurement operation. In this experiment, the success function quantifies the number of instances in which the algorithm correctly reconstructs the initial state.
+
+Based on the findings of the two previous studies, we developed DSR as a post-runtime metric. These results allowed us to establish the necessary tooling for our quantum development workflow, in which we compute pre-runtime metrics, run the quantum algorithms, and finally compute post-runtime metrics in order to determine the success rate.
+
+\section{Related work}
+\label{sec:related-work}
+
+In this section, we examine several standard metrics employed to quantify the successful execution of quantum algorithms and compare them with the DSR metric.
+
+\subsection{Density-Matrix Based Fidelity}
+
+The validation of a quantum program via the density matrix constitutes a natural first step towards characterizing algorithms execution, and was presented in detail by Uhlmann in \cite{UHLMANN1976273_1976}. In summary, the density matrix fidelity (DM fidelity) process starts by calculating the theoretical value of the quantum operation. Then, the resulting density matrix is derived to compare it with the theoretical expectation and finally determine the discrepancy between the two values.
+
+Although DM fidelity is a robust way to validate the execution of a quantum algorithm, from the perspective of software engineering, it is highly impractical \cite{LI20146878_2014}. First, the QPU does not directly produce a density matrix; instead, it outputs classical bit strings. Reconstructing the density matrix would require performing full quantum state tomography, an operation that is computationally expensive, thereby making the procedure computationally infeasible in practice. Second, even though it is possible to generate the ideal state by using a simulator (for instance, AER), the size of the matrices grows exponentially with the number of qubits, so it is impossible to compute the ideal density matrix using classical resources. In other words, the target density matrix for practical applications is fundamentally unknown.
+
+\subsection{Estimated Success Probability}
+
+A typical way to evaluate how successfully a program runs is to estimate the success rate associated with each component involved in its operation. In the context of QC, this can be achieved by combining the success probabilities of individual operations (such as gates and measurements). During the calibration of a QPU, a quantum provider reports the error rate associated with each operation; therefore, the ESP is obtained by computing the success rate of each element (i.e. \(1 - \text{error}\)) and then taking the product of these success rates over all the circuit operations.
+
+Although ESP is a useful metric for measuring the success of a given hardware, it provides limited insight into the behavior of specific algorithms, since it assumes that every operation affects the output independently. Furthermore, Mohapatra et al. (2025) report that ESP performs reliably only for circuits with depth below 50. Thus, since real-world applications require circuits of much greater depth, the ESP becomes inaccurate for such use cases; instead, metrics such as Probability of Successful Trials (PST) or quantum vulnerability analysis (QVA) \cite{qiQuantumVulnerabilityAnalysis_2024} are preferred.
+
+\subsection{Probability of Successful Trials}
+
+Probability of successful trials (PST) \cite{mohapatraBenchmarkingFidelityMetrics_2025} is a method to measure the successful execution of a quantum circuit. It exploits the property that multiplying a unitary matrix by its conjugate transpose (in either order) produces the identity matrix. The core idea is to engineer the circuit so that its output quantum state approximates its initial state, and then define the metric as the ratio of the number of initial states obtained as an output to the total number of trials.
+
+The main limitation of PST is that its definition modifies the structure of the original circuit. Since calculating PST requires the circuit and its inverse, the total depth of the circuit is doubled, thereby amplifying the impact of errors. In addition, standard PST employs a binary classification for success; because it only checks if the output matches the expected initial state (e.g., an all-zero output), an outcome with a single bit-flip error is penalized in the exact same way as one in which every bit is corrupted.
+
+\subsection{Hellinger Fidelity}
+
+Hellinger fidelity is a metric recommended for algorithms like the Quantum Approximate Optimization Algorithm (QAOA) \cite{zhouQuantumApproximateOptimization_2020}, where the ideal solution is a probability distribution spread over many different basis states. Hellinger fidelity is calculated by comparing the expected distribution with the returned outcome distribution, returning a 1 if both are identical or 0 if there is no overlap.
+
+The major limitation of Hellinger fidelity \cite{mohapatraBenchmarkingFidelityMetrics_2025} lies in the high computational cost of calculating the expected probability distribution. In addition, there is a mathematical blind spot for circuits targeting a small set of outcomes (e.g., the preparation of a Greenberger-Horne-Zeilinger state), since small errors do not alter the score sufficiently to reflect the effect of the noise. Furthermore, this metric cannot capture phase-related errors because its evaluation is based exclusively on the analysis of probability distributions, where phase information has already been lost due to the measurement operation.
+
+\subsection{Total Variation Distance}
+
+The total variation distance (TVD) \cite{knillBoundsApproximationTotal_1995, bhattacharyyaApproximatingTotalVariation_2023} is a metric that shares similarities with Hellinger fidelity. Both metrics are particularly suitable for algorithms whose ideal output is a probability distribution with values spread over many states. What makes TVD unique is its mathematical approach to histogram comparison, which is defined as half the sum of the absolute differences between the corresponding probabilities. By definition, a TVD value of 0 indicates identical distributions, while a value of 1 means completely different. However, for consistency with other fidelity metrics, TVD is often reported as $1 - TVD$.
+
+Similarly, TVD shares the limitations of Hellinger fidelity: a high computational overhead due to the need to estimate the ideal probability distribution, a limited sensitivity to errors in circuits whose ideal output is concentrated on a small number of dominant states, and a fundamental inability to capture information about phase-related errors.
+
+\section{Execution model and success criteria}
+\label{sec:measuring-success}
+
+The quantum software development lifecycle has been the subject of growing attention in the software engineering community. Zhao \cite{zhaoQuantumSoftwareEngineering_2020} identified key challenges that distinguish QC from classical development. Weder et al. \cite{wederQuantumSoftwareDevelopment_2022} presented a lifecycle for hybrid quantum-classical applications. And more recently, Khan et al. \cite{khanAdvancingQuantumSoftware_2024} proposed a fullstack model for QC. Based on those studies and on our experience developing qWard, we organize the QC process into three phases: the development phase, the execution phase, and the analysis phase.
+
+During the development phase, the developer defines the target quantum state and prepares an algorithm to achieve it. An important aspect of the development phase is implementing a reduced version of the algorithm that can be run on quantum simulators (using classical hardware) before building the full-scale version intended for execution on a QPU. In addition, it is common practice to employ some of the well-defined algorithms as black boxes, which, once properly linked, produce the desired output.
+
+During the execution phase, the developer plans and executes a job on the QPU. An important task at this stage is to specify how many times the job will run (the number of shots). This choice is directly linked to the success rate of the quantum operations, since the lower the success rate, the more executions are required. At this stage, the algorithm must be transpiled into the supported operations of the chosen quantum provider. This step also involves using a simulator to verify that the resulting circuit performs as intended. Finally, with both the execution plan and the transpiled circuits ready, the developer runs a quick benchmark of the algorithm on the real QPU. This step helps build confidence in the execution and provides an estimate of the required budget of the experiment.
+
+During the analysis phase, the developer pulls data from the quantum provider until the job is reported as complete. The quantum provider returns multiple bit strings that are ultimately consolidated into a histogram. With all responses ready, the goal now is to determine whether the response was successful. It is important to note that during the development phase, an initial version of the analysis is produced, but the analysis is often refined later, once the real data are available.
+
+The purpose of DSR is to improve the ease with which the results of the quantum algorithm can be interpreted and to act as a low-cost validation step throughout the development lifecycle. Because it depends on the histogram and the expected value, this metric is meant to be applied in all the development phases described above, whenever both requirements are met.
+
+% \subsection{Observed outcomes and expected outcome set}
+% Focus: One short paragraph defining the inputs available at evaluation time.
+% - observed = the counts (or histogram over bitstrings) returned for a job.
+% - expected = the set E of bitstrings considered correct (one or several; e.g.\ marked state, roundtrip state, or set of peaks).
+% - Clarify that the metric receives this observed distribution and the set E; scope is algorithm-output validation from execution traces, not QEC.
+
+\section{Differential Success Rate}
+\label{sec:dsr}
+% Focus: Formal definition so Section V--VI can refer to it. One primary metric (Michelson);
+% optional sentence on variants (ratio, log-ratio, normalized margin) used in analysis.
+
+\subsection{Definitions}
+% Focus: One short paragraph. Notation from Section III (counts, set E).
+% - S = total counts; p_x = counts[x]/S for each bitstring x.
+% - E = expected outcome set, K = |E|.
+% - p_exp = sum_{x in E} p_x (total mass on expected); \bar{p}_exp = p_exp / K (mean per expected outcome).
+% - p_comp = max_{x not in E} p_x (strongest competitor peak). Edge: E empty or all counts zero → define DSR as 0.
+
+\subsection{Metric}
+% Focus: Define the primary DSR (Michelson contrast), then report scale.
+% - DSR = clip((\bar{p}_exp - p_comp) / (\bar{p}_exp + p_comp), 0, 1). Denominator zero → 0.
+% - Reported as value in [0,1] or as percentage in [0,100] (paper uses percentage in Intro; be consistent).
+% - Interpretation: 0 = no distinction; 1 = expected outcomes dominate and no competitor. One sentence on when it is ambiguous (e.g.\ flat distribution, wrong E).
+
+\subsection{Diagnostics}
+% Focus: One short paragraph. Companion quantities used in experiments and plots.
+% - peak_mismatch: true when the observed most-frequent outcome (argmax p_x) is not in E; useful for flagging wrong-peak runs.
+% - margin: \bar{p}_exp - p_comp (raw difference). Optional: mention that analysis script also computes ratio, log-ratio, and normalized-margin variants for comparison; primary metric in paper is Michelson.
+
+\section{Implementation and evaluation workflow}
+\label{sec:workflow}
+% Focus: Reproducible experimental setup and how DSR is computed from raw results.
+% Align with: differential_success_rate_experiment.py, differential_success_rate_analysis.py, grover/, qft/.
+
+\subsection{Experiment setup}
+% Focus: Workloads, backends, and variables (no code listings; describe in prose).
+% Workloads (from grover_configs.py, qft_configs.py):
+% - Grover: configs with marked_states (e.g.\ single or multiple marked bitstrings); scalability and variant studies (symmetry, Hamming).
+% - QFT: (1) roundtrip mode — expected = input_state (one bitstring); (2) period-detection mode — expected = set of peaks from period and num_qubits.
+% Backends: AER simulator (hardware calibration); QPU IBM (e.g.\ ibm_fez, ibm_torino) and AWS Rigetti Anka-3. Data paths: data/qpu/raw (IBM), data/qpu/aws (Rigetti).
+% Variables: num_qubits, circuit_depth, transpiled_depth, optimization_level, shots; config_id and algorithm per job. Output: JSON per run with individual_results (counts, expected from config).
+
+\subsection{qWard implementation}
+% Focus: How DSR is produced from raw data; where code and data live.
+% - DSR is implemented in qward.metrics.differential_success_rate (compute_dsr_michelson, compute_dsr_with_flags, compute_dsr_percent; variants: ratio, log_ratio, normalized_margin).
+% - differential_success_rate_experiment.py: reads Grover/QFT JSON (individual_results + config: marked_states, input_state, period/num_qubits); computes DSR variants and peak_mismatch per result; writes DSR_result.csv (algorithm, backend_name, num_qubits, transpiled_depth, optimization_level, shots, dsr_michelson, peak_mismatch, etc.).
+% - differential_success_rate_analysis.py: loads DSR_result.csv; produces per-algorithm boxplots (DSR vs num_qubits, DSR vs depth), line/scatter (all variants), heatmaps (num_qubits x depth → DSR); combined comparison and region plots. Datasets and scripts live under qward/examples/papers/ (and grover/, qft/).
+
+\section{Results}
+\label{sec:results}
+% Focus: Empirical findings from Grover and QFT (and optionally teleportation). Tie each claim to a plot or table.
+% - Describe data source: DSR_result.csv produced by differential_success_rate_experiment.py from Grover/QFT JSON under grover/data/qpu/, qft/data/qpu/ (and AER if used). Filtering in analysis: e.g.\ Grover qubits ≤ 3, depth cap; QFT qubits ≤ 5 (see differential_success_rate_analysis.py constants).
+% - Scaling: DSR vs num_qubits (boxplots per algorithm and optimization level); DSR vs transpiled_depth (boxplots or line with median trend). Reference figures: e.g.\ grover_dsr_boxplot_qubits.png, qft_dsr_boxplot_*.png.
+% - Heatmaps: num_qubits x transpiled_depth → DSR (Michelson) for interpretability; mention where they appear (e.g.\ grover_dsr_michelson_heatmap.png, qft_*).
+% - Combined plots: comparison across algorithms; region plots by optimization level (combined_dsr_regions_*, combined_comparison). Use to state how DSR degrades with scale and how optimization level affects it.
+% - Diagnostic: report frequency or examples of peak_mismatch (observed peak not in E); interpret as runs where the dominant outcome is wrong.
+% - Optional: 1--2 example histograms for ambiguity (e.g.\ high p_exp but low DSR due to strong competitor) if you have a clear case.
+
+\section{Discussion}
+\label{sec:discussion}
+% Focus: Limitations, reporting practice, and validity. Keep short.
+% - When DSR is appropriate: algorithm-output validation from job-level (or batch-level) histograms when a clear expected set E is defined (e.g.\ Grover marked states, QFT roundtrip/period). When not: e.g.\ no single “correct” set E, or evaluation at pure shot level without aggregation.
+% - Reporting: recommend reporting (\bar{p}_exp, p_comp, DSR) together so readers can interpret distinction; mention peak_mismatch when relevant.
+% - Validity: shot noise (finite shots → variance in DSR); correct expected set E (wrong E inflates or deflates DSR); backend/calibration drift across runs; optional sentence on simulator vs QPU differences.
+
+\section{Conclusion}
+\label{sec:conclusion}
+% Focus: One short paragraph.
+% - Restate contribution: DSR as a distribution-aware metric for validating quantum algorithm outputs (histogram + expected set E); primary formula Michelson; evaluated on Grover and QFT with AER and real QPUs (IBM, Rigetti). Main takeaway: DSR improves interpretability of job-level success and scales with qubits/depth in line with expectations.
+% - Next steps: integrate DSR into benchmarking dashboards; extend to more workloads or backends; optional: study of DSR variants (ratio, log-ratio, normalized margin) for robustness.
+
+\bibliographystyle{IEEEtran}
+\bibliography{Bibliography}
+
+\end{document}
