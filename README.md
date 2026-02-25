@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-informational)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-%E2%89%A5%201.0.0-6133BD)](https://github.com/Qiskit/qiskit)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18773713.svg)](https://doi.org/10.5281/zenodo.18773713)
 
 QWARD is a comprehensive framework for analyzing quantum circuits and validating quantum code execution quality on quantum processing units (QPUs). It provides tools to analyze circuit complexity, measure performance metrics, and visualize quantum algorithm behavior.
 
@@ -124,6 +125,26 @@ We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.
 - Code style and quality standards
 - Testing requirements
 - Submitting pull requests
+
+## 📝 How to Cite
+
+If you use QWARD in your research, please cite it as follows:
+
+> Márquez, Cristian and Sierra-Sosa, Daniel and Garcés, Kelly. (2026). xthecapx/qiskit-qward (v0.18.0). Zenodo. https://doi.org/10.5281/zenodo.18773713
+
+**BibTeX:**
+
+```bibtex
+@software{qward2026,
+  author       = {Márquez, Cristian and Sierra-Sosa, Daniel and Garcés, Kelly},
+  title        = {xthecapx/qiskit-qward},
+  year         = {2026},
+  publisher    = {Zenodo},
+  version      = {v0.18.0},
+  doi          = {10.5281/zenodo.18773713},
+  url          = {https://doi.org/10.5281/zenodo.18773713}
+}
+```
 
 ## 📄 License
 
