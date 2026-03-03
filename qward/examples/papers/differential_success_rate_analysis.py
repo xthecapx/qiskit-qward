@@ -772,42 +772,112 @@ def _plot_algorithm_heatmap(
     plt.close(fig)
 
 
-def _plot_combined_comparison(
+# Per-algorithm qubit limits for the combined comparison plot.
+# These match the ranges shown in the individual per-algorithm boxplots
+# and are intentionally different from the AWS-specific constants above.
+_COMBINED_MAX_QUBITS = {
+    "GROVER": None,       # show all (2-8 in IBM data)
+    "QFT": None,          # show all (2-10 in IBM data)
+    "TELEPORTATION": TELEPORTATION_MAX_QUBITS,  # 3
+}
+_COMBINED_MAX_DEPTH = {
+    "GROVER": GROVER_MAX_DEPTH,                 # 5000
+    "QFT": QFT_MAX_DEPTH,                       # None
+    "TELEPORTATION": TELEPORTATION_MAX_DEPTH,    # 1000
+}
+
+
+def _prepare_combined_data(
     rows: List[Dict[str, str]],
-    output_dir: Path,
-) -> None:
-    """Create a combined comparison plot of all algorithms."""
+    optimization_level: Optional[str] = "3",
+) -> Tuple[List[str], List[float], Dict[str, List[Dict[str, str]]]]:
+    """Extract per-algorithm filtered data and the union of qubit counts.
+
+    Uses combined-plot-specific limits (no qubit cap for Grover/QFT) so the
+    plot matches the individual per-algorithm boxplots.
+
+    Args:
+        rows: All loaded CSV rows.
+        optimization_level: If set, keep only rows with this optimization
+            level.  Pass ``None`` to include all levels.
+
+    Returns:
+        (algorithms, qubits, filtered_data) where *filtered_data* maps each
+        algorithm name to its filtered row list.
+    """
     algorithms = sorted({r.get("algorithm", "") for r in rows if r.get("algorithm")})
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
-
-    # Apply algorithm-specific filtering and find available qubits
-    filtered_data = {}
-    algo_qubits = {}
+    filtered_data: Dict[str, List[Dict[str, str]]] = {}
+    all_qubits: set = set()
     for algo in algorithms:
-        algo_rows, _ = _filter_algorithm(rows, algo)
+        algo_rows = [r for r in rows if r.get("algorithm") == algo]
+        # Filter by optimization level (skip for algorithms without opt data)
+        if optimization_level is not None:
+            has_opt = any(r.get("optimization_level", "") != "" for r in algo_rows)
+            if has_opt:
+                algo_rows = [
+                    r for r in algo_rows
+                    if r.get("optimization_level", "") == optimization_level
+                ]
+        # Apply depth filter
+        max_depth = _COMBINED_MAX_DEPTH.get(algo)
+        if max_depth is not None:
+            algo_rows = _filter_by_depth(algo_rows, algo, max_depth)
+        # Apply qubit filter
+        max_q = _COMBINED_MAX_QUBITS.get(algo)
+        if max_q is not None:
+            algo_rows = _filter_by_qubits(algo_rows, algo, max_q)
+        # Teleportation outlier filter
+        if algo == "TELEPORTATION":
+            algo_rows = _filter_teleportation(algo_rows, algo)
+
         filtered_data[algo] = algo_rows
-        algo_qubits[algo] = set()
         for r in algo_rows:
             q = _to_float(r.get("num_qubits", ""))
             if q is not None:
-                algo_qubits[algo].add(q)
-
-    # Use all qubits from all algorithms (including non-overlapping)
-    # This ensures we show the full picture, including where only one algorithm has data
-    all_qubits = set()
-    for qs in algo_qubits.values():
-        all_qubits.update(qs)
+                all_qubits.add(q)
 
     qubits = sorted(all_qubits)
+    return algorithms, qubits, filtered_data
 
+
+def _render_combined_comparison(
+    ax,
+    algorithms: List[str],
+    qubits: List[float],
+    filtered_data: Dict[str, List[Dict[str, str]]],
+) -> None:
+    """Render the combined DSR comparison boxplot onto *ax*.
+
+    Draws one boxplot per algorithm per qubit group, with alternating
+    background shading and dashed separators between qubit groups for
+    readability.
+    """
     if not qubits:
-        plt.close(fig)
         return
 
     n_algos = len(algorithms)
     width = 0.25
 
+    # Build a continuous integer range from min to max qubit so that
+    # gaps (e.g. 7, 9) still receive shading and separators.
+    q_min = int(min(qubits))
+    q_max = int(max(qubits))
+    full_range = list(range(q_min, q_max + 1))
+
+    # Alternating background shading over the full range
+    for idx, q in enumerate(full_range):
+        left = q - 0.5
+        right = q + 0.5
+        if idx % 2 == 0:
+            ax.axvspan(left, right, color="#f0f0f0", zorder=0)
+
+    # Dashed vertical separators between every consecutive integer
+    for idx in range(len(full_range) - 1):
+        mid = (full_range[idx] + full_range[idx + 1]) / 2
+        ax.axvline(mid, color="#cccccc", linestyle="--", linewidth=1, zorder=1)
+
+    # Draw boxplots per algorithm
     for i, algo in enumerate(algorithms):
         algo_rows = filtered_data[algo]
 
@@ -827,12 +897,12 @@ def _plot_combined_comparison(
 
         if box_data:
             color = ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8])
-            bp = ax.boxplot(
+            ax.boxplot(
                 box_data,
                 positions=positions,
                 widths=width * 0.9,
                 patch_artist=True,
-                showfliers=False,  # Hide outliers for cleaner visualization
+                showfliers=False,
                 boxprops=dict(facecolor=color, alpha=0.7),
                 medianprops=dict(color="black", linewidth=3),
                 whiskerprops=dict(linewidth=2),
@@ -845,8 +915,9 @@ def _plot_combined_comparison(
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
-    ax.set_xticks(qubits)
-    ax.set_xticklabels([f"{int(q)}" for q in qubits])
+    ax.set_xticks(full_range)
+    ax.set_xticklabels([str(q) for q in full_range])
+    ax.set_xlim(q_min - 0.5, q_max + 0.5)
 
     # Legend
     legend_elements = [
@@ -855,10 +926,233 @@ def _plot_combined_comparison(
     ]
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
+
+def _plot_combined_comparison(
+    rows: List[Dict[str, str]],
+    output_dir: Path,
+) -> None:
+    """Create a combined comparison plot of all algorithms."""
+    algorithms, qubits, filtered_data = _prepare_combined_data(rows)
+
+    if not qubits:
+        return
+
+    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    _render_combined_comparison(ax, algorithms, qubits, filtered_data)
+
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         output_dir / "combined_dsr_comparison.png", dpi=300, bbox_inches="tight", facecolor="white"
+    )
+    plt.close(fig)
+
+
+_COMBINED_DEPTH_BIN = 200  # bin width for the depth-based combined boxplot
+_COMBINED_DEPTH_CAP = 800  # drop data above this depth to avoid long empty tail
+
+
+def _plot_combined_depth_comparison(
+    rows: List[Dict[str, str]],
+    output_dir: Path,
+) -> None:
+    """Combined DSR boxplot: all algorithms, x-axis = transpiled depth (binned).
+
+    Mirrors ``_plot_combined_comparison`` but groups by depth bins instead of
+    qubit count.  Includes **all** optimization levels (depth itself is the
+    variable under study; different opt levels produce different depths for
+    the same circuit).  Uses 200-unit bins capped at 800 for readability.
+    """
+    # Use optimization_level=None to include all levels
+    algorithms, _qubits, filtered_data = _prepare_combined_data(
+        rows, optimization_level=None
+    )
+
+    # Bin depths and collect DSR values per (algo, bin_start)
+    bin_sz = _COMBINED_DEPTH_BIN
+    cap = _COMBINED_DEPTH_CAP
+
+    algo_binned: Dict[str, Dict[int, List[float]]] = {}
+    all_bins: set = set()
+    for algo in algorithms:
+        binned: Dict[int, List[float]] = {}
+        for r in filtered_data[algo]:
+            d = _to_float(r.get("transpiled_depth", ""))
+            dsr = _to_float(r.get("dsr_michelson", ""))
+            if d is None or dsr is None or d > cap:
+                continue
+            b = int((d // bin_sz) * bin_sz)
+            binned.setdefault(b, []).append(dsr)
+        algo_binned[algo] = binned
+        all_bins.update(binned.keys())
+
+    if not all_bins:
+        return
+
+    bins_sorted = sorted(all_bins)
+    n_algos = len(algorithms)
+    width = 0.25
+
+    # Map bin starts to integer positions (0, 1, 2, …) for compact x-axis
+    pos_map = {b: i for i, b in enumerate(bins_sorted)}
+
+    fig, ax = plt.subplots(figsize=FIG_SIZE)
+
+    # Alternating background shading
+    for idx in range(len(bins_sorted)):
+        left = idx - 0.5
+        right = idx + 0.5
+        if idx % 2 == 0:
+            ax.axvspan(left, right, color="#f0f0f0", zorder=0)
+
+    # Dashed separators
+    for idx in range(len(bins_sorted) - 1):
+        mid = idx + 0.5
+        ax.axvline(mid, color="#cccccc", linestyle="--", linewidth=1, zorder=1)
+
+    # Draw boxplots per algorithm
+    for i, algo in enumerate(algorithms):
+        binned = algo_binned[algo]
+
+        box_data = []
+        positions = []
+        for b in bins_sorted:
+            vals = binned.get(b, [])
+            if vals:
+                box_data.append(vals)
+                pos = pos_map[b] + (i - n_algos / 2 + 0.5) * width
+                positions.append(pos)
+
+        if box_data:
+            color = ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8])
+            ax.boxplot(
+                box_data,
+                positions=positions,
+                widths=width * 0.9,
+                patch_artist=True,
+                showfliers=False,
+                boxprops=dict(facecolor=color, alpha=0.7),
+                medianprops=dict(color="black", linewidth=3),
+                whiskerprops=dict(linewidth=2),
+                capprops=dict(linewidth=2),
+            )
+
+    # X-axis: bin labels
+    labels = [f"{b}\u2013{b + bin_sz}" for b in bins_sorted]
+    ax.set_xticks(range(len(bins_sorted)))
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.set_xlim(-0.5, len(bins_sorted) - 0.5)
+
+    ax.set_xlabel("Transpiled Depth", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    apply_axes_defaults(ax)
+    ax.set_ylim(-0.05, 1.05)
+
+    # Legend
+    legend_elements = [
+        Patch(
+            facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
+            alpha=0.7,
+            label=algo,
+        )
+        for algo in algorithms
+    ]
+    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        output_dir / "combined_dsr_comparison_depth.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+    plt.close(fig)
+
+
+def _plot_qft_heatmap_by_optimization(
+    rows: List[Dict[str, str]],
+    output_dir: Path,
+) -> None:
+    """Heatmap of median QFT DSR: optimization level (y) vs qubits (x)."""
+    from matplotlib.colors import LinearSegmentedColormap
+
+    qft_rows = [r for r in rows if r.get("algorithm") == "QFT"]
+    if not qft_rows:
+        return
+
+    opt_levels = sorted(
+        {r.get("optimization_level", "") for r in qft_rows if r.get("optimization_level")}
+    )
+    if not opt_levels:
+        return
+
+    # Collect data per optimization level
+    grouped_all: Dict[str, Dict[float, List[float]]] = {}
+    all_xs: set = set()
+    for ol in opt_levels:
+        opt_rows = [
+            r for r in qft_rows if r.get("optimization_level", "") == ol
+        ]
+        grouped: Dict[float, List[float]] = {}
+        for r in opt_rows:
+            x = _to_float(r.get("num_qubits", ""))
+            dsr = _to_float(r.get("dsr_michelson", ""))
+            if x is not None and dsr is not None:
+                grouped.setdefault(x, []).append(dsr)
+        grouped_all[ol] = grouped
+        all_xs.update(grouped.keys())
+
+    q_min = int(min(all_xs))
+    q_max = int(max(all_xs))
+    full_range = list(range(q_min, q_max + 1))
+
+    # Build matrix: rows = opt levels, cols = qubits
+    matrix = np.full((len(opt_levels), len(full_range)), np.nan)
+    for i, ol in enumerate(opt_levels):
+        grouped = grouped_all[ol]
+        for j, q in enumerate(full_range):
+            fq = float(q)
+            if fq in grouped:
+                matrix[i, j] = np.median(grouped[fq])
+
+    # Paired 4-class palette as custom colormap
+    paired_colors = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c"]
+    cmap = LinearSegmentedColormap.from_list("paired4", paired_colors, N=256)
+
+    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    im = ax.imshow(matrix, aspect="auto", cmap=cmap, vmin=0, vmax=1, origin="lower")
+
+    # Annotate cells with values
+    for i in range(len(opt_levels)):
+        for j in range(len(full_range)):
+            val = matrix[i, j]
+            if not np.isnan(val):
+                text_color = "white" if val < 0.35 else "black"
+                ax.text(
+                    j, i, f"{val:.2f}",
+                    ha="center", va="center",
+                    fontsize=LABEL_SIZE - 2, fontweight="bold", color=text_color,
+                )
+
+    ax.set_xticks(range(len(full_range)))
+    ax.set_xticklabels([str(q) for q in full_range])
+    ax.set_yticks(range(len(opt_levels)))
+    ax.set_yticklabels([ol for ol in opt_levels])
+    ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("Optimization Level", fontsize=LABEL_SIZE, fontweight="bold")
+    apply_axes_defaults(ax)
+
+    cbar = fig.colorbar(im, ax=ax, shrink=0.8)
+    cbar.set_label("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        output_dir / "combined_dsr_qft_heatmap_optimization.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
     )
     plt.close(fig)
 
