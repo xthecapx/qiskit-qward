@@ -1,14 +1,14 @@
 """
-Enrich QPU result JSONs with ideal probability distributions and Hellinger fidelity.
+Enrich QPU result JSONs with ideal distributions and fidelity metrics.
 
 Adds to each JSON file:
   - top-level ``ideal_probs``: statevector-derived ideal distribution
-  - per-result ``hellinger_fidelity`` and ``hellinger_distance``
+  - per-result ``hellinger_fidelity``, ``hellinger_distance``
+  - per-result ``tvd`` and ``tvd_fidelity`` (Total Variation Distance)
   - backfills DSR fields for IBM results that are missing them
-  - updates ``batch_summary`` with mean Hellinger/DSR values
+  - updates ``batch_summary`` with mean Hellinger/TVD/DSR values
 
-Idempotent: re-running skips files that already have ``hellinger_fidelity``
-in their first result.
+Idempotent: re-running skips files that already have all metrics.
 
 Usage:
   PYTHONPATH=. uv run python qward/examples/papers/enrich_hellinger.py --dataset all
@@ -190,6 +190,19 @@ def _normalize_counts(counts: Dict[str, int]) -> Dict[str, float]:
     return {k: v / total for k, v in counts.items()}
 
 
+def _total_variation_distance(
+    p: Dict[str, float], q: Dict[str, float]
+) -> float:
+    """Compute the Total Variation Distance between two distributions.
+
+    TVD = 0.5 * sum_i |p_i - q_i|   over the union of all outcomes.
+
+    Returns a value in [0, 1] where 0 = identical, 1 = no overlap.
+    """
+    all_keys = set(p.keys()) | set(q.keys())
+    return 0.5 * sum(abs(p.get(k, 0.0) - q.get(k, 0.0)) for k in all_keys)
+
+
 def _needs_dsr_backfill(result: Dict) -> bool:
     """Check if a result is missing DSR fields."""
     return "dsr_michelson" not in result
@@ -225,12 +238,16 @@ def _enrich_file(
     if not results:
         return None
 
-    # Idempotency: skip if already enriched (unless forced)
+    # Idempotency: skip if already fully enriched (unless forced)
     if not force:
         first_with_counts = next(
             (r for r in results if r.get("counts")), None
         )
-        if first_with_counts and "hellinger_fidelity" in first_with_counts:
+        if (
+            first_with_counts
+            and "hellinger_fidelity" in first_with_counts
+            and "tvd" in first_with_counts
+        ):
             return None
 
     # Reconstruct circuit and compute ideal probs
@@ -264,6 +281,8 @@ def _enrich_file(
     # Enrich each individual result
     hellinger_fids = []
     hellinger_dists = []
+    tvd_vals = []
+    tvd_fid_vals = []
     dsr_michelson_vals = []
     dsr_ratio_vals = []
     dsr_log_ratio_vals = []
@@ -276,9 +295,10 @@ def _enrich_file(
             continue
 
         # Marginalize counts if they include ancilla bits (AWS period_detection)
-        counts_for_hellinger = _marginalize_counts(counts, ideal_probs)
+        counts_aligned = _marginalize_counts(counts, ideal_probs)
+        counts_dist = _normalize_counts(counts_aligned)
+
         # Compute Hellinger fidelity and distance
-        counts_dist = _normalize_counts(counts_for_hellinger)
         try:
             hf = hellinger_fidelity(ideal_probs, counts_dist)
             hd = hellinger_distance(ideal_probs, counts_dist)
@@ -292,6 +312,14 @@ def _enrich_file(
             result["hellinger_distance"] = hd
             hellinger_fids.append(hf)
             hellinger_dists.append(hd)
+
+        # Compute Total Variation Distance
+        tvd = _total_variation_distance(ideal_probs, counts_dist)
+        tvd_fid = 1.0 - tvd
+        result["tvd"] = tvd
+        result["tvd_fidelity"] = tvd_fid
+        tvd_vals.append(tvd)
+        tvd_fid_vals.append(tvd_fid)
 
         # Backfill DSR if missing
         if _needs_dsr_backfill(result):
@@ -311,6 +339,10 @@ def _enrich_file(
         batch["mean_hellinger_fidelity"] = sum(hellinger_fids) / len(hellinger_fids)
         batch["mean_hellinger_distance"] = sum(hellinger_dists) / len(hellinger_dists)
 
+    if tvd_vals:
+        batch["mean_tvd"] = sum(tvd_vals) / len(tvd_vals)
+        batch["mean_tvd_fidelity"] = sum(tvd_fid_vals) / len(tvd_fid_vals)
+
     if dsr_backfilled and dsr_michelson_vals:
         batch["mean_dsr_michelson"] = sum(dsr_michelson_vals) / len(dsr_michelson_vals)
         batch["mean_dsr_ratio"] = sum(dsr_ratio_vals) / len(dsr_ratio_vals)
@@ -325,11 +357,14 @@ def _enrich_file(
     if not dry_run:
         path.write_text(json.dumps(payload, indent=2) + "\n")
 
+    num_enriched = len(tvd_vals)
     return {
         "file": path.name,
-        "num_results": len(hellinger_fids),
+        "num_results": num_enriched,
         "mean_hf": sum(hellinger_fids) / len(hellinger_fids) if hellinger_fids else 0,
         "mean_hd": sum(hellinger_dists) / len(hellinger_dists) if hellinger_dists else 0,
+        "mean_tvd": sum(tvd_vals) / len(tvd_vals) if tvd_vals else 0,
+        "mean_tvd_fid": sum(tvd_fid_vals) / len(tvd_fid_vals) if tvd_fid_vals else 0,
         "dsr_backfilled": dsr_backfilled,
     }
 
@@ -358,6 +393,8 @@ def _run_dataset(
     errors = 0
     all_hf = []
     all_hd = []
+    all_tvd = []
+    all_tvd_fid = []
     t0 = time.time()
 
     for i, path in enumerate(json_files, 1):
@@ -372,10 +409,12 @@ def _run_dataset(
             enriched += 1
             all_hf.append(stats["mean_hf"])
             all_hd.append(stats["mean_hd"])
+            all_tvd.append(stats["mean_tvd"])
+            all_tvd_fid.append(stats["mean_tvd_fid"])
             dsr_tag = " +DSR" if stats["dsr_backfilled"] else ""
             print(
                 f"  [{i}/{len(json_files)}] OK    {path.name}  "
-                f"HF={stats['mean_hf']:.4f}  HD={stats['mean_hd']:.4f}"
+                f"HF={stats['mean_hf']:.4f}  TVD={stats['mean_tvd']:.4f}"
                 f"  ({stats['num_results']} results){dsr_tag}"
             )
 
@@ -390,6 +429,14 @@ def _run_dataset(
         print(
             f"  Hellinger Distance:  mean={sum(all_hd)/len(all_hd):.4f}  "
             f"min={min(all_hd):.4f}  max={max(all_hd):.4f}"
+        )
+        print(
+            f"  TVD:                 mean={sum(all_tvd)/len(all_tvd):.4f}  "
+            f"min={min(all_tvd):.4f}  max={max(all_tvd):.4f}"
+        )
+        print(
+            f"  TVD Fidelity (1-TVD):mean={sum(all_tvd_fid)/len(all_tvd_fid):.4f}  "
+            f"min={min(all_tvd_fid):.4f}  max={max(all_tvd_fid):.4f}"
         )
 
 
