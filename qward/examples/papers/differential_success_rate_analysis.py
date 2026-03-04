@@ -66,13 +66,13 @@ ALGORITHM_COLORS = {
 TELEPORTATION_MAX_QUBITS = 3
 TELEPORTATION_MAX_DEPTH = 1000
 
-# Grover: max 3 qubits for AWS Rigetti plots; depth cap for readability
-GROVER_MAX_QUBITS = 3
-GROVER_MAX_DEPTH = 5000
+# Grover: no qubit or depth cap (full range for variant plots)
+GROVER_MAX_QUBITS = None
+GROVER_MAX_DEPTH = None
 
-# QFT: max 5 qubits for AWS Rigetti plots; no depth cap (data naturally bounded)
-QFT_MAX_QUBITS = 5
-QFT_MAX_DEPTH = None  # No filter
+# QFT: no qubit or depth cap (per-algorithm plots use IBM data, full 2-10 range)
+QFT_MAX_QUBITS = None
+QFT_MAX_DEPTH = None
 
 # Depth binning for readable boxplots (too many unique depths otherwise)
 DEPTH_BIN_SIZE = 500  # Default bin size
@@ -502,7 +502,7 @@ def _plot_algorithm_boxplot(
     # Styling
     display_label = f"{x_label} (binned)" if use_binning else x_label
     ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
 
     apply_axes_defaults(ax)
 
@@ -581,6 +581,7 @@ def _plot_algorithm_line(
     x_key: str,
     x_label: str,
     output_path: Path,
+    figsize=None,
 ) -> None:
     """Create line plot with scatter showing all DSR variants."""
     algo_rows = [r for r in rows if r.get("algorithm") == algorithm]
@@ -593,7 +594,7 @@ def _plot_algorithm_line(
     if not algo_rows:
         return
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    fig, ax = plt.subplots(figsize=figsize or FIG_SIZE)
 
     for idx, (variant_key, label, color) in enumerate(DSR_VARIANTS):
         # Get all points
@@ -911,7 +912,7 @@ def _render_combined_comparison(
 
     # Styling
     ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -937,13 +938,13 @@ def _plot_combined_comparison(
     if not qubits:
         return
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    fig, ax = plt.subplots(figsize=(15, 6))
     _render_combined_comparison(ax, algorithms, qubits, filtered_data)
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        output_dir / "combined_dsr_comparison.png", dpi=300, bbox_inches="tight", facecolor="white"
+        output_dir / "1_combined_dsr_comparison.png", dpi=300, bbox_inches="tight", facecolor="white"
     )
     plt.close(fig)
 
@@ -996,7 +997,7 @@ def _plot_combined_depth_comparison(
     # Map bin starts to integer positions (0, 1, 2, …) for compact x-axis
     pos_map = {b: i for i, b in enumerate(bins_sorted)}
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    fig, ax = plt.subplots(figsize=(15, 6))
 
     # Alternating background shading
     for idx in range(len(bins_sorted)):
@@ -1043,8 +1044,8 @@ def _plot_combined_depth_comparison(
     ax.set_xticklabels(labels, rotation=30, ha="right")
     ax.set_xlim(-0.5, len(bins_sorted) - 0.5)
 
-    ax.set_xlabel("Transpiled Depth", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_xlabel("Depth", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -1062,7 +1063,7 @@ def _plot_combined_depth_comparison(
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        output_dir / "combined_dsr_comparison_depth.png",
+        output_dir / "1_combined_dsr_comparison_depth.png",
         dpi=300,
         bbox_inches="tight",
         facecolor="white",
@@ -1120,7 +1121,7 @@ def _plot_qft_heatmap_by_optimization(
     paired_colors = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c"]
     cmap = LinearSegmentedColormap.from_list("paired4", paired_colors, N=256)
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
+    fig, ax = plt.subplots(figsize=(15, 5))
     im = ax.imshow(matrix, aspect="auto", cmap=cmap, vmin=0, vmax=1, origin="lower")
 
     # Annotate cells with values
@@ -1140,16 +1141,16 @@ def _plot_qft_heatmap_by_optimization(
     ax.set_yticks(range(len(opt_levels)))
     ax.set_yticklabels([ol for ol in opt_levels])
     ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_ylabel("Optimization Level", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("Optimization", fontsize=LABEL_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+    cbar.set_label("DSR", fontsize=LABEL_SIZE, fontweight="bold")
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        output_dir / "combined_dsr_qft_heatmap_optimization.png",
+        output_dir / "1_combined_dsr_qft_heatmap_optimization.png",
         dpi=300,
         bbox_inches="tight",
         facecolor="white",
@@ -1299,7 +1300,7 @@ def _plot_combined_regions_by_optimization(
 
         display_label = f"{x_label} (binned)" if use_binning else x_label
         ax.set_xlabel(display_label, fontsize=LABEL_SIZE, fontweight="bold")
-        ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE, fontweight="bold")
+        ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
 
         apply_axes_defaults(ax)
         ax.set_ylim(-0.05, 1.05)
@@ -1401,7 +1402,7 @@ def _plot_combined_regions_grid(
         if idx >= 2:
             ax.set_xlabel(display_label, fontsize=LABEL_SIZE - 2, fontweight="bold")
         if idx % 2 == 0:
-            ax.set_ylabel("DSR (Michelson)", fontsize=LABEL_SIZE - 2, fontweight="bold")
+            ax.set_ylabel("DSR", fontsize=LABEL_SIZE - 2, fontweight="bold")
 
     legend_elements = [
         Patch(
@@ -1499,10 +1500,31 @@ def main() -> int:
         metavar="D",
         help="Keep only rows with transpiled_depth < D (e.g. 1000 for depth < 1k)",
     )
+    parser.add_argument(
+        "--provider",
+        type=str,
+        default=None,
+        choices=["ibm", "aws", "all"],
+        help="Filter by provider: ibm, aws, or all (default: all)",
+    )
     args = parser.parse_args()
 
     _apply_plot_style()
     rows = _load_rows(args.input)
+
+    # Provider filter — match execution_type column
+    if args.provider and args.provider != "all":
+        _PROVIDER_PREFIXES = {
+            "ibm": ("IBM", "SIMULATION", "QBRAID"),
+            "aws": ("AWS",),
+        }
+        prefixes = _PROVIDER_PREFIXES.get(args.provider, ())
+        before = len(rows)
+        rows = [
+            r for r in rows
+            if any(r.get("execution_type", "").startswith(p) for p in prefixes)
+        ]
+        print(f"Filter provider={args.provider}: {before} -> {len(rows)} rows")
 
     # Optional global filters (e.g. for AWS Rigetti: focus on 2q/3q and depth < 1k)
     if args.max_qubits is not None:
@@ -1529,7 +1551,18 @@ def main() -> int:
         print("No algorithms found in input.")
         return 1
 
+    # Per-algorithm plots use IBM-only data (their captions reference IBM
+    # backends).  Combined comparison plots use all rows (their captions
+    # explicitly say "IBM and Rigetti").
+    _IBM_PREFIXES = ("IBM", "SIMULATION", "QBRAID")
+    ibm_rows = [
+        r for r in rows
+        if any(r.get("execution_type", "").startswith(p) for p in _IBM_PREFIXES)
+    ]
+
     print(f"Loaded {len(rows)} rows from {args.input}")
+    print(f"  IBM rows: {len(ibm_rows)}  (used for per-algorithm plots)")
+    print(f"  All rows: {len(rows)}  (used for combined plots)")
     print(f"Algorithms found: {[a for a in algorithms if a]}")
     print()
 
@@ -1539,37 +1572,38 @@ def main() -> int:
 
         # Generate boxplot (primary visualization)
         _plot_algorithm_boxplot(
-            rows,
+            ibm_rows,
             algorithm,
             "num_qubits",
             "Number of Qubits",
             args.out_dir / f"{algorithm.lower()}_dsr_boxplot_qubits.png",
         )
 
-        # Generate line plot with all variants
+        # Generate line plot with all variants (rectangular for column layout)
         _plot_algorithm_line(
-            rows,
+            ibm_rows,
             algorithm,
             "num_qubits",
             "Number of Qubits",
-            args.out_dir / f"{algorithm.lower()}_dsr_variants_qubits.png",
+            args.out_dir / f"1_{algorithm.lower()}_dsr_variants_qubits.png",
+            figsize=(15, 6),
         )
 
         # Generate depth plots if available
         if any(
             _to_float(row.get("transpiled_depth", "")) is not None
-            for row in rows
+            for row in ibm_rows
             if row.get("algorithm") == algorithm
         ):
             _plot_algorithm_boxplot(
-                rows,
+                ibm_rows,
                 algorithm,
                 "transpiled_depth",
                 "Transpiled Depth",
                 args.out_dir / f"{algorithm.lower()}_dsr_boxplot_depth.png",
             )
             _plot_algorithm_line(
-                rows,
+                ibm_rows,
                 algorithm,
                 "transpiled_depth",
                 "Transpiled Depth",
@@ -1578,7 +1612,7 @@ def main() -> int:
 
             # Generate heatmap for Michelson only (our selected metric)
             _plot_algorithm_heatmap(
-                rows,
+                ibm_rows,
                 algorithm,
                 "dsr_michelson",
                 "Michelson",
@@ -1586,8 +1620,8 @@ def main() -> int:
                 use_log_scale=True,
             )
 
-        # Print stats
-        stats = _compute_algorithm_stats(rows, algorithm)
+        # Print stats (IBM only — matches per-algorithm plots)
+        stats = _compute_algorithm_stats(ibm_rows, algorithm)
         algo_count = stats.get("count", 0)
         mismatch_rate = stats.get("peak_mismatch_rate", 0) * 100
         print(f"{algorithm}:")
@@ -1601,21 +1635,25 @@ def main() -> int:
             )
         print()
 
-    # Generate combined comparison plots
+    # Combined comparison plots use ALL rows (IBM + Rigetti)
     _plot_combined_comparison(rows, args.out_dir)
     print("Generated combined comparison plot (boxplots)")
+    _plot_combined_depth_comparison(rows, args.out_dir)
+    print("Generated combined comparison plot (depth)")
+    _plot_qft_heatmap_by_optimization(ibm_rows, args.out_dir)
+    print("Generated QFT heatmap by optimization level")
 
-    # DSR vs Qubits (individual + grid)
-    _plot_combined_regions_by_optimization(rows, args.out_dir)
+    # DSR vs Qubits (individual + grid) — IBM only (optimization-level plots)
+    _plot_combined_regions_by_optimization(ibm_rows, args.out_dir)
     print("Generated DSR region plots by optimization level (qubits)")
 
-    _plot_combined_regions_grid(rows, args.out_dir)
+    _plot_combined_regions_grid(ibm_rows, args.out_dir)
     print("Generated DSR regions 2x2 grid (qubits)")
 
     # DSR vs Circuit Depth (individual + grid)
     # Cap at 2k to keep the region where all three algorithms overlap readable
     _plot_combined_regions_by_optimization(
-        rows,
+        ibm_rows,
         args.out_dir,
         x_key="transpiled_depth",
         x_label="Transpiled Depth",
@@ -1625,7 +1663,7 @@ def main() -> int:
     print("Generated DSR region plots by optimization level (depth < 2k)")
 
     _plot_combined_regions_grid(
-        rows,
+        ibm_rows,
         args.out_dir,
         x_key="transpiled_depth",
         x_label="Transpiled Depth",

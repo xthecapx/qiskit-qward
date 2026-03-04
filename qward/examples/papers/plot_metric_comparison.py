@@ -71,12 +71,25 @@ METRIC_COLORS = {
 # ---------------------------------------------------------------------------
 
 
-def _load_results(directories: List[Path]) -> List[Dict]:
-    """Load individual results from all JSON files in the given directories."""
+def _load_results(directories: List[Path], provider: str = "all") -> List[Dict]:
+    """Load individual results from all JSON files in the given directories.
+
+    Args:
+        directories: List of directories to scan for JSON files.
+        provider: ``"all"`` (default), ``"ibm"``, or ``"aws"``.
+    """
     results = []
     for directory in directories:
         if not directory.exists():
             continue
+
+        # Filter directories by provider
+        dir_name = directory.name.lower()
+        if provider == "ibm" and dir_name not in ("raw",):
+            continue
+        if provider == "aws" and dir_name not in ("aws",):
+            continue
+
         for path in sorted(directory.glob("*.json")):
             try:
                 payload = json.loads(path.read_text())
@@ -172,7 +185,6 @@ def _render_metric_comparison(
     ax,
     qubits: List[int],
     metric_data: Dict[str, Dict[int, List[float]]],
-    algorithm: str,
 ) -> None:
     """Render the three-metric comparison boxplot onto *ax*."""
     if not qubits:
@@ -223,7 +235,6 @@ def _render_metric_comparison(
     # Styling
     ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
     ax.set_ylabel("Score", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_title(algorithm, fontsize=TITLE_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -239,30 +250,35 @@ def _render_metric_comparison(
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
 
-def _plot_algorithm(algorithm: str, directories: List[Path]) -> None:
+def _plot_algorithm(
+    algorithm: str,
+    directories: List[Path],
+    provider: str = "all",
+) -> None:
     """Generate the metric comparison plot for a single algorithm."""
     _apply_plot_style()
 
-    results = _load_results(directories)
+    results = _load_results(directories, provider=provider)
     if not results:
-        print(f"  {algorithm}: no results found, skipping")
+        print(f"  {algorithm} ({provider}): no results found, skipping")
         return
 
     qubits, metric_data = _group_by_qubits(results)
     if not qubits:
-        print(f"  {algorithm}: no qubit data, skipping")
+        print(f"  {algorithm} ({provider}): no qubit data, skipping")
         return
 
     total = sum(len(v) for d in metric_data.values() for v in d.values())
-    print(f"  {algorithm}: {len(results)} results, qubits {min(qubits)}-{max(qubits)}, "
-          f"{total} data points")
+    print(f"  {algorithm} ({provider}): {len(results)} results, "
+          f"qubits {min(qubits)}-{max(qubits)}, {total} data points")
 
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
-    _render_metric_comparison(ax, qubits, metric_data, algorithm)
+    fig, ax = plt.subplots(figsize=(15, 6))
+    _render_metric_comparison(ax, qubits, metric_data)
 
     plt.tight_layout()
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"{algorithm.lower()}_metric_comparison.png"
+    suffix = "" if provider == "all" else f"_{provider}"
+    filename = f"1_{algorithm.lower()}_metric_comparison{suffix}.png"
     fig.savefig(
         PLOTS_DIR / filename, dpi=300, bbox_inches="tight", facecolor="white"
     )
@@ -278,7 +294,9 @@ def _plot_algorithm(algorithm: str, directories: List[Path]) -> None:
 def main():
     print("Generating metric comparison plots...")
     for algorithm, directories in DATASETS.items():
-        _plot_algorithm(algorithm, directories)
+        _plot_algorithm(algorithm, directories, provider="all")
+        _plot_algorithm(algorithm, directories, provider="ibm")
+        _plot_algorithm(algorithm, directories, provider="aws")
     print("Done.")
 
 
