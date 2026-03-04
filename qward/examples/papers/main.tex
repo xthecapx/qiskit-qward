@@ -89,8 +89,7 @@ Bogotá, Colombia \\
 c.marquezb$@$uniandes.edu.co}
 \and
 \IEEEauthorblockN{2\textsuperscript{nd} Daniel Sierra}
-\IEEEauthorblockA{\textit{Electrical Engineering} \\
-\textit{and Computer Science} \\
+\IEEEauthorblockA{\textit{Computer Science} \\
 \textit{The Catholic University of America}\\
 Washington DC, 20064 \\
 sierrasosa$@$cua.edu}
@@ -133,7 +132,7 @@ In this paper, we introduce the differential success rate (DSR), a quantitative 
 
 To characterize the behavior of DSR, we first execute the Grover and quantum Fourier transform algorithms using the AER simulator parameterized with the hardware calibration values reported for QPUs commonly available from major quantum service providers. The DSR metric is then integrated into qWard, a Python-based framework for the analysis of quantum circuits. Finally, we run the corresponding circuits on the physical QPUs \textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_marrakesh} accessed via the IBM Quantum service, as well as on the Rigetti Ankaa-3 device accessed via Amazon Web Services (AWS).
 
-Our experiments demonstrate the usefulness of the DSR metric for improving the interpretability of quantum jobs by defining clear ranges of success for the Grover and QFT algorithms, on two quantum providers (4 different QPUs). Such intervals were determined by systematically scaling and executing the algorithms, computing the DSR, and correlating its values with the corresponding number of qubits and the circuit depth.
+Our experiments demonstrate the usefulness of the DSR metric for improving the interpretability of quantum jobs by defining clear ranges of success for the Grover and QFT algorithms, on two quantum providers (4 different QPUs). Such intervals were determined by systematically scaling and executing the algorithms, computing the DSR, and correlating its values with the corresponding number of qubits and the circuit depth. In addition, we empirically compare DSR against Hellinger fidelity and total variation distance fidelity, showing that the metrics capture complementary aspects of algorithm success.
 
 The remainder of this paper is organized as follows. Section~\ref{sec:background} presents background work. Section~\ref{sec:related-work} reviews related metrics. Section~\ref{sec:measuring-success} introduces the execution model and success criteria, while Section~\ref{sec:dsr} describes the DSR metric. Section~\ref{subsec:experiment} describes the experiment setup, and Section~\ref{sec:results} reports the empirical results. Section~\ref{sec:discussion} discusses the findings, and Section~\ref{sec:conclusion} concludes the paper.
 
@@ -297,8 +296,8 @@ The \emph{normalized margin} variant divides the difference between the two peak
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=\columnwidth]{plots/grover_dsr_variants_qubits.png}
-  \caption{DSR variants for the Grover algorithm as a function of the number of qubits.}
+  \includegraphics[width=\columnwidth]{plots/1_grover_dsr_variants_qubits.png}
+  \caption{DSR variants for the Grover algorithm as a function of the number of qubits (IBM backends).}
   \label{fig:dsr_variants}
 \end{figure}
 
@@ -382,79 +381,117 @@ For the QFT algorithm, the \emph{round-trip scalability} study (SR2--SR10) grows
 
 \subsection{Backends and execution}
 
-The experiment pipeline started by running the configurations on the Qiskit AER simulator to verify the correctness of the code. During the simulation, we found that executing circuits becomes time-consuming (more than one hour) for configurations involving more than 8~qubits. After the simulation, we ran 1\,024 shots per job on two quantum providers and four physical QPUs, \textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_marrakesh}, accessible through the IBM Quantum service, and the Rigetti \textit{Ankaa-3} device, accessible through Amazon Web Services (AWS). On the IBM backends, each configuration was transpiled at four optimization levels (0 to~3). On the Rigetti backend, the circuits were transpiled at optimization level~3 using the default provider settings.
+The experiment pipeline started by running the configurations on the Qiskit AER simulator to verify the correctness of the code. During the simulation, we found that executing circuits becomes time-consuming (more than one hour) for configurations involving more than 8~qubits. After the simulation, we ran 1\,024 shots per job on two quantum providers and four physical QPUs, \textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_marrakesh}, accessible through the IBM Quantum service, and the Rigetti \textit{Ankaa-3} device, accessible through Amazon Web Services (AWS). In IBM backends, each configuration was transpiled at four optimization levels (0 to~3). In the Rigetti backend, the circuits were transpiled at the optimization level~3 using the default provider settings.
 
 \subsection{Variables}
 
-The independent variables of the experiment are the algorithm, the circuit configuration (which determines the target quantum state and the type of experiment), and the quantum backend (for IBM we also vary the optimization level). The dependent variable is the DSR computed from the histogram returned by each job and the target state. In addition, we record several pre-runtime metrics (e.g.\ circuit depth and number of qubits) to track how the DSR degrades for larger configurations of the algorithms.
+The independent variables of the experiment are the algorithm, the circuit configuration (which determines the target quantum state and the type of experiment), and the quantum backend (for IBM, we also vary the optimization level). The dependent variable is the DSR computed from the histogram returned by each job and the target state. In addition, we record several pre-runtime metrics (e.g.\ circuit depth and number of qubits) to track how the DSR degrades for larger configurations of the algorithms.
 
 \section{Results}
 \label{sec:results}
 
-This section reports the empirical findings obtained from 1\,060 QPU executions across Grover, QFT, and teleportation workloads (136, 128, and 796~jobs, respectively). All results use the Michelson formulation of DSR. The analysis examines three dimensions of degradation: qubit scaling, transpiled depth, and transpilation optimization level.
+This section presents the empirical results of 1,060 QPU runs covering jobs based on the Grover, QFT, and vTP algorithms (136, 128, and 796 jobs, respectively). Our analysis covers the DSR degration as a function of qubit count scaling and the circuit depth. We also benchmark DSR against Hellinger and TVD fidelity to highlight how their behaviors complement each other.
 
 \subsection{DSR versus number of qubits}
 
-Figure~\ref{fig:combined_qubits} shows the DSR distribution of each algorithm as a function of the number of qubits, using transpilation optimization level~3.
+Figure~\ref{fig:combined_qubits} shows the DSR distribution of each algorithm as a function of the number of qubits, using the optimization level~3 offered by Qiskit.
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=\columnwidth]{plots/combined_dsr_comparison.png}
-  \caption{DSR (Michelson) versus number of qubits for Grover, QFT, and teleportation at optimization level~3.}
+  \includegraphics[width=\columnwidth]{plots/1_combined_dsr_comparison.png}
+  \caption{DSR versus number of qubits for Grover search, QFT, and vTP at optimization level~3 (IBM and Rigetti backends).}
   \label{fig:combined_qubits}
 \end{figure}
 
-Grover's algorithm achieves a median DSR of~0.89 at 3~qubits, drops to~0.68 at 4~qubits, and falls to zero at 6~qubits and above. This steep degradation reflects the exponential growth of the search space ($2^n$) and the corresponding increase in circuit depth required by the Grover oracle and diffusion operators, which exposes the circuit to accumulating hardware noise. QFT degrades more gradually, maintaining a median DSR above~0.80 up to 5~qubits and still reporting~0.28 at 10~qubits. The slower decay is consistent with the shallower circuit structure of the QFT compared with Grover for equivalent qubit counts. Teleportation remains near zero across all qubit counts (median~$\leq 0.22$), which is expected given that the protocol was designed to evaluate DSR under conditions in which the algorithm does not produce a dominant peak.
+Grover's algorithm achieves a median DSR of~0.89 at 3~qubits, drops to~0.68 at 4~qubits, and falls to zero at 6~qubits. The degradation of DSR in the Grover search reflects the exponential growth of the problem space ($2^n$) and the increase in the depth of the circuit required by the oracle and diffusion operators, increasing the accumulative error due to hardware noise. 
 
-\subsection{DSR versus transpiled depth}
+QFT degrades more slowly than Grover's search, maintaining a median DSR above~0.80 up to 5~qubits and still reporting~0.28 at 10~qubits. The slower decay is consistent with the shallower circuit structure of the QFT compared with Grover for equivalent qubit counts. 
 
-Figure~\ref{fig:combined_depth} presents the DSR distribution grouped by transpiled-depth bins of 200~gates. This plot includes all optimization levels, since depth itself is the independent variable under study and different optimization levels produce different transpiled depths for the same circuit.
+Finally, as reported in our previous study \cite{vTPMarquez_2026}, vTP remains near zero in all qubit counts (median~$\approx 0.22$), being effective only for payloads involving less than two qubits, which is expected given the dependency of CNOT operations when scaling the transported quantum state.
+
+\subsection{DSR versus depth}
+
+Figure~\ref{fig:combined_depth} presents the DSR distribution grouped by circuit depth bins of 200~gates. To define the bins in this plot, we use all optimization levels, because the data for the three algorithms spans a wide range of circuit depths, and the final transpiled circuits change with the optimization. Therefore, to properly capture the DSR degradation, we chose to include all available data.
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=\columnwidth]{plots/combined_dsr_comparison_depth.png}
-  \caption{DSR (Michelson) versus transpiled depth (binned, 200~gates) for Grover, QFT, and teleportation across all optimization levels.}
+  \includegraphics[width=\columnwidth]{plots/1_combined_dsr_comparison_depth.png}
+  \caption{DSR versus depth (binned, 200~gates) for Grover, QFT, and vTP across all optimization levels (IBM and Rigetti backends).}
   \label{fig:combined_depth}
 \end{figure}
 
-For circuits with a transpiled depth below~200, both Grover and QFT exhibit high median DSR values ($0.88$ and~$0.84$, respectively). Beyond 200~gates, both algorithms show a marked decline. QFT drops monotonically, reaching a median of~0.00 in the 400--600 range before a small recovery in the 600--800 range due to a limited number of high-qubit round-trip configurations that retain moderate DSR values. Grover's decline is non-monotonic: the 200--400~bin (median~$0.37$) falls below the 400--600~bin (median~$0.74$). This inversion occurs because the two bins aggregate different circuit configurations. The 200--400~bin includes configurations with four marked states (M4-4), which produce deeper oracle circuits and lower DSR, whereas the 400--600~bin contains single-marked-state scalability configurations (S4-1) that achieve higher DSR despite the greater depth. This observation highlights that transpiled depth alone does not determine DSR; the inherent complexity of the circuit configuration also plays a significant role.
+For circuits with a depth below~200, both Grover and QFT exhibit high median DSR values ($0.88$ and~$0.84$, respectively). For circuit depths exceeding 200 gates, both algorithms exhibit a pronounced degradation in performance. 
+
+The DSR on the QFT algorithm decreases monotonically, reaching 0 in the 400–600 gate interval, followed by a slight recovery in the 600–800 gate interval. The reason for the recovery is associated with the limited number of experiments with a high number of qubits in the round-trip configurations. 
+
+Grover's decline exhibits a non-monotonic pattern. Specifically, the 200--400~bin (median~$0.37$) is lower than the 400--600~bin (median~$0.74$). This inversion occurs because the 200--400 range includes configurations with four marked states (M4-4), producing deeper oracle circuits and lower DSR, whereas the 400--600~bin contains single-marked-state configurations (S4-1) that achieve higher DSR. This observation indicates that the DSR cannot be characterized solely by the circuit depth; rather, the structural complexity of the circuit exerts a significant influence.
 
 \subsection{Effect of optimization level on QFT}
 
-Figure~\ref{fig:qft_heatmap} displays a heatmap of the median QFT DSR as a function of the number of qubits (x-axis) and the transpilation optimization level (y-axis).
+Figure~\ref{fig:qft_heatmap} displays a heatmap of the median DSR of QFT executions as a function of the number of qubits (x-axis) and the optimization level (y-axis).
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=\columnwidth]{plots/combined_dsr_qft_heatmap_optimization.png}
-  \caption{Heatmap of median QFT DSR by number of qubits and optimization level. Darker green indicates higher DSR.}
+  \includegraphics[width=\columnwidth]{plots/1_combined_dsr_qft_heatmap_optimization.png}
+  \caption{Heatmap of median DSR of QFT runs by number of qubits and optimization level (IBM backends). Darker green indicates higher DSR.}
   \label{fig:qft_heatmap}
 \end{figure}
 
-At optimization level~0, the median DSR is already low at 2~qubits ($0.38$) and collapses to near zero by 5--6~qubits, indicating that the unoptimized transpilation introduces sufficient overhead to obscure the expected output even for small circuits. At level~1, the DSR improves substantially (e.g., $0.89$ at 3~qubits), but still degrades to~$0.18$ at 10~qubits. Levels~2 and~3 yield comparable performance, with DSR values above~$0.80$ up to 5~qubits and a gradual decline thereafter. Notably, the difference between levels~2 and~3 is small (e.g., $0.56$ vs.\ $0.51$ at 6~qubits), suggesting that the highest optimization level provides only marginal improvement over level~2 for the QFT workloads evaluated.
+At the optimization level~0, the median DSR is low from 2~qubits ($0.38$) and collapses to near zero by 5--6~qubits. At level~1, the DSR improves substantially (e.g., $0.89$ at 3~qubits), but still degrades to~$0.18$ at 10~qubits. The behavior of levels 0 and 1 of optimization is consistent with the expected error accumulation output degradation. The DSR therefore displays lower values as more operations introduce sufficient error to degrade the expected output.
 
-The heatmap also reveals an anomaly at optimization level~0 for 7--8~qubits, where the median DSR increases to~$0.19$ and~$0.45$, respectively. This pattern is attributable to specific period-detection and round-trip configurations in which the unoptimized circuit happens to preserve the expected output despite its greater depth.
+Levels~2 and~3 exhibit comparable performance, where the DSR values above~$0.80$ up to 5~qubits and a gradual decline afterward. The difference between them is small (e.g. $0.56$ vs. \ $0.51$ at 6~qubits), suggesting that the level~3 of optimization provides only a marginal improvement over the level~2.
+
+The heatmap also reveals an anomaly at the optimization level~0 for 7--8~qubits, where the median DSR increases from $0.19$ to $0.45$. This pattern is attributable to specific period-detection and round-trip configurations in which the unoptimized circuit happens to preserve the expected output despite its greater depth, and to the small sample size at those qubit counts (only 1~job at 7~qubits and 2~jobs at 8~qubits, compared with 8~jobs at 6~qubits).
+
+\subsection{Comparison with other fidelity metrics}
+\label{sec:metric_comparison}
+
+To position DSR with respect to existing fidelity metrics, we computed Hellinger fidelity and TVD fidelity ($1 - \text{TVD}$) for each QPU run. The process required determining the ideal probability distribution using a statevector simulation, which is feasible only for the circuit sizes in our experiment set. Figures~\ref{fig:grover_metric_comparison} and~\ref{fig:grover_metric_comparison_aws} present the three metrics side by side as a function of the number of qubits for Grover on the IBM and Rigetti backends, respectively.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/1_grover_metric_comparison_ibm.png}
+  \caption{DSR, Hellinger fidelity, and TVD fidelity for the Grover algorithm as a function of the number of qubits (IBM backends, optimization levels~2 and~3).}
+  \label{fig:grover_metric_comparison}
+\end{figure}
+
+For Grover on IBM (Figure~\ref{fig:grover_metric_comparison}), all three metrics are tightly clustered at 2--3~qubits, with medians above~$0.84$. At 4~qubits, DSR exhibits a wider interquartile range ($0.55$--$0.77$) than Hellinger ($0.62$--$0.73$) and TVD ($0.48$--$0.59$) fidelities. This larger spread occurs because DSR averages the expected probability across all marked states ($\bar{p}_{\text{exp}}$). In configurations with multiple marked states (e.g., M4-4 with $K=4$), the probability of each individual state is diluted, making it easier for a competing peak to become dominant, while Hellinger and TVD fidelity (comparing full distributions) are less sensitive to the number of target states. At 5~qubits, DSR decreases to a median of~$0.23$, while Hellinger and TVD fidelities drop to~$0.09$ and~$0.08$, respectively. From 6~qubits onward, all three metrics converge to near zero.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/1_grover_metric_comparison_aws.png}
+  \caption{DSR, Hellinger fidelity, and TVD fidelity for the Grover algorithm as a function of the number of qubits (Rigetti Ankaa-3 via AWS).}
+  \label{fig:grover_metric_comparison_aws}
+\end{figure}
+
+For Grover on Rigetti Ankaa-3 (Figure~\ref{fig:grover_metric_comparison_aws}), the three metrics agree at 2~qubits (medians above~$0.90$). However, at 3~qubits DSR collapses to a median of~$0.00$, while Hellinger fidelity retains a median of~$0.25$ and TVD fidelity~$0.20$. The same pattern persists at 4~qubits, where DSR remains at~$0.00$ while Hellinger and TVD report~$0.25$ and~$0.15$, respectively. This discrepancy occurs because the noise level of Ankaa-3 causes the strongest competing peak to match the average probability of the expected state ($\bar{p}_{\text{exp}}$), pushing the DSR to zero. In contrast, Hellinger and TVD fidelity, which evaluate the intersection of the full distribution, still detect partial overlap.
+
+By checking the success score of each metric in both quantum providers (Figures~\ref{fig:grover_metric_comparison} and \ref{fig:grover_metric_comparison_aws}), it is evident that the gate fidelities of Rigetti are lower than those of IBM. In particular, DSR is the first metric to signal complete failure in the noisier backend, confirming its sensitivity to loss of peak distinction. In contrast, Hellinger and TVD fidelity provide a gradual degradation of the signal, which can detect partial algorithm success even when the expected outcome no longer dominates the histogram.
 
 \section{Discussion}
 \label{sec:discussion}
 
-The experimental results demonstrate that DSR effectively captures the degradation of quantum algorithm outputs as circuits scale in both the number of qubits and the transpiled depth. However, several aspects warrant further consideration.
+The experimental results (Section~\ref{sec:results}) demonstrate that DSR effectively characterizes the degradation of quantum algorithm outputs as circuits scale in both qubit count and circuit depth. However, as with other fidelity metrics, there exist limitations and important considerations that must be taken into account when determining the appropriate conditions to use DSR.
 
-\textbf{Applicability.} The DSR is designed for algorithms in which the developer can specify a well-defined set of expected outcomes~$E$. This requirement is naturally satisfied by search algorithms (e.g., Grover), transform-based algorithms (e.g., QFT round-trip and period detection), and state-preparation protocols. However, DSR is not directly applicable to algorithms whose ideal output is a broad probability distribution without a discrete set of dominant states, such as certain variational algorithms where the cost function is evaluated as an expectation value rather than from specific bit-string outcomes. In such cases, distribution-level metrics like Hellinger fidelity or TVD remain more appropriate.
+\textbf{Usability.} The DSR is not intended to replace or compete with existing fidelity metrics, but rather to complement them, with the specific objective of enabling non-experts in QC to determine whether a given quantum algorithm operates as expected.
 
-\textbf{Reporting practice.} We recommend reporting the triple $(\bar{p}_{\text{exp}},\; p_{\text{comp}},\; \mathrm{DSR})$ rather than DSR alone. The individual components provide additional context: a high $\bar{p}_{\text{exp}}$ with a simultaneously high $p_{\text{comp}}$ yields a low DSR, which correctly reflects that the expected outcome does not stand out even though it appears frequently. Conversely, a moderate $\bar{p}_{\text{exp}}$ with a very low $p_{\text{comp}}$ can still yield a high DSR, indicating clear distinction despite low absolute probability.
+\textbf{Applicability.} The DSR is designed for algorithms in which the developer can specify a well-defined set of expected outcomes~$E$. This requirement is satisfied by search algorithms (e.g., Grover), basis transformation algorithms (e.g., QFT), and state-preparation protocols (e.g., vTP). However, DSR is not directly applicable to algorithms whose ideal output is a broad probability distribution without a discrete set of dominant states (e.g., variational algorithms). In such cases, distribution-level metrics, such as Hellinger fidelity or TVD, are more appropriate.
 
-\textbf{Confounding variables.} The depth analysis (Figure~\ref{fig:combined_depth}) revealed that transpiled depth does not fully predict DSR, since different circuit configurations with varying inherent complexity can be mapped to similar depths. This observation suggests that future studies should control for configuration complexity when analyzing depth-dependent trends, for instance, by restricting the analysis to a single family of configurations (e.g., scalability only) or by normalizing depth relative to the number of qubits.
+\textbf{Confounding factors.} The depth analysis (Figure~\ref{fig:combined_depth}) revealed that circuit depth is not a good predictor of DSR, since different circuit configurations can be mapped to similar depths. This observation suggests that developers using DSR should take into account the configuration complexity of the circuits when creating the analyses---for instance, by restricting the analysis to a single family of configurations (e.g., scalability only) or by normalizing depth relative to the number of qubits.
 
-\textbf{Validity considerations.} Three factors affect the validity of the reported DSR values. First, shot noise introduces variance: with 1\,024~shots per job, the estimated probabilities $p_x$ carry sampling uncertainty that propagates into DSR. Increasing the shot count would reduce this variance. Second, the correctness of the expected set~$E$ is critical. If the developer specifies an incorrect~$E$, the DSR will not reflect the true algorithm success. Third, backend calibration drift between jobs may introduce variability that is not attributable to the algorithm or circuit but to hardware fluctuations.
+\textbf{Validity considerations.} There are three main factors that directly affect DSR values. First, a reduced number of shots, particularly when acquired with noisy hardware, introduces sampling uncertainty that propagates into the DSR value. Second, the correctness of the target quantum states~$E$ is essential for an
+accurate evaluation. Third, backend calibration drift between jobs may introduce variability not attributable to the algorithm but to hardware fluctuations.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper introduced the Differential Success Rate (DSR), a distribution-aware metric for validating quantum algorithm outputs. The DSR quantifies how clearly a set of expected outcomes stands out in the histogram returned by a quantum job, using the Michelson contrast formulation to provide a bounded, scale-invariant score in $[0, 1]$. Among the four candidate formulations evaluated (Michelson, ratio, log-ratio, and normalized margin), the Michelson variant was selected for its wider dynamic range and its sensitivity to early performance degradation.
+In this paper, we introduce the Differential Success Rate (DSR), a fidelity metric designed to validate the outputs of quantum algorithms. The DSR quantifies how distinctly a predefined set of expected outcomes stands out within the measurement histogram of a quantum job. To this end, the DSR adopts the Michelson contrast formulation to create a scale-invariant score within the interval $[0, 1]$, providing insight into whether a given quantum algorithm performs as expected.
 
-We evaluated the DSR on 1\,060 quantum processing unit executions spanning three algorithms (Grover, QFT, and teleportation) across four QPUs from two providers (IBM Quantum and Rigetti via AWS). The results show that DSR consistently captures the expected degradation pattern: high values ($>0.80$) for small, well-optimized circuits and a progressive decline as the number of qubits or transpiled depth increases. Additionally, the QFT optimization-level analysis demonstrates that transpilation quality has a measurable impact on DSR, with optimization level~0 producing near-zero DSR even for small circuits.
+In the initial part of this study, four different formulations are evaluated to identify the one that best captures the performance degradation across quantum executions. The Michelson formulation is compared with the ratio, logarithmic ratio, and normalized margin methods and ultimately demonstrates superior performance, due to its wider dynamic range and its sensitivity to early performance degradation.
 
-As future work, we plan to integrate DSR into automated benchmarking pipelines to provide continuous monitoring of algorithm performance across hardware updates. We also intend to extend the evaluation to additional algorithms (e.g., QAOA, VQE) and to explore how error mitigation techniques affect the DSR scores. Finally, we aim to investigate the relationship between DSR and existing hardware fidelity metrics to determine whether DSR can serve as a lightweight proxy for circuit-level quality assessment.
+To empirically evaluate the capabilities of DSR, we execute DSR on 1,060 quantum jobs on two distinct quantum service providers (IBM Quantum and Rigetti via Amazon Web Services). These experiments include Grover’s search, the Quantum Fourier Transform, and the variation of the teleportation protocol, and are executed on four quantum processing units. The results indicate that DSR accurately captures the degradation in performance, showing scores above~$0.80$ for small circuits, and progressively decreases as the quantum operations present in the algorithm increase. Additionally, we characterize the effect of optimization level by analyzing the mean DSR as a function of qubit count and optimization level. Finally, we compare the DSR with the Hellinger fidelity and the TVD fidelity, revealing that DSR is the first metric to signal complete algorithm failure on noisier hardware, while Hellinger and TVD fidelity provide a more gradual degradation.
+
+In future work, we plan to create automated benchmarking pipelines for continuous monitoring of algorithm performance on different quantum providers and to generate a dashboard to visualize the performance history. We also intend to train neural networks to predict DSR values. Finally, we plan to benchmark the hardware-level gate fidelities with the DSR values to determine whether DSR can serve as a lightweight proxy for circuit-level quality characterization.
 
 \bibliographystyle{IEEEtran}
 \bibliography{Bibliography}
