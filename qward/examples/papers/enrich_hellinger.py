@@ -78,15 +78,11 @@ def _build_qft_circuit(config: Dict):
 
     if test_mode == "roundtrip":
         input_state = config.get("input_state", "0" * num_qubits)
-        gen = QFTCircuitGenerator(
-            num_qubits, test_mode="roundtrip", input_state=input_state
-        )
+        gen = QFTCircuitGenerator(num_qubits, test_mode="roundtrip", input_state=input_state)
         return gen.circuit, None
     elif test_mode == "period_detection":
         period = config["period"]
-        gen = QFTCircuitGenerator(
-            num_qubits, test_mode="period_detection", period=period
-        )
+        gen = QFTCircuitGenerator(num_qubits, test_mode="period_detection", period=period)
         # Period detection has an ancilla at qubit 0; measurements are on
         # qubits 1..num_qubits mapped to classical bits 0..num_qubits-1.
         measured_qubits = list(range(1, num_qubits + 1))
@@ -133,7 +129,7 @@ def _expected_outcomes_qft(config: Dict) -> List[str]:
     if test_mode == "period_detection":
         period = config["period"]
         n = num_qubits
-        size = 2 ** n
+        size = 2**n
         outcomes = []
         seen = set()
         for k in range(period):
@@ -152,9 +148,7 @@ def _expected_outcomes_qft(config: Dict) -> List[str]:
 # ---------------------------------------------------------------------------
 
 
-def _marginalize_counts(
-    counts: Dict[str, int], ideal_probs: Dict[str, float]
-) -> Dict[str, int]:
+def _marginalize_counts(counts: Dict[str, int], ideal_probs: Dict[str, float]) -> Dict[str, int]:
     """Marginalize counts to match ideal_probs bitstring length.
 
     When QPU counts include ancilla qubits (e.g. AWS Braket measures all
@@ -178,7 +172,7 @@ def _marginalize_counts(
     drop = count_len - ideal_len
     marginal: Counter = Counter()
     for bitstr, cnt in counts.items():
-        marginal[bitstr[:count_len - drop]] += cnt
+        marginal[bitstr[: count_len - drop]] += cnt
     return dict(marginal)
 
 
@@ -190,9 +184,7 @@ def _normalize_counts(counts: Dict[str, int]) -> Dict[str, float]:
     return {k: v / total for k, v in counts.items()}
 
 
-def _total_variation_distance(
-    p: Dict[str, float], q: Dict[str, float]
-) -> float:
+def _total_variation_distance(p: Dict[str, float], q: Dict[str, float]) -> float:
     """Compute the Total Variation Distance between two distributions.
 
     TVD = 0.5 * sum_i |p_i - q_i|   over the union of all outcomes.
@@ -240,9 +232,7 @@ def _enrich_file(
 
     # Idempotency: skip if already fully enriched (unless forced)
     if not force:
-        first_with_counts = next(
-            (r for r in results if r.get("counts")), None
-        )
+        first_with_counts = next((r for r in results if r.get("counts")), None)
         if (
             first_with_counts
             and "hellinger_fidelity" in first_with_counts
@@ -347,9 +337,7 @@ def _enrich_file(
         batch["mean_dsr_michelson"] = sum(dsr_michelson_vals) / len(dsr_michelson_vals)
         batch["mean_dsr_ratio"] = sum(dsr_ratio_vals) / len(dsr_ratio_vals)
         batch["mean_dsr_log_ratio"] = sum(dsr_log_ratio_vals) / len(dsr_log_ratio_vals)
-        batch["mean_dsr_normalized_margin"] = (
-            sum(dsr_norm_margin_vals) / len(dsr_norm_margin_vals)
-        )
+        batch["mean_dsr_normalized_margin"] = sum(dsr_norm_margin_vals) / len(dsr_norm_margin_vals)
 
     payload["batch_summary"] = batch
 
@@ -370,8 +358,11 @@ def _enrich_file(
 
 
 def _run_dataset(
-    name: str, directory: Path, algorithm: str,
-    dry_run: bool = False, force: bool = False,
+    name: str,
+    directory: Path,
+    algorithm: str,
+    dry_run: bool = False,
+    force: bool = False,
 ):
     """Process all JSON files in a dataset directory."""
     if not directory.exists():
