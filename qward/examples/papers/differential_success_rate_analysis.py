@@ -777,14 +777,14 @@ def _plot_algorithm_heatmap(
 # These match the ranges shown in the individual per-algorithm boxplots
 # and are intentionally different from the AWS-specific constants above.
 _COMBINED_MAX_QUBITS = {
-    "GROVER": None,       # show all (2-8 in IBM data)
-    "QFT": None,          # show all (2-10 in IBM data)
+    "GROVER": None,  # show all (2-8 in IBM data)
+    "QFT": None,  # show all (2-10 in IBM data)
     "TELEPORTATION": TELEPORTATION_MAX_QUBITS,  # 3
 }
 _COMBINED_MAX_DEPTH = {
-    "GROVER": GROVER_MAX_DEPTH,                 # 5000
-    "QFT": QFT_MAX_DEPTH,                       # None
-    "TELEPORTATION": TELEPORTATION_MAX_DEPTH,    # 1000
+    "GROVER": GROVER_MAX_DEPTH,  # 5000
+    "QFT": QFT_MAX_DEPTH,  # None
+    "TELEPORTATION": TELEPORTATION_MAX_DEPTH,  # 1000
 }
 
 
@@ -817,8 +817,7 @@ def _prepare_combined_data(
             has_opt = any(r.get("optimization_level", "") != "" for r in algo_rows)
             if has_opt:
                 algo_rows = [
-                    r for r in algo_rows
-                    if r.get("optimization_level", "") == optimization_level
+                    r for r in algo_rows if r.get("optimization_level", "") == optimization_level
                 ]
         # Apply depth filter
         max_depth = _COMBINED_MAX_DEPTH.get(algo)
@@ -944,7 +943,10 @@ def _plot_combined_comparison(
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        output_dir / "1_combined_dsr_comparison.png", dpi=300, bbox_inches="tight", facecolor="white"
+        output_dir / "1_combined_dsr_comparison.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
     )
     plt.close(fig)
 
@@ -965,9 +967,7 @@ def _plot_combined_depth_comparison(
     the same circuit).  Uses 200-unit bins capped at 800 for readability.
     """
     # Use optimization_level=None to include all levels
-    algorithms, _qubits, filtered_data = _prepare_combined_data(
-        rows, optimization_level=None
-    )
+    algorithms, _qubits, filtered_data = _prepare_combined_data(rows, optimization_level=None)
 
     # Bin depths and collect DSR values per (algo, bin_start)
     bin_sz = _COMBINED_DEPTH_BIN
@@ -1092,9 +1092,7 @@ def _plot_qft_heatmap_by_optimization(
     grouped_all: Dict[str, Dict[float, List[float]]] = {}
     all_xs: set = set()
     for ol in opt_levels:
-        opt_rows = [
-            r for r in qft_rows if r.get("optimization_level", "") == ol
-        ]
+        opt_rows = [r for r in qft_rows if r.get("optimization_level", "") == ol]
         grouped: Dict[float, List[float]] = {}
         for r in opt_rows:
             x = _to_float(r.get("num_qubits", ""))
@@ -1131,9 +1129,14 @@ def _plot_qft_heatmap_by_optimization(
             if not np.isnan(val):
                 text_color = "white" if val < 0.35 else "black"
                 ax.text(
-                    j, i, f"{val:.2f}",
-                    ha="center", va="center",
-                    fontsize=LABEL_SIZE - 2, fontweight="bold", color=text_color,
+                    j,
+                    i,
+                    f"{val:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=LABEL_SIZE - 2,
+                    fontweight="bold",
+                    color=text_color,
                 )
 
     ax.set_xticks(range(len(full_range)))
@@ -1520,10 +1523,7 @@ def main() -> int:
         }
         prefixes = _PROVIDER_PREFIXES.get(args.provider, ())
         before = len(rows)
-        rows = [
-            r for r in rows
-            if any(r.get("execution_type", "").startswith(p) for p in prefixes)
-        ]
+        rows = [r for r in rows if any(r.get("execution_type", "").startswith(p) for p in prefixes)]
         print(f"Filter provider={args.provider}: {before} -> {len(rows)} rows")
 
     # Optional global filters (e.g. for AWS Rigetti: focus on 2q/3q and depth < 1k)
@@ -1556,8 +1556,7 @@ def main() -> int:
     # explicitly say "IBM and Rigetti").
     _IBM_PREFIXES = ("IBM", "SIMULATION", "QBRAID")
     ibm_rows = [
-        r for r in rows
-        if any(r.get("execution_type", "").startswith(p) for p in _IBM_PREFIXES)
+        r for r in rows if any(r.get("execution_type", "").startswith(p) for p in _IBM_PREFIXES)
     ]
 
     print(f"Loaded {len(rows)} rows from {args.input}")
