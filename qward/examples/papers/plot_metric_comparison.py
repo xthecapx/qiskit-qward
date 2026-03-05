@@ -61,9 +61,9 @@ METRICS = [
 ]
 
 METRIC_COLORS = {
-    "dsr_michelson": COLORBREWER_PALETTE[1],       # Teal
-    "hellinger_fidelity": COLORBREWER_PALETTE[2],   # Orange
-    "tvd_fidelity": COLORBREWER_PALETTE[3],         # Purple
+    "dsr_michelson": COLORBREWER_PALETTE[1],  # Teal
+    "hellinger_fidelity": COLORBREWER_PALETTE[2],  # Orange
+    "tvd_fidelity": COLORBREWER_PALETTE[3],  # Purple
 }
 
 # ---------------------------------------------------------------------------
@@ -109,13 +109,15 @@ def _load_results(directories: List[Path], provider: str = "all") -> List[Dict]:
                 ):
                     continue
 
-                results.append({
-                    "num_qubits": result.get("num_qubits", config.get("num_qubits")),
-                    "optimization_level": result.get("optimization_level"),
-                    "dsr_michelson": result["dsr_michelson"],
-                    "hellinger_fidelity": result["hellinger_fidelity"],
-                    "tvd_fidelity": result["tvd_fidelity"],
-                })
+                results.append(
+                    {
+                        "num_qubits": result.get("num_qubits", config.get("num_qubits")),
+                        "optimization_level": result.get("optimization_level"),
+                        "dsr_michelson": result["dsr_michelson"],
+                        "hellinger_fidelity": result["hellinger_fidelity"],
+                        "tvd_fidelity": result["tvd_fidelity"],
+                    }
+                )
     return results
 
 
@@ -133,9 +135,7 @@ def _group_by_qubits(
         (sorted_qubits, metric_data) where metric_data maps
         metric_key -> {num_qubits: [values]}
     """
-    metric_data: Dict[str, Dict[int, List[float]]] = {
-        key: defaultdict(list) for key, _ in METRICS
-    }
+    metric_data: Dict[str, Dict[int, List[float]]] = {key: defaultdict(list) for key, _ in METRICS}
     all_qubits: set = set()
 
     for r in results:
@@ -164,21 +164,23 @@ def _group_by_qubits(
 
 
 def _apply_plot_style():
-    plt.rcParams.update({
-        "font.size": TICK_SIZE,
-        "axes.titlesize": TITLE_SIZE,
-        "axes.labelsize": LABEL_SIZE,
-        "xtick.labelsize": TICK_SIZE,
-        "ytick.labelsize": TICK_SIZE,
-        "legend.fontsize": LEGEND_SIZE,
-        "figure.titlesize": TITLE_SIZE,
-        "axes.linewidth": 1.5,
-        "axes.grid": True,
-        "grid.alpha": 0.7,
-        "grid.linestyle": "--",
-        "lines.linewidth": 3,
-        "lines.markersize": 12,
-    })
+    plt.rcParams.update(
+        {
+            "font.size": TICK_SIZE,
+            "axes.titlesize": TITLE_SIZE,
+            "axes.labelsize": LABEL_SIZE,
+            "xtick.labelsize": TICK_SIZE,
+            "ytick.labelsize": TICK_SIZE,
+            "legend.fontsize": LEGEND_SIZE,
+            "figure.titlesize": TITLE_SIZE,
+            "axes.linewidth": 1.5,
+            "axes.grid": True,
+            "grid.alpha": 0.7,
+            "grid.linestyle": "--",
+            "lines.linewidth": 3,
+            "lines.markersize": 12,
+        }
+    )
 
 
 def _render_metric_comparison(
@@ -244,8 +246,7 @@ def _render_metric_comparison(
 
     # Legend
     legend_elements = [
-        Patch(facecolor=METRIC_COLORS[key], alpha=0.7, label=label)
-        for key, label in METRICS
+        Patch(facecolor=METRIC_COLORS[key], alpha=0.7, label=label) for key, label in METRICS
     ]
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
@@ -269,8 +270,10 @@ def _plot_algorithm(
         return
 
     total = sum(len(v) for d in metric_data.values() for v in d.values())
-    print(f"  {algorithm} ({provider}): {len(results)} results, "
-          f"qubits {min(qubits)}-{max(qubits)}, {total} data points")
+    print(
+        f"  {algorithm} ({provider}): {len(results)} results, "
+        f"qubits {min(qubits)}-{max(qubits)}, {total} data points"
+    )
 
     fig, ax = plt.subplots(figsize=(15, 6))
     _render_metric_comparison(ax, qubits, metric_data)
@@ -279,9 +282,7 @@ def _plot_algorithm(
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
     suffix = "" if provider == "all" else f"_{provider}"
     filename = f"1_{algorithm.lower()}_metric_comparison{suffix}.png"
-    fig.savefig(
-        PLOTS_DIR / filename, dpi=300, bbox_inches="tight", facecolor="white"
-    )
+    fig.savefig(PLOTS_DIR / filename, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  Saved: {PLOTS_DIR / filename}")
 

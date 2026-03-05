@@ -512,11 +512,14 @@ def list_aws_braket_devices(region: Optional[str] = None) -> None:
     try:
         from qiskit_braket_provider import BraketProvider
     except ImportError:
-        print("qiskit-braket-provider is not installed. Install with: pip install qiskit-braket-provider")
+        print(
+            "qiskit-braket-provider is not installed. Install with: pip install qiskit-braket-provider"
+        )
         return
 
     if region:
         import os
+
         os.environ["AWS_DEFAULT_REGION"] = region
 
     try:

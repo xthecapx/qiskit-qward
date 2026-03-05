@@ -7,7 +7,8 @@ pre-computed metrics (DSR variants, Hellinger fidelity, TVD) are read
 directly from the enriched individual_results.
 
 Teleportation data lives in CSV files (different schema, no JSON equivalent).
-DSR is computed on the fly; Hellinger/TVD columns are left empty.
+DSR is computed on the fly; Hellinger/TVD are computed from the delta ideal
+distribution (the single expected state), so HF = TVD-F = p(expected_state).
 
 This script replaces running ``differential_success_rate_experiment.py``
 manually and supersedes the old two-CSV setup (DSR_result.csv +
@@ -91,9 +92,7 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
         config = payload.get("config", {})
         algorithm = payload.get("algorithm", "unknown")
         execution_type = payload.get("execution_type", "")
-        root_backend = payload.get(
-            "backend_name", payload.get("device_name", "")
-        )
+        root_backend = payload.get("backend_name", payload.get("device_name", ""))
         root_config_id = payload.get("config_id", "")
 
         for result in payload.get("individual_results", []):
@@ -115,25 +114,13 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
             row = {
                 "algorithm": str(algorithm),
                 "execution_type": str(execution_type),
-                "backend_name": str(
-                    result.get("backend_name", root_backend)
-                ),
+                "backend_name": str(result.get("backend_name", root_backend)),
                 "backend_type": str(result.get("backend_type", "")),
-                "noise_model": str(
-                    result.get("noise_model", payload.get("noise_id", ""))
-                ),
-                "config_id": str(
-                    result.get("config_id", root_config_id)
-                ),
-                "result_id": str(
-                    result.get("experiment_id", result.get("job_id", ""))
-                ),
-                "optimization_level": str(
-                    result.get("optimization_level", "")
-                ),
-                "num_qubits": str(
-                    result.get("num_qubits", config.get("num_qubits", ""))
-                ),
+                "noise_model": str(result.get("noise_model", payload.get("noise_id", ""))),
+                "config_id": str(result.get("config_id", root_config_id)),
+                "result_id": str(result.get("experiment_id", result.get("job_id", ""))),
+                "optimization_level": str(result.get("optimization_level", "")),
+                "num_qubits": str(result.get("num_qubits", config.get("num_qubits", ""))),
                 "circuit_depth": str(result.get("circuit_depth", "")),
                 "transpiled_depth": str(result.get("transpiled_depth", "")),
                 "total_gates": str(result.get("total_gates", "")),
@@ -144,15 +131,9 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
                 "dsr_michelson": _fmt(result.get("dsr_michelson")),
                 "dsr_ratio": _fmt(result.get("dsr_ratio")),
                 "dsr_log_ratio": _fmt(result.get("dsr_log_ratio")),
-                "dsr_normalized_margin": _fmt(
-                    result.get("dsr_normalized_margin")
-                ),
-                "hellinger_fidelity": _fmt(
-                    result.get("hellinger_fidelity")
-                ),
-                "hellinger_distance": _fmt(
-                    result.get("hellinger_distance")
-                ),
+                "dsr_normalized_margin": _fmt(result.get("dsr_normalized_margin")),
+                "hellinger_fidelity": _fmt(result.get("hellinger_fidelity")),
+                "hellinger_distance": _fmt(result.get("hellinger_distance")),
                 "tvd": _fmt(result.get("tvd")),
                 "tvd_fidelity": _fmt(result.get("tvd_fidelity")),
                 "source_file": path.name,
@@ -186,15 +167,75 @@ def _collect_json_paths() -> List[Path]:
 # ── Teleportation (CSV) ──────────────────────────────────────────────────────
 
 
-def _teleportation_rows_with_empty_fidelity(
+def _compute_teleportation_fidelity(row: Dict[str, str]) -> None:
+    """Compute Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity
+    for a teleportation row.
+
+    For teleportation the ideal output is a single deterministic state
+    (e.g. '000'), so the ideal distribution is a delta function. Under a delta
+    ideal: HF = TVD-F = p(expected_state).
+
+    Wide histograms (keys longer than num_qubits, caused by full-circuit
+    measurement on AWS) are marginalized to the last *num_qubits* bits before
+    computing the metrics.
+    """
+    import math
+
+    histogram_str = row.get("histogram", "")
+    expected_str = row.get("expected_outcomes", "")
+    nq_str = row.get("num_qubits", "")
+    if not histogram_str or not expected_str or not nq_str:
+        return
+
+    hist: Dict[str, int] = json.loads(histogram_str)
+    total = sum(hist.values())
+    if total == 0:
+        return
+
+    nq = int(nq_str)
+    expected_state = expected_str.strip()
+
+    # Marginalize wide histograms to payload qubits (last nq bits)
+    key_len = len(next(iter(hist)))
+    if key_len > nq:
+        from collections import Counter
+
+        marginal: Counter = Counter()
+        for k, v in hist.items():
+            marginal[k[-nq:]] += v
+        hist = dict(marginal)
+
+    # Build distributions over the full nq-bit state space
+    all_states = [format(i, f"0{nq}b") for i in range(2**nq)]
+    obs = {s: hist.get(s, 0) / total for s in all_states}
+    # Delta ideal: P(expected_state) = 1, all others = 0
+    ideal = {s: (1.0 if s == expected_state else 0.0) for s in all_states}
+
+    # Hellinger: BC = sum sqrt(p_i * q_i); HF = BC^2; HD = sqrt(1 - BC)
+    bc = sum(math.sqrt(obs[s] * ideal[s]) for s in all_states)
+    hf = bc**2
+    hd = math.sqrt(max(1.0 - bc, 0.0))
+
+    # TVD = 0.5 * sum |p_i - q_i|; TVD-F = 1 - TVD
+    tvd = 0.5 * sum(abs(obs[s] - ideal[s]) for s in all_states)
+    tvd_fid = 1.0 - tvd
+
+    row["hellinger_fidelity"] = _fmt(hf)
+    row["hellinger_distance"] = _fmt(hd)
+    row["tvd"] = _fmt(tvd)
+    row["tvd_fidelity"] = _fmt(tvd_fid)
+
+
+def _teleportation_rows_with_fidelity(
     teleportation_dir: Path,
 ) -> List[Dict[str, str]]:
-    """Compute teleportation DSR rows and pad with empty Hellinger/TVD columns."""
+    """Compute teleportation DSR rows and add Hellinger/TVD fidelity columns."""
     csv_paths = _collect_teleportation_paths(teleportation_dir)
     rows = _compute_teleportation_dsr_rows(csv_paths)
 
-    # Add empty columns that only Grover/QFT have
     for row in rows:
+        _compute_teleportation_fidelity(row)
+        # Ensure columns exist even if computation failed
         row.setdefault("hellinger_fidelity", "")
         row.setdefault("hellinger_distance", "")
         row.setdefault("tvd", "")
@@ -213,9 +254,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Build unified DSR_result.csv from JSON + teleportation CSV."
     )
-    parser.add_argument(
-        "--teleportation-dir", type=Path, default=default_teleportation
-    )
+    parser.add_argument("--teleportation-dir", type=Path, default=default_teleportation)
     parser.add_argument("--output", type=Path, default=default_output)
     args = parser.parse_args()
 
@@ -227,7 +266,7 @@ def main() -> int:
     qft_count = sum(1 for r in json_rows if r["algorithm"] == "QFT")
 
     # ── Teleportation (CSV) ──
-    tp_rows = _teleportation_rows_with_empty_fidelity(args.teleportation_dir)
+    tp_rows = _teleportation_rows_with_fidelity(args.teleportation_dir)
 
     # ── Merge and write ──
     all_rows = json_rows + tp_rows
