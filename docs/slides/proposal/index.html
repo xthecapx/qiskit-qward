@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Toward Quality-Aware Quantum Software Through Pre-runtime Structural Analysis</title>
+		<meta name="description" content="PhD Thesis Proposal - Cristian Marquez">
+		<meta name="author" content="Cristian Marquez">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/serif.css" id="theme">
+		<link rel="stylesheet" href="theme.css">
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<!-- ============================================================ -->
+				<!-- SECTION 1: TITLE & WHAT IS QC                                -->
+				<!-- ============================================================ -->
+
+				<!-- TITLE -->
+				<section class="title-slide">
+					<h3>Toward Quality-Aware Quantum Software Through Pre-runtime Structural Analysis</h3>
+					<p style="font-size:0.55em;" class="text-muted">PhD Thesis Proposal</p>
+					<hr style="width:40%; margin:0.5em auto;">
+					<div style="font-size:0.55em;">
+						<strong>Cristian Marquez</strong><br>
+						<span class="text-muted">Advisor: Kelly Garces &mdash; Universidad de los Andes</span><br>
+						<span class="text-muted">Co-Advisor: Daniel Sierra &mdash; The Catholic University of America</span><br>
+						<span class="text-muted">March 2026</span>
+					</div>
+				</section>
+
+				<!-- AGENDA -->
+				<section>
+					<h3>Agenda</h3>
+					<div class="slide-content">
+						<ol style="font-size:0.65em;">
+							<li>What is Quantum Computing?</li>
+							<li>&rho;'s Story &mdash; A Quantum Developer's Journey</li>
+							<li>Quality in Quantum Software</li>
+							<li>Related Work</li>
+							<li>Problem Statement &amp; Hypotheses</li>
+							<li>Methodology</li>
+							<li>Foundational Studies (Phases 1&ndash;4)</li>
+							<li>Proposed Framework (Phases 5&ndash;8)</li>
+							<li>Contributions &amp; Timeline</li>
+						</ol>
+					</div>
+				</section>
+
+				<!-- WHAT IS QC -->
+				<section>
+					<h3>What is Quantum Computing?</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Quantum Properties</strong></div>
+									<div class="card-body">
+										<table class="table table-sm mb-0" style="font-size:1em; width:100%;">
+											<tbody>
+												<tr>
+													<td style="font-weight:bold; vertical-align:top; width:32%;">Superposition</td>
+													<td>Qubits exist in multiple states simultaneously.</td>
+												</tr>
+												<tr>
+													<td style="font-weight:bold; vertical-align:top;">Entanglement</td>
+													<td>Correlated qubits with no classical analogue.</td>
+												</tr>
+												<tr>
+													<td style="font-weight:bold; vertical-align:top;">Interference</td>
+													<td>Amplifies correct answers, cancels wrong ones.</td>
+												</tr>
+												<tr>
+													<td style="font-weight:bold; vertical-align:top;">Decoherence</td>
+													<td>Loss of information due to interactions with the environment.</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Beyond Classical</strong></div>
+									<div class="card-body">
+										<ul style="margin-bottom:0; text-align:left;">
+											<li>Solves problems <strong>infeasible</strong> for classical systems</li>
+											<li>Cryptography, optimization, molecular simulation</li>
+											<li>Software ecosystem: Qiskit, Q#, Cirq, PennyLane</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card mt-3" style="max-width:85%; margin:0 auto;">
+							<div class="card-body text-center" style="font-size:0.55em;">
+								<strong>Substantial investment</strong> from governments and industry (Gartner, McKinsey)
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 2: RHO'S STORY                                       -->
+				<!-- ============================================================ -->
+
+				<!-- MEET RHO -->
+				<section class="rho-divider">
+					<h3 style="color:#6366f1; font-size:1.4em;">Meet &rho;</h3>
+					<img src="img/pet_fullbody.png" alt="Rho — a quantum developer" style="max-height:50vh; margin:0.5em auto;">
+					<p style="font-size:0.55em; max-width:70%; margin:0 auto; text-align:center;">
+						<em>&rho;</em> is a developer. Like the density matrix she's named after, she <strong>evolves</strong> through quantum operations &mdash; and today she has a problem to solve.
+					</p>
+				</section>
+
+				<!-- RHO DESIGNS A CIRCUIT -->
+				<section class="rho-story">
+					<div class="rho-title">
+						<img src="img/pet_women.png" alt="ρ" class="rho-avatar">
+						<h3>designs a circuit</h3>
+					</div>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header"><strong>1. Design</strong></div>
+									<div class="card-body">Quantum algorithm<br>as a circuit</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header"><strong>2. Transpile</strong></div>
+									<div class="card-body">Map to hardware<br>native gates</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header"><strong>3. Execute</strong></div>
+									<div class="card-body">Send job to QPU<br>run many shots</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header"><strong>4. Measure</strong></div>
+									<div class="card-body">Collapse state<br>read results</div>
+								</div>
+							</div>
+						</div>
+						<p style="font-size:0.5em; margin-top:1em; text-align:center;" class="text-muted">
+							Each execution is a <strong>job</strong>. Multiple repetitions are <strong>shots</strong>. Multiple jobs form a <strong>batch</strong>.
+						</p>
+					</div>
+				</section>
+
+				<!-- THE COMMUNICATION PROBLEM -->
+				<section class="rho-story">
+					<div class="rho-title" style="flex-direction:row-reverse;">
+						<img src="img/pet_man.png" alt="ρ" class="rho-avatar">
+						<h3>faces a communication problem</h3>
+					</div>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-5">
+								<div class="card h-100">
+									<div class="card-header"><strong>The Challenge</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<ul style="margin-bottom:0;">
+											<li>Classical: just <strong>copy</strong> the bits</li>
+											<li>Quantum: <strong>no-cloning theorem</strong> &mdash; cannot copy an unknown quantum state</li>
+											<li>Solution: <strong>Quantum Teleportation</strong></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="col-7 text-center d-flex align-items-center justify-content-center">
+								<img src="img/pet_entanglement.png" alt="Entanglement" style="max-height:40vh;">
+							</div>
+						</div>
+						<p style="font-size:0.5em; margin-top:0.5em; text-align:center;">
+							&rho; needs to <strong>transfer information</strong> between nodes &mdash; her taks is to experiment with quantum to see if it can be used to solve her problem.
+						</p>
+					</div>
+				</section>
+
+				<!-- vTP: TELEPORTATION ON A SINGLE QPU -->
+				<section class="rho-story">
+					<div class="rho-title">
+						<img src="img/pet_women.png" alt="ρ" class="rho-avatar">
+						<h3>discovers vTP</h3>
+					</div>
+					<div class="slide-content">
+						<img src="img/vTP_rho.png" alt="vTP Protocol" style="max-width:90%; margin:0 auto; display:block;" class="mb-4">
+						<div class="row mt-2" style="font-size:0.5em;">
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Payload</strong></div>
+									<div class="card-body">Random quantum state<br>with entangled qubits</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Bridge</strong></div>
+									<div class="card-body">Teleportation protocol<br>transfers information</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Payload*</strong></div>
+									<div class="card-body">Inverse operations<br>$PP^{*} = I$ &rarr; verification</div>
+								</div>
+							</div>
+						</div>
+						<p style="font-size:0.45em; margin-top:0.5em; text-align:center;" class="text-muted">
+							Simulates teleportation <strong>within a single QPU</strong>. No extra quantum operations needed. Future: multi-QPU when technology allows.
+						</p>
+					</div>
+				</section>
+
+				<!-- RHO RUNS THE EXPERIMENT -->
+				<section class="rho-story">
+					<div class="rho-title" style="flex-direction:row-reverse;">
+						<img src="img/pet_man.png" alt="ρ" class="rho-avatar">
+						<h3>runs the experiment</h3>
+					</div>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Unpredictable</strong></div>
+									<div class="card-body">Quantum mechanics<br>Stochastic output</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Noisy</strong></div>
+									<div class="card-body">NISQ hardware errors<br>Many shots needed</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Expensive</strong></div>
+									<div class="card-body">See budget below<br>Each execution costs</div>
+								</div>
+							</div>
+						</div>
+						<div class="card mt-2" style="font-size:0.55em;">
+							<div class="card-header"><strong>Execution Budget: What Does It Cost?</strong></div>
+							<div class="card-body">
+								<table style="font-size:0.85em;">
+									<thead>
+										<tr><th>Provider</th><th>QPU</th><th>Per-shot</th><th>1,000 jobs</th></tr>
+									</thead>
+									<tbody>
+										<tr><td>Rigetti</td><td>Ankaa</td><td>$0.00090</td><td><strong>$530</strong></td></tr>
+										<tr><td>IQM</td><td>Garnet</td><td>$0.00145</td><td><strong>$670</strong></td></tr>
+										<tr><td>QuEra</td><td>Aquila</td><td>$0.01000</td><td><strong>$2,860</strong></td></tr>
+										<tr><td>AQT</td><td>IBEX-Q1</td><td>$0.02350</td><td><strong>$6,320</strong></td></tr>
+										<tr><td>IonQ</td><td>Forte</td><td>$0.08000</td><td><strong>$20,780</strong></td></tr>
+									</tbody>
+								</table>
+								<p style="font-size:0.85em; margin:0.4em 0 0 0; text-align:center;">
+									256 shots/job &mdash; a typical experiment needs <strong>&ge;1,000 jobs</strong> across algorithms and configurations<br>
+									<strong>IBM Quantum:</strong> $96/min execution time (pay-as-you-go) &mdash; free tier: 10 min/month
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- RHO'S RESULTS -->
+				<section class="rho-story">
+					<div class="rho-title">
+						<img src="img/pet_women.png" alt="ρ" class="rho-avatar">
+						<h3>gets her results</h3>
+					</div>
+					<div class="slide-content">
+						<div class="row">
+							<div class="col-7" style="display:flex; align-items:center; justify-content:center;">
+								<img src="img/1c_success_rate_envelope_vs_payload_size.png" alt="vTP DSR" style="max-height:55vh;">
+							</div>
+							<div class="col-5">
+								<div style="font-size:0.55em;">
+									<ul>
+										<li><strong>Payload size</strong> = dominant reliability factor</li>
+										<li><strong>Depth</strong> = moderate negative correlation</li>
+										<li>Holds <strong>across providers</strong></li>
+									</ul>
+									<div class="card mt-2">
+										<div class="card-body text-center" style="font-size:0.9em;">
+											Pre-runtime metrics <strong>correlate</strong> with execution outcomes
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- RHO ASKS -->
+				<section class="rho-story">
+					<div class="rho-title" style="flex-direction:row-reverse;">
+						<img src="img/pet_man.png" alt="ρ" class="rho-avatar">
+						<h3>asks the real question</h3>
+					</div>
+					<div class="slide-content">
+						<div style="text-align:center; font-size:0.7em; max-width:80%; margin:0 auto;">
+							<blockquote style="border-left-color:#6366f1;">
+								"I spent money, time, and quantum resources. Sometimes it works, sometimes it doesn't.<br><br>
+								<strong>How do I know beforehand if my circuit will work?</strong><br><br>
+								Can I <strong>predict quality</strong> without paying for execution?"
+							</blockquote>
+						</div>
+						<div class="card mt-3" style="max-width:70%; margin:0 auto;">
+							<div class="card-body text-center" style="font-size:0.55em;">
+								No <strong>circuit-specific predictive insights</strong> available today
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 3: QUALITY IN QC                                     -->
+				<!-- ============================================================ -->
+
+				<section class="divider"><h3>Quality in Quantum Software</h3></section>
+
+				<section>
+					<h3>Quality in Quantum Software: Open Problem</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-7">
+								<div class="card h-100">
+									<div class="card-header"><strong>What the literature says</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<ul style="margin-bottom:0;">
+											<li><strong>Talavera Manifesto</strong> &mdash; Lack of agreed-upon quality attributes and metrics</li>
+											<li><strong>Cruz-Lemus et al.</strong> &mdash; Proposed metrics, but <strong>not empirically validated</strong></li>
+											<li><strong>Serrano et al.</strong> &mdash; <em>"A lot of work is still needed to achieve adequate quality levels"</em></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="col-5">
+								<div class="card h-100">
+									<div class="card-header"><strong>Our Mapping Study</strong> <span class="text-success" style="font-size:0.85em;">(CIbSE 2025)</span></div>
+									<div class="card-body" style="text-align:left;">
+										<ul style="margin-bottom:0;">
+											<li>559 articles, <strong>16 selected</strong></li>
+											<li>87% discussed quality metrics</li>
+											<li>43% addressed integration</li>
+										</ul>
+										<p style="margin:0.4em 0 0 0; text-align:center;"><strong>Research gap confirmed</strong></p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Classical Quality Models Exist</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>ISO/IEC 25002</strong></div>
+									<div class="card-body">Reliability, performance, maintainability<br>Measured via specific metrics</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Applicable to Quantum</strong></div>
+									<div class="card-body">Gill et al. "black-box strategy works<br>But <strong>quantum-specific metrics</strong> are missing"</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="rho-story">
+					<div class="rho-title">
+						<img src="img/pet_women.png" alt="ρ" class="rho-avatar">
+						<h3>measures her results</h3>
+					</div>
+					<div class="slide-content">
+						<p style="font-size:0.5em; text-align:center;">
+							After execution, &rho; needs to evaluate <strong>how well her circuit performed</strong>. Three metrics capture different aspects:
+						</p>
+						<div class="row" style="font-size:0.5em;">
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Hellinger Fidelity (HF)</strong></div>
+									<div class="card-body" style="text-align:left;">
+										Measures <strong>overlap</strong> between ideal and observed distributions<br><br>
+										$HF = \left(\sum_i \sqrt{p_i \cdot q_i}\right)^2$<br><br>
+										HF = 1 &rarr; perfect match
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Total Variation Distance (TVD)</strong></div>
+									<div class="card-body" style="text-align:left;">
+										Measures <strong>maximum divergence</strong> between distributions<br><br>
+										$TVD = \frac{1}{2}\sum_i |p_i - q_i|$<br><br>
+										TVD = 0 &rarr; identical
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100" style="border-color:#6366f1;">
+									<div class="card-header" style="background-color:rgba(99,102,241,0.1);"><strong>DSR (ours)</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<strong>Differential Success Rate</strong> &mdash; our contribution<br><br>
+										Distribution-aware, clips noise<br><br>
+										<em>We'll discuss DSR in detail later</em>
+									</div>
+								</div>
+							</div>
+						</div>
+						<p style="font-size:0.45em; margin-top:0.5em; text-align:center;" class="text-muted">
+							We use <strong>regression models</strong> to predict these post-runtime values from pre-runtime features
+						</p>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 4: RELATED WORK                                      -->
+				<!-- ============================================================ -->
+
+				<section class="divider"><h3>Related Work</h3></section>
+
+				<section>
+					<h3>ML for Quantum Circuit Prediction</h3>
+					<div class="slide-content">
+						<table style="font-size:0.42em;">
+							<thead><tr><th>Authors</th><th>Input</th><th>Architecture</th><th>Target</th><th>Result</th></tr></thead>
+							<tbody>
+								<tr><td>Saravanan &amp; Saeed (2022)</td><td>Structural + calibration</td><td>RF, GNN</td><td>HF</td><td>Multi-model baseline</td></tr>
+								<tr><td>Wang et al. (2022)</td><td>Circuit graph</td><td>Graph Transformer</td><td>Fidelity</td><td>R&sup2;=0.99 / 0.95</td></tr>
+								<tr><td>Vadali et al. (2024)</td><td>4D tensor</td><td>3D CNN</td><td>Fidelity</td><td>Generalizes to unseen</td></tr>
+								<tr><td>Liu &amp; Zhou (2020)</td><td>Pre-runtime metrics</td><td>Polynomial + NN</td><td>PST</td><td>R=0.90 on IBM</td></tr>
+								<tr><td>Escofet et al. (2025)</td><td>Calibration data</td><td>Analytical</td><td>State fidelity</td><td>R&sup2; +5&ndash;214%</td></tr>
+								<tr><td>Hopf et al. (2025)</td><td>Compiled features</td><td>ML figure of merit</td><td>Exec. quality</td><td>+49% correlation</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section>
+					<h3>Gap in the Literature</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<div class="card h-100" style="border-color:#ccc;">
+									<div class="card-header"><strong>Existing Work</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<ul style="margin-bottom:0; list-style:none; padding-left:0;">
+											<li>&bull; Case-specific features, no reusable quality model</li>
+											<li>&bull; Single algorithm or random circuits</li>
+											<li>&bull; Single provider (usually IBM)</li>
+											<li>&bull; Fidelity only</li>
+											<li>&bull; ML <em>is</em> the contribution</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="card h-100" style="border-color:#6366f1;">
+									<div class="card-header" style="background-color:rgba(99,102,241,0.1);"><strong>This Thesis</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<ul style="margin-bottom:0; list-style:none; padding-left:0;">
+											<li>&check; <strong>Circuit footprint</strong> &mdash; curated, interpretable</li>
+											<li>&check; <strong>6 algorithms</strong> across 4 paradigms</li>
+											<li>&check; <strong>3 providers</strong> (IBM, Rigetti, IonQ)</li>
+											<li>&check; <strong>DSR</strong> + HF + TVD</li>
+											<li>&check; ML <em>validates</em> the footprint</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 5: PROBLEM STATEMENT                                 -->
+				<!-- ============================================================ -->
+
+				<section class="divider"><h3>Problem Statement</h3></section>
+
+				<section>
+					<h3>Research Question</h3>
+					<div class="slide-content">
+						<blockquote style="font-size:0.65em;">
+							To what extent can a compact set of pre-runtime metrics, the "circuit footprint," serve as a <strong>reliable predictor</strong> for the quality of quantum software across different algorithm paradigms and diverse quantum service providers?
+						</blockquote>
+					</div>
+				</section>
+
+				<section>
+					<h3>Hypotheses</h3>
+					<div class="slide-content">
+						<div class="r-stack">
+							<div class="fragment card" data-fragment-index="0" style="width:90%;">
+								<div class="card-header"><strong>H1 &mdash; Primary Hypothesis</strong></div>
+								<div class="card-body" style="font-size:0.5em;">A compact "footprint," constructed from a quantum circuit's pre-runtime metrics, contains sufficient information to estimate the execution quality of a quantum algorithm on a quantum device, when validated against ground-truth data from hardware execution.</div>
+							</div>
+							<div class="fragment card" data-fragment-index="1" style="width:90%;">
+								<div class="card-header"><strong>H2 &mdash; Scalability Consistency</strong></div>
+								<div class="card-body" style="font-size:0.5em;">Models trained on instances of the selected primitives (QFT, GO, BV, vTP, GHZ) generalize to predict the quality metrics of unobserved circuit configurations within the same algorithmic family.</div>
+							</div>
+							<div class="fragment card" data-fragment-index="2" style="width:90%;">
+								<div class="card-header"><strong>H3 &mdash; Cross-Provider Transferability</strong></div>
+								<div class="card-body" style="font-size:0.5em;">A single predictive model trained using the circuit footprint generalizes across different quantum providers.</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Objectives</h3>
+					<div class="slide-content">
+						<ul style="font-size:0.55em;">
+							<li><strong>O1 &mdash; Circuit Footprint Definition:</strong> Identify the most relevant pre-runtime metrics that define a "circuit footprint" capable of discriminating between algorithmic paradigms.</li>
+							<li><strong>O2 &mdash; Predictive Modeling:</strong> Train ML models to map the footprint to post-runtime quality (DSR, HF, TVD) across providers.</li>
+							<li><strong>O3 &mdash; Validation:</strong> Evaluate generalizability against ground-truth from real hardware, using unobserved circuit configurations within the same algorithmic families.</li>
+						</ul>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 6: METHODOLOGY                                       -->
+				<!-- ============================================================ -->
+
+				<section class="divider"><h3>Methodology</h3></section>
+
+				<section>
+					<h3>GBMF + GQM (Fenton &amp; Bieman, Basili)</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.5em;">
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>G &mdash; Goal</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span>Predict quantum circuit quality from structure</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Q &mdash; Question</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span>Can pre-runtime metrics reliably predict execution quality?</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>M &mdash; Metrics</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span>Internal (footprint) + External (DSR, HF, TVD)</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row mt-2" style="font-size:0.5em;">
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>Internal Attributes</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span>Static analysis, deterministic</span><br>
+										<span>Circuit footprint via <strong>qWard</strong></span>
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100">
+									<div class="card-header"><strong>External Attributes</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span>QPU execution, stochastic</span><br>
+										<span>DSR, HF, TVD</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100" style="border-color:#6366f1;">
+									<div class="card-header" style="background-color:rgba(99,102,241,0.1);"><strong>Prediction System</strong></div>
+									<div class="card-body" style="text-align:left;">
+										<span><strong>ML models</strong> map internal &rarr; external</span><br>
+										<span>Validated on real hardware</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 7: FOUNDATIONAL STUDIES (PHASES 1-4)                 -->
+				<!-- ============================================================ -->
+
+				<section class="divider">
+					<h3>Foundational Studies</h3>
+					<p class="text-muted" style="font-size:0.6em;">Phases 1&ndash;4: From GQM Conception to Experimentation</p>
+				</section>
+
+				<!-- THE PLAN -->
+				<section>
+					<h3>The Plan: 8 Phases</h3>
+					<div class="slide-content">
+						<div style="display:flex; gap:0.3em; justify-content:center; font-size:0.5em;">
+							<div class="card" style="flex:1; min-width:120px;">
+								<div class="card-header text-center"><strong>Phase 1</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">GQM<br>Conception</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px;">
+								<div class="card-header text-center"><strong>Phase 2</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Metric Spec.<br>&amp; Tooling</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px;">
+								<div class="card-header text-center"><strong>Phase 3</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Empirical<br>Pilot Study</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px; border-color:#f0ad4e;">
+								<div class="card-header text-center" style="background-color:#fff3cd;"><strong>Phase 4</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Data Collection<br>&amp; Experimentation</div>
+							</div>
+						</div>
+						<div style="display:flex; gap:0.3em; justify-content:center; font-size:0.5em; margin-top:0.3em;">
+							<div class="card" style="flex:1; min-width:120px; border-color:#ccc; opacity:0.6;">
+								<div class="card-header text-center"><strong>Phase 5</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Success Fn.<br>Specification</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px; border-color:#ccc; opacity:0.6;">
+								<div class="card-header text-center"><strong>Phase 6</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Feature<br>Engineering</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px; border-color:#ccc; opacity:0.6;">
+								<div class="card-header text-center"><strong>Phase 7</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Prediction Sys.<br>Construction</div>
+							</div>
+							<div class="card" style="flex:1; min-width:120px; border-color:#ccc; opacity:0.6;">
+								<div class="card-header text-center"><strong>Phase 8</strong></div>
+								<div class="card-body text-center" style="font-size:0.9em;">Measurement<br>Validation</div>
+							</div>
+						</div>
+						<div style="font-size:0.4em; margin-top:0.3em; text-align:center; border:1px dashed #f0ad4e; border-radius:4px; padding:0.2em 0.5em; display:inline-block; width:75%;">
+							<strong>Phase 4b:</strong> DSR Theoretical Foundation <span class="text-muted">(internship, parallel with 5&ndash;7)</span>
+						</div>
+						<p style="font-size:0.4em; margin-top:0.5em; text-align:center;" class="text-muted">
+							<span class="text-success">&block;</span> Completed &nbsp;
+							<span class="text-warning">&block;</span> In Progress &nbsp;
+							<span class="text-muted">&block;</span> Proposed
+						</p>
+					</div>
+				</section>
+
+				<section>
+					<h3>Phase 2: Metric Specification &amp; Tooling</h3>
+					<div class="slide-content">
+						<p style="font-size:0.45em;" class="text-success"><strong>DONE</strong> &mdash; CHILECON 2025</p>
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-4">
+								<ul>
+									<li>Open-source Python</li>
+									<li>Strategy pattern</li>
+									<li>30+ pre-runtime metrics</li>
+									<li>8+ post-runtime metrics</li>
+								</ul>
+							</div>
+							<div class="col-8 text-center">
+								<img src="img/success_error_rates.png" alt="Success rates" style="max-height:45vh;">
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Pre-runtime Metrics (qWard)</h3>
+					<div class="slide-content">
+						<table style="font-size:0.45em;">
+							<thead><tr><th>Category</th><th>Metrics</th></tr></thead>
+							<tbody>
+								<tr><td>Circuit Properties</td><td>depth, width, size, num_qubits, num_nonlocal_gates, num_connected_components</td></tr>
+								<tr><td>Complexity</td><td>gate_count, t_count, cnot_count, multi_qubit_ratio, entangling_gate_density, circuit_volume, gate_density, parallelism_factor</td></tr>
+								<tr><td>Element</td><td>no_gates, no_cnot, no_toff, percent_single_gates, no_or</td></tr>
+								<tr><td>Structural</td><td>program_length, Halstead volume, difficulty, effort</td></tr>
+								<tr><td>Behavioral</td><td>critical_depth, program_communication, liveness, parallelism</td></tr>
+								<tr><td>Quantum-Specific</td><td>magic, coherence, sensitivity, entanglement_ratio</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section class="rho-story">
+					<div class="rho-title">
+						<img src="img/pet_women.png" alt="ρ" class="rho-avatar">
+						<h3>'s pilot study, remember?</h3>
+					</div>
+					<div class="slide-content">
+						<p style="font-size:0.45em;" class="text-success"><strong>DONE</strong> &mdash; IEEE Access</p>
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<ul>
+									<li>vTP on single QPU</li>
+									<li><strong>IBM Sherbrooke</strong> + <strong>Rigetti Ankaa-3</strong></li>
+									<li>292 + 796 QPU executions</li>
+									<li>Validation: $U^{*}U = I$</li>
+								</ul>
+							</div>
+							<div class="col-6">
+								<div class="card">
+									<div class="card-header"><strong>Key Finding</strong></div>
+									<div class="card-body">Payload size emerges as the <strong>dominant reliability factor</strong></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Phase 4: Data Collection &amp; Experimentation</h3>
+					<div class="slide-content">
+						<p style="font-size:0.45em;" class="text-warning"><strong>IN PROGRESS</strong></p>
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Done</strong></div>
+									<div class="card-body">1,183 QPU executions<br>Grover, QFT, vTP<br>IBM + Rigetti<br>Open dataset (IEEE Dataport)</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Pending</strong></div>
+									<div class="card-body">IonQ (trapped-ion)<br>Bernstein-Vazirani<br>GHZ state preparation</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Phase 4b: DSR Theoretical Foundation</h3>
+					<div class="slide-content">
+						<p style="font-size:0.45em;" class="text-warning"><strong>IN PROGRESS</strong> &mdash; Research internship, Catholic University of America</p>
+						<div class="card" style="max-width:85%; margin:0 auto;">
+							<div class="card-body text-center" style="font-size:0.7em;">
+								$DSR = \text{clip}\left(\frac{\bar{p}_{exp} - p_{comp}}{\bar{p}_{exp} + p_{comp}},\ 0,\ 1\right)$
+							</div>
+						</div>
+						<div class="row" style="font-size:0.5em; margin-top:0.5em;">
+							<div class="col-6">
+								<ul style="margin-bottom:0;">
+									<li>Formalize DSR &amp; 4 variants</li>
+									<li>Empirical validation: 1,183 QPU runs</li>
+									<li>Compare DSR vs HF vs TVD</li>
+								</ul>
+							</div>
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Output</strong></div>
+									<div class="card-body" style="font-size:0.9em;">Paper submitted to<br><strong>IEEE Quantum Week 2026</strong><br>(under review)</div>
+								</div>
+							</div>
+						</div>
+						<p style="font-size:0.38em; margin-top:0.4em;" class="text-muted text-center">Non-blocking &mdash; runs in parallel with Phases 5&ndash;7 (June&ndash;September 2026)</p>
+					</div>
+				</section>
+
+				<section>
+					<h3>DSR vs Qubits: All Algorithms</h3>
+					<div class="slide-content" style="align-items:center;">
+						<img src="img/1_combined_dsr_comparison.png" alt="Combined DSR" style="max-height:60vh;">
+						<p style="font-size:0.35em;" class="text-muted text-center">Grover, QFT, vTP (IBM + AWS)</p>
+					</div>
+				</section>
+
+				<section>
+					<h3>QFT: Heatmap by Optimization Level</h3>
+					<div class="slide-content" style="align-items:center;">
+						<img src="img/1_combined_dsr_qft_heatmap_optimization.png" alt="QFT heatmap" style="max-height:60vh;">
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 8: PROPOSED FRAMEWORK (PHASES 5-8)                   -->
+				<!-- ============================================================ -->
+
+				<section class="divider">
+					<h3>Proposed Framework</h3>
+					<p class="text-muted" style="font-size:0.6em;">Phases 5&ndash;8</p>
+				</section>
+
+				<section>
+					<h3>The Circuit Footprint</h3>
+					<div class="slide-content">
+						<div class="row" style="font-size:0.55em;">
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Concept</strong></div>
+									<div class="card-body">Curated pre-runtime feature vector<br>Circuit graph &rarr; 1D array<br>Interpretable, auditable</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="card h-100">
+									<div class="card-header"><strong>Classical Analogy</strong></div>
+									<div class="card-body">Cyclomatic complexity &rarr; defects<br>Halstead &rarr; effort<br><strong>Footprint &rarr; execution quality</strong></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Prediction Pipeline</h3>
+					<div class="slide-content">
+						<div class="row text-center" style="font-size:0.5em;">
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header"><strong>Input</strong></div>
+									<div class="card-body">6 algorithms<br>&times; 3 providers</div>
+								</div>
+							</div>
+							<div class="col-1 d-flex align-items-center justify-content-center" style="font-size:1.5em;">&rarr;</div>
+							<div class="col-2">
+								<div class="card h-100">
+									<div class="card-header"><strong>qWard</strong></div>
+									<div class="card-body">Footprint</div>
+								</div>
+							</div>
+							<div class="col-1 d-flex align-items-center justify-content-center" style="font-size:1.5em;">&rarr;</div>
+							<div class="col-2">
+								<div class="card h-100">
+									<div class="card-header"><strong>ML</strong></div>
+									<div class="card-body">7 models</div>
+								</div>
+							</div>
+							<div class="col-1 d-flex align-items-center justify-content-center" style="font-size:1.5em;">&rarr;</div>
+							<div class="col-2">
+								<div class="card h-100">
+									<div class="card-header"><strong>Output</strong></div>
+									<div class="card-body"><span><strong>DSR</strong>, HF, TVD</span></div>
+								</div>
+							</div>
+						</div>
+						<p style="font-size:0.4em; margin-top:0.8em;" class="text-muted text-center">R&sup2; &ge; 0.80 &bull; MAE &bull; RMSE</p>
+					</div>
+				</section>
+
+				<section>
+					<h3>ML Models</h3>
+					<div class="slide-content">
+						<table style="font-size:0.5em;">
+							<thead><tr><th>Model</th><th>Type</th></tr></thead>
+							<tbody>
+								<tr><td>Linear Regression</td><td>Baseline</td></tr>
+								<tr><td>Decision Tree</td><td>Interpretable</td></tr>
+								<tr><td>Random Forest</td><td>Ensemble</td></tr>
+								<tr><td>KNN</td><td>Instance-based</td></tr>
+								<tr><td>SVR</td><td>Kernel</td></tr>
+								<tr><td>XGBoost</td><td>Gradient boosting</td></tr>
+								<tr><td>LightGBM</td><td>Gradient boosting</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section>
+					<h3>Phase 8: Measurement Validation</h3>
+					<div class="slide-content">
+						<ul style="font-size:0.6em;">
+							<li>Ground-truth from real hardware executions</li>
+							<li><strong>H2</strong>: unseen configurations, same family</li>
+							<li><strong>H3</strong>: cross-provider transferability</li>
+							<li>Quantify limitations</li>
+						</ul>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SECTION 9: CONTRIBUTIONS & TIMELINE                          -->
+				<!-- ============================================================ -->
+
+				<section class="divider"><h3>Contributions &amp; Timeline</h3></section>
+
+				<section>
+					<h3>Expected Contributions</h3>
+					<div class="slide-content">
+						<!-- Done row -->
+						<div class="row" style="font-size:0.5em; margin-bottom:0.6em;">
+							<div class="col-4">
+								<div class="card h-100" style="border-color:#198754;">
+									<div class="card-header" style="background-color:rgba(25,135,84,0.1); display:flex; justify-content:space-between; align-items:center;"><strong>Pre/Post-runtime Classification</strong> <span style="background:#198754; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">DONE</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Temporal metric taxonomy from mapping study</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100" style="border-color:#198754;">
+									<div class="card-header" style="background-color:rgba(25,135,84,0.1); display:flex; justify-content:space-between; align-items:center;"><strong>qWard Library</strong> <span style="background:#198754; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">DONE</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Open-source metric extraction toolkit</div>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="card h-100" style="border-color:#198754;">
+									<div class="card-header" style="background-color:rgba(25,135,84,0.1); display:flex; justify-content:space-between; align-items:center;"><strong>Open Dataset v1</strong> <span style="background:#198754; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">DONE</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">1,183 QPU executions (IBM + Rigetti)</div>
+								</div>
+							</div>
+						</div>
+						<!-- To do / In progress row -->
+						<div class="row" style="font-size:0.5em;">
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header" style="display:flex; justify-content:space-between; align-items:center;"><strong>Forecasting Framework</strong> <span style="background:#6c757d; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">TO DO</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Pre-runtime footprint &rarr; ML &rarr; post-runtime quality</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header" style="display:flex; justify-content:space-between; align-items:center;"><strong>Circuit Footprint</strong> <span style="background:#6c757d; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">TO DO</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Validated feature vector grounded in measurement theory</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100" style="border-color:#f0ad4e;">
+									<div class="card-header" style="background-color:#fff3cd; display:flex; justify-content:space-between; align-items:center;"><strong>DSR Metric</strong> <span style="background:#f0ad4e; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">IN PROGRESS</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Distribution-aware post-runtime metric + HF &amp; TVD</div>
+								</div>
+							</div>
+							<div class="col-3">
+								<div class="card h-100">
+									<div class="card-header" style="display:flex; justify-content:space-between; align-items:center;"><strong>Validation Dataset</strong> <span style="background:#6c757d; color:#fff; font-size:0.7em; padding:0.15em 0.5em; border-radius:3px; white-space:nowrap;">TO DO</span></div>
+									<div class="card-body" style="text-align:left; font-size:0.9em;">Multi-paradigm, multi-provider open dataset</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Published Artifacts</h3>
+					<div class="slide-content">
+						<table style="font-size:0.48em;">
+							<thead><tr><th>Artifact</th><th>Venue</th><th>Status</th></tr></thead>
+							<tbody>
+								<tr><td>Systematic Mapping Study</td><td>CIbSE 2025</td><td class="text-success">Published</td></tr>
+								<tr><td>qWard Library</td><td>CHILECON 2025</td><td class="text-success">Published</td></tr>
+								<tr><td>vTP Benchmarking</td><td>IEEE Access</td><td class="text-success">Accepted</td></tr>
+								<tr><td>DSR Metric</td><td>IEEE QW 2026</td><td class="text-warning">Under review</td></tr>
+								<tr><td>Dataset (292 records)</td><td>IEEE Dataport</td><td class="text-success">Published</td></tr>
+								<tr><td>Dataset (1,183 records)</td><td>IEEE Dataport</td><td class="text-success">Published</td></tr>
+								<tr><td>qWard Library</td><td>GitHub / PyPI</td><td class="text-success">Available</td></tr>
+								<tr><td>DSR Theoretical Foundation</td><td>TBD</td><td class="text-muted">TO DO</td></tr>
+								<tr><td>Circuit Footprint Validation</td><td>TBD</td><td class="text-muted">TO DO</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section>
+					<h3>Research Timeline</h3>
+					<div class="slide-content">
+						<table style="font-size:0.42em;">
+							<thead><tr><th>Phase</th><th>Duration</th><th>Status</th></tr></thead>
+							<tbody>
+								<tr><td>1. GQM Conception</td><td>3 months</td><td class="text-success">DONE</td></tr>
+								<tr><td>2. Metric Specification &amp; Tooling</td><td>6 months</td><td class="text-success">DONE</td></tr>
+								<tr><td>3. Empirical Pilot Study (vTP)</td><td>6 months</td><td class="text-success">DONE</td></tr>
+								<tr><td>4. Data Collection &amp; Experimentation</td><td>3 months</td><td class="text-warning">IN PROGRESS</td></tr>
+								<tr><td>4b. DSR Theoretical Foundation</td><td>16 weeks</td><td class="text-warning">IN PROGRESS</td></tr>
+								<tr><td>5. Success Function Specification</td><td>1 month</td><td class="text-muted">TO DO</td></tr>
+								<tr><td>6. Feature Engineering</td><td>1 month</td><td class="text-muted">TO DO</td></tr>
+								<tr><td>7. Prediction System Construction</td><td>3 months</td><td class="text-muted">TO DO</td></tr>
+								<tr><td>8. Measurement Validation</td><td>2 months</td><td class="text-muted">TO DO</td></tr>
+								<tr><td>9. Thesis &amp; Defense</td><td>2 months</td><td class="text-muted">TO DO</td></tr>
+							</tbody>
+						</table>
+						<p style="font-size:0.4em;" class="text-muted text-center">27 months total &mdash; 15 completed, 12 remaining</p>
+					</div>
+				</section>
+
+				<!-- ====== CLOSING ====== -->
+				<section class="rho-story">
+					<div class="rho-title" style="flex-direction:row-reverse;">
+						<img src="img/pet_man.png" alt="ρ" class="rho-avatar">
+						<h3>now has an answer</h3>
+					</div>
+					<div class="slide-content">
+						<ul style="font-size:0.6em;">
+							<li>Quality model: the <strong>circuit footprint</strong></li>
+							<li>Post-runtime metric: <strong>DSR</strong> + HF + TVD</li>
+							<li>Open-source toolkit: <strong>qWard</strong></li>
+							<li>Predictive model validated on <strong>real hardware</strong></li>
+						</ul>
+						<div class="card mt-3" style="max-width:85%; margin:0 auto;">
+							<div class="card-body text-center" style="font-size:0.55em;">
+								&rho; can now <strong>predict quality before paying for execution</strong>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="title-slide">
+					<h3>Thank you</h3>
+					<p style="font-size:0.7em;">Cristian Marquez</p>
+					<p style="font-size:0.55em;" class="text-muted">c.marquezb@uniandes.edu.co</p>
+					<p style="font-size:0.8em; margin-top:1em;"><strong>Questions?</strong></p>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+				slideNumber: 'c/t',
+				showSlideNumber: 'all',
+				transition: 'none',
+				transitionSpeed: 'fast',
+				center: false,
+				margin: 0.08,
+				katex: {
+					version: 'latest',
+					delimiters: [
+						{ left: '$$', right: '$$', display: true },
+						{ left: '$', right: '$', display: false },
+						{ left: '\\(', right: '\\)', display: false },
+						{ left: '\\[', right: '\\]', display: true },
+					],
+					ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+				},
+				plugins: [ RevealMath.KaTeX ]
+			});
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	</body>
+</html>
