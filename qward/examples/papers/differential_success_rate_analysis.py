@@ -790,7 +790,7 @@ _COMBINED_MAX_DEPTH = {
 
 def _prepare_combined_data(
     rows: List[Dict[str, str]],
-    optimization_levels: Optional[Tuple[str, ...]] = ("2", "3"),
+    optimization_levels: Optional[Tuple[str, ...]] = ("3",),
 ) -> Tuple[List[str], List[float], Dict[str, List[Dict[str, str]]]]:
     """Extract per-algorithm filtered data and the union of qubit counts.
 
@@ -814,11 +814,11 @@ def _prepare_combined_data(
         algo_rows = [r for r in rows if r.get("algorithm") == algo]
         # Filter by optimization level (skip for algorithms without opt data)
         if optimization_levels is not None:
-            has_opt = any(r.get("optimization_level", "") != "" for r in algo_rows)
-            if has_opt:
-                algo_rows = [
-                    r for r in algo_rows if r.get("optimization_level", "") in optimization_levels
-                ]
+            algo_rows = [
+                r for r in algo_rows
+                if r.get("optimization_level", "") == ""  # AWS: no opt level, always keep
+                or r.get("optimization_level", "") in optimization_levels
+            ]
         # Apply depth filter
         max_depth = _COMBINED_MAX_DEPTH.get(algo)
         if max_depth is not None:
@@ -927,57 +927,82 @@ def _render_combined_comparison(
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
 
+def _split_by_provider(
+    rows: List[Dict[str, str]],
+) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:
+    """Split rows into IBM and AWS subsets.
+
+    IBM rows: noise_model == 'IBM-QPU' or execution_type == 'IBM' (teleportation).
+    AWS rows: noise_model == 'AWS-QPU'.
+    """
+    ibm_rows = [
+        r for r in rows
+        if r.get("noise_model") == "IBM-QPU"
+        or r.get("execution_type", "").upper() == "IBM"
+    ]
+    aws_rows = [r for r in rows if r.get("noise_model") == "AWS-QPU"]
+    return ibm_rows, aws_rows
+
+
 def _plot_combined_comparison(
     rows: List[Dict[str, str]],
     output_dir: Path,
 ) -> None:
-    """Create a combined comparison plot of all algorithms."""
-    algorithms, qubits, filtered_data = _prepare_combined_data(rows)
-
-    if not qubits:
-        return
-
-    fig, ax = plt.subplots(figsize=(15, 7))
-    _render_combined_comparison(ax, algorithms, qubits, filtered_data)
-
-    plt.tight_layout()
+    """Create separate IBM and Rigetti combined comparison plots."""
+    ibm_rows, aws_rows = _split_by_provider(rows)
     output_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(
-        output_dir / "1_combined_dsr_comparison.png",
-        dpi=300,
-        bbox_inches="tight",
-        facecolor="white",
+
+    # --- IBM plot ---
+    ibm_algos, ibm_qubits, ibm_data = _prepare_combined_data(
+        ibm_rows, optimization_levels=("3",)
     )
-    plt.close(fig)
+    if ibm_qubits:
+        fig, ax = plt.subplots(figsize=(15, 7))
+        _render_combined_comparison(ax, ibm_algos, ibm_qubits, ibm_data)
+        plt.tight_layout()
+        fig.savefig(
+            output_dir / "1_combined_dsr_comparison_ibm.png",
+            dpi=300, bbox_inches="tight", facecolor="white",
+        )
+        plt.close(fig)
+
+    # --- Rigetti plot (cap at 4 qubits) ---
+    aws_rows_capped = [
+        r for r in aws_rows if int(r.get("num_qubits", "0")) <= 4
+    ]
+    aws_algos, aws_qubits, aws_data = _prepare_combined_data(
+        aws_rows_capped, optimization_levels=None
+    )
+    if aws_qubits:
+        fig, ax = plt.subplots(figsize=(15, 7))
+        _render_combined_comparison(ax, aws_algos, aws_qubits, aws_data)
+        plt.tight_layout()
+        fig.savefig(
+            output_dir / "1_combined_dsr_comparison_aws.png",
+            dpi=300, bbox_inches="tight", facecolor="white",
+        )
+        plt.close(fig)
 
 
-_COMBINED_DEPTH_BIN = 200  # bin width for the depth-based combined boxplot
+_COMBINED_DEPTH_BIN = 100  # bin width for the depth-based combined boxplot
 _COMBINED_DEPTH_CAP = 800  # drop data above this depth to avoid long empty tail
 
 
-def _plot_combined_depth_comparison(
-    rows: List[Dict[str, str]],
-    output_dir: Path,
+def _render_combined_depth(
+    ax,
+    algorithms: List[str],
+    filtered_data: Dict[str, List[Dict[str, str]]],
+    depth_cap: Optional[int] = None,
 ) -> None:
-    """Combined DSR boxplot: all algorithms, x-axis = transpiled depth (binned).
-
-    Mirrors ``_plot_combined_comparison`` but groups by depth bins instead of
-    qubit count.  Includes **all** optimization levels (depth itself is the
-    variable under study; different opt levels produce different depths for
-    the same circuit).  Uses 200-unit bins capped at 800 for readability.
-    """
-    # Use optimization_level=None to include all levels
-    algorithms, _qubits, filtered_data = _prepare_combined_data(rows, optimization_levels=None)
-
-    # Bin depths and collect DSR values per (algo, bin_start)
+    """Render a depth-binned DSR boxplot onto *ax*."""
     bin_sz = _COMBINED_DEPTH_BIN
-    cap = _COMBINED_DEPTH_CAP
+    cap = depth_cap if depth_cap is not None else _COMBINED_DEPTH_CAP
 
     algo_binned: Dict[str, Dict[int, List[float]]] = {}
     all_bins: set = set()
     for algo in algorithms:
         binned: Dict[int, List[float]] = {}
-        for r in filtered_data[algo]:
+        for r in filtered_data.get(algo, []):
             d = _to_float(r.get("transpiled_depth", ""))
             dsr = _to_float(r.get("dsr_michelson", ""))
             if d is None or dsr is None or d > cap:
@@ -993,28 +1018,20 @@ def _plot_combined_depth_comparison(
     bins_sorted = sorted(all_bins)
     n_algos = len(algorithms)
     width = 0.25
-
-    # Map bin starts to integer positions (0, 1, 2, …) for compact x-axis
     pos_map = {b: i for i, b in enumerate(bins_sorted)}
 
-    fig, ax = plt.subplots(figsize=(15, 6))
-
-    # Alternating background shading
     for idx in range(len(bins_sorted)):
         left = idx - 0.5
         right = idx + 0.5
         if idx % 2 == 0:
             ax.axvspan(left, right, color="#f0f0f0", zorder=0)
 
-    # Dashed separators
     for idx in range(len(bins_sorted) - 1):
         mid = idx + 0.5
         ax.axvline(mid, color="#cccccc", linestyle="--", linewidth=1, zorder=1)
 
-    # Draw boxplots per algorithm
     for i, algo in enumerate(algorithms):
         binned = algo_binned[algo]
-
         box_data = []
         positions = []
         for b in bins_sorted:
@@ -1038,7 +1055,6 @@ def _plot_combined_depth_comparison(
                 capprops=dict(linewidth=2),
             )
 
-    # X-axis: bin labels
     labels = [f"{b}\u2013{b + bin_sz}" for b in bins_sorted]
     ax.set_xticks(range(len(bins_sorted)))
     ax.set_xticklabels(labels, rotation=30, ha="right")
@@ -1049,7 +1065,6 @@ def _plot_combined_depth_comparison(
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
-    # Legend
     legend_elements = [
         Patch(
             facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
@@ -1060,15 +1075,38 @@ def _plot_combined_depth_comparison(
     ]
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
 
-    plt.tight_layout()
+
+def _plot_combined_depth_comparison(
+    rows: List[Dict[str, str]],
+    output_dir: Path,
+) -> None:
+    """Create separate IBM and Rigetti depth-binned DSR plots."""
+    ibm_rows, aws_rows = _split_by_provider(rows)
     output_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(
-        output_dir / "1_combined_dsr_comparison_depth.png",
-        dpi=300,
-        bbox_inches="tight",
-        facecolor="white",
-    )
-    plt.close(fig)
+
+    # --- IBM plot (all opt levels) ---
+    ibm_algos, _, ibm_data = _prepare_combined_data(ibm_rows, optimization_levels=None)
+    if ibm_data:
+        fig, ax = plt.subplots(figsize=(15, 6))
+        _render_combined_depth(ax, ibm_algos, ibm_data)
+        plt.tight_layout()
+        fig.savefig(
+            output_dir / "1_combined_dsr_comparison_depth_ibm.png",
+            dpi=300, bbox_inches="tight", facecolor="white",
+        )
+        plt.close(fig)
+
+    # --- Rigetti plot (all data, no opt levels, cap at 300 depth) ---
+    aws_algos, _, aws_data = _prepare_combined_data(aws_rows, optimization_levels=None)
+    if aws_data:
+        fig, ax = plt.subplots(figsize=(15, 6))
+        _render_combined_depth(ax, aws_algos, aws_data, depth_cap=300)
+        plt.tight_layout()
+        fig.savefig(
+            output_dir / "1_combined_dsr_comparison_depth_aws.png",
+            dpi=300, bbox_inches="tight", facecolor="white",
+        )
+        plt.close(fig)
 
 
 def _plot_qft_heatmap_by_optimization(

@@ -97,7 +97,7 @@ def filter_group(df, algorithm, provider):
     sub = df[df["algorithm"] == algorithm].copy()
     if provider == "IBM":
         sub = sub[sub["noise_model"] == "IBM-QPU"]
-        sub = sub[sub["optimization_level"].isin([2, 3])]
+        sub = sub[sub["optimization_level"].isin([3])]
     elif provider == "AWS":
         sub = sub[sub["noise_model"] == "AWS-QPU"]
     return sub
