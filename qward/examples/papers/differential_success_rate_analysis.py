@@ -495,7 +495,7 @@ def _plot_algorithm_boxplot(
         color="black",
         linewidth=3,
         markersize=14,
-        label="Median DSR",
+        label=r"$\widetilde{\mathbf{DSR}}$",
         zorder=5,
     )
 
@@ -764,7 +764,7 @@ def _plot_algorithm_heatmap(
     # Colorbar with larger font
     cbar = fig.colorbar(mesh, ax=ax, shrink=0.8)
     cbar.ax.tick_params(labelsize=TICK_SIZE)
-    cbar.set_label("DSR", fontsize=LABEL_SIZE, fontweight="bold")
+    cbar.set_label(r"$\widetilde{\mathbf{DSR}}$", fontsize=LABEL_SIZE, labelpad=8)
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -790,7 +790,7 @@ _COMBINED_MAX_DEPTH = {
 
 def _prepare_combined_data(
     rows: List[Dict[str, str]],
-    optimization_level: Optional[str] = "3",
+    optimization_levels: Optional[Tuple[str, ...]] = ("2", "3"),
 ) -> Tuple[List[str], List[float], Dict[str, List[Dict[str, str]]]]:
     """Extract per-algorithm filtered data and the union of qubit counts.
 
@@ -799,8 +799,8 @@ def _prepare_combined_data(
 
     Args:
         rows: All loaded CSV rows.
-        optimization_level: If set, keep only rows with this optimization
-            level.  Pass ``None`` to include all levels.
+        optimization_levels: If set, keep only rows whose optimization level
+            is in this tuple.  Pass ``None`` to include all levels.
 
     Returns:
         (algorithms, qubits, filtered_data) where *filtered_data* maps each
@@ -813,11 +813,11 @@ def _prepare_combined_data(
     for algo in algorithms:
         algo_rows = [r for r in rows if r.get("algorithm") == algo]
         # Filter by optimization level (skip for algorithms without opt data)
-        if optimization_level is not None:
+        if optimization_levels is not None:
             has_opt = any(r.get("optimization_level", "") != "" for r in algo_rows)
             if has_opt:
                 algo_rows = [
-                    r for r in algo_rows if r.get("optimization_level", "") == optimization_level
+                    r for r in algo_rows if r.get("optimization_level", "") in optimization_levels
                 ]
         # Apply depth filter
         max_depth = _COMBINED_MAX_DEPTH.get(algo)
@@ -937,7 +937,7 @@ def _plot_combined_comparison(
     if not qubits:
         return
 
-    fig, ax = plt.subplots(figsize=(15, 6))
+    fig, ax = plt.subplots(figsize=(15, 7))
     _render_combined_comparison(ax, algorithms, qubits, filtered_data)
 
     plt.tight_layout()
@@ -967,7 +967,7 @@ def _plot_combined_depth_comparison(
     the same circuit).  Uses 200-unit bins capped at 800 for readability.
     """
     # Use optimization_level=None to include all levels
-    algorithms, _qubits, filtered_data = _prepare_combined_data(rows, optimization_level=None)
+    algorithms, _qubits, filtered_data = _prepare_combined_data(rows, optimization_levels=None)
 
     # Bin depths and collect DSR values per (algo, bin_start)
     bin_sz = _COMBINED_DEPTH_BIN
@@ -1148,7 +1148,7 @@ def _plot_qft_heatmap_by_optimization(
     apply_axes_defaults(ax)
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label("DSR", fontsize=LABEL_SIZE, fontweight="bold")
+    cbar.set_label(r"$\widetilde{\mathbf{DSR}}$", fontsize=LABEL_SIZE, labelpad=8)
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
