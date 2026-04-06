@@ -397,6 +397,10 @@ Given the vast variety of algorithms available, this study is restricted to thos
 
 Regarding the training data, the scope is restricted to pre-runtime metrics derived from a static analysis of the quantum circuit representation (after its transpilation) and before its execution. The construction of the "circuit footprint" will be driven by a correlation analysis designed to identify the specific subset of metrics that exhibit the strongest predictive power for execution quality.
 
+Because transpilation is target-dependent, the resulting footprint already encodes hardware characteristics implicitly (e.g., additional SWAP gates due to connectivity constraints, or different basis-gate decompositions). However, preliminary experiments show that the same logical circuit produces substantially different post-runtime outcomes across providers, suggesting that implicit hardware information may be insufficient.
+
+To investigate the impact of hardware context, the study will also evaluate an augmented footprint that incorporates explicit backend calibration features, such as median gate error rates and/or $T_1$/$T_2$ coherence times, all of which are publicly available before execution. This augmented variant will be compared against the circuit-only footprint to characterize the extent to which hardware context is necessary for cross-provider prediction (\ref{h:3}).
+
 Finally, with respect to the predictive modeling component, this research focuses on the application of classical machine learning algorithms rather than deep learning or quantum machine learning approaches. This choice is justified because the input vector and target variables are structured data, avoiding the need for deep architectures that are typically required for unstructured data such as text or images. The study will evaluate a comprehensive suite of regression models, including Linear Regression, Decision Tree Regression, Random Forest, K-Nearest Neighbors (KNN), Support Vector Machine Regression (SVR), and Gradient Boosting algorithms such as XGBoost and LightGBM. The best algorithm selection will be based on the Coefficient of Determination ($R^2$), Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE), with a minimum score of $R^2 \geq 0.80$ and the goal of minimizing the MAE and RMSE respectively.
 
 \section{Research Methodology}
@@ -467,11 +471,9 @@ To address the need for a unified and interpretable success criterion, this thes
 
 Recent studies provide evidence that ML models trained in specific circuit families can generalize to unseen configurations that preserve the structural characteristics of the original primitive. Vadali et al. \cite{vadaliQuantumCircuitFidelity_2024} demonstrated that models trained on simpler circuits can predict the fidelity of circuits with higher degrees of entanglement and non-Clifford gates than those present in the training set. Similarly, Ravi et al. \cite{raviAdaptiveJobResource_2021} showed that the fidelity predictions derived from the features of the circuit compiled are generalized to a diverse set of quantum applications on IBM hardware. Moreover, Hopf et al. \cite{hopfImprovingFiguresMerit_2025} proposed an ML-based figure of merit that predicts execution quality without running the circuit, achieving a 49\% correlation improvement over the state of the art. Taken together, these findings support the premise that models can generalize to unseen configurations within the same primitive, as proposed in this thesis.
 
-To further enhance generalizability, this thesis proposes generating the dataset using superconducting qubit platforms from IBM and Rigetti, as well as trapped-ion hardware from IonQ. This heterogeneous approach serves two purposes. First, it tests whether pre-runtime metrics possess predictive value independent of the quantum technology used. Second, it expands the diversity of the training data, capturing different noise profiles, connectivity constraints, and execution characteristics of a diverse set of hardware implementations.
+To further enhance generalizability, the dataset is generated using the three quantum providers as described in Section~\ref{subsec:scope}. This approach tests whether pre-runtime metrics possess predictive value independent of the quantum technology used, while expanding the diversity of noise profiles and connectivity constraints in the training data.
 
-Given that the input is a structured feature vector and the targets are continuous numerical values, this thesis intends to use classical supervised regression models rather than deep learning architectures. The model selection includes Linear Regression, Decision Tree Regression, Random Forest, K-Nearest Neighbors, Support Vector Regression, and Gradient Boosting algorithms such as XGBoost and LightGBM. The performance of the model will be evaluated using the Coefficient of Determination, the Mean Absolute Error, and the Root Mean Squared Error. The trained models will predict the execution quality (\ref{h:1}) based on the footprint.
-
-Figure \ref{fig:framework-overview} summarizes the predictive framework. The input stage defines the experimental space by combining six algorithms with three quantum providers. Each configuration generates execution data that qWard processes to extract the circuit footprint. The resulting feature vectors feed into seven regression models that produce predictions of execution quality (DSR, HF, TVD).
+The footprint is then used as input to the seven classical supervised regression models specified in Section~\ref{subsec:scope}. The trained models predict the execution quality (\ref{h:1}) based on the footprint. Figure~\ref{fig:framework-overview} summarizes the complete pipeline.
 
 \begin{figure*}[ht]
     \centering
@@ -512,7 +514,7 @@ This thesis is expected to make the following contributions to the field of quan
 
 \begin{enumerate}[resume]
 
-\item \textbf{Quantum Forecasting Framework:} A software tool that integrates metric extraction, footprint validation, and ML-based prediction into a unified pipeline, as described in Section~\ref{section:qaqs} and Figure~\ref{fig:framework-overview}.
+\item \textbf{QAQS Framework:} A software tool that integrates metric extraction, footprint validation, and ML-based prediction into a unified pipeline, as described in Section~\ref{section:qaqs} and Figure~\ref{fig:framework-overview}.
 \label{c:framework}
 
 \item \textbf{Circuit Footprint:} An empirically validated feature vector of pre-runtime metrics (Section~\ref{section:introduction}) selected through iterative correlation and contribution analysis per target. The footprint condenses a quantum circuit into a compact representation suitable for quality prediction.
@@ -686,17 +688,21 @@ The research plan is presented as ten phases, three of which have been completed
     \textbf{Phase 6: Feature Engineering and Correlation Analysis} \label{p:6} \hfill \textbf{Status: TO DO} \\
     \textit{Estimation:} 1 Month \newline
     \textbf{Related Goals:} Hypothesis \ref{h:1}, Objective \ref{o:1} \newline
-    \textbf{Description:} Define the "Quantum Circuit Footprint" feature vector by running a correlation by running a correlation and contribution analysis. \newline
+    \textbf{Description:} Define the "Quantum Circuit Footprint" feature vector by performing correlation analysis (Spearman), contribution analysis (permutation importance, SHAP), and multicollinearity removal (VIF) per target (DSR, HF, TVD). Compare the resulting circuit-only footprint against a hardware-augmented variant to assess the role of backend context. \newline
     \textbf{Tasks:}
     \begin{enumerate}[label=T6.\arabic*, ref=T6.\arabic*, font=\bfseries, leftmargin=*, noitemsep, topsep=0pt]
-        \item \label{p6:t1} Perform exploratory data analysis on collected metrics.
-        \item \label{p6:t2} Run correlation analysis between pre-runtime and post-runtime metrics.
-        \item \label{p6:t3} Select optimal feature set for the "Quantum Circuit Footprint."
+        \item \label{p6:t1} Perform exploratory data analysis: distributions, outliers, and multicollinearity among pre-runtime metrics.
+        \item \label{p6:t2} Run Spearman correlation analysis between pre-runtime and post-runtime metrics per target.
+        \item \label{p6:t3} Conduct contribution analysis (permutation importance, SHAP) to rank feature predictive signal.
+        \item \label{p6:t4} Select optimal feature set for the "Quantum Circuit Footprint" and handle multicollinearity (e.g., VIF-based removal).
+        \item \label{p6:t5} Evaluate augmented footprint with backend calibration features (gate error rates, $T_1$/$T_2$) and compare against circuit-only footprint.
     \end{enumerate}
     \textbf{Acceptance Criteria:}
     \begin{itemize}[leftmargin=*, noitemsep, topsep=0pt]
-        \item Correlation analysis completed.
-        \item "Quantum Circuit Footprint" (optimal pre-runtime metric vector) defined.
+        \item Correlation and contribution analyses completed per target (DSR, HF, TVD).
+        \item "Quantum Circuit Footprint" (optimal pre-runtime metric vector) defined with justification for each included feature.
+        \item Multicollinearity addressed and documented.
+        \item Comparison between circuit-only and hardware-augmented footprints documented.
     \end{itemize} \\
     \midrule
     
@@ -717,7 +723,7 @@ The research plan is presented as ten phases, three of which have been completed
     \textbf{Acceptance Criteria:}
     \begin{itemize}[leftmargin=*, noitemsep, topsep=0pt]
         \item All seven regression models trained and tuned.
-        \item Models integrated into the "Quantum Forecasting Framework."
+        \item Models integrated into the QAQS framework.
         \item Model generation and inference integrated into qWard.
         \item Performance evaluation using $R^2$, MAE, and RMSE implemented.
     \end{itemize} \\
