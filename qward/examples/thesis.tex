@@ -9,6 +9,7 @@
 \usepackage{array}
 \usepackage{ragged2e}
 \usepackage{pgfgantt}
+\usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{pdflscape}
 \usepackage[
@@ -87,7 +88,7 @@ To address these challenges systematically, the foundation for this research was
 
 Building on these foundations, the central contribution of this thesis is the Quality-Aware Quantum Software (QAQS) framework, a pre-runtime quality model for quantum software grounded in software measurement theory. QAQS introduces a temporal classification that distinguishes between pre-runtime metrics, derived from static analysis of the circuit representation, and post-runtime metrics, obtained from execution results. At its core, QAQS defines the "circuit footprint," a curated feature vector of pre-runtime metrics that captures the essential characteristics of a quantum circuit, condensing a complex artifact into a compact representation for quality analysis.
 
-To validate the practical utility of the footprint, classical supervised regression models are trained to predict post-runtime quality metrics from pre-runtime features alone. The framework is evaluated across six algorithms organized into four paradigms, i.e., groups of algorithms that share the same core quantum mechanism. \emph{(i)} The Fourier-based paradigm includes the Quantum Fourier Transform (QFT) and Phase Estimation; \emph{(ii)} the amplitude amplification paradigm includes Grover's search (GO); \emph{(iii)} the oracle-based paradigm includes Bernstein-Vazirani (BV); and \emph{(iv)} the entanglement-based paradigm includes the variation of the Teleportation Protocol (vTP) and the preparation of GHZ states. All algorithms will be executed on the quantum services offered by IBM, Rigetti, and IonQ.
+To validate the practical utility of the footprint, classical supervised regression models are trained to predict post-runtime quality metrics from pre-runtime features. As a secondary analysis, the study compares the circuit-only footprint against a hardware-augmented variant that incorporates backend calibration data, in order to characterize whether explicit hardware context is necessary for cross-provider prediction. The framework is evaluated across six algorithms organized into four paradigms, i.e., groups of algorithms that share the same core quantum mechanism. \emph{(i)} The Fourier-based paradigm includes the Quantum Fourier Transform (QFT) and Phase Estimation; \emph{(ii)} the amplitude amplification paradigm includes Grover's search (GO); \emph{(iii)} the oracle-based paradigm includes Bernstein-Vazirani (BV); and \emph{(iv)} the entanglement-based paradigm includes the variation of the Teleportation Protocol (vTP) and the preparation of GHZ states. All algorithms will be executed on the quantum services offered by IBM, Rigetti, and IonQ.
 
 Notice that the algorithm selection is restricted to those where the expected output quantum states are known a priori, thereby allowing the Differential Success Rate (DSR) to be employed as a complementary fidelity metric together with measures like Hellinger fidelity (HF) and Total Variation Distance (TVD). In contrast, paradigms such as the Variational Quantum Eigensolver (VQE) or Hamiltonian simulations are excluded because their outputs lack a discrete set of dominant states, requiring instead an analysis of the full probability distribution that falls outside the scope of this work.
 
@@ -114,7 +115,7 @@ To ensure reliable results, developers currently rely on a combination of logica
 
 This disconnect has created an opportunity for research in the field of application oriented benchmarking that can bridge the gap between general hardware capability and specific circuit reliability \cite{millsApplicationMotivatedHolistic2021}. Addressing this gap requires moving beyond purely hardware-focused evaluations to a metric-based approach. Specifically, this thesis proposes a temporal classification that organizes quantum circuit metrics into a quality model for quantum software. As the quantum development lifecycle involves two distinct phases--- circuit creation and execution---a temporal classification naturally separates metrics into \textbf{pre-runtime metrics}, such as circuit depth and gate count, which can be computed after coding but before execution, and \textbf{post-runtime metrics}, such as success rates and fidelity, which are derived from the execution itself.
 
-Building upon this temporal classification, this thesis defines the circuit "footprint," a curated feature vector of pre-runtime metrics that characterizes the quality of a quantum circuit. The research validates this quality model by demonstrating that the footprint has sufficient predictive power to estimate post-runtime outcomes such as DSR, HF, and TVD. This approach, named Quality-Aware Quantum Software (QAQS), aims to evaluate the expected quality of quantum algorithms before execution, thereby transforming quantum development from a costly trial-and-error process into a more predictable engineering discipline.
+Building upon this temporal classification, this thesis defines the circuit "footprint," a curated feature vector of pre-runtime metrics that characterizes the quality of a quantum circuit. The research validates this quality model by demonstrating that the footprint has sufficient predictive power to estimate post-runtime outcomes such as DSR, HF, and TVD. To delineate the boundaries of this pre-runtime approach, the study also compares the circuit-only footprint against a hardware-augmented variant, assessing whether explicit backend context is required for cross-provider prediction. This approach, named Quality-Aware Quantum Software (QAQS), aims to evaluate the expected quality of quantum algorithms before execution, thereby transforming quantum development from a costly trial-and-error process into a more predictable engineering discipline.
 
 The rest of the document is structured as follows. Section \ref{section:background} presents the findings of the literature review, establishes the taxonomy used in the research, and discusses related work. Section \ref{section:problem-statement} defines the scope of the investigation by describing the problem, the objectives, and the hypothesis. Section \ref{section:methodology} outlines the research methodology, while Section \ref{section:contributions} describes the expected contributions. Finally, Section \ref{section:work} presents the thesis timeline and research plan.
 
@@ -327,7 +328,11 @@ Liu and Zhou (2020) modeled the NISQ QPU using pre-runtime metrics such as the n
 
 The present research builds upon the works detailed in Subsection~\ref{subsection:qcp}, but situates itself within a fundamentally different disciplinary context. While reviewed studies explore machine learning architectures for quantum circuit prediction, this thesis contributes to \textbf{quantum software quality engineering} by systematically defining, measuring, and predicting quality attributes for quantum software artifacts. The uniqueness of this work can be understood through the quality model, the prediction target, and the scope of the final product.
 
-First, one of the contributions of this thesis is the \textbf{"circuit footprint"}, an empirically validated feature vector for quantum circuits. In classical software engineering, quality models such as cyclomatic complexity, Halstead metrics, and coupling measures condense a software artifact into a set of indicators that support quality analysis, comparison, and prediction. No equivalent model exists for quantum circuits. The existing literature either relies on ad hoc feature selection without systematic justification \cite{saravananDataDrivenReliabilityModelsa_2023, aktarPredictingExpressibilityParameterized_2023}, selects a set of circuit characteristics without cross-paradigm validation \cite{liuReliabilityModelingNISQ_2020}, or instead uses device calibration data rather than circuit information \cite{escofetAccurateEfficientAnalytic_2025}. More sophisticated approaches based on Graph Neural Networks \cite{wangQuEstGraphTransformer_2022, wangTorchQuantumCaseStudya_2022} bypass the question of metric identification entirely by operating directly on the circuit's graph representation. Although these approaches achieve high prediction accuracy, they do not produce an interpretable asset to evaluate an algorithm, but rather offer a trained neural network for predictions. This thesis addresses this gap by systematically evaluating which pre-runtime metrics carry the strongest predictive signal across different algorithmic paradigms, and consolidating them into an interpretable footprint. The resulting quality model is the contribution; the machine learning models serve as the empirical validation mechanism that demonstrates the footprint contains sufficient information to predict post-runtime outcomes.
+First, one of the contributions of this thesis is the \textbf{"circuit footprint"}, an empirically validated feature vector for quantum circuits. In classical software engineering, quality models such as cyclomatic complexity, Halstead metrics, and coupling measures condense a software artifact into a set of indicators that support quality analysis, comparison, and prediction. While prior work has demonstrated that structural and calibration features can predict circuit fidelity or success rates, no existing study provides a software-measurement-grounded, interpretable, cross-paradigm feature vector integrated into an open-source toolkit and validated on real multi-provider executions.
+
+The existing literature either relies on ad hoc feature selection without systematic justification \cite{saravananDataDrivenReliabilityModelsa_2023, aktarPredictingExpressibilityParameterized_2023}, selects a set of circuit characteristics without cross-paradigm validation \cite{liuReliabilityModelingNISQ_2020}, or instead uses device calibration data rather than circuit information \cite{escofetAccurateEfficientAnalytic_2025}. More sophisticated approaches based on Graph Neural Networks \cite{wangQuEstGraphTransformer_2022, wangTorchQuantumCaseStudya_2022} bypass the question of metric identification entirely by operating directly on the circuit's graph representation. Although these approaches achieve high prediction accuracy, they do not produce an interpretable asset to evaluate an algorithm, but rather offer a trained neural network for predictions.
+
+This thesis addresses this gap by systematically evaluating which pre-runtime metrics carry the strongest predictive signal across different algorithmic paradigms, and consolidating them into an interpretable footprint. The resulting quality model is the contribution; the machine learning models serve as the empirical validation mechanism that demonstrates the footprint contains sufficient information to predict post-runtime outcomes.
 
 Second, this thesis distinguishes itself by its prediction target. The existing literature has focused predominantly on predicting physical quantities such as quantum state fidelity \cite{escofetAccurateEfficientAnalytic_2025, vadaliQuantumCircuitFidelity_2024, wangQuEstGraphTransformer_2022, wangTorchQuantumCaseStudya_2022}, Probability of Successful Trial (PST) \cite{liuReliabilityModelingNISQ_2020}, ground-state energies \cite{liuOutputPredictionQuantum_2025}, or probability distributions of quantum states \cite{carrasquillaProbabilisticSimulationQuantum_2021}. While these metrics effectively characterize hardware noise and general circuit behavior, they do not fully capture whether a quantum algorithm's expected outcomes emerge with sufficient contrast above the noise floor.
 
@@ -364,7 +369,7 @@ The objective of this thesis is to verify the hypotheses delineated below.
 \item \textbf{Primary Hypothesis:} A compact "footprint," constructed from a quantum circuit's pre-runtime metrics, contains sufficient information to estimate the execution quality of a quantum algorithm on a quantum device, when validated against ground-truth data from hardware execution.
 \label{h:1}
 
-\item \textbf{Scalability Consistency:} Models trained on instances of the selected primitives (QFT, GO, BV, vTP, GHZ) generalize to predict the quality metrics of unobserved circuit configurations within the same algorithmic family.
+\item \textbf{Scalability Generalization:} Models trained on instances of the selected algorithms (QFT, GO, BV, vTP, GHZ) generalize to unobserved circuit configurations, given that the new jobs use circuits within the same QC paradigm.
 \label{h:2}
 
 \item \textbf{Cross-Provider Transferability:} A single predictive model trained using the circuit footprint generalizes across different quantum providers.
@@ -401,6 +406,8 @@ Because transpilation is target-dependent, the resulting footprint already encod
 
 To investigate the impact of hardware context, the study will also evaluate an augmented footprint that incorporates explicit backend calibration features, such as median gate error rates and/or $T_1$/$T_2$ coherence times, all of which are publicly available before execution. This augmented variant will be compared against the circuit-only footprint to characterize the extent to which hardware context is necessary for cross-provider prediction (\ref{h:3}).
 
+Because the available dataset is limited, the models will be trained using all collected execution records. Validation will be performed using newly generated execution data that is not used during model construction. The predicted quality metrics will then be compared against the observed outcomes of those new executions.
+
 Finally, with respect to the predictive modeling component, this research focuses on the application of classical machine learning algorithms rather than deep learning or quantum machine learning approaches. This choice is justified because the input vector and target variables are structured data, avoiding the need for deep architectures that are typically required for unstructured data such as text or images. The study will evaluate a comprehensive suite of regression models, including Linear Regression, Decision Tree Regression, Random Forest, K-Nearest Neighbors (KNN), Support Vector Machine Regression (SVR), and Gradient Boosting algorithms such as XGBoost and LightGBM. The best algorithm selection will be based on the Coefficient of Determination ($R^2$), Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE), with a minimum score of $R^2 \geq 0.80$ and the goal of minimizing the MAE and RMSE respectively.
 
 \section{Research Methodology}
@@ -412,7 +419,11 @@ GBMF begins by classifying the entities under investigation and differentiating 
 
 To determine which attributes to measure, the GBMF incorporates the Goal-Question-Metric (GQM) paradigm introduced by Basili et al. \cite{basiliGQM_1994}. GQM structures the measurement process in three steps: \emph{(i)} define the goals of the measurement program, \emph{(ii)} derive the questions that must be answered to determine whether those goals are met, and \emph{(iii)} identify the metrics required to answer each question. GQM ensures that each collected metric is explicitly aligned with a well-defined objective within the predictive framework, thereby avoiding the acquisition of data based solely on ease of measurement or convenience.
 
-A central distinction in GBMF is that between measures and prediction systems. A measure characterizes an existing entity, while a prediction system uses a model to predict an attribute of an entity \cite{alma991005387727907681_2015}. The machine learning models proposed in this thesis constitute a prediction system that maps the attributes of the internal circuit to the external quality results. Following the framework's validation criteria, such a system is empirically validated by comparing its predictions against ground-truth data obtained from real QPU executions. This process has already guided preliminary research, including a systematic mapping study \cite{marquezQualityConcernsWhena_2025}, the creation of the qWard library \cite{QiskitqwardFrameworkAnalyzing}, the execution of initial experiments on quantum hardware \cite{ieeevTp2025}, and the definition of the DSR (currently under review for IEEE Quantum Week 2026), establishing a solid foundation for the proposed predictive framework. The following section details these foundational studies, which serve as the evidence base for the subsequent phases.
+A central distinction in GBMF is that between measures and prediction systems. A measure characterizes an existing entity, while a prediction system uses a model to predict an attribute of an entity \cite{alma991005387727907681_2015}. The machine learning models proposed in this thesis constitute a prediction system that maps the attributes of the internal circuit to the external quality results. Following the framework's validation criteria, such a system is empirically validated by comparing its predictions against ground-truth data obtained from real QPU executions. This process has already guided preliminary research, including a systematic mapping study \cite{marquezQualityConcernsWhena_2025}, the creation of the qWard library \cite{QiskitqwardFrameworkAnalyzing}, the execution of initial experiments on quantum hardware \cite{ieeevTp2025}, and the definition of the DSR (currently under review for IEEE Quantum Week 2026), establishing a solid foundation for the proposed predictive framework.
+
+To assess the practical value of the footprint, the study will compare predictive results obtained with three input configurations: \emph{(i)} pre-runtime circuit metrics only, \emph{(ii)} hardware calibration metrics only, and \emph{(iii)} a mixed configuration combining both sources of information. Predictive performance will be evaluated using $R^2$, $MAE$, and $RMSE$. This comparison serves as a boundary analysis for the circuit footprint: the pre-runtime-only configuration tests the core contribution, while the hardware-only and mixed configurations quantify the extent to which explicit hardware context improves or is necessary for cross-provider prediction, as stated in Hypothesis~\ref{h:3}. Regardless of the outcome, the circuit footprint remains the primary contribution; the hardware comparison determines its scope of applicability rather than replacing it.
+
+The following section details these foundational studies, which serve as the evidence base for the subsequent phases.
 
 \section{Proposal: Quality-Aware Quantum Software (QAQS)}
 \label{section:qaqs}
@@ -467,7 +478,28 @@ Based on these findings, the next step is to formalize the circuit footprint (Se
 
 Regarding the success function, one crucial aspect to consider is that the six target algorithms differ in how their outputs are evaluated. In previous studies, we identified that validation can be performed per shot, per job, or per batch. Algorithms such as vTP or Grover's Search produce deterministic outcomes that can be evaluated per shot, meaning that the result either matches the expected value or it does not. In contrast, QFT-based algorithms require an analysis of the output probability distribution, making evaluation at the job or batch level more appropriate.
 
-To address the need for a unified and interpretable success criterion, this thesis adopts the DSR, a post-runtime metric currently under peer review at IEEE Quantum Week 2026, as its primary evaluation target, complemented by HF and TVD for comparative analysis. The DSR quantifies how distinctly the expected outcome states stand out relative to the strongest competing state in the measurement histogram. Although all three metrics require knowledge of the expected output states, they differ in what they measure. HF and TVD compare the full observed probability distribution with the ideal one, capturing how faithfully the hardware reproduces the entire output profile. The DSR, in contrast, focuses exclusively on the contrast between the target states and the strongest competitor, aiming to answer whether the algorithm's targeted output emerges above the noise. By definition, a DSR value close to~$1$ indicates that the expected states clearly dominate the histogram, while a value near~$0$ signals that the output is lost in the noise. This interpretability positions the DSR as a particularly suitable primary focus for the proposed framework, with HF and TVD serving as established baseline methods against which its predictive behavior can be compared.
+To address the need for a unified and interpretable success criterion, this thesis adopts the DSR, a post-runtime metric currently under peer review at IEEE Quantum Week 2026, as its primary evaluation target, complemented by HF and TVD for comparative analysis. The DSR is defined by Equation~\eqref{eq:dsr}.
+
+\begin{equation}
+\label{eq:dsr}
+DSR = \text{clip}\!\left(\frac{\bar{p}_{exp} - p_{comp}}{\bar{p}_{exp} + p_{comp}},\ 0,\ 1\right)
+\end{equation}
+
+\noindent Let $\mathcal{C} : \{0,1\}^n \to \mathbb{Z}_{\geq 0}$ denote the histogram returned by a quantum job, with total shots $S = \sum_{x} \mathcal{C}(x)$ and probability of outcomes $p_x = \mathcal{C}(x)/S$. Given the set of expected outcomes $E$ with cardinality $K = |E|$, the terms are defined in Equation~\eqref{eq:dsr_terms}.
+
+\begin{equation}
+\label{eq:dsr_terms}
+\bar{p}_{\text{exp}} = \frac{1}{K}\sum_{x \in E} p_x, \qquad
+p_{\text{comp}} = \max_{x \notin E}\; p_x
+\end{equation}
+
+\noindent That is, $\bar{p}_{exp}$ is the mean probability per expected outcome and $p_{comp}$ is the probability of the strongest competing (non-expected) state. Since $\bar{p}_{exp} \geq 0$ and $p_{comp} \geq 0$, the fraction in Equation~\eqref{eq:dsr} is bounded in $[-1, 1]$; the clip affects only the cases where $p_{comp} > \bar{p}_{exp}$, collapsing the result to zero. The DSR adopts the Michelson contrast formulation \cite{michelsonInterferenceMethods_1890, michelsonStudiesOptics_1927}, which provides three desirable properties: \emph{(i)} scale invariance, since $S$ cancels out and the score depends only on relative strengths; \emph{(ii)} a bounded range in $[0, 1]$; and \emph{(iii)} sensitivity to the dominance of the expected outcome over the strongest competitor. In practical terms, if $\mathrm{DSR} = d$ (for $d < 1$), the signal-to-competitor ratio satisfies $\bar{p}_{exp} / p_{comp} = (1 + d)/(1 - d)$; for example, $d = 0.8$ corresponds to a ratio $9{:}1$. Edge cases are handled by convention: $S = 0$ or $E = \emptyset$ yields $\mathrm{DSR} = 0$; if all observed states belong to $E$, then $p_{comp} = 0$ and $\mathrm{DSR} = 1$.
+
+The DSR has known limitations. Because it compares only against the single strongest competitor, it is insensitive to how probability mass is distributed among all non-expected states. It also requires knowledge of the expected output states, restricting its applicability to algorithms with a known ground truth. Furthermore, for algorithms that produce multiple expected states, the use of the mean $\bar{p}_{exp}$ can mask cases where some expected states are well-resolved while others are lost in noise. Finally, scale invariance holds in practice only under sufficient sampling; with very few shots, the histogram may not accurately reflect the algorithm's output distribution.
+
+Although all three metrics require knowledge of the expected output states, they differ in what they measure. HF and TVD compare the full observed probability distribution with the ideal one, capturing how faithfully the hardware reproduces the entire output profile. The DSR, in contrast, focuses exclusively on the contrast between the target states and the strongest competitor, aiming to answer whether the algorithm's targeted output emerges above the noise.
+
+Importantly, the QAQS framework does not depend on the superiority of DSR over established metrics. Because HF and TVD serve as co-equal prediction targets throughout the pipeline, the footprint validation and the predictive models remain valid regardless of which metric proves most informative. If DSR turns out to be a weaker predictor than HF or TVD, the core contribution---the circuit footprint as a quality model---is still validated through the established metrics, and DSR would simply be documented as a complementary measure with a more limited scope.
 
 Recent studies provide evidence that ML models trained in specific circuit families can generalize to unseen configurations that preserve the structural characteristics of the original primitive. Vadali et al. \cite{vadaliQuantumCircuitFidelity_2024} demonstrated that models trained on simpler circuits can predict the fidelity of circuits with higher degrees of entanglement and non-Clifford gates than those present in the training set. Similarly, Ravi et al. \cite{raviAdaptiveJobResource_2021} showed that the fidelity predictions derived from the features of the circuit compiled are generalized to a diverse set of quantum applications on IBM hardware. Moreover, Hopf et al. \cite{hopfImprovingFiguresMerit_2025} proposed an ML-based figure of merit that predicts execution quality without running the circuit, achieving a 49\% correlation improvement over the state of the art. Taken together, these findings support the premise that models can generalize to unseen configurations within the same primitive, as proposed in this thesis.
 
@@ -484,13 +516,16 @@ The footprint is then used as input to the seven classical supervised regression
 
 \section{Expected Contributions}
 \label{section:contributions}
-This thesis is expected to make the following contributions to the field of quantum computing, categorized according to their current stage of development within QAQS.
 
-\subsection{Completed Contributions}
+The central doctoral contribution of this thesis is the \textbf{Quality-Aware Quantum Software (QAQS) framework}, a pre-runtime quality model for quantum software that links a circuit's structural properties to its expected execution outcomes. The contributions listed below are organized into the foundational studies that enabled QAQS and the components that constitute it.
+
+\subsection{Foundational Studies}
+
+The following completed works established the conceptual, empirical, and tooling foundations required to construct and validate the QAQS framework.
 
 \begin{enumerate}
 
-\item \textbf{Pre/Post-runtime Metric Classification:} A temporal metric taxonomy, derived from the systematic mapping study (Section~\ref{subsection:sms}), that distinguishes between pre-runtime metrics (obtained through static analysis) and post-runtime metrics (obtained from execution results). This classification provides the conceptual foundation for the QAQS framework.
+\item \textbf{Pre/Post-runtime Metric Classification:} A temporal metric taxonomy, derived from the systematic mapping study (Section~\ref{subsection:sms}), that distinguishes between pre-runtime metrics (obtained through static analysis) and post-runtime metrics (obtained from execution results). This classification provides the conceptual foundation for QAQS.
 \label{c:classification}
 
 \item \textbf{qWard Library:} An open-source Python library \cite{marquezQwardUnifiedToolkit_2025, QiskitqwardFrameworkAnalyzing} for automated metric extraction from quantum circuits (Section~\ref{subsection:qward}). qWard operationalizes the metric classification by providing 30+ pre-runtime and 8+ post-runtime metrics.
@@ -499,43 +534,39 @@ This thesis is expected to make the following contributions to the field of quan
 \item \textbf{Open Datasets:} Two publicly available datasets \cite{data_1, data_2} published in IEEE Dataport, comprising 292 and 1,281 QPU executions, respectively. These datasets, described in detail in Section~\ref{subsection:vtp}, provide the empirical foundation for the predictive framework.
 \label{c:dataset1}
 
-\end{enumerate}
-
-\subsection{In-Progress Contribution}
-
-\begin{enumerate}[resume]
-
 \item \textbf{DSR Metric:} A distribution-aware post-runtime metric, described in Section~\ref{section:qaqs}, that quantifies the contrast between expected outcome states and the strongest competing state. Paper submitted to IEEE Quantum Week 2026 (under review).
 \label{c:dsr}
 
 \end{enumerate}
 
-\subsection{Proposed Contributions}
+\subsection{Doctoral Contribution: The QAQS Framework}
 
-\begin{enumerate}[resume]
+The central doctoral contribution is the QAQS framework itself, which integrates the foundational studies above into a single validated quality model. QAQS comprises the following components:
 
-\item \textbf{QAQS Framework:} A software tool that integrates metric extraction, footprint validation, and ML-based prediction into a unified pipeline, as described in Section~\ref{section:qaqs} and Figure~\ref{fig:framework-overview}.
-\label{c:framework}
+\begin{enumerate}
 
 \item \textbf{Circuit Footprint:} An empirically validated feature vector of pre-runtime metrics (Section~\ref{section:introduction}) selected through iterative correlation and contribution analysis per target. The footprint condenses a quantum circuit into a compact representation suitable for quality prediction.
 \label{c:footprint}
 
-\item \textbf{Validation data set:} an open multi-paradigm, multi-provider dataset that extends existing datasets (\ref{c:dataset1}) to cover six algorithms in four paradigms on IBM, Rigetti and IonQ hardware, designed to validate the predictive power of the circuit footprint.
+\item \textbf{Predictive Pipeline:} A software tool that integrates metric extraction via qWard, footprint validation, and ML-based prediction into a unified pipeline, as described in Section~\ref{section:qaqs} and Figure~\ref{fig:framework-overview}.
+\label{c:framework}
+
+\item \textbf{Validation Dataset:} An open multi-paradigm, multi-provider dataset that extends existing datasets (\ref{c:dataset1}) to cover six algorithms in four paradigms on IBM, Rigetti, and IonQ hardware, designed to validate the predictive power of the circuit footprint.
 \label{c:validation_dataset}
 
 \end{enumerate}
 
 \subsection{Derived Subproducts}
 
-In addition to the expected contributions listed above, this research has already produced tangible outcomes in the form of undergraduate theses supervised within the scope of the qWard project at Universidad de los Andes. These works validate different components of the proposed framework and demonstrate its applicability in educational settings.
+This research has also produced tangible outcomes in the form of undergraduate theses supervised within the scope of the qWard project at Universidad de los Andes, demonstrating the framework's applicability in educational settings.
 
 \begin{enumerate}
 
-\item Torres Bermejo \cite{torresBermejoVisualizationsPostRuntime_2025} developed a visualization module for post-runtime quantum circuit information, which was integrated into the qWard library as part of the Visualizer component. This work addressed the need for standardized and publication-ready representations of execution results.
+\item Torres Bermejo \cite{torresBermejoVisualizationsPostRuntime_2025} developed a visualization module for post-runtime quantum circuit information, integrated into qWard as part of the Visualizer component.
 
-\item Baldion Castillo \cite{baldionCastilloPreRuntimeMetrics_2026} implemented a pre-runtime metric extraction pipeline and validated its predictive power for quantum execution success rates using Grover's algorithm as a case study. The results confirmed that static circuit features can serve as reliable predictors of post-runtime performance.
+\item Baldion Castillo \cite{baldionCastilloPreRuntimeMetrics_2026} implemented a pre-runtime metric extraction pipeline and validated its predictive power for quantum execution success rates using Grover's algorithm as a case study.
 
-\item Rodr\'{i}guez Castillo \cite{rodriguezCastilloScalabilityQuantum_2026} analyzed the scalability behavior of quantum algorithms implemented as circuits and subroutines, providing empirical evidence on how the circuit structure evolves with the size of the problem and its implications for hardware execution.
+\item Rodr\'{i}guez Castillo \cite{rodriguezCastilloScalabilityQuantum_2026} analyzed the scalability behavior of quantum algorithms implemented as circuits and subroutines, providing empirical evidence on how circuit structure evolves with problem size.
 
 \end{enumerate}
 
@@ -691,18 +722,18 @@ The research plan is presented as ten phases, three of which have been completed
     \textbf{Description:} Define the "Quantum Circuit Footprint" feature vector by performing correlation analysis (Spearman), contribution analysis (permutation importance, SHAP), and multicollinearity removal (VIF) per target (DSR, HF, TVD). Compare the resulting circuit-only footprint against a hardware-augmented variant to assess the role of backend context. \newline
     \textbf{Tasks:}
     \begin{enumerate}[label=T6.\arabic*, ref=T6.\arabic*, font=\bfseries, leftmargin=*, noitemsep, topsep=0pt]
-        \item \label{p6:t1} Perform exploratory data analysis: distributions, outliers, and multicollinearity among pre-runtime metrics.
-        \item \label{p6:t2} Run Spearman correlation analysis between pre-runtime and post-runtime metrics per target.
+        \item \label{p6:t1} Perform exploratory data analysis: distributions, outliers, and multicollinearity among candidate pre-runtime and hardware metrics.
+        \item \label{p6:t2} Run Spearman correlation analysis between candidate metrics and post-runtime targets.
         \item \label{p6:t3} Conduct contribution analysis (permutation importance, SHAP) to rank feature predictive signal.
-        \item \label{p6:t4} Select optimal feature set for the "Quantum Circuit Footprint" and handle multicollinearity (e.g., VIF-based removal).
-        \item \label{p6:t5} Evaluate augmented footprint with backend calibration features (gate error rates, $T_1$/$T_2$) and compare against circuit-only footprint.
+        \item \label{p6:t4} Select the optimal pre-runtime metric set for the "Quantum Circuit Footprint" and handle multicollinearity (e.g., VIF-based removal).
+        \item \label{p6:t5} Compare prediction results obtained with pre-runtime-only, hardware-only, and mixed input configurations.
     \end{enumerate}
     \textbf{Acceptance Criteria:}
     \begin{itemize}[leftmargin=*, noitemsep, topsep=0pt]
-        \item Correlation and contribution analyses completed per target (DSR, HF, TVD).
-        \item "Quantum Circuit Footprint" (optimal pre-runtime metric vector) defined with justification for each included feature.
+        \item Correlation and contribution analyses completed for the candidate metrics and target variables (DSR, HF, TVD).
+        \item "Quantum Circuit Footprint" defined with explicit justification for each included pre-runtime metric.
         \item Multicollinearity addressed and documented.
-        \item Comparison between circuit-only and hardware-augmented footprints documented.
+        \item Prediction results compared across pre-runtime-only, hardware-only, and mixed configurations.
     \end{itemize} \\
     \midrule
     
@@ -732,20 +763,20 @@ The research plan is presented as ten phases, three of which have been completed
     \textbf{Phase 8: Measurement Validation and Empirical Analysis} \label{p:8} \hfill \textbf{Status: TO DO} \\
     \textit{Estimation:} 2 Months \newline
     \textbf{Related Goals:} Hypothesis \ref{h:2}, \ref{h:3}; Objective \ref{o:3} \newline
-    \textbf{Description:} Close the GBMF loop by empirically validating the prediction system. Following the framework's validation criteria, the models' predictions are compared against ground-truth data obtained from new QPU executions to test generalization on unseen circuits and confirm cross-provider transferability. This phase determines whether the ``Goal'' established in Phase~\ref{p:1} has been met. \newline
+    \textbf{Description:} Close the GBMF loop by empirically validating the prediction system. Following the framework's validation criteria, the models' predictions are compared against ground-truth data obtained from newly generated QPU executions to evaluate generalization across the selected algorithms and paradigms, and to assess the role of hardware context in cross-provider prediction. This phase determines whether the ``Goal'' established in Phase~\ref{p:1} has been met. \newline
     \textbf{Tasks:}
     \begin{enumerate}[label=T8.\arabic*, ref=T8.\arabic*, font=\bfseries, leftmargin=*, noitemsep, topsep=0pt]
-        \item \label{p8:t1} Execute each target algorithm at least once on real hardware to collect ground-truth validation data.
-        \item \label{p8:t2} Compare predicted metrics against actual execution results.
-        \item \label{p8:t3} Quantify predictive power and identify framework limitations.
+        \item \label{p8:t1} Execute the target algorithms on real hardware to collect new validation data.
+        \item \label{p8:t2} Compare the predicted quality metrics against the observed execution results.
+        \item \label{p8:t3} Compare validation results across pre-runtime-only, hardware-only, and mixed input configurations.
+        \item \label{p8:t4} Quantify predictive power and identify framework limitations.
     \end{enumerate}
     \textbf{Acceptance Criteria:}
     \begin{itemize}[leftmargin=*, noitemsep, topsep=0pt]
-        \item Validation dataset collected from new executions of each algorithm.
-        \item Generalization tests on unseen circuits completed (validating \ref{h:2}).
-        \item Cross-provider analysis completed (validating \ref{h:3}).
-        \item Benchmarking against real hardware execution results finalized.
-        \item Predictive power and limitations of the framework quantified.
+        \item Validation dataset collected from newly generated executions on real hardware.
+        \item Predicted quality metrics compared against observed outcomes for the selected algorithms within the target paradigms (validating \ref{h:2}).
+        \item Prediction results compared across pre-runtime-only, hardware-only, and mixed configurations to assess the role of hardware context in cross-provider prediction (validating \ref{h:3}).
+        \item Predictive power and framework limitations documented using $R^2$, $MAE$, and $RMSE$.
     \end{itemize} \\
     \midrule
     
@@ -835,9 +866,20 @@ Figure \ref{fig:gantt} presents the Gantt chart for the thesis research plan. Th
 \label{fig:gantt}
 \end{figure*}
 
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{time.png}
+    \caption{Visual timeline of the research phases with key publications and deliverables per semester.}
+    \label{fig:timeline}
+\end{figure*}
+
+Figure~\ref{fig:timeline} complements the Gantt chart by mapping each phase to its associated publications and deliverables. Green cells denote completed work, yellow cells indicate phases that are currently in progress, and gray cells indicate proposed phases. Each publication milestone (CIbSE, CHILECON, IEEE Access, Quantum Week 2026) is placed in the semester where it was produced or submitted.
+
 \section{AI Tools and Services Acknowledgment}
 
 The authors acknowledge the use of AI tools and services for manuscript preparation and research assistance. Writefull.com supported language, grammar, and writing improvements; Elicit.com assisted in literature discovery; and Cursor helped with code development, including plotting scripts and quantum circuit understanding. These tools enhanced the authors' capabilities, while the core research, design, data interpretation, and conclusions are the authors' intellectual work.
+
+\clearpage
 
 \printbibliography
 
