@@ -13,6 +13,32 @@
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/serif.css" id="theme">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/revelab@0.2.0/dist/revelab.min.css">
 		<link rel="stylesheet" href="theme.css">
+		<style>
+			#fullscreen-btn {
+				position: fixed;
+				top: 12px;
+				right: 12px;
+				z-index: 50;
+				width: 32px;
+				height: 32px;
+				border: none;
+				border-radius: 6px;
+				background: rgba(99, 102, 241, 0.25);
+				color: #fff;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				opacity: 0.4;
+				transition: opacity 0.15s ease, background 0.15s ease, transform 0.15s ease;
+			}
+			#fullscreen-btn:hover { opacity: 1; background: rgba(99, 102, 241, 0.9); transform: scale(1.05); }
+			#fullscreen-btn svg { width: 16px; height: 16px; fill: currentColor; }
+			#fullscreen-btn .icon-enter { display: block; }
+			#fullscreen-btn .icon-exit  { display: none; }
+			/* Hide button entirely while in fullscreen */
+			#fullscreen-btn.is-fullscreen { display: none; }
+		</style>
 	</head>
 	<body>
 		<div class="reveal">
@@ -74,10 +100,10 @@
 				<!-- ============================================================ -->
 				<!-- SECTION 7: qWARD LIBRARY                                     -->
 				<!-- ============================================================ -->
-				<section data-include="slides/06-foundational/phase2-circuit.html"></section>
+				<section class="rho-story" data-include="slides/06-foundational/phase2-circuit.html"></section>
 				<section data-include="slides/06-foundational/phase2-scale-10.html"></section>
 				<section data-include="slides/06-foundational/phase2-scale-100.html"></section>
-				<section data-include="slides/06-foundational/phase2-outcomes.html"></section>
+				<section class="rho-story" data-include="slides/06-foundational/phase2-outcomes.html"></section>
 
 				<!-- ============================================================ -->
 				<!-- SECTION 8: EXPERIMENTATION — algorithms, fidelity, DSR       -->
@@ -85,7 +111,7 @@
 				<section data-include="slides/06-foundational/algorithm-selection.html"></section>
 				<section data-include="slides/08-contributions/hf-tvd-intro.html"></section>
 				<section data-include="slides/06-foundational/phase4b.html"></section>
-				<section data-include="slides/06-foundational/dsr-simulation.html"></section>
+				<section class="rho-story" data-include="slides/06-foundational/dsr-simulation.html"></section>
 				<section data-include="slides/06-foundational/dsr-qubits.html"></section>
 
 				<!-- ============================================================ -->
@@ -120,6 +146,29 @@
 			</div><!-- .slides -->
 		</div>
 
+		<button id="fullscreen-btn" aria-label="Toggle fullscreen" title="Toggle fullscreen (F)">
+			<svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5v2H6v3H4zm11-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 3v-3h2v5h-5v-2h3z"/></svg>
+			<svg class="icon-exit"  viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4V7h3V4h2zm6 0h2v3h3v2h-5V4zM4 17h5v3H7v-1H4v-2zm14 2v1h-3v-3h5v2h-2z"/></svg>
+		</button>
+		<script>
+			(function() {
+				const btn = document.getElementById('fullscreen-btn');
+				btn.addEventListener('click', function() {
+					if (!document.fullscreenElement) {
+						(document.documentElement.requestFullscreen ||
+						 document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+					} else {
+						(document.exitFullscreen || document.webkitExitFullscreen).call(document);
+					}
+				});
+				document.addEventListener('fullscreenchange', function() {
+					btn.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+				});
+				document.addEventListener('webkitfullscreenchange', function() {
+					btn.classList.toggle('is-fullscreen', !!document.webkitFullscreenElement);
+				});
+			})();
+		</script>
 		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
 		<script>
