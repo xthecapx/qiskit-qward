@@ -5,7 +5,7 @@
 # Run this script to execute all missing experiments on AWS Braket hardware.
 #
 # Usage:
-#   ./run_aws_experiments.sh [grover|qft|all]
+#   ./run_aws_experiments.sh [grover|qft|coin_toss|all]
 #
 # Environment Variables (optional):
 #   AWS_BRAKET_DEVICE      - Device name (default: Ankaa-3)
@@ -143,6 +143,30 @@ run_qft() {
 }
 
 # =============================================================================
+# COIN TOSS EXPERIMENTS (Ry rotations)
+# =============================================================================
+run_coin_toss() {
+    echo "=============================================="
+    echo "COIN TOSS EXPERIMENTS"
+    echo "=============================================="
+
+    # Fair-coin scaling
+    run_experiment "COIN_TOSS" "CT1" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT2" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT3" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT4" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT5" "coin_toss/coin_toss_aws.py"
+
+    # Biased ("cheated") coin
+    run_experiment "COIN_TOSS" "CT1-B25" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT1-B75" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT3-B25" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT3-B75" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT5-B25" "coin_toss/coin_toss_aws.py"
+    run_experiment "COIN_TOSS" "CT5-B75" "coin_toss/coin_toss_aws.py"
+}
+
+# =============================================================================
 # MAIN
 # =============================================================================
 case "${1:-all}" in
@@ -152,9 +176,13 @@ case "${1:-all}" in
     qft)
         run_qft
         ;;
+    coin_toss|coin-toss|cointoss)
+        run_coin_toss
+        ;;
     all|*)
         run_grover
         run_qft
+        run_coin_toss
         ;;
 esac
 
@@ -164,4 +192,5 @@ echo "=============================================="
 echo "Results saved in:"
 echo "  - grover/data/qpu/aws/"
 echo "  - qft/data/qpu/aws/"
+echo "  - coin_toss/data/qpu/aws/"
 echo "=============================================="
