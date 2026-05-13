@@ -29,10 +29,7 @@ class Your3DScene(ThreeDScene):
         # Set initial camera orientation
         # phi: angle from z-axis (0 = top-down, 90 = side view)
         # theta: rotation around z-axis
-        self.set_camera_orientation(
-            phi=70 * DEGREES,
-            theta=-45 * DEGREES
-        )
+        self.set_camera_orientation(phi=70 * DEGREES, theta=-45 * DEGREES)
 
         # ============================================================
         # 3D AXES
@@ -48,11 +45,7 @@ class Your3DScene(ThreeDScene):
         )
 
         # Axis labels (stay fixed to camera orientation)
-        axis_labels = axes.get_axis_labels(
-            x_label="x",
-            y_label="y",
-            z_label="z"
-        )
+        axis_labels = axes.get_axis_labels(x_label="x", y_label="y", z_label="z")
 
         self.play(Create(axes))
         self.add(axis_labels)
@@ -72,10 +65,7 @@ class Your3DScene(ThreeDScene):
         # --- 3D Surface ---
         # z = sin(sqrt(x^2 + y^2))
         surface = Surface(
-            lambda u, v: axes.c2p(
-                u, v,
-                np.sin(np.sqrt(u ** 2 + v ** 2))
-            ),
+            lambda u, v: axes.c2p(u, v, np.sin(np.sqrt(u**2 + v**2))),
             u_range=[-2.5, 2.5],
             v_range=[-2.5, 2.5],
             resolution=(20, 20),
@@ -83,12 +73,7 @@ class Your3DScene(ThreeDScene):
         )
         surface.set_color_by_gradient(BLUE, TEAL, GREEN)
 
-        self.play(
-            FadeOut(sphere),
-            FadeOut(cube),
-            Create(surface),
-            run_time=2
-        )
+        self.play(FadeOut(sphere), FadeOut(cube), Create(surface), run_time=2)
         self.wait()
 
         # ============================================================

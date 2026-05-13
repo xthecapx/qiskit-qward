@@ -1,4 +1,5 @@
 """Resume opt3 campaign from job 33 onward. Skips M3-4, increases timeout."""
+
 import subprocess
 import sys
 import time
@@ -49,9 +50,23 @@ for i, (algo, config, script) in enumerate(jobs, 1):
     start = time.time()
     try:
         result = subprocess.run(
-            [sys.executable, script, "--config", config, "--opt-levels", "3",
-             "--channel", CHANNEL, "--token", TOKEN, "--instance", INSTANCE],
-            capture_output=True, text=True, timeout=600
+            [
+                sys.executable,
+                script,
+                "--config",
+                config,
+                "--opt-levels",
+                "3",
+                "--channel",
+                CHANNEL,
+                "--token",
+                TOKEN,
+                "--instance",
+                INSTANCE,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=600,
         )
         dt = time.time() - start
         if result.returncode == 0:

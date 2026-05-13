@@ -34,7 +34,8 @@ class TVDFDegradation(Scene):
 
         section_title = Text(
             "TVD Fidelity Degradation Under Noise",
-            font_size=34, color=TVDF_COLOR,
+            font_size=34,
+            color=TVDF_COLOR,
         ).to_edge(UP, buff=0.4)
         self.play(Write(section_title))
 
@@ -42,7 +43,8 @@ class TVDFDegradation(Scene):
         formula = MathTex(
             r"\text{TVDF} = 1 - \frac{1}{2}\sum_x"
             r"\left|p_{\text{ideal}}(x) - p_{\text{meas}}(x)\right|",
-            font_size=32, color=TVDF_COLOR,
+            font_size=32,
+            color=TVDF_COLOR,
         ).next_to(section_title, DOWN, buff=0.25)
         self.play(Write(formula), run_time=1.5)
         self.wait(0.5)
@@ -69,7 +71,8 @@ class TVDFDegradation(Scene):
         hist_axes = Axes(
             x_range=[0, 4, 1],
             y_range=[0, 1.1, 0.25],
-            x_length=4, y_length=3,
+            x_length=4,
+            y_length=3,
             axis_config={"include_ticks": True, "font_size": 20},
         ).shift(LEFT * 3.2 + DOWN * 0.7)
 
@@ -83,26 +86,30 @@ class TVDFDegradation(Scene):
         bar_width = 0.7
 
         def make_bar(index, prob_func, color):
-            return always_redraw(lambda idx=index, pf=prob_func, c=color: Rectangle(
-                width=bar_width,
-                height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
-                fill_color=c, fill_opacity=0.8, stroke_color=c, stroke_width=1,
-            ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN))
+            return always_redraw(
+                lambda idx=index, pf=prob_func, c=color: Rectangle(
+                    width=bar_width,
+                    height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
+                    fill_color=c,
+                    fill_opacity=0.8,
+                    stroke_color=c,
+                    stroke_width=1,
+                ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN)
+            )
 
         bar0 = make_bar(0, p_other, OTHER_COLOR)
         bar1 = make_bar(1, p_expected, EXPECTED_COLOR)
         bar2 = make_bar(2, p_other, OTHER_COLOR)
         bar3 = make_bar(3, p_other, OTHER_COLOR)
 
-        hist_label = Text("Measured", font_size=22, color=GREY_B).next_to(
-            hist_axes, UP, buff=0.1
-        )
+        hist_label = Text("Measured", font_size=22, color=GREY_B).next_to(hist_axes, UP, buff=0.1)
 
         # ── RIGHT: TVDF curve ────────────────────────────────────
         curve_axes = Axes(
             x_range=[0, 1, 0.2],
             y_range=[0, 1.1, 0.25],
-            x_length=4, y_length=3,
+            x_length=4,
+            y_length=3,
             axis_config={"include_ticks": True, "include_numbers": True, "font_size": 18},
         ).shift(RIGHT * 3.2 + DOWN * 0.7)
 
@@ -112,35 +119,47 @@ class TVDFDegradation(Scene):
 
         # Plot TVDF(t) curve — linear: 1 - 0.75t
         tvdf_curve = curve_axes.plot(
-            lambda t: tvdf_func(t), x_range=[0, 1, 0.01],
-            color=TVDF_COLOR, stroke_width=3,
+            lambda t: tvdf_func(t),
+            x_range=[0, 1, 0.01],
+            color=TVDF_COLOR,
+            stroke_width=3,
         )
 
         # Moving dot on curve
         moving_dot = always_redraw(
             lambda: Dot(
                 curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
-                radius=0.08, color=WHITE,
+                radius=0.08,
+                color=WHITE,
             )
         )
 
         # Vertical dashed line from dot to x-axis
-        vert_dash = always_redraw(lambda: DashedLine(
-            curve_axes.c2p(tracker.get_value(), 0),
-            curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
-            color=GREY_B, stroke_width=1, dash_length=0.08,
-        ))
+        vert_dash = always_redraw(
+            lambda: DashedLine(
+                curve_axes.c2p(tracker.get_value(), 0),
+                curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
+                color=GREY_B,
+                stroke_width=1,
+                dash_length=0.08,
+            )
+        )
 
         # TVDF value label
-        tvdf_value_label = always_redraw(lambda: MathTex(
-            rf"\text{{TVDF}} = {tvdf_func(tracker.get_value()):.2f}",
-            font_size=28, color=TVDF_COLOR,
-        ).next_to(curve_axes, UP, buff=0.15))
+        tvdf_value_label = always_redraw(
+            lambda: MathTex(
+                rf"\text{{TVDF}} = {tvdf_func(tracker.get_value()):.2f}",
+                font_size=28,
+                color=TVDF_COLOR,
+            ).next_to(curve_axes, UP, buff=0.15)
+        )
 
         # ── Assemble and animate ──────────────────────────────────
         self.play(
-            Create(hist_axes), Create(curve_axes),
-            FadeIn(bar_labels), FadeIn(hist_label),
+            Create(hist_axes),
+            Create(curve_axes),
+            FadeIn(bar_labels),
+            FadeIn(hist_label),
             FadeIn(x_label),
             run_time=1.5,
         )
@@ -161,7 +180,8 @@ class TVDFDegradation(Scene):
         # ── Main sweep animation ──────────────────────────────────
         self.play(
             tracker.animate.set_value(1),
-            run_time=6, rate_func=linear,
+            run_time=6,
+            rate_func=linear,
         )
         self.wait(2)
         self.play(*[FadeOut(m) for m in self.mobjects])

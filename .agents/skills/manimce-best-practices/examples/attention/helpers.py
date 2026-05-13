@@ -12,16 +12,16 @@ import random
 import itertools as it
 from typing import Optional, Tuple
 
-
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
+
 
 def softmax(logits, temperature=1.0):
     """Numerically stable softmax function."""
     logits = np.array(logits)
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore')
+        warnings.filterwarnings("ignore")
         logits = logits - np.max(logits)
         exps = np.exp(np.divide(logits, temperature, where=temperature != 0))
 
@@ -39,11 +39,15 @@ def value_to_color(
     low_negative_color=RED_E,
     high_negative_color=RED_B,
     min_value=0.0,
-    max_value=10.0
+    max_value=10.0,
 ):
     """Map a numeric value to a color based on sign and magnitude."""
     # Clamp alpha between 0 and 1
-    alpha = max(0, min(1, abs(value - min_value) / (max_value - min_value))) if max_value != min_value else 0.5
+    alpha = (
+        max(0, min(1, abs(value - min_value) / (max_value - min_value)))
+        if max_value != min_value
+        else 0.5
+    )
 
     if value >= 0:
         return interpolate_color(low_positive_color, high_positive_color, alpha)
@@ -71,6 +75,7 @@ def get_paragraph(words, line_len=40, font_size=48):
 def random_bright_color(hue_range=(0.0, 1.0)):
     """Generate a random bright color within a hue range."""
     import colorsys
+
     hue = random.uniform(*hue_range)
     rgb = colorsys.hsv_to_rgb(hue, 0.7, 0.9)
     return rgb_to_color(rgb)
@@ -79,6 +84,7 @@ def random_bright_color(hue_range=(0.0, 1.0)):
 # =============================================================================
 # CUSTOM MOBJECT CLASSES
 # =============================================================================
+
 
 class NumericEmbedding(VGroup):
     """
@@ -97,7 +103,7 @@ class NumericEmbedding(VGroup):
         dark_color=GREY_C,
         light_color=WHITE,
         bracket_color=GREY_B,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -118,10 +124,7 @@ class NumericEmbedding(VGroup):
                 entry = MathTex(r"\vdots")
             else:
                 entry = DecimalNumber(
-                    val,
-                    num_decimal_places=num_decimal_places,
-                    include_sign=True,
-                    font_size=36
+                    val, num_decimal_places=num_decimal_places, include_sign=True, font_size=36
                 )
                 # Color based on value
                 alpha = abs(val) / max(abs(value_range[0]), abs(value_range[1]))
@@ -171,7 +174,7 @@ class WeightMatrix(VGroup):
         high_positive_color=BLUE_B,
         low_negative_color=RED_E,
         high_negative_color=RED_B,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -201,19 +204,19 @@ class WeightMatrix(VGroup):
                 else:
                     val = values[i, j]
                     entry = DecimalNumber(
-                        val,
-                        num_decimal_places=num_decimal_places,
-                        include_sign=True,
-                        font_size=24
+                        val, num_decimal_places=num_decimal_places, include_sign=True, font_size=24
                     )
-                    entry.set_color(value_to_color(
-                        val,
-                        low_positive_color,
-                        high_positive_color,
-                        low_negative_color,
-                        high_negative_color,
-                        0, max(abs(value_range[0]), abs(value_range[1]))
-                    ))
+                    entry.set_color(
+                        value_to_color(
+                            val,
+                            low_positive_color,
+                            high_positive_color,
+                            low_negative_color,
+                            high_negative_color,
+                            0,
+                            max(abs(value_range[0]), abs(value_range[1])),
+                        )
+                    )
                 row.add(entry)
             row.arrange(RIGHT, buff=0.2)
             self.rows.add(row)
@@ -276,7 +279,7 @@ class ContextAnimation(LaggedStart):
             )
             arc.set_stroke(
                 color=random_bright_color(hue_range=(0.1, 0.3)),
-                width=interpolate(min_stroke_width, max_stroke_width, strength)
+                width=interpolate(min_stroke_width, max_stroke_width, strength),
             )
             arcs.add(arc)
 
@@ -284,10 +287,7 @@ class ContextAnimation(LaggedStart):
         lag_ratio = 0.5 / max(len(arcs), 1)
 
         super().__init__(
-            *[
-                ShowPassingFlash(arc, time_width=time_width)
-                for arc in arcs
-            ],
+            *[ShowPassingFlash(arc, time_width=time_width) for arc in arcs],
             lag_ratio=lag_ratio,
             run_time=run_time,
             **kwargs,
@@ -306,7 +306,7 @@ class NeuralNetwork(VGroup):
         v_buff=0.3,
         h_buff=1.5,
         max_stroke_width=2.0,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -315,10 +315,12 @@ class NeuralNetwork(VGroup):
         # Create layers
         self.layers = VGroup()
         for n in layer_sizes:
-            layer = VGroup(*[
-                Circle(radius=neuron_radius, color=WHITE, fill_opacity=random.random())
-                for _ in range(n)
-            ])
+            layer = VGroup(
+                *[
+                    Circle(radius=neuron_radius, color=WHITE, fill_opacity=random.random())
+                    for _ in range(n)
+                ]
+            )
             layer.arrange(DOWN, buff=v_buff)
             self.layers.add(layer)
 
@@ -330,15 +332,11 @@ class NeuralNetwork(VGroup):
             layer_lines = VGroup()
             for n1 in l1:
                 for n2 in l2:
-                    line = Line(
-                        n1.get_center(),
-                        n2.get_center(),
-                        buff=neuron_radius
-                    )
+                    line = Line(n1.get_center(), n2.get_center(), buff=neuron_radius)
                     line.set_stroke(
                         color=value_to_color(random.uniform(-10, 10)),
                         width=max_stroke_width * random.random(),
-                        opacity=random.random() ** 2
+                        opacity=random.random() ** 2,
                     )
                     layer_lines.add(line)
             self.lines.add(layer_lines)
@@ -352,13 +350,7 @@ class AttentionPattern(VGroup):
     Shows which tokens attend to which with varying line widths.
     """
 
-    def __init__(
-        self,
-        n_tokens=8,
-        token_labels=None,
-        attention_weights=None,
-        **kwargs
-    ):
+    def __init__(self, n_tokens=8, token_labels=None, attention_weights=None, **kwargs):
         super().__init__(**kwargs)
 
         if token_labels is None:
@@ -372,8 +364,7 @@ class AttentionPattern(VGroup):
         self.tokens = VGroup()
         for label in token_labels:
             token = VGroup(
-                Square(side_length=0.8, color=BLUE, fill_opacity=0.3),
-                Text(label, font_size=24)
+                Square(side_length=0.8, color=BLUE, fill_opacity=0.3), Text(label, font_size=24)
             )
             token[1].move_to(token[0])
             self.tokens.add(token)
@@ -393,7 +384,7 @@ class AttentionPattern(VGroup):
                     line.set_stroke(
                         color=YELLOW,
                         width=attention_weights[i, j] * 5,
-                        opacity=attention_weights[i, j]
+                        opacity=attention_weights[i, j],
                     )
                     self.attention_lines.add(line)
 
@@ -404,6 +395,7 @@ class AttentionPattern(VGroup):
 # ANIMATION HELPERS
 # =============================================================================
 
+
 class RandomizeMatrixEntries(Animation):
     """Animation that smoothly randomizes matrix entries."""
 
@@ -411,19 +403,16 @@ class RandomizeMatrixEntries(Animation):
         self.matrix = matrix
         self.entries = matrix.get_entries()
         self.start_values = [
-            entry.get_value() if hasattr(entry, 'get_value') else 0
-            for entry in self.entries
+            entry.get_value() if hasattr(entry, "get_value") else 0 for entry in self.entries
         ]
         self.target_values = np.random.uniform(
-            matrix.value_range[0],
-            matrix.value_range[1],
-            len(self.entries)
+            matrix.value_range[0], matrix.value_range[1], len(self.entries)
         )
         super().__init__(matrix, **kwargs)
 
     def interpolate_mobject(self, alpha: float) -> None:
         for index, entry in enumerate(self.entries):
-            if hasattr(entry, 'set_value'):
+            if hasattr(entry, "set_value"):
                 start = self.start_values[index]
                 target = self.target_values[index]
                 entry.set_value(interpolate(start, target, alpha))
@@ -437,17 +426,10 @@ def show_attention_flow(scene, source_mobs, target_mob, weights=None, run_time=2
 
     arrows = VGroup()
     for source, weight in zip(source_mobs, weights):
-        arrow = CurvedArrow(
-            source.get_top(),
-            target_mob.get_top(),
-            angle=-TAU/4
-        )
+        arrow = CurvedArrow(source.get_top(), target_mob.get_top(), angle=-TAU / 4)
         arrow.set_stroke(width=weight * 5, color=YELLOW)
         arrow.set_opacity(weight)
         arrows.add(arrow)
 
-    scene.play(
-        LaggedStart(*[Create(a) for a in arrows], lag_ratio=0.2),
-        run_time=run_time
-    )
+    scene.play(LaggedStart(*[Create(a) for a in arrows], lag_ratio=0.2), run_time=run_time)
     return arrows

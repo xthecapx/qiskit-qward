@@ -36,7 +36,6 @@ from qward.examples.papers.coin_toss.coin_toss_configs import (
 )
 from qward.examples.papers.coin_toss.coin_toss_ibm import REGION1_PRIORITY
 
-
 # Use opt_level=3 for Rigetti, mirroring QFT/Grover.
 RIGETTI_OPTIMIZATION_LEVEL = 3
 # Small-scale Rigetti characterization batch.
@@ -100,9 +99,7 @@ class CoinTossAWSExperiment(AWSExperimentBase[CoinTossExperimentConfig]):
         self._current_generator = generator
         return generator.circuit
 
-    def create_success_criteria(
-        self, config: CoinTossExperimentConfig
-    ) -> Callable[[str], bool]:
+    def create_success_criteria(self, config: CoinTossExperimentConfig) -> Callable[[str], bool]:
         """Create success criteria for the coin-toss experiment."""
         if getattr(self, "_current_generator", None) is not None:
             return self._current_generator.success_criteria

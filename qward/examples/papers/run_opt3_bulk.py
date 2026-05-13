@@ -1,4 +1,5 @@
 """Bulk opt3 campaign: 92 jobs for 2q and 3q Grover + QFT."""
+
 import subprocess
 import sys
 import time
@@ -19,8 +20,20 @@ for config in ["S2-00", "S2-1", "S2-10", "S2-11"]:
         jobs.append(("GROVER", config, GROVER_SCRIPT))
 
 # Grover 3q: 12 configs x ~2 each = 22 (distribute evenly)
-grover_3q = ["ASYM-1", "ASYM-2", "H3-0", "H3-1", "H3-2", "H3-3",
-             "M3-1", "M3-2", "M3-4", "S3-1", "SYM-1", "SYM-2"]
+grover_3q = [
+    "ASYM-1",
+    "ASYM-2",
+    "H3-0",
+    "H3-1",
+    "H3-2",
+    "H3-3",
+    "M3-1",
+    "M3-2",
+    "M3-4",
+    "S3-1",
+    "SYM-1",
+    "SYM-2",
+]
 # 22 jobs across 12 configs: 10 configs x 2 + 2 configs x 1 = 22
 for i, config in enumerate(grover_3q):
     repeats = 2 if i < 10 else 1
@@ -53,9 +66,23 @@ for i, (algo, config, script) in enumerate(jobs, 1):
     print(f"\n[{i}/{len(jobs)}] {algo} {config} (elapsed: {elapsed_total:.0f}s)")
     start = time.time()
     result = subprocess.run(
-        [sys.executable, script, "--config", config, "--opt-levels", "3",
-         "--channel", CHANNEL, "--token", TOKEN, "--instance", INSTANCE],
-        capture_output=True, text=True, timeout=300
+        [
+            sys.executable,
+            script,
+            "--config",
+            config,
+            "--opt-levels",
+            "3",
+            "--channel",
+            CHANNEL,
+            "--token",
+            TOKEN,
+            "--instance",
+            INSTANCE,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
     dt = time.time() - start
     if result.returncode == 0:

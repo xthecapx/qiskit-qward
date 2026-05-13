@@ -48,11 +48,7 @@ class FunctionPlotting(Scene):
         )
 
         # Plot y = x^2
-        parabola = axes.plot(
-            lambda x: x ** 2,
-            color=BLUE,
-            x_range=[-3, 3]
-        )
+        parabola = axes.plot(lambda x: x**2, color=BLUE, x_range=[-3, 3])
 
         # Label
         label = MathTex(r"y = x^2", color=BLUE)
@@ -100,21 +96,13 @@ class AreaUnderCurve(Scene):
         )
 
         # Function
-        func = axes.plot(lambda x: 0.5 * x ** 2, color=BLUE, x_range=[0, 4])
+        func = axes.plot(lambda x: 0.5 * x**2, color=BLUE, x_range=[0, 4])
 
         # Area under curve from x=1 to x=3
-        area = axes.get_area(
-            func,
-            x_range=[1, 3],
-            color=BLUE,
-            opacity=0.3
-        )
+        area = axes.get_area(func, x_range=[1, 3], color=BLUE, opacity=0.3)
 
         # Integral notation
-        integral = MathTex(
-            r"\int_1^3 \frac{x^2}{2} \, dx",
-            font_size=48
-        ).to_corner(UR)
+        integral = MathTex(r"\int_1^3 \frac{x^2}{2} \, dx", font_size=48).to_corner(UR)
 
         self.play(Create(axes))
         self.play(Create(func))
@@ -135,7 +123,7 @@ class NumberPlaneExample(Scene):
                 "stroke_color": BLUE_D,
                 "stroke_width": 1,
                 "stroke_opacity": 0.5,
-            }
+            },
         )
 
         # Plot a point
@@ -143,12 +131,7 @@ class NumberPlaneExample(Scene):
         point_label = MathTex("(2, 3)", color=RED).next_to(point, UR, buff=0.1)
 
         # Vector from origin to point
-        vector = Arrow(
-            plane.c2p(0, 0),
-            plane.c2p(2, 3),
-            buff=0,
-            color=YELLOW
-        )
+        vector = Arrow(plane.c2p(0, 0), plane.c2p(2, 3), buff=0, color=YELLOW)
 
         self.play(Create(plane))
         self.play(GrowArrow(vector))
@@ -169,16 +152,14 @@ class ParametricCurve(Scene):
 
         # Parametric curve (circle)
         circle = axes.plot_parametric_curve(
-            lambda t: np.array([2 * np.cos(t), 2 * np.sin(t), 0]),
-            t_range=[0, 2 * PI],
-            color=BLUE
+            lambda t: np.array([2 * np.cos(t), 2 * np.sin(t), 0]), t_range=[0, 2 * PI], color=BLUE
         )
 
         # Lissajous curve
         lissajous = axes.plot_parametric_curve(
             lambda t: np.array([2 * np.sin(3 * t), 2 * np.sin(2 * t), 0]),
             t_range=[0, 2 * PI],
-            color=RED
+            color=RED,
         )
 
         self.play(Create(axes))
@@ -200,17 +181,15 @@ class TangentLine(Scene):
         )
 
         # Function y = x^2
-        func = axes.plot(lambda x: x ** 2, color=BLUE, x_range=[0, 3])
+        func = axes.plot(lambda x: x**2, color=BLUE, x_range=[0, 3])
 
         # Point of tangency at x = 2
         x_val = 2
-        point = Dot(axes.c2p(x_val, x_val ** 2), color=RED)
+        point = Dot(axes.c2p(x_val, x_val**2), color=RED)
 
         # Tangent line: derivative of x^2 is 2x, at x=2 slope is 4
         tangent = axes.plot(
-            lambda x: 4 * (x - 2) + 4,  # Point-slope form
-            color=YELLOW,
-            x_range=[0.5, 3.5]
+            lambda x: 4 * (x - 2) + 4, color=YELLOW, x_range=[0.5, 3.5]  # Point-slope form
         )
 
         # Label
@@ -240,18 +219,12 @@ class AnimatedGraph(Scene):
         # Graph that updates with amplitude
         graph = always_redraw(
             lambda: axes.plot(
-                lambda x: amplitude.get_value() * np.sin(x),
-                color=BLUE,
-                x_range=[-3, 3]
+                lambda x: amplitude.get_value() * np.sin(x), color=BLUE, x_range=[-3, 3]
             )
         )
 
         # Amplitude display
-        amp_text = always_redraw(
-            lambda: MathTex(
-                f"A = {amplitude.get_value():.1f}"
-            ).to_corner(UR)
-        )
+        amp_text = always_redraw(lambda: MathTex(f"A = {amplitude.get_value():.1f}").to_corner(UR))
 
         self.add(axes, graph, amp_text)
 
@@ -274,7 +247,7 @@ class RiemannSum(Scene):
         )
 
         # Function
-        func = axes.plot(lambda x: 0.2 * x ** 2, color=BLUE, x_range=[0, 4])
+        func = axes.plot(lambda x: 0.2 * x**2, color=BLUE, x_range=[0, 4])
 
         self.play(Create(axes), Create(func))
         self.wait()
@@ -313,9 +286,7 @@ class ImplicitFunction(Scene):
 
         # Circle x^2 + y^2 = 4 as parametric
         circle = axes.plot_parametric_curve(
-            lambda t: np.array([2 * np.cos(t), 2 * np.sin(t), 0]),
-            t_range=[0, 2 * PI],
-            color=BLUE
+            lambda t: np.array([2 * np.cos(t), 2 * np.sin(t), 0]), t_range=[0, 2 * PI], color=BLUE
         )
 
         # Equation label
@@ -348,16 +319,8 @@ class CoordinateLabeling(Scene):
         point = Dot(axes.c2p(x_val, y_val), color=RED)
 
         # Dashed lines to axes
-        h_line = DashedLine(
-            axes.c2p(0, y_val),
-            axes.c2p(x_val, y_val),
-            color=GREY
-        )
-        v_line = DashedLine(
-            axes.c2p(x_val, 0),
-            axes.c2p(x_val, y_val),
-            color=GREY
-        )
+        h_line = DashedLine(axes.c2p(0, y_val), axes.c2p(x_val, y_val), color=GREY)
+        v_line = DashedLine(axes.c2p(x_val, 0), axes.c2p(x_val, y_val), color=GREY)
 
         # Labels
         x_label = MathTex("2").next_to(axes.c2p(x_val, 0), DOWN)
@@ -382,16 +345,12 @@ class PolarPlot(Scene):
 
         # Polar curve: r = 1 + sin(theta) (cardioid)
         cardioid = polar_plane.plot_polar_graph(
-            lambda theta: 1 + np.sin(theta),
-            theta_range=[0, 2 * PI],
-            color=BLUE
+            lambda theta: 1 + np.sin(theta), theta_range=[0, 2 * PI], color=BLUE
         )
 
         # Rose curve: r = 2*cos(3*theta)
         rose = polar_plane.plot_polar_graph(
-            lambda theta: 2 * np.cos(3 * theta),
-            theta_range=[0, PI],
-            color=RED
+            lambda theta: 2 * np.cos(3 * theta), theta_range=[0, PI], color=RED
         )
 
         self.play(Create(polar_plane))

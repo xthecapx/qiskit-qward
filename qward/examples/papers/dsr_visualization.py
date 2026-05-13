@@ -43,7 +43,8 @@ class DSRIntuition(Scene):
         title = Text("Differential Success Rate", font_size=52, color=DSR_COLOR)
         subtitle = Text(
             "Measuring Quantum Algorithm Quality",
-            font_size=28, color=GREY_B,
+            font_size=28,
+            color=GREY_B,
         ).next_to(title, DOWN, buff=0.4)
         self.play(Write(title), run_time=1.5)
         self.play(FadeIn(subtitle, shift=UP * 0.2))
@@ -74,8 +75,17 @@ class DSRIntuition(Scene):
         meas2 = meas1.copy().move_to(RIGHT * 2 + DOWN * 0.5)
 
         circuit = VGroup(
-            wire1, wire2, gate1, gate1_label, gate2, gate2_label,
-            cnot_ctrl, cnot_line, cnot_targ, meas1, meas2,
+            wire1,
+            wire2,
+            gate1,
+            gate1_label,
+            gate2,
+            gate2_label,
+            cnot_ctrl,
+            cnot_line,
+            cnot_targ,
+            meas1,
+            meas2,
         ).shift(UP * 2)
         circuit_label = Text("Quantum Circuit", font_size=24, color=GREY_B).next_to(
             circuit, UP, buff=0.3
@@ -92,7 +102,8 @@ class DSRIntuition(Scene):
             values=[0.03, 0.90, 0.04, 0.03],
             bar_names=BAR_NAMES,
             y_range=[0, 1, 0.2],
-            x_length=4, y_length=2.5,
+            x_length=4,
+            y_length=2.5,
             bar_colors=[OTHER_COLOR, EXPECTED_COLOR, OTHER_COLOR, OTHER_COLOR],
         ).shift(LEFT * 3 + DOWN * 1.5)
         ideal_label = Text("Ideal", font_size=24, color=EXPECTED_COLOR).next_to(
@@ -103,7 +114,8 @@ class DSRIntuition(Scene):
             values=[0.20, 0.40, 0.20, 0.20],
             bar_names=BAR_NAMES,
             y_range=[0, 1, 0.2],
-            x_length=4, y_length=2.5,
+            x_length=4,
+            y_length=2.5,
             bar_colors=[OTHER_COLOR, EXPECTED_COLOR, OTHER_COLOR, OTHER_COLOR],
         ).shift(RIGHT * 3 + DOWN * 1.5)
         noisy_label = Text("Noisy QPU", font_size=24, color=COMPETITOR_COLOR).next_to(
@@ -113,19 +125,21 @@ class DSRIntuition(Scene):
         arrow_between = Arrow(
             ideal_chart.get_right() + RIGHT * 0.1,
             noisy_chart.get_left() + LEFT * 0.1,
-            color=GREY_B, stroke_width=2,
+            color=GREY_B,
+            stroke_width=2,
         )
-        noise_text = Text("noise", font_size=18, color=GREY_B).next_to(
-            arrow_between, UP, buff=0.1
-        )
+        noise_text = Text("noise", font_size=18, color=GREY_B).next_to(arrow_between, UP, buff=0.1)
 
         self.play(
-            FadeIn(ideal_chart, shift=UP * 0.3), Write(ideal_label),
+            FadeIn(ideal_chart, shift=UP * 0.3),
+            Write(ideal_label),
             run_time=1,
         )
         self.play(
-            GrowArrow(arrow_between), FadeIn(noise_text),
-            FadeIn(noisy_chart, shift=UP * 0.3), Write(noisy_label),
+            GrowArrow(arrow_between),
+            FadeIn(noise_text),
+            FadeIn(noisy_chart, shift=UP * 0.3),
+            Write(noisy_label),
             run_time=1,
         )
         self.wait(1)
@@ -133,7 +147,9 @@ class DSRIntuition(Scene):
         # ── Question ──────────────────────────────────────────────
         question = Text(
             "How much does the expected outcome stand out?",
-            font_size=30, color=FORMULA_COLOR, slant=ITALIC,
+            font_size=30,
+            color=FORMULA_COLOR,
+            slant=ITALIC,
         ).to_edge(DOWN, buff=0.5)
         self.play(Write(question), run_time=1.5)
         self.wait(2)
@@ -147,9 +163,9 @@ class DSRHistogramSetup(Scene):
     def construct(self):
         self.camera.background_color = BG_COLOR
 
-        section_title = Text(
-            "Identifying the Components", font_size=36, color=DSR_COLOR
-        ).to_edge(UP, buff=0.4)
+        section_title = Text("Identifying the Components", font_size=36, color=DSR_COLOR).to_edge(
+            UP, buff=0.4
+        )
         self.play(Write(section_title))
 
         # ── Bar chart (narrower, shifted left to leave room for labels) ─
@@ -157,7 +173,8 @@ class DSRHistogramSetup(Scene):
             values=[0.2, 0.4, 0.2, 0.2],
             bar_names=BAR_NAMES,
             y_range=[0, 0.5, 0.1],
-            x_length=6, y_length=4,
+            x_length=6,
+            y_length=4,
             bar_colors=[BLUE_D] * 4,
         ).shift(DOWN * 0.3 + LEFT * 1.5)
         self.play(Create(chart), run_time=1.5)
@@ -167,12 +184,9 @@ class DSRHistogramSetup(Scene):
         counts = [20, 40, 20, 20]
         count_labels = VGroup()
         for i, c in enumerate(counts):
-            label = Text(str(c), font_size=22, color=WHITE).next_to(
-                chart.bars[i], UP, buff=0.1
-            )
+            label = Text(str(c), font_size=22, color=WHITE).next_to(chart.bars[i], UP, buff=0.1)
             count_labels.add(label)
-        self.play(LaggedStart(*[FadeIn(l, shift=DOWN * 0.1) for l in count_labels],
-                              lag_ratio=0.15))
+        self.play(LaggedStart(*[FadeIn(l, shift=DOWN * 0.1) for l in count_labels], lag_ratio=0.15))
         self.wait(0.5)
 
         # ── Highlight expected outcome (bar index 1 = "01") ──────
@@ -184,8 +198,11 @@ class DSRHistogramSetup(Scene):
             r"\text{Expected: } |01\rangle", font_size=30, color=EXPECTED_COLOR
         ).next_to(chart.bars[1], UP, buff=0.6)
         exp_arrow = Arrow(
-            exp_label.get_bottom(), chart.bars[1].get_top() + UP * 0.1,
-            color=EXPECTED_COLOR, stroke_width=2, buff=0.05,
+            exp_label.get_bottom(),
+            chart.bars[1].get_top() + UP * 0.1,
+            color=EXPECTED_COLOR,
+            stroke_width=2,
+            buff=0.05,
         )
         self.play(Write(exp_label), GrowArrow(exp_arrow))
         self.wait(0.5)
@@ -200,8 +217,11 @@ class DSRHistogramSetup(Scene):
             r"p_{\text{comp}} = 0.2", font_size=28, color=COMPETITOR_COLOR
         ).next_to(chart.bars[0], LEFT, buff=0.8)
         comp_arrow = Arrow(
-            comp_label.get_right(), chart.bars[0].get_left() + LEFT * 0.05,
-            color=COMPETITOR_COLOR, stroke_width=2, buff=0.05,
+            comp_label.get_right(),
+            chart.bars[0].get_left() + LEFT * 0.05,
+            color=COMPETITOR_COLOR,
+            stroke_width=2,
+            buff=0.05,
         )
         self.play(Write(comp_label), GrowArrow(comp_arrow))
         self.wait(0.5)
@@ -214,12 +234,18 @@ class DSRHistogramSetup(Scene):
         x_right = chart.get_right()[0] + 0.2
 
         dash_exp = DashedLine(
-            [x_left, y_exp, 0], [x_right, y_exp, 0],
-            color=EXPECTED_COLOR, stroke_width=2, dash_length=0.1,
+            [x_left, y_exp, 0],
+            [x_right, y_exp, 0],
+            color=EXPECTED_COLOR,
+            stroke_width=2,
+            dash_length=0.1,
         )
         dash_comp = DashedLine(
-            [x_left, y_comp, 0], [x_right, y_comp, 0],
-            color=COMPETITOR_COLOR, stroke_width=2, dash_length=0.1,
+            [x_left, y_comp, 0],
+            [x_right, y_comp, 0],
+            color=COMPETITOR_COLOR,
+            stroke_width=2,
+            dash_length=0.1,
         )
 
         self.play(Create(dash_exp), Create(dash_comp))
@@ -228,7 +254,8 @@ class DSRHistogramSetup(Scene):
         brace_x = x_right + 0.3
         brace = Brace(
             Line([brace_x, y_comp, 0], [brace_x, y_exp, 0]),
-            direction=RIGHT, color=DSR_COLOR,
+            direction=RIGHT,
+            color=DSR_COLOR,
         )
 
         # ── Labels aligned to the right of the brace ─────────────
@@ -239,10 +266,10 @@ class DSRHistogramSetup(Scene):
         pcomp_label = MathTex(
             r"p_{\text{comp}} = 0.2", font_size=22, color=COMPETITOR_COLOR
         ).move_to([label_x, y_comp, 0], aligned_edge=LEFT)
-        gap_label = MathTex(
-            r"\text{Gap} = 0.2", font_size=24, color=DSR_COLOR
-        ).next_to(brace, RIGHT, buff=0.15).move_to(
-            [label_x, (y_exp + y_comp) / 2, 0], aligned_edge=LEFT
+        gap_label = (
+            MathTex(r"\text{Gap} = 0.2", font_size=24, color=DSR_COLOR)
+            .next_to(brace, RIGHT, buff=0.15)
+            .move_to([label_x, (y_exp + y_comp) / 2, 0], aligned_edge=LEFT)
         )
 
         self.play(GrowFromCenter(brace))
@@ -258,15 +285,14 @@ class DSREdgeCases(Scene):
     def construct(self):
         self.camera.background_color = BG_COLOR
 
-        section_title = Text(
-            "Edge Cases", font_size=36, color=DSR_COLOR
-        ).to_edge(UP, buff=0.4)
+        section_title = Text("Edge Cases", font_size=36, color=DSR_COLOR).to_edge(UP, buff=0.4)
         self.play(Write(section_title))
 
         chart_kwargs = dict(
             bar_names=BAR_NAMES,
             y_range=[0, 1.1, 0.25],
-            x_length=3.2, y_length=2.8,
+            x_length=3.2,
+            y_length=2.8,
         )
 
         # ── Perfect: DSR = 1 ─────────────────────────────────────
@@ -290,9 +316,7 @@ class DSREdgeCases(Scene):
         l2 = MathTex(r"\text{DSR} = 0.0", font_size=28, color=COMPETITOR_COLOR).next_to(
             c2, UP, buff=0.2
         )
-        t2 = Text("Uniform noise", font_size=20, color=COMPETITOR_COLOR).next_to(
-            l2, UP, buff=0.1
-        )
+        t2 = Text("Uniform noise", font_size=20, color=COMPETITOR_COLOR).next_to(l2, UP, buff=0.1)
         g2 = VGroup(t2, l2, c2)
 
         # ── Wrong peak: DSR = 0 ──────────────────────────────────
@@ -304,9 +328,7 @@ class DSREdgeCases(Scene):
         l3 = MathTex(r"\text{DSR} = 0.0", font_size=28, color=COMPETITOR_COLOR).next_to(
             c3, UP, buff=0.2
         )
-        t3 = Text("Wrong peak", font_size=20, color=COMPETITOR_COLOR).next_to(
-            l3, UP, buff=0.1
-        )
+        t3 = Text("Wrong peak", font_size=20, color=COMPETITOR_COLOR).next_to(l3, UP, buff=0.1)
         g3 = VGroup(t3, l3, c3)
 
         # ── Arrange side by side ──────────────────────────────────
@@ -330,12 +352,12 @@ class DSREdgeCases(Scene):
             color=WHITE,
             font_size=24,
         ).to_edge(DOWN, buff=1.0)
-        nline_label_left = Text(
-            "no contrast", font_size=18, color=COMPETITOR_COLOR
-        ).next_to(nline.n2p(0), DOWN, buff=0.25)
-        nline_label_right = Text(
-            "perfect", font_size=18, color=EXPECTED_COLOR
-        ).next_to(nline.n2p(1), DOWN, buff=0.25)
+        nline_label_left = Text("no contrast", font_size=18, color=COMPETITOR_COLOR).next_to(
+            nline.n2p(0), DOWN, buff=0.25
+        )
+        nline_label_right = Text("perfect", font_size=18, color=EXPECTED_COLOR).next_to(
+            nline.n2p(1), DOWN, buff=0.25
+        )
 
         self.play(Create(nline), FadeIn(nline_label_left), FadeIn(nline_label_right))
 
@@ -343,16 +365,17 @@ class DSREdgeCases(Scene):
         dot0 = Dot(nline.n2p(0), radius=0.1, color=COMPETITOR_COLOR)
         dot033 = Dot(nline.n2p(0.333), radius=0.1, color=DSR_COLOR)
         dot1 = Dot(nline.n2p(1), radius=0.1, color=EXPECTED_COLOR)
-        label033 = MathTex("0.333", font_size=22, color=DSR_COLOR).next_to(
-            dot033, UP, buff=0.15
-        )
+        label033 = MathTex("0.333", font_size=22, color=DSR_COLOR).next_to(dot033, UP, buff=0.15)
         label_our = Text("Our example", font_size=16, color=DSR_COLOR).next_to(
             label033, UP, buff=0.1
         )
 
         self.play(
-            GrowFromCenter(dot0), GrowFromCenter(dot1), GrowFromCenter(dot033),
-            FadeIn(label033), FadeIn(label_our),
+            GrowFromCenter(dot0),
+            GrowFromCenter(dot1),
+            GrowFromCenter(dot033),
+            FadeIn(label033),
+            FadeIn(label_our),
         )
         self.wait(2.5)
         self.play(*[FadeOut(m) for m in self.mobjects])
@@ -365,9 +388,9 @@ class DSRDegradation(Scene):
     def construct(self):
         self.camera.background_color = BG_COLOR
 
-        section_title = Text(
-            "DSR Degradation Under Noise", font_size=36, color=DSR_COLOR
-        ).to_edge(UP, buff=0.4)
+        section_title = Text("DSR Degradation Under Noise", font_size=36, color=DSR_COLOR).to_edge(
+            UP, buff=0.4
+        )
         self.play(Write(section_title))
 
         tracker = ValueTracker(0)
@@ -390,7 +413,8 @@ class DSRDegradation(Scene):
         hist_axes = Axes(
             x_range=[0, 4, 1],
             y_range=[0, 1.1, 0.25],
-            x_length=4, y_length=3.5,
+            x_length=4,
+            y_length=3.5,
             axis_config={"include_ticks": True, "font_size": 20},
         ).shift(LEFT * 3.2 + DOWN * 0.3)
 
@@ -405,26 +429,30 @@ class DSRDegradation(Scene):
         bar_width = 0.7
 
         def make_bar(index, prob_func, color):
-            return always_redraw(lambda idx=index, pf=prob_func, c=color: Rectangle(
-                width=bar_width,
-                height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
-                fill_color=c, fill_opacity=0.8, stroke_color=c, stroke_width=1,
-            ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN))
+            return always_redraw(
+                lambda idx=index, pf=prob_func, c=color: Rectangle(
+                    width=bar_width,
+                    height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
+                    fill_color=c,
+                    fill_opacity=0.8,
+                    stroke_color=c,
+                    stroke_width=1,
+                ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN)
+            )
 
         bar0 = make_bar(0, p_other, OTHER_COLOR)
         bar1 = make_bar(1, p_expected, EXPECTED_COLOR)
         bar2 = make_bar(2, p_other, OTHER_COLOR)
         bar3 = make_bar(3, p_other, OTHER_COLOR)
 
-        hist_label = Text("Histogram", font_size=22, color=GREY_B).next_to(
-            hist_axes, UP, buff=0.1
-        )
+        hist_label = Text("Histogram", font_size=22, color=GREY_B).next_to(hist_axes, UP, buff=0.1)
 
         # ── RIGHT: DSR curve ──────────────────────────────────────
         curve_axes = Axes(
             x_range=[0, 1, 0.2],
             y_range=[0, 1.1, 0.25],
-            x_length=4, y_length=3.5,
+            x_length=4,
+            y_length=3.5,
             axis_config={"include_ticks": True, "include_numbers": True, "font_size": 18},
         ).shift(RIGHT * 3.2 + DOWN * 0.3)
 
@@ -434,35 +462,47 @@ class DSRDegradation(Scene):
 
         # Plot DSR(t) curve
         dsr_curve = curve_axes.plot(
-            lambda t: dsr_func(t), x_range=[0, 1, 0.01],
-            color=DSR_COLOR, stroke_width=3,
+            lambda t: dsr_func(t),
+            x_range=[0, 1, 0.01],
+            color=DSR_COLOR,
+            stroke_width=3,
         )
 
         # Moving dot on curve
         moving_dot = always_redraw(
             lambda: Dot(
                 curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
-                radius=0.08, color=WHITE,
+                radius=0.08,
+                color=WHITE,
             )
         )
 
         # Vertical dashed line from dot to x-axis
-        vert_dash = always_redraw(lambda: DashedLine(
-            curve_axes.c2p(tracker.get_value(), 0),
-            curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
-            color=GREY_B, stroke_width=1, dash_length=0.08,
-        ))
+        vert_dash = always_redraw(
+            lambda: DashedLine(
+                curve_axes.c2p(tracker.get_value(), 0),
+                curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
+                color=GREY_B,
+                stroke_width=1,
+                dash_length=0.08,
+            )
+        )
 
         # DSR value label
-        dsr_value_label = always_redraw(lambda: MathTex(
-            rf"\text{{DSR}} = {dsr_func(tracker.get_value()):.2f}",
-            font_size=28, color=DSR_COLOR,
-        ).next_to(curve_axes, UP, buff=0.15))
+        dsr_value_label = always_redraw(
+            lambda: MathTex(
+                rf"\text{{DSR}} = {dsr_func(tracker.get_value()):.2f}",
+                font_size=28,
+                color=DSR_COLOR,
+            ).next_to(curve_axes, UP, buff=0.15)
+        )
 
         # ── Assemble and animate ──────────────────────────────────
         self.play(
-            Create(hist_axes), Create(curve_axes),
-            FadeIn(bar_labels), FadeIn(hist_label),
+            Create(hist_axes),
+            Create(curve_axes),
+            FadeIn(bar_labels),
+            FadeIn(hist_label),
             FadeIn(x_label),
             run_time=1.5,
         )
@@ -483,7 +523,8 @@ class DSRDegradation(Scene):
         # ── Main sweep animation ──────────────────────────────────
         self.play(
             tracker.animate.set_value(1),
-            run_time=6, rate_func=linear,
+            run_time=6,
+            rate_func=linear,
         )
         self.wait(2)
         self.play(*[FadeOut(m) for m in self.mobjects])
@@ -496,9 +537,9 @@ class CombinedDegradation(Scene):
     def construct(self):
         self.camera.background_color = BG_COLOR
 
-        section_title = Text(
-            "Metric Comparison Under Noise", font_size=36, color=WHITE
-        ).to_edge(UP, buff=0.4)
+        section_title = Text("Metric Comparison Under Noise", font_size=36, color=WHITE).to_edge(
+            UP, buff=0.4
+        )
         self.play(Write(section_title))
 
         tracker = ValueTracker(0)
@@ -526,7 +567,8 @@ class CombinedDegradation(Scene):
         hist_axes = Axes(
             x_range=[0, 4, 1],
             y_range=[0, 1.1, 0.25],
-            x_length=4, y_length=3.2,
+            x_length=4,
+            y_length=3.2,
             axis_config={"include_ticks": True, "font_size": 20},
         ).shift(LEFT * 3.2 + DOWN * 0.5)
 
@@ -540,26 +582,30 @@ class CombinedDegradation(Scene):
         bar_width = 0.7
 
         def make_bar(index, prob_func, color):
-            return always_redraw(lambda idx=index, pf=prob_func, c=color: Rectangle(
-                width=bar_width,
-                height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
-                fill_color=c, fill_opacity=0.8, stroke_color=c, stroke_width=1,
-            ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN))
+            return always_redraw(
+                lambda idx=index, pf=prob_func, c=color: Rectangle(
+                    width=bar_width,
+                    height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
+                    fill_color=c,
+                    fill_opacity=0.8,
+                    stroke_color=c,
+                    stroke_width=1,
+                ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN)
+            )
 
         bar0 = make_bar(0, p_other, OTHER_COLOR)
         bar1 = make_bar(1, p_expected, EXPECTED_COLOR)
         bar2 = make_bar(2, p_other, OTHER_COLOR)
         bar3 = make_bar(3, p_other, OTHER_COLOR)
 
-        hist_label = Text("Measured", font_size=22, color=GREY_B).next_to(
-            hist_axes, UP, buff=0.1
-        )
+        hist_label = Text("Measured", font_size=22, color=GREY_B).next_to(hist_axes, UP, buff=0.1)
 
         # ── RIGHT: combined curve plot ────────────────────────────
         curve_axes = Axes(
             x_range=[0, 1, 0.2],
             y_range=[0, 1.1, 0.25],
-            x_length=5, y_length=3.2,
+            x_length=5,
+            y_length=3.2,
             axis_config={"include_ticks": True, "include_numbers": True, "font_size": 18},
         ).shift(RIGHT * 2.8 + DOWN * 0.5)
 
@@ -569,44 +615,66 @@ class CombinedDegradation(Scene):
 
         # Plot all three curves
         dsr_curve = curve_axes.plot(
-            dsr_func, x_range=[0, 1, 0.01], color=DSR_COLOR, stroke_width=3,
+            dsr_func,
+            x_range=[0, 1, 0.01],
+            color=DSR_COLOR,
+            stroke_width=3,
         )
         hf_curve = curve_axes.plot(
-            hf_func, x_range=[0, 1, 0.01], color=HF_COLOR, stroke_width=3,
+            hf_func,
+            x_range=[0, 1, 0.01],
+            color=HF_COLOR,
+            stroke_width=3,
         )
         tvdf_curve = curve_axes.plot(
-            tvdf_func, x_range=[0, 1, 0.01], color=TVDF_COLOR, stroke_width=3,
+            tvdf_func,
+            x_range=[0, 1, 0.01],
+            color=TVDF_COLOR,
+            stroke_width=3,
         )
 
         # Moving dots on each curve
-        dsr_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
-            radius=0.07, color=DSR_COLOR,
-        ))
-        hf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
-            radius=0.07, color=HF_COLOR,
-        ))
-        tvdf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
-            radius=0.07, color=TVDF_COLOR,
-        ))
+        dsr_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
+                radius=0.07,
+                color=DSR_COLOR,
+            )
+        )
+        hf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
+                radius=0.07,
+                color=HF_COLOR,
+            )
+        )
+        tvdf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
+                radius=0.07,
+                color=TVDF_COLOR,
+            )
+        )
 
         # ── Legend ────────────────────────────────────────────────
-        legend = VGroup(
+        legend = (
             VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
-                Text("DSR", font_size=18, color=DSR_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
-                Text("HF", font_size=18, color=HF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
-                Text("TVDF", font_size=18, color=TVDF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-        ).arrange(RIGHT, buff=0.6).next_to(curve_axes, UP, buff=0.15)
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
+                    Text("DSR", font_size=18, color=DSR_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
+                    Text("HF", font_size=18, color=HF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
+                    Text("TVDF", font_size=18, color=TVDF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+            )
+            .arrange(RIGHT, buff=0.6)
+            .next_to(curve_axes, UP, buff=0.15)
+        )
 
         # Key point labels
         perfect_label = Text("Perfect", font_size=20, color=EXPECTED_COLOR).next_to(
@@ -618,8 +686,10 @@ class CombinedDegradation(Scene):
 
         # ── Assemble ──────────────────────────────────────────────
         self.play(
-            Create(hist_axes), Create(curve_axes),
-            FadeIn(bar_labels), FadeIn(hist_label),
+            Create(hist_axes),
+            Create(curve_axes),
+            FadeIn(bar_labels),
+            FadeIn(hist_label),
             FadeIn(x_label),
             run_time=1.5,
         )
@@ -637,7 +707,8 @@ class CombinedDegradation(Scene):
         # ── Main sweep animation ──────────────────────────────────
         self.play(
             tracker.animate.set_value(1),
-            run_time=8, rate_func=linear,
+            run_time=8,
+            rate_func=linear,
         )
         self.wait(2)
         self.play(*[FadeOut(m) for m in self.mobjects])
@@ -662,7 +733,8 @@ class CombinedDegradationMultiState(Scene):
 
         section_title = Text(
             "Metric Comparison — 3 Qubits, 3 Marked States",
-            font_size=32, color=WHITE,
+            font_size=32,
+            color=WHITE,
         ).to_edge(UP, buff=0.4)
         self.play(Write(section_title))
 
@@ -670,12 +742,12 @@ class CombinedDegradationMultiState(Scene):
 
         # ── Constants ─────────────────────────────────────────────
         n_qubits = 3
-        n_states = 2 ** n_qubits          # 8
+        n_states = 2**n_qubits  # 8
         n_marked = 3
-        p_ideal_marked = 1.0 / n_marked   # 1/3
-        p_uniform = 1.0 / n_states        # 1/8
+        p_ideal_marked = 1.0 / n_marked  # 1/3
+        p_uniform = 1.0 / n_states  # 1/8
         bar_names_3q = [f"{i:0{n_qubits}b}" for i in range(n_states)]
-        marked_indices = {1, 2, 4}         # 001, 010, 100
+        marked_indices = {1, 2, 4}  # 001, 010, 100
 
         # ── Probability functions ─────────────────────────────────
         def p_marked(t):
@@ -699,8 +771,7 @@ class CombinedDegradationMultiState(Scene):
         def tvdf_func(t):
             # TVD = 0.5·(3·|1/3-pm| + 5·|0-po|) = 5t/8
             tvd = 0.5 * (
-                n_marked * abs(p_ideal_marked - p_marked(t))
-                + (n_states - n_marked) * p_other(t)
+                n_marked * abs(p_ideal_marked - p_marked(t)) + (n_states - n_marked) * p_other(t)
             )
             return max(0, 1 - tvd)
 
@@ -708,15 +779,18 @@ class CombinedDegradationMultiState(Scene):
         hist_axes = Axes(
             x_range=[0, n_states, 1],
             y_range=[0, 0.4, 0.1],
-            x_length=5, y_length=3,
+            x_length=5,
+            y_length=3,
             axis_config={"include_ticks": True, "font_size": 16},
         ).shift(LEFT * 3 + DOWN * 0.5)
 
         bar_labels = VGroup()
         for i, name in enumerate(bar_names_3q):
-            label = Text(name, font_size=12, color=WHITE).move_to(
-                hist_axes.c2p(i + 0.5, 0) + DOWN * 0.25
-            ).rotate(45 * DEGREES)
+            label = (
+                Text(name, font_size=12, color=WHITE)
+                .move_to(hist_axes.c2p(i + 0.5, 0) + DOWN * 0.25)
+                .rotate(45 * DEGREES)
+            )
             bar_labels.add(label)
 
         bar_width = 0.45
@@ -725,23 +799,27 @@ class CombinedDegradationMultiState(Scene):
             is_marked = index in marked_indices
             prob_func = p_marked if is_marked else p_other
             color = EXPECTED_COLOR if is_marked else OTHER_COLOR
-            return always_redraw(lambda idx=index, pf=prob_func, c=color: Rectangle(
-                width=bar_width,
-                height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
-                fill_color=c, fill_opacity=0.8, stroke_color=c, stroke_width=1,
-            ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN))
+            return always_redraw(
+                lambda idx=index, pf=prob_func, c=color: Rectangle(
+                    width=bar_width,
+                    height=max(0.01, hist_axes.y_axis.unit_size * pf(tracker.get_value())),
+                    fill_color=c,
+                    fill_opacity=0.8,
+                    stroke_color=c,
+                    stroke_width=1,
+                ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN)
+            )
 
         bars = [make_bar(i) for i in range(n_states)]
 
-        hist_label = Text("Measured", font_size=20, color=GREY_B).next_to(
-            hist_axes, UP, buff=0.1
-        )
+        hist_label = Text("Measured", font_size=20, color=GREY_B).next_to(hist_axes, UP, buff=0.1)
 
         # ── RIGHT: combined curve plot ────────────────────────────
         curve_axes = Axes(
             x_range=[0, 1, 0.2],
             y_range=[0, 1.1, 0.25],
-            x_length=5, y_length=3,
+            x_length=5,
+            y_length=3,
             axis_config={"include_ticks": True, "include_numbers": True, "font_size": 18},
         ).shift(RIGHT * 3 + DOWN * 0.5)
 
@@ -751,45 +829,67 @@ class CombinedDegradationMultiState(Scene):
 
         # Plot all three curves
         dsr_curve = curve_axes.plot(
-            dsr_func, x_range=[0, 1, 0.01], color=DSR_COLOR, stroke_width=3,
+            dsr_func,
+            x_range=[0, 1, 0.01],
+            color=DSR_COLOR,
+            stroke_width=3,
         )
         hf_curve = curve_axes.plot(
-            hf_func, x_range=[0, 1, 0.01], color=HF_COLOR, stroke_width=3,
+            hf_func,
+            x_range=[0, 1, 0.01],
+            color=HF_COLOR,
+            stroke_width=3,
         )
         tvdf_curve = curve_axes.plot(
-            tvdf_func, x_range=[0, 1, 0.01],
-            color=TVDF_COLOR, stroke_width=3, stroke_opacity=0.6,
+            tvdf_func,
+            x_range=[0, 1, 0.01],
+            color=TVDF_COLOR,
+            stroke_width=3,
+            stroke_opacity=0.6,
         )
 
         # Moving dots
-        dsr_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
-            radius=0.07, color=DSR_COLOR,
-        ))
-        hf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
-            radius=0.07, color=HF_COLOR,
-        ))
-        tvdf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
-            radius=0.07, color=TVDF_COLOR,
-        ))
+        dsr_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
+                radius=0.07,
+                color=DSR_COLOR,
+            )
+        )
+        hf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
+                radius=0.07,
+                color=HF_COLOR,
+            )
+        )
+        tvdf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
+                radius=0.07,
+                color=TVDF_COLOR,
+            )
+        )
 
         # ── Legend ────────────────────────────────────────────────
-        legend = VGroup(
+        legend = (
             VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
-                Text("DSR", font_size=18, color=DSR_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
-                Text("HF", font_size=18, color=HF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
-                Text("TVDF", font_size=18, color=TVDF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-        ).arrange(RIGHT, buff=0.6).next_to(curve_axes, UP, buff=0.15)
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
+                    Text("DSR", font_size=18, color=DSR_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
+                    Text("HF", font_size=18, color=HF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
+                    Text("TVDF", font_size=18, color=TVDF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+            )
+            .arrange(RIGHT, buff=0.6)
+            .next_to(curve_axes, UP, buff=0.15)
+        )
 
         # Key point labels
         perfect_label = Text("Perfect", font_size=20, color=EXPECTED_COLOR).next_to(
@@ -798,17 +898,24 @@ class CombinedDegradationMultiState(Scene):
         # HF/TVDF bottom at 0.375 — label the floor
         floor_val = n_marked * p_uniform  # 3/8 = 0.375
         floor_dash = DashedLine(
-            curve_axes.c2p(0, floor_val), curve_axes.c2p(1, floor_val),
-            color=GREY_B, stroke_width=1, dash_length=0.08,
+            curve_axes.c2p(0, floor_val),
+            curve_axes.c2p(1, floor_val),
+            color=GREY_B,
+            stroke_width=1,
+            dash_length=0.08,
         )
         floor_label = MathTex(
-            r"0.375", font_size=20, color=GREY_B,
+            r"0.375",
+            font_size=20,
+            color=GREY_B,
         ).next_to(curve_axes.c2p(0, floor_val), LEFT, buff=0.15)
 
         # ── Assemble ──────────────────────────────────────────────
         self.play(
-            Create(hist_axes), Create(curve_axes),
-            FadeIn(bar_labels), FadeIn(hist_label),
+            Create(hist_axes),
+            Create(curve_axes),
+            FadeIn(bar_labels),
+            FadeIn(hist_label),
             FadeIn(x_label),
             run_time=1.5,
         )
@@ -820,8 +927,10 @@ class CombinedDegradationMultiState(Scene):
         self.play(Create(hf_curve), run_time=1)
         self.play(Create(tvdf_curve), run_time=1)
         self.play(
-            FadeIn(legend), FadeIn(perfect_label),
-            Create(floor_dash), FadeIn(floor_label),
+            FadeIn(legend),
+            FadeIn(perfect_label),
+            Create(floor_dash),
+            FadeIn(floor_label),
         )
 
         self.add(dsr_dot, hf_dot, tvdf_dot)
@@ -830,7 +939,8 @@ class CombinedDegradationMultiState(Scene):
         # ── Main sweep animation (MultiState) ────────────────────
         self.play(
             tracker.animate.set_value(1),
-            run_time=8, rate_func=linear,
+            run_time=8,
+            rate_func=linear,
         )
         self.wait(2)
         self.play(*[FadeOut(m) for m in self.mobjects])
@@ -852,7 +962,8 @@ class CombinedDegradationSpread(Scene):
 
         section_title = Text(
             "Metric Comparison — Spread Distribution (QFT-like)",
-            font_size=30, color=WHITE,
+            font_size=30,
+            color=WHITE,
         ).to_edge(UP, buff=0.4)
         self.play(Write(section_title))
 
@@ -882,7 +993,7 @@ class CombinedDegradationSpread(Scene):
 
         def hf_func(t):
             bc = sum(np.sqrt(ideal[i] * p_meas(i, t)) for i in range(n_states))
-            return float(bc ** 2)
+            return float(bc**2)
 
         def tvdf_func(t):
             tvd = 0.5 * sum(abs(ideal[i] - p_meas(i, t)) for i in range(n_states))
@@ -892,15 +1003,18 @@ class CombinedDegradationSpread(Scene):
         hist_axes = Axes(
             x_range=[0, n_states, 1],
             y_range=[0, 0.35, 0.1],
-            x_length=5, y_length=3,
+            x_length=5,
+            y_length=3,
             axis_config={"include_ticks": True, "font_size": 16},
         ).shift(LEFT * 3 + DOWN * 0.5)
 
         bar_labels = VGroup()
         for i, name in enumerate(bar_names_3q):
-            label = Text(name, font_size=12, color=WHITE).move_to(
-                hist_axes.c2p(i + 0.5, 0) + DOWN * 0.25
-            ).rotate(45 * DEGREES)
+            label = (
+                Text(name, font_size=12, color=WHITE)
+                .move_to(hist_axes.c2p(i + 0.5, 0) + DOWN * 0.25)
+                .rotate(45 * DEGREES)
+            )
             bar_labels.add(label)
 
         bar_width = 0.45
@@ -912,25 +1026,27 @@ class CombinedDegradationSpread(Scene):
         ]
 
         def make_bar(index):
-            return always_redraw(lambda idx=index: Rectangle(
-                width=bar_width,
-                height=max(0.01,
-                           hist_axes.y_axis.unit_size * p_meas(idx, tracker.get_value())),
-                fill_color=bar_colors[idx], fill_opacity=0.8,
-                stroke_color=bar_colors[idx], stroke_width=1,
-            ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN))
+            return always_redraw(
+                lambda idx=index: Rectangle(
+                    width=bar_width,
+                    height=max(0.01, hist_axes.y_axis.unit_size * p_meas(idx, tracker.get_value())),
+                    fill_color=bar_colors[idx],
+                    fill_opacity=0.8,
+                    stroke_color=bar_colors[idx],
+                    stroke_width=1,
+                ).move_to(hist_axes.c2p(idx + 0.5, 0), aligned_edge=DOWN)
+            )
 
         bars = [make_bar(i) for i in range(n_states)]
 
-        hist_label = Text("Measured", font_size=20, color=GREY_B).next_to(
-            hist_axes, UP, buff=0.1
-        )
+        hist_label = Text("Measured", font_size=20, color=GREY_B).next_to(hist_axes, UP, buff=0.1)
 
         # ── RIGHT: combined curve plot ────────────────────────────
         curve_axes = Axes(
             x_range=[0, 1, 0.2],
             y_range=[0, 1.1, 0.25],
-            x_length=5, y_length=3,
+            x_length=5,
+            y_length=3,
             axis_config={"include_ticks": True, "include_numbers": True, "font_size": 18},
         ).shift(RIGHT * 3 + DOWN * 0.5)
 
@@ -940,44 +1056,66 @@ class CombinedDegradationSpread(Scene):
 
         # Plot all three curves
         dsr_curve = curve_axes.plot(
-            dsr_func, x_range=[0, 1, 0.01], color=DSR_COLOR, stroke_width=3,
+            dsr_func,
+            x_range=[0, 1, 0.01],
+            color=DSR_COLOR,
+            stroke_width=3,
         )
         hf_curve = curve_axes.plot(
-            hf_func, x_range=[0, 1, 0.01], color=HF_COLOR, stroke_width=3,
+            hf_func,
+            x_range=[0, 1, 0.01],
+            color=HF_COLOR,
+            stroke_width=3,
         )
         tvdf_curve = curve_axes.plot(
-            tvdf_func, x_range=[0, 1, 0.01], color=TVDF_COLOR, stroke_width=3,
+            tvdf_func,
+            x_range=[0, 1, 0.01],
+            color=TVDF_COLOR,
+            stroke_width=3,
         )
 
         # Moving dots
-        dsr_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
-            radius=0.07, color=DSR_COLOR,
-        ))
-        hf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
-            radius=0.07, color=HF_COLOR,
-        ))
-        tvdf_dot = always_redraw(lambda: Dot(
-            curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
-            radius=0.07, color=TVDF_COLOR,
-        ))
+        dsr_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), dsr_func(tracker.get_value())),
+                radius=0.07,
+                color=DSR_COLOR,
+            )
+        )
+        hf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), hf_func(tracker.get_value())),
+                radius=0.07,
+                color=HF_COLOR,
+            )
+        )
+        tvdf_dot = always_redraw(
+            lambda: Dot(
+                curve_axes.c2p(tracker.get_value(), tvdf_func(tracker.get_value())),
+                radius=0.07,
+                color=TVDF_COLOR,
+            )
+        )
 
         # ── Legend ────────────────────────────────────────────────
-        legend = VGroup(
+        legend = (
             VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
-                Text("DSR", font_size=18, color=DSR_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
-                Text("HF", font_size=18, color=HF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-            VGroup(
-                Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
-                Text("TVDF", font_size=18, color=TVDF_COLOR),
-            ).arrange(RIGHT, buff=0.15),
-        ).arrange(RIGHT, buff=0.6).next_to(curve_axes, UP, buff=0.15)
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=DSR_COLOR, stroke_width=3),
+                    Text("DSR", font_size=18, color=DSR_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=HF_COLOR, stroke_width=3),
+                    Text("HF", font_size=18, color=HF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+                VGroup(
+                    Line(ORIGIN, RIGHT * 0.4, color=TVDF_COLOR, stroke_width=3),
+                    Text("TVDF", font_size=18, color=TVDF_COLOR),
+                ).arrange(RIGHT, buff=0.15),
+            )
+            .arrange(RIGHT, buff=0.6)
+            .next_to(curve_axes, UP, buff=0.15)
+        )
 
         # Key point labels
         perfect_label = Text("Perfect", font_size=20, color=EXPECTED_COLOR).next_to(
@@ -986,8 +1124,10 @@ class CombinedDegradationSpread(Scene):
 
         # ── Assemble ──────────────────────────────────────────────
         self.play(
-            Create(hist_axes), Create(curve_axes),
-            FadeIn(bar_labels), FadeIn(hist_label),
+            Create(hist_axes),
+            Create(curve_axes),
+            FadeIn(bar_labels),
+            FadeIn(hist_label),
             FadeIn(x_label),
             run_time=1.5,
         )
@@ -1006,7 +1146,8 @@ class CombinedDegradationSpread(Scene):
         # ── Main sweep animation (Spread) ─────────────────────────
         self.play(
             tracker.animate.set_value(1),
-            run_time=8, rate_func=linear,
+            run_time=8,
+            rate_func=linear,
         )
         self.wait(2)
         self.play(*[FadeOut(m) for m in self.mobjects])

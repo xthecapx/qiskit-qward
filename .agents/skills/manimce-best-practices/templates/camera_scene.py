@@ -24,16 +24,17 @@ class YourCameraScene(MovingCameraScene):
         # ============================================================
 
         # Create a grid of shapes to demonstrate camera movement
-        shapes = VGroup(*[
-            Circle(radius=0.3, color=color, fill_opacity=0.5)
-            for color in [RED, BLUE, GREEN, YELLOW, PURPLE]
-        ]).arrange(RIGHT, buff=1)
+        shapes = VGroup(
+            *[
+                Circle(radius=0.3, color=color, fill_opacity=0.5)
+                for color in [RED, BLUE, GREEN, YELLOW, PURPLE]
+            ]
+        ).arrange(RIGHT, buff=1)
 
         # Add labels
-        labels = VGroup(*[
-            Text(str(i + 1), font_size=24).move_to(shape)
-            for i, shape in enumerate(shapes)
-        ])
+        labels = VGroup(
+            *[Text(str(i + 1), font_size=24).move_to(shape) for i, shape in enumerate(shapes)]
+        )
 
         # Title
         title = Text("Camera Movement Demo", font_size=36).to_edge(UP)
@@ -51,16 +52,12 @@ class YourCameraScene(MovingCameraScene):
         self.camera.frame.save_state()
 
         # Zoom into first shape
-        self.play(
-            self.camera.frame.animate.set(width=4).move_to(shapes[0])
-        )
+        self.play(self.camera.frame.animate.set(width=4).move_to(shapes[0]))
         self.wait()
 
         # --- PAN ---
         # Move camera to another shape
-        self.play(
-            self.camera.frame.animate.move_to(shapes[2])
-        )
+        self.play(self.camera.frame.animate.move_to(shapes[2]))
         self.wait()
 
         # --- ZOOM OUT ---
@@ -74,9 +71,7 @@ class YourCameraScene(MovingCameraScene):
         self.add(dot)
 
         # Set camera to follow the dot
-        self.camera.frame.add_updater(
-            lambda m: m.move_to(dot.get_center())
-        )
+        self.camera.frame.add_updater(lambda m: m.move_to(dot.get_center()))
 
         # Move the dot (camera follows automatically)
         self.play(dot.animate.move_to(RIGHT * 5), run_time=3)
@@ -89,9 +84,7 @@ class YourCameraScene(MovingCameraScene):
         # CLEANUP: Reset and fade out
         # ============================================================
 
-        self.play(
-            self.camera.frame.animate.move_to(ORIGIN).set(width=14)
-        )
+        self.play(self.camera.frame.animate.move_to(ORIGIN).set(width=14))
         self.play(FadeOut(shapes, labels, title, dot))
         self.wait()
 

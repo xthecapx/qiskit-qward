@@ -62,23 +62,17 @@ class LaggedAnimations(Scene):
 
     def construct(self):
         # Create a grid of dots
-        dots = VGroup(*[
-            Dot(radius=0.15, color=interpolate_color(BLUE, RED, i / 24))
-            for i in range(25)
-        ]).arrange_in_grid(rows=5, cols=5, buff=0.5)
+        dots = VGroup(
+            *[Dot(radius=0.15, color=interpolate_color(BLUE, RED, i / 24)) for i in range(25)]
+        ).arrange_in_grid(rows=5, cols=5, buff=0.5)
 
         # Staggered fade in
-        self.play(
-            LaggedStart(*[FadeIn(dot, scale=0.5) for dot in dots], lag_ratio=0.1)
-        )
+        self.play(LaggedStart(*[FadeIn(dot, scale=0.5) for dot in dots], lag_ratio=0.1))
         self.wait()
 
         # Staggered transformation using LaggedStart with animate
         self.play(
-            LaggedStart(
-                *[dot.animate.scale(1.5).set_color(YELLOW) for dot in dots],
-                lag_ratio=0.05
-            )
+            LaggedStart(*[dot.animate.scale(1.5).set_color(YELLOW) for dot in dots], lag_ratio=0.05)
         )
         self.wait()
 
@@ -87,7 +81,7 @@ class LaggedAnimations(Scene):
             LaggedStart(
                 *[dot.animate(rate_func=there_and_back).shift(UP * 0.5) for dot in dots],
                 lag_ratio=0.02,
-                run_time=2
+                run_time=2,
             )
         )
 
@@ -104,11 +98,7 @@ class AnimationComposition(Scene):
         group = VGroup(circle, label)
 
         # Animate together
-        self.play(
-            Create(circle),
-            Write(label),
-            run_time=2
-        )
+        self.play(Create(circle), Write(label), run_time=2)
         self.wait()
 
         # Sequential animations with Succession
@@ -117,10 +107,7 @@ class AnimationComposition(Scene):
 
         self.play(
             Succession(
-                group.animate.shift(LEFT * 2),
-                Create(square),
-                Write(square_label),
-                lag_ratio=0.5
+                group.animate.shift(LEFT * 2), Create(square), Write(square_label), lag_ratio=0.5
             )
         )
         self.wait()
@@ -132,13 +119,15 @@ class PathAnimations(Scene):
     def construct(self):
         # Create a path
         path = VMobject()
-        path.set_points_smoothly([
-            LEFT * 3,
-            LEFT * 2 + UP * 2,
-            ORIGIN + UP,
-            RIGHT * 2 + UP * 2,
-            RIGHT * 3,
-        ])
+        path.set_points_smoothly(
+            [
+                LEFT * 3,
+                LEFT * 2 + UP * 2,
+                ORIGIN + UP,
+                RIGHT * 2 + UP * 2,
+                RIGHT * 3,
+            ]
+        )
         path.set_color(GREY)
 
         # Create moving object
@@ -159,10 +148,9 @@ class ColorTransitions(Scene):
 
     def construct(self):
         # Color gradient on shapes
-        squares = VGroup(*[
-            Square(side_length=0.8, fill_opacity=0.8)
-            for _ in range(7)
-        ]).arrange(RIGHT, buff=0.2)
+        squares = VGroup(*[Square(side_length=0.8, fill_opacity=0.8) for _ in range(7)]).arrange(
+            RIGHT, buff=0.2
+        )
 
         # Apply gradient colors
         colors = [RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, PINK]
@@ -175,9 +163,11 @@ class ColorTransitions(Scene):
 
         # Animate color change
         self.play(
-            *[square.animate.set_fill(interpolate_color(BLUE, RED, i / 6))
-              for i, square in enumerate(squares)],
-            run_time=2
+            *[
+                square.animate.set_fill(interpolate_color(BLUE, RED, i / 6))
+                for i, square in enumerate(squares)
+            ],
+            run_time=2,
         )
         self.wait()
 

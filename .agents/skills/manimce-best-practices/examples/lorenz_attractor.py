@@ -23,12 +23,7 @@ def lorenz_system(t, state, sigma=10, rho=28, beta=8 / 3):
 
 def ode_solution_points(function, state0, time, dt=0.01):
     """Solve ODE and return solution points."""
-    solution = solve_ivp(
-        function,
-        t_span=(0, time),
-        y0=state0,
-        t_eval=np.arange(0, time, dt)
-    )
+    solution = solve_ivp(function, t_span=(0, time), y0=state0, t_eval=np.arange(0, time, dt))
     return solution.y.T
 
 
@@ -62,7 +57,7 @@ class LorenzAttractor(ThreeDScene):
             r"\frac{dx}{dt} &= \sigma(y-x) \\",
             r"\frac{dy}{dt} &= x(\rho-z)-y \\",
             r"\frac{dz}{dt} &= xy-\beta z",
-            font_size=30
+            font_size=30,
         )
         equations.to_corner(UL)
         self.add_fixed_in_frame_mobjects(equations)
@@ -73,10 +68,7 @@ class LorenzAttractor(ThreeDScene):
         evolution_time = 20  # Reduced for faster rendering
         n_points = 5  # Reduced for performance
 
-        states = [
-            [10, 10, 10 + n * epsilon]
-            for n in range(n_points)
-        ]
+        states = [[10, 10, 10 + n * epsilon] for n in range(n_points)]
         colors = color_gradient([BLUE_E, BLUE_A], len(states))
 
         # Create curves from ODE solutions
@@ -91,10 +83,7 @@ class LorenzAttractor(ThreeDScene):
             curves.add(curve)
 
         # Create dots that will trace the curves
-        dots = VGroup(*[
-            Dot3D(color=color, radius=0.15)
-            for color in colors
-        ])
+        dots = VGroup(*[Dot3D(color=color, radius=0.15) for color in colors])
 
         # Position dots at start of curves
         for dot, curve in zip(dots, curves):

@@ -29,7 +29,6 @@ from typing import Dict, List, Sequence, Union
 
 from qiskit import QuantumCircuit
 
-
 # Default theta for fair coin: Ry(pi/2)|0> = (|0> + |1>) / sqrt(2)
 FAIR_THETA = math.pi / 2
 
@@ -48,9 +47,7 @@ def _coerce_thetas(
 
     thetas = list(theta)
     if len(thetas) != num_qubits:
-        raise ValueError(
-            f"theta list length ({len(thetas)}) must match num_qubits ({num_qubits})"
-        )
+        raise ValueError(f"theta list length ({len(thetas)}) must match num_qubits ({num_qubits})")
     return [float(t) for t in thetas]
 
 
@@ -167,9 +164,7 @@ class CoinTossCircuitGenerator:
         if num_qubits < 1:
             raise ValueError("num_qubits must be at least 1")
         if test_mode not in self.VALID_MODES:
-            raise ValueError(
-                f"Unknown test_mode: {test_mode}. Use one of {self.VALID_MODES}"
-            )
+            raise ValueError(f"Unknown test_mode: {test_mode}. Use one of {self.VALID_MODES}")
 
         self.num_qubits = num_qubits
         self.test_mode = test_mode

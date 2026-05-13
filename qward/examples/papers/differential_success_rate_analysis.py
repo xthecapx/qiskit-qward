@@ -815,7 +815,8 @@ def _prepare_combined_data(
         # Filter by optimization level (skip for algorithms without opt data)
         if optimization_levels is not None:
             algo_rows = [
-                r for r in algo_rows
+                r
+                for r in algo_rows
                 if r.get("optimization_level", "") == ""  # AWS: no opt level, always keep
                 or r.get("optimization_level", "") in optimization_levels
             ]
@@ -936,9 +937,9 @@ def _split_by_provider(
     AWS rows: noise_model == 'AWS-QPU'.
     """
     ibm_rows = [
-        r for r in rows
-        if r.get("noise_model") == "IBM-QPU"
-        or r.get("execution_type", "").upper() == "IBM"
+        r
+        for r in rows
+        if r.get("noise_model") == "IBM-QPU" or r.get("execution_type", "").upper() == "IBM"
     ]
     aws_rows = [r for r in rows if r.get("noise_model") == "AWS-QPU"]
     return ibm_rows, aws_rows
@@ -953,23 +954,21 @@ def _plot_combined_comparison(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # --- IBM plot ---
-    ibm_algos, ibm_qubits, ibm_data = _prepare_combined_data(
-        ibm_rows, optimization_levels=("3",)
-    )
+    ibm_algos, ibm_qubits, ibm_data = _prepare_combined_data(ibm_rows, optimization_levels=("3",))
     if ibm_qubits:
         fig, ax = plt.subplots(figsize=(15, 7))
         _render_combined_comparison(ax, ibm_algos, ibm_qubits, ibm_data)
         plt.tight_layout()
         fig.savefig(
             output_dir / "1_combined_dsr_comparison_ibm.png",
-            dpi=300, bbox_inches="tight", facecolor="white",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
         )
         plt.close(fig)
 
     # --- Rigetti plot (cap at 4 qubits) ---
-    aws_rows_capped = [
-        r for r in aws_rows if int(r.get("num_qubits", "0")) <= 4
-    ]
+    aws_rows_capped = [r for r in aws_rows if int(r.get("num_qubits", "0")) <= 4]
     aws_algos, aws_qubits, aws_data = _prepare_combined_data(
         aws_rows_capped, optimization_levels=None
     )
@@ -979,7 +978,9 @@ def _plot_combined_comparison(
         plt.tight_layout()
         fig.savefig(
             output_dir / "1_combined_dsr_comparison_aws.png",
-            dpi=300, bbox_inches="tight", facecolor="white",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
         )
         plt.close(fig)
 
@@ -1092,7 +1093,9 @@ def _plot_combined_depth_comparison(
         plt.tight_layout()
         fig.savefig(
             output_dir / "1_combined_dsr_comparison_depth_ibm.png",
-            dpi=300, bbox_inches="tight", facecolor="white",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
         )
         plt.close(fig)
 
@@ -1104,7 +1107,9 @@ def _plot_combined_depth_comparison(
         plt.tight_layout()
         fig.savefig(
             output_dir / "1_combined_dsr_comparison_depth_aws.png",
-            dpi=300, bbox_inches="tight", facecolor="white",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
         )
         plt.close(fig)
 
