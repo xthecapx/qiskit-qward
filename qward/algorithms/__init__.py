@@ -21,6 +21,10 @@ from .qft import (
     QFT,
     QFTCircuitGenerator,
 )
+from .coin_toss import (
+    CoinToss,
+    CoinTossCircuitGenerator,
+)
 from .phase_estimation import (
     PhaseEstimation,
     PhaseEstimationCircuitGenerator,
@@ -101,6 +105,9 @@ __all__ = [
     # QFT
     "QFT",
     "QFTCircuitGenerator",
+    # Coin Toss (Ry rotations)
+    "CoinToss",
+    "CoinTossCircuitGenerator",
     # Phase Estimation
     "PhaseEstimation",
     "PhaseEstimationCircuitGenerator",
