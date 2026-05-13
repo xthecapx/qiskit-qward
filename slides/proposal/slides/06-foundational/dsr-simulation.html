@@ -1,50 +1,67 @@
-<h3>DSR &mdash; Interactive Simulation</h3>
+<div class="rho-title" style="flex-direction:row-reverse;">
+	<img src="img/pet_man.png" alt="ρ" class="rho-avatar">
+	<h3>scores her coin toss with DSR</h3>
+</div>
 <div class="slide-content" style="align-items:center; justify-content:center;">
 	<div id="dsr-sim" style="width:92%; max-width:900px; font-size:0.5em;">
 
 		<!-- DSR value display + subtitle -->
 		<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.4em;">
-			<span class="text-muted" style="font-size:0.9em;"><em>2-qubit circuit &mdash; expected state: <strong style="color:#16A085;">|01&rang;</strong></em></span>
+			<span class="text-muted" style="font-size:0.9em;"><em>Coin toss &mdash; expected set <strong style="color:#16A085;">E = {|00&rang;, |11&rang;}</strong>, K = 2</em></span>
 			<span style="font-size:1.3em;">
 				DSR = <span id="dsr-value" style="color:#F39C12; font-weight:700;">1.00</span>
 			</span>
 		</div>
 
 		<!-- SVG canvas: histogram (left) + arc (right) -->
-		<svg viewBox="0 0 800 320" style="width:100%; height:auto; background:#fff; border-radius:6px;">
+		<svg viewBox="0 0 900 320" style="width:100%; height:auto; background:#fff; border-radius:6px;">
 
 			<!-- === LEFT: Histogram === -->
-			<g transform="translate(40, 20)">
+			<g transform="translate(50, 20)">
 				<text x="170" y="0" text-anchor="middle" font-size="16" font-weight="700" fill="#1a1a1a">Histogram</text>
 
-				<!-- axes -->
-				<line x1="0" y1="20" x2="0" y2="240" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
-				<line x1="0" y1="240" x2="340" y2="240" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<!-- axes (Y arrow points north, X arrow points east; X extended past bar 11) -->
+				<line x1="0" y1="240" x2="0" y2="10" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<line x1="0" y1="240" x2="395" y2="240" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-				<!-- y-axis ticks -->
-				<line x1="-6" y1="60"  x2="0" y2="60"  stroke="#1a1a1a" stroke-width="1"/>
-				<line x1="-6" y1="120" x2="0" y2="120" stroke="#1a1a1a" stroke-width="1"/>
-				<line x1="-6" y1="180" x2="0" y2="180" stroke="#1a1a1a" stroke-width="1"/>
+				<!-- y-axis ticks + shot-count labels -->
+				<line x1="-6" y1="20"  x2="0" y2="20"  stroke="#1a1a1a" stroke-width="1"/>
+				<line x1="-6" y1="75"  x2="0" y2="75"  stroke="#1a1a1a" stroke-width="1"/>
+				<line x1="-6" y1="130" x2="0" y2="130" stroke="#1a1a1a" stroke-width="1"/>
+				<line x1="-6" y1="185" x2="0" y2="185" stroke="#1a1a1a" stroke-width="1"/>
+				<text x="-9" y="24"  text-anchor="end" font-size="11" fill="#5d6d7e">1024</text>
+				<text x="-9" y="79"  text-anchor="end" font-size="11" fill="#5d6d7e">768</text>
+				<text x="-9" y="134" text-anchor="end" font-size="11" fill="#5d6d7e">512</text>
+				<text x="-9" y="189" text-anchor="end" font-size="11" fill="#5d6d7e">256</text>
 
-				<!-- bars: |00>, |01>(expected), |10>, |11> -->
-				<rect id="bar-00" x="30"  y="240" width="60" height="0" fill="#94a3b8"/>
-				<rect id="bar-01" x="120" y="240" width="60" height="0" fill="#16A085"/>
+				<!-- y-axis title -->
+				<text x="-38" y="125" text-anchor="middle" font-size="12" fill="#1a1a1a" font-weight="700" transform="rotate(-90, -38, 125)">shots</text>
+
+				<!-- bars: |00>(expected), |01>, |10>, |11>(expected) -->
+				<rect id="bar-00" x="30"  y="240" width="60" height="0" fill="#16A085"/>
+				<rect id="bar-01" x="120" y="240" width="60" height="0" fill="#94a3b8"/>
 				<rect id="bar-10" x="210" y="240" width="60" height="0" fill="#94a3b8"/>
-				<rect id="bar-11" x="300" y="240" width="60" height="0" fill="#94a3b8"/>
+				<rect id="bar-11" x="300" y="240" width="60" height="0" fill="#16A085"/>
+
+				<!-- shot-count labels above bars -->
+				<text id="count-00" x="60"  y="240" text-anchor="middle" font-size="11" fill="#16A085" font-weight="700">0</text>
+				<text id="count-01" x="150" y="240" text-anchor="middle" font-size="11" fill="#5d6d7e">0</text>
+				<text id="count-10" x="240" y="240" text-anchor="middle" font-size="11" fill="#5d6d7e">0</text>
+				<text id="count-11" x="330" y="240" text-anchor="middle" font-size="11" fill="#16A085" font-weight="700">0</text>
 
 				<!-- bar labels -->
-				<text x="60"  y="260" text-anchor="middle" font-size="14" fill="#1a1a1a" font-family="monospace">00</text>
-				<text x="150" y="260" text-anchor="middle" font-size="14" fill="#16A085" font-weight="700" font-family="monospace">01</text>
+				<text x="60"  y="260" text-anchor="middle" font-size="14" fill="#16A085" font-weight="700" font-family="monospace">00</text>
+				<text x="150" y="260" text-anchor="middle" font-size="14" fill="#1a1a1a" font-family="monospace">01</text>
 				<text x="240" y="260" text-anchor="middle" font-size="14" fill="#1a1a1a" font-family="monospace">10</text>
-				<text x="330" y="260" text-anchor="middle" font-size="14" fill="#1a1a1a" font-family="monospace">11</text>
+				<text x="330" y="260" text-anchor="middle" font-size="14" fill="#16A085" font-weight="700" font-family="monospace">11</text>
 			</g>
 
 			<!-- === RIGHT: Arc / DSR landscape === -->
-			<g transform="translate(440, 20)">
+			<g transform="translate(540, 20)">
 				<text x="160" y="0" text-anchor="middle" font-size="16" font-weight="700" fill="#1a1a1a">DSR Landscape</text>
 
-				<!-- axes -->
-				<line x1="0" y1="20" x2="0" y2="240" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<!-- axes (Y arrow points north, X arrow points east) -->
+				<line x1="0" y1="240" x2="0" y2="10" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
 				<line x1="0" y1="240" x2="320" y2="240" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
 
 				<!-- y-axis ticks + labels -->
@@ -55,6 +72,9 @@
 				<text x="-10" y="124" text-anchor="end" font-size="11" fill="#5d6d7e">0.75</text>
 				<text x="-10" y="184" text-anchor="end" font-size="11" fill="#5d6d7e">0.50</text>
 
+				<!-- y-axis title (DSR) -->
+				<text x="-38" y="125" text-anchor="middle" font-size="12" fill="#1a1a1a" font-weight="700" transform="rotate(-90, -38, 125)">DSR</text>
+
 				<!-- x-axis ticks + labels -->
 				<line x1="80"  y1="240" x2="80"  y2="246" stroke="#1a1a1a" stroke-width="1"/>
 				<line x1="160" y1="240" x2="160" y2="246" stroke="#1a1a1a" stroke-width="1"/>
@@ -63,13 +83,16 @@
 				<text x="160" y="260" text-anchor="middle" font-size="11" fill="#5d6d7e">0.50</text>
 				<text x="240" y="260" text-anchor="middle" font-size="11" fill="#5d6d7e">0.75</text>
 
+				<!-- x-axis title -->
+				<text x="160" y="282" text-anchor="middle" font-size="12" fill="#1a1a1a" font-weight="700">Noise &lambda;</text>
+
 				<!-- quarter-arc curve from (0,60) "Perfect" to (280,240) "Random" -->
 				<path d="M 0 60 A 280 180 0 0 1 280 240" fill="none" stroke="#F39C12" stroke-width="2"/>
 
-				<!-- "Perfect" label (top) -->
-				<text x="10" y="50" font-size="13" fill="#16A085" font-weight="700">Perfect</text>
-				<!-- "Random" label (right) -->
-				<text x="260" y="236" font-size="13" fill="#E74C3C" font-weight="700">Random</text>
+				<!-- "Perfect" label (next to top y-tick, outside chart) -->
+				<text x="20" y="56" font-size="13" fill="#16A085" font-weight="700">Perfect</text>
+				<!-- "Random" label inside chart area, well below arc curve -->
+				<text x="245" y="232" font-size="13" fill="#E74C3C" font-weight="700">Random</text>
 
 				<!-- DSR point on arc + dashed dropline -->
 				<circle id="dsr-point" cx="0" cy="60" r="7" fill="#fff" stroke="#F39C12" stroke-width="3"/>
@@ -93,7 +116,7 @@
 		</div>
 
 		<p class="text-muted text-center" style="font-size:0.75em; margin-top:0.4em; font-style:italic;">
-			As noise &lambda; grows, the expected-state bar shrinks toward the uniform-noise baseline &mdash; DSR slides from <strong style="color:#16A085;">Perfect</strong> toward <strong style="color:#E74C3C;">Random</strong>.
+			As &lambda; grows, expected peaks (|00&rang;, |11&rang;) shrink toward uniform.
 		</p>
 	</div>
 </div>
@@ -101,7 +124,6 @@
 <script>
 (function() {
 	const root = document.currentScript.previousElementSibling;
-	// defer so SVG is attached
 	requestAnimationFrame(function() {
 		const slider = document.getElementById('noise-slider');
 		const noiseValue = document.getElementById('noise-value');
@@ -114,41 +136,56 @@
 			'10': document.getElementById('bar-10'),
 			'11': document.getElementById('bar-11'),
 		};
+		const counts = {
+			'00': document.getElementById('count-00'),
+			'01': document.getElementById('count-01'),
+			'10': document.getElementById('count-10'),
+			'11': document.getElementById('count-11'),
+		};
 		const btn = document.getElementById('autoplay-btn');
 
-		// Histogram scale: 1.0 probability = 220 px bar height (between y=240 baseline and y=20 top)
+		// Histogram scale: 1024 shots = 220 px bar height
+		const TOTAL_SHOTS = 1024;
 		const HIST_MAX_H = 220;
 		const HIST_BASE_Y = 240;
 
-		// Arc geometry: quarter ellipse, rx=280, ry=180, CENTER at (0, 240)
-		// (matches SVG `A 280 180 0 0 1 280 240` sweep=1 — bulges up-right)
-		// Parametric point: (cx + rx·sin(t), cy − ry·cos(t)) for t ∈ [0, π/2]
-		// t=0    → (0, 60)  — top-left  (Perfect, DSR=1)
-		// t=π/2  → (280, 240) — bottom-right (Random, DSR=0)
-		// Map DSR → t: t = (1 − DSR)·π/2
+		// Arc geometry
 		const ARC_CX = 0, ARC_CY = 240, ARC_RX = 280, ARC_RY = 180;
+
+		// Expected set E = {|00>, |11>}, K = 2
+		// At lambda=0: p_00 = p_11 = 0.5, p_01 = p_10 = 0
+		// At lambda=1: uniform 0.25 each
+		// Linear interp:
+		//   p_exp_each(lambda) = 0.5 - 0.25*lambda
+		//   p_other_each(lambda) = 0.25*lambda
+		const EXPECTED = new Set(['00', '11']);
 
 		function update(lambdaRaw) {
 			const lambda = Math.max(0, Math.min(1, lambdaRaw));
+			const p_exp_each = 0.5 - 0.25 * lambda;
+			const p_other_each = 0.25 * lambda;
 
-			// Probabilities: expected = |01>. At lambda=0: p_exp=1. At lambda=1: uniform 0.25.
-			const p_exp = 1 - (3 / 4) * lambda;          // |01>
-			const p_other = (1 - p_exp) / 3;              // each of |00>, |10>, |11>
-
-			// Update bars
+			// Update bars + shot-count labels above each bar
 			for (const [state, bar] of Object.entries(bars)) {
-				const p = (state === '01') ? p_exp : p_other;
+				const p = EXPECTED.has(state) ? p_exp_each : p_other_each;
 				const h = p * HIST_MAX_H;
 				bar.setAttribute('height', h);
 				bar.setAttribute('y', HIST_BASE_Y - h);
+				const shots = Math.round(p * TOTAL_SHOTS);
+				const label = counts[state];
+				label.textContent = shots;
+				label.setAttribute('y', HIST_BASE_Y - h - 4);
 			}
 
-			// DSR = (p_exp - p_comp) / (p_exp + p_comp), clipped [0, 1]
-			const p_comp = p_other;
-			let dsr = (p_exp + p_comp) > 0 ? (p_exp - p_comp) / (p_exp + p_comp) : 0;
+			// DSR: p_exp = sum over E = 2 * p_exp_each
+			//      p_exp_bar = p_exp / K = p_exp_each
+			//      p_comp = max prob outside E = p_other_each
+			const p_exp_bar = p_exp_each;
+			const p_comp = p_other_each;
+			let dsr = (p_exp_bar + p_comp) > 0 ? (p_exp_bar - p_comp) / (p_exp_bar + p_comp) : 0;
 			dsr = Math.max(0, Math.min(1, dsr));
 
-			// Update DSR point position (on arc centered at (0, 240))
+			// DSR point on arc
 			const t = (1 - dsr) * Math.PI / 2;
 			const px = ARC_CX + ARC_RX * Math.sin(t);
 			const py = ARC_CY - ARC_RY * Math.cos(t);
@@ -158,23 +195,19 @@
 			dsrDropline.setAttribute('x2', px);
 			dsrDropline.setAttribute('y1', py);
 
-			// Update labels
 			noiseValue.textContent = lambda.toFixed(2);
 			dsrValue.textContent = dsr.toFixed(2);
 		}
 
-		// Slider input
 		slider.addEventListener('input', function(e) {
 			update(parseFloat(e.target.value) / 100);
 		});
 
-		// Autoplay
 		let playing = false, rafId = null, t0 = 0;
 		function animate(ts) {
 			if (!playing) return;
 			if (!t0) t0 = ts;
 			const elapsed = (ts - t0) / 1000;
-			// 3s period: 0 → 1 → 0 (triangle)
 			const period = 3;
 			let frac = (elapsed % period) / period;
 			let lambda = frac < 0.5 ? (frac * 2) : (2 - frac * 2);
@@ -194,7 +227,6 @@
 			}
 		});
 
-		// Initial render
 		update(0);
 	});
 })();
