@@ -123,7 +123,7 @@ def _load_results(directories: List[Path], provider: str = "all") -> List[Dict]:
 
 def _group_by_qubits(
     results: List[Dict],
-    optimization_levels: Tuple[int, ...] = (2, 3),
+    optimization_levels: Tuple[int, ...] = (3,),
 ) -> Tuple[List[int], Dict[str, Dict[int, List[float]]]]:
     """Group metric values by qubit count.
 
