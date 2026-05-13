@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Dict, Mapping
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -35,7 +36,6 @@ from qward.metrics import (
     StructuralMetrics,
 )
 from qward.algorithms import NoiseModelGenerator, get_preset_noise_config
-
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OUT_DIR = REPO_ROOT / "docs" / "slides" / "proposal" / "img" / "coin_toss"
@@ -117,7 +117,7 @@ def counts_to_probs(counts: Mapping[str, int]) -> Dict[str, float]:
 def hellinger_fidelity(p: Mapping[str, float], q: Mapping[str, float]) -> float:
     keys = set(p) | set(q)
     bc = sum(sqrt(p.get(k, 0.0) * q.get(k, 0.0)) for k in keys)
-    return bc ** 2
+    return bc**2
 
 
 def tvd(p: Mapping[str, float], q: Mapping[str, float]) -> float:
@@ -227,9 +227,11 @@ def main() -> None:
                 for k, v in row.items()
             }
         scaling_metrics[f"n{n}"] = entry
-        print(f"  depth={entry.get('QiskitMetrics', {}).get('basic_metrics.depth', '?')}, "
-              f"size={entry.get('QiskitMetrics', {}).get('basic_metrics.size', '?')}, "
-              f"cnot={entry.get('ComplexityMetrics', {}).get('gate_based_metrics.cnot_count', '?')}")
+        print(
+            f"  depth={entry.get('QiskitMetrics', {}).get('basic_metrics.depth', '?')}, "
+            f"size={entry.get('QiskitMetrics', {}).get('basic_metrics.size', '?')}, "
+            f"cnot={entry.get('ComplexityMetrics', {}).get('gate_based_metrics.cnot_count', '?')}"
+        )
 
     scaling_path = OUT_DIR / "scaling_metrics.json"
     with open(scaling_path, "w") as f:
@@ -238,10 +240,14 @@ def main() -> None:
 
     print("\nSummary:")
     print(f"  Bell circuit: depth=3, size=4")
-    print(f"  Ideal   HF = {post_runtime['ideal']['hellinger_fidelity']:.4f}, "
-          f"TVD = {post_runtime['ideal']['tvd']:.4f}")
-    print(f"  Noisy   HF = {post_runtime['noisy']['hellinger_fidelity']:.4f}, "
-          f"TVD = {post_runtime['noisy']['tvd']:.4f}")
+    print(
+        f"  Ideal   HF = {post_runtime['ideal']['hellinger_fidelity']:.4f}, "
+        f"TVD = {post_runtime['ideal']['tvd']:.4f}"
+    )
+    print(
+        f"  Noisy   HF = {post_runtime['noisy']['hellinger_fidelity']:.4f}, "
+        f"TVD = {post_runtime['noisy']['tvd']:.4f}"
+    )
 
 
 if __name__ == "__main__":

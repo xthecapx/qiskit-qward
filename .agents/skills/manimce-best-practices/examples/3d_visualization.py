@@ -84,7 +84,7 @@ class ParametricSurfaceExample(ThreeDScene):
 
         # Saddle surface: z = x^2 - y^2
         surface = Surface(
-            lambda u, v: axes.c2p(u, v, u ** 2 - v ** 2),
+            lambda u, v: axes.c2p(u, v, u**2 - v**2),
             u_range=[-2, 2],
             v_range=[-2, 2],
             resolution=(20, 20),
@@ -107,11 +107,7 @@ class SphereVisualization(ThreeDScene):
 
         # Parametric sphere
         sphere = Surface(
-            lambda u, v: np.array([
-                np.cos(v) * np.sin(u),
-                np.sin(v) * np.sin(u),
-                np.cos(u)
-            ]),
+            lambda u, v: np.array([np.cos(v) * np.sin(u), np.sin(v) * np.sin(u), np.cos(u)]),
             u_range=[0, PI],
             v_range=[0, 2 * PI],
             resolution=(20, 40),
@@ -139,10 +135,7 @@ class Function3DPlot(ThreeDScene):
 
         # Sine wave surface
         surface = Surface(
-            lambda u, v: axes.c2p(
-                u, v,
-                np.sin(np.sqrt(u ** 2 + v ** 2))
-            ),
+            lambda u, v: axes.c2p(u, v, np.sin(np.sqrt(u**2 + v**2))),
             u_range=[-3, 3],
             v_range=[-3, 3],
             resolution=(30, 30),
@@ -181,10 +174,7 @@ class VectorField3D(ThreeDScene):
                     arrow = Arrow3D(
                         start=start,
                         end=end,
-                        color=interpolate_color(
-                            BLUE, RED,
-                            (z + 2) / 4
-                        ),
+                        color=interpolate_color(BLUE, RED, (z + 2) / 4),
                     )
                     arrows.add(arrow)
 
@@ -203,12 +193,7 @@ class CameraMovement3D(ThreeDScene):
         self.set_camera_orientation(phi=75 * DEGREES, theta=-45 * DEGREES)
 
         # Create a 3D object
-        torus = Torus(
-            major_radius=2,
-            minor_radius=0.5,
-            color=BLUE,
-            fill_opacity=0.8
-        )
+        torus = Torus(major_radius=2, minor_radius=0.5, color=BLUE, fill_opacity=0.8)
 
         self.play(Create(torus))
         self.wait()
@@ -238,11 +223,7 @@ class Line3DExample(ThreeDScene):
 
         # 3D helix
         helix = ParametricFunction(
-            lambda t: np.array([
-                np.cos(t),
-                np.sin(t),
-                t / 4
-            ]),
+            lambda t: np.array([np.cos(t), np.sin(t), t / 4]),
             t_range=[0, 4 * PI],
             color=YELLOW,
         )
@@ -282,7 +263,7 @@ class TextIn3D(ThreeDScene):
 
         # Surface
         paraboloid = Surface(
-            lambda u, v: axes.c2p(u, v, u ** 2 + v ** 2),
+            lambda u, v: axes.c2p(u, v, u**2 + v**2),
             u_range=[-1.5, 1.5],
             v_range=[-1.5, 1.5],
             resolution=(15, 15),
@@ -315,10 +296,7 @@ class AnimatedSurface(ThreeDScene):
         # Animated wave surface
         surface = always_redraw(
             lambda: Surface(
-                lambda u, v: axes.c2p(
-                    u, v,
-                    np.sin(np.sqrt(u ** 2 + v ** 2) - time.get_value())
-                ),
+                lambda u, v: axes.c2p(u, v, np.sin(np.sqrt(u**2 + v**2) - time.get_value())),
                 u_range=[-3, 3],
                 v_range=[-3, 3],
                 resolution=(25, 25),
@@ -328,11 +306,7 @@ class AnimatedSurface(ThreeDScene):
         self.add(axes, surface)
 
         # Animate
-        self.play(
-            time.animate.set_value(4 * PI),
-            run_time=8,
-            rate_func=linear
-        )
+        self.play(time.animate.set_value(4 * PI), run_time=8, rate_func=linear)
 
 
 class MultipleObjects3D(ThreeDScene):
@@ -344,23 +318,11 @@ class MultipleObjects3D(ThreeDScene):
         # Create various 3D shapes
         sphere = Sphere(radius=0.5, color=RED).shift(LEFT * 2 + UP)
         cube = Cube(side_length=0.8, color=BLUE).shift(RIGHT * 2)
-        cylinder = Cylinder(
-            radius=0.4,
-            height=1.2,
-            color=GREEN
-        ).shift(DOWN + LEFT)
+        cylinder = Cylinder(radius=0.4, height=1.2, color=GREEN).shift(DOWN + LEFT)
 
         # Arrows connecting them
-        arrow1 = Arrow3D(
-            start=sphere.get_center(),
-            end=cube.get_center(),
-            color=YELLOW
-        )
-        arrow2 = Arrow3D(
-            start=cube.get_center(),
-            end=cylinder.get_center(),
-            color=YELLOW
-        )
+        arrow1 = Arrow3D(start=sphere.get_center(), end=cube.get_center(), color=YELLOW)
+        arrow2 = Arrow3D(start=cube.get_center(), end=cylinder.get_center(), color=YELLOW)
 
         self.play(
             Create(sphere),

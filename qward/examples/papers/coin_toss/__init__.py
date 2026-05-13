@@ -41,7 +41,6 @@ from .coin_toss_ibm import (
     run_coin_toss_on_ibm,
 )
 
-
 __all__ = [
     # Config dataclass + helpers
     "CoinTossExperimentConfig",

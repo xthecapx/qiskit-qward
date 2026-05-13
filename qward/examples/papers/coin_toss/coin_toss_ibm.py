@@ -30,7 +30,6 @@ from qward.examples.papers.coin_toss.coin_toss_configs import (
 )
 from qward.examples.papers.ibm_experiment_base import IBMExperimentBase
 
-
 # =============================================================================
 # Region 1 / priority configurations for QPU execution
 # =============================================================================
@@ -153,9 +152,7 @@ class CoinTossIBMExperiment(IBMExperimentBase[CoinTossExperimentConfig]):
         self._current_generator = generator
         return generator.circuit
 
-    def create_success_criteria(
-        self, config: CoinTossExperimentConfig
-    ) -> Callable[[str], bool]:
+    def create_success_criteria(self, config: CoinTossExperimentConfig) -> Callable[[str], bool]:
         """Create success criteria for the coin-toss experiment."""
         if getattr(self, "_current_generator", None) is not None:
             return self._current_generator.success_criteria

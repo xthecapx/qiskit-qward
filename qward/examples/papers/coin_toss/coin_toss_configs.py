@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional
 
 from qward.algorithms.noise_generator import NoiseConfig
 
-
 # Default theta for fair coin: Ry(pi/2)|0> = (|0> + |1>) / sqrt(2)
 FAIR_THETA = math.pi / 2
 
@@ -298,18 +297,14 @@ NOISE_BY_ID: Dict[str, NoiseConfig] = {n.noise_id: n for n in NOISE_CONFIGS}
 def get_config(config_id: str) -> CoinTossExperimentConfig:
     """Fetch a coin-toss config by id."""
     if config_id not in CONFIGS_BY_ID:
-        raise ValueError(
-            f"Unknown config_id: {config_id}. Available: {list(CONFIGS_BY_ID.keys())}"
-        )
+        raise ValueError(f"Unknown config_id: {config_id}. Available: {list(CONFIGS_BY_ID.keys())}")
     return CONFIGS_BY_ID[config_id]
 
 
 def get_noise_config(noise_id: str) -> NoiseConfig:
     """Fetch a noise config by id."""
     if noise_id not in NOISE_BY_ID:
-        raise ValueError(
-            f"Unknown noise_id: {noise_id}. Available: {list(NOISE_BY_ID.keys())}"
-        )
+        raise ValueError(f"Unknown noise_id: {noise_id}. Available: {list(NOISE_BY_ID.keys())}")
     return NOISE_BY_ID[noise_id]
 
 
@@ -349,14 +344,9 @@ def list_all_configs() -> None:
         for c in configs:
             hw_tag = " [HARDWARE ONLY]" if c.hardware_only else ""
             theta_deg = math.degrees(c.resolved_theta())
-            extra = (
-                f"target P(1)={c.target_p_one:.2f}"
-                if c.target_p_one is not None
-                else "fair"
-            )
+            extra = f"target P(1)={c.target_p_one:.2f}" if c.target_p_one is not None else "fair"
             print(
-                f"  {c.config_id}: {c.num_qubits}q, theta={theta_deg:.1f} deg, "
-                f"{extra}{hw_tag}"
+                f"  {c.config_id}: {c.num_qubits}q, theta={theta_deg:.1f} deg, " f"{extra}{hw_tag}"
             )
 
     print("\nSUMMARY:")

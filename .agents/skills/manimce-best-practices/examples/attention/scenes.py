@@ -15,9 +15,15 @@ from pathlib import Path
 # Add parent directory to path for helpers import
 sys.path.insert(0, str(Path(__file__).parent))
 from helpers import (
-    NumericEmbedding, WeightMatrix, ContextAnimation,
-    NeuralNetwork, AttentionPattern, softmax, value_to_color,
-    random_bright_color, show_attention_flow
+    NumericEmbedding,
+    WeightMatrix,
+    ContextAnimation,
+    NeuralNetwork,
+    AttentionPattern,
+    softmax,
+    value_to_color,
+    random_bright_color,
+    show_attention_flow,
 )
 
 
@@ -46,9 +52,7 @@ class AttentionPatterns(Scene):
         word_mobs.arrange(RIGHT, buff=0.3)
         word_mobs.move_to(2 * UP)
 
-        self.play(
-            LaggedStart(*[FadeIn(w, shift=0.5 * UP) for w in word_mobs], lag_ratio=0.15)
-        )
+        self.play(LaggedStart(*[FadeIn(w, shift=0.5 * UP) for w in word_mobs], lag_ratio=0.15))
         self.wait()
 
         # Create word rectangles
@@ -61,7 +65,7 @@ class AttentionPatterns(Scene):
 
         # Identify adjectives and nouns
         adj_indices = [1, 2, 6]  # fluffy, blue, verdant
-        noun_indices = [3, 7]     # creature, forest
+        noun_indices = [3, 7]  # creature, forest
 
         adj_rects = VGroup(*[word_rects[i] for i in adj_indices])
         noun_rects = VGroup(*[word_rects[i] for i in noun_indices])
@@ -119,7 +123,7 @@ class AttentionPatterns(Scene):
             FadeIn(word_rects),
             LaggedStart(*[GrowArrow(a) for a in emb_arrows], lag_ratio=0.1),
             LaggedStart(*[FadeIn(e, shift=0.5 * DOWN) for e in embeddings], lag_ratio=0.1),
-            FadeOut(adj_arrows)
+            FadeOut(adj_arrows),
         )
         self.wait()
 
@@ -128,10 +132,7 @@ class AttentionPatterns(Scene):
         dim_label = Text("12,288", font_size=24, color=YELLOW)
         dim_label.next_to(brace, LEFT)
 
-        self.play(
-            GrowFromCenter(brace),
-            FadeIn(dim_label)
-        )
+        self.play(GrowFromCenter(brace), FadeIn(dim_label))
         self.wait(2)
 
 
@@ -187,7 +188,7 @@ class QueryKeyValueExplanation(Scene):
         # Explain the formula
         formula = MathTex(
             r"\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V",
-            font_size=36
+            font_size=36,
         )
         formula.next_to(matrices, DOWN, buff=1)
 
@@ -247,10 +248,7 @@ class AttentionMatrixVisualization(Scene):
             for j in range(n):
                 score = attention_scores[i, j]
                 cell = Square(side_length=0.5)
-                cell.set_fill(
-                    color=interpolate_color(BLACK, YELLOW, score),
-                    opacity=0.8
-                )
+                cell.set_fill(color=interpolate_color(BLACK, YELLOW, score), opacity=0.8)
                 cell.set_stroke(WHITE, 0.5)
                 row.add(cell)
             row.arrange(RIGHT, buff=0)
@@ -277,19 +275,14 @@ class AttentionMatrixVisualization(Scene):
 
         # Animate grid appearing
         all_cells = VGroup(*[cell for row in grid for cell in row])
-        self.play(
-            LaggedStart(*[FadeIn(c, scale=0.5) for c in all_cells], lag_ratio=0.02)
-        )
+        self.play(LaggedStart(*[FadeIn(c, scale=0.5) for c in all_cells], lag_ratio=0.02))
         self.wait()
 
         # Highlight a row (how "cat" attends to all words)
         highlight_row = 1  # "cat"
         row_highlight = SurroundingRectangle(grid[highlight_row], color=BLUE, buff=0.05)
 
-        explanation = Text(
-            '"cat" attends mostly to itself and "sat"',
-            font_size=24
-        )
+        explanation = Text('"cat" attends mostly to itself and "sat"', font_size=24)
         explanation.next_to(grid, DOWN, buff=0.5)
 
         self.play(Create(row_highlight), Write(explanation))
@@ -323,10 +316,7 @@ class MultiHeadedAttention(ThreeDScene):
         self.wait(0.5)
 
         # Transform title
-        self.play(
-            TransformMatchingShapes(single_title, multiple_title),
-            run_time=1.5
-        )
+        self.play(TransformMatchingShapes(single_title, multiple_title), run_time=1.5)
         self.wait()
 
         # Create attention pattern visualization (grid with dots)
@@ -350,7 +340,7 @@ class MultiHeadedAttention(ThreeDScene):
             # Generate causal attention pattern (lower triangular)
             pattern = np.random.normal(0, 1, (n_rows, n_rows))
             for n in range(n_rows):
-                pattern[:, n][n + 1:] = -np.inf  # Mask future tokens
+                pattern[:, n][n + 1 :] = -np.inf  # Mask future tokens
                 exp_vals = np.exp(pattern[:, n] - np.max(pattern[:, n][pattern[:, n] > -np.inf]))
                 pattern[:, n] = exp_vals / np.sum(exp_vals[exp_vals < np.inf])
             pattern = np.nan_to_num(pattern, nan=0.0, posinf=0.0, neginf=0.0)
@@ -361,11 +351,7 @@ class MultiHeadedAttention(ThreeDScene):
                 for j in range(n_rows):
                     value = pattern[i, j]
                     if value > 0.05:  # Threshold for visibility
-                        dot = Dot(
-                            radius=cell_size * 0.4 * value,
-                            color=GREY_B,
-                            fill_opacity=0.8
-                        )
+                        dot = Dot(radius=cell_size * 0.4 * value, color=GREY_B, fill_opacity=0.8)
                         dot.move_to(grid[i * n_rows + j].get_center())
                         dots.add(dot)
 
@@ -404,20 +390,13 @@ class MultiHeadedAttention(ThreeDScene):
         self.add_fixed_in_frame_mobjects(multiple_title)
 
         # Rotate camera to reveal depth
-        self.move_camera(
-            phi=70 * DEGREES,
-            theta=-60 * DEGREES,
-            run_time=2
-        )
+        self.move_camera(phi=70 * DEGREES, theta=-60 * DEGREES, run_time=2)
 
         # Fan out the heads from the first one
         self.play(
-            LaggedStart(
-                *[FadeIn(head, shift=OUT * 0.3) for head in heads[:-1]],
-                lag_ratio=0.15
-            ),
+            LaggedStart(*[FadeIn(head, shift=OUT * 0.3) for head in heads[:-1]], lag_ratio=0.15),
             FadeOut(first_head),
-            run_time=3
+            run_time=3,
         )
         self.add(heads)
         self.wait()
@@ -456,12 +435,12 @@ class MultiHeadedAttention(ThreeDScene):
 
         self.play(
             LaggedStart(*[FadeIn(wq, shift=UP * 0.2) for wq in wq_labels], lag_ratio=0.2),
-            run_time=1.5
+            run_time=1.5,
         )
         self.play(
             LaggedStart(*[FadeIn(wk, shift=UP * 0.2) for wk in wk_labels], lag_ratio=0.2),
             FadeIn(dots_label),
-            run_time=1.5
+            run_time=1.5,
         )
         self.wait()
 
@@ -476,11 +455,7 @@ class MultiHeadedAttention(ThreeDScene):
         self.wait()
 
         # Rotate camera to show different angle
-        self.move_camera(
-            phi=60 * DEGREES,
-            theta=-80 * DEGREES,
-            run_time=2
-        )
+        self.move_camera(phi=60 * DEGREES, theta=-80 * DEGREES, run_time=2)
         self.wait()
 
         # Explanation text (fixed in frame)
@@ -494,17 +469,11 @@ class MultiHeadedAttention(ThreeDScene):
         explanation.to_corner(DL, buff=0.5)
 
         self.add_fixed_in_frame_mobjects(explanation)
-        self.play(
-            LaggedStart(*[Write(e) for e in explanation], lag_ratio=0.3)
-        )
+        self.play(LaggedStart(*[Write(e) for e in explanation], lag_ratio=0.3))
         self.wait()
 
         # Return to front view
-        self.move_camera(
-            phi=0,
-            theta=-90 * DEGREES,
-            run_time=2
-        )
+        self.move_camera(phi=0, theta=-90 * DEGREES, run_time=2)
         self.wait()
 
         # Show concatenation concept
@@ -538,13 +507,14 @@ class SelfAttentionDemo(Scene):
         for word in words:
             box = VGroup(
                 RoundedRectangle(
-                    width=1.5, height=0.8,
+                    width=1.5,
+                    height=0.8,
                     corner_radius=0.1,
                     fill_opacity=0.3,
                     fill_color=BLUE,
-                    stroke_color=WHITE
+                    stroke_color=WHITE,
                 ),
-                Text(word, font_size=28)
+                Text(word, font_size=28),
             )
             box[1].move_to(box[0])
             word_boxes.add(box)
@@ -552,9 +522,7 @@ class SelfAttentionDemo(Scene):
         word_boxes.arrange(RIGHT, buff=0.5)
         word_boxes.next_to(title, DOWN, buff=1)
 
-        self.play(
-            LaggedStart(*[FadeIn(b, scale=0.8) for b in word_boxes], lag_ratio=0.2)
-        )
+        self.play(LaggedStart(*[FadeIn(b, scale=0.8) for b in word_boxes], lag_ratio=0.2))
         self.wait()
 
         # Show attention from "fox" to other words
@@ -576,12 +544,9 @@ class SelfAttentionDemo(Scene):
                 arrow = CurvedArrow(
                     box.get_bottom() + DOWN * 0.1,
                     target_box.get_bottom() + DOWN * 0.1,
-                    angle=0.5 if i < target_idx else -0.5
+                    angle=0.5 if i < target_idx else -0.5,
                 )
-                arrow.set_stroke(
-                    color=interpolate_color(GREY, YELLOW, weight),
-                    width=weight * 8
-                )
+                arrow.set_stroke(color=interpolate_color(GREY, YELLOW, weight), width=weight * 8)
                 attention_arrows.add(arrow)
 
                 label = DecimalNumber(weight, num_decimal_places=1, font_size=20)
@@ -596,8 +561,7 @@ class SelfAttentionDemo(Scene):
 
         # Show weighted combination
         result_text = Text(
-            '"fox" = 0.1×"The" + 0.3×"quick" + 0.4×"brown" + 0.2×"fox"',
-            font_size=24
+            '"fox" = 0.1×"The" + 0.3×"quick" + 0.4×"brown" + 0.2×"fox"', font_size=24
         )
         result_text.next_to(word_boxes, DOWN, buff=1.5)
 
@@ -634,16 +598,17 @@ class ScaledDotProductAttention(Scene):
 
         self.play(Write(step1))
         self.play(
-            FadeIn(q_vec), FadeIn(k_vec), FadeIn(v_vec),
-            Write(q_label), Write(k_label), Write(v_label)
+            FadeIn(q_vec),
+            FadeIn(k_vec),
+            FadeIn(v_vec),
+            Write(q_label),
+            Write(k_label),
+            Write(v_label),
         )
         self.wait()
 
         # Step 2: Compute Q·K^T
-        self.play(
-            FadeOut(step1),
-            VGroup(vectors, q_label, k_label, v_label).animate.shift(UP)
-        )
+        self.play(FadeOut(step1), VGroup(vectors, q_label, k_label, v_label).animate.shift(UP))
 
         step2 = Text("Step 2: Q · K^T (dot product)", font_size=28)
         step2.next_to(title, DOWN, buff=0.5)
@@ -662,7 +627,9 @@ class ScaledDotProductAttention(Scene):
         step3 = Text("Step 3: Scale by √d_k", font_size=28)
         step3.next_to(title, DOWN, buff=0.5)
 
-        scale_formula = MathTex(r"\frac{Q \cdot K^T}{\sqrt{d_k}} = \frac{2.5}{\sqrt{4}} = 1.25", font_size=32)
+        scale_formula = MathTex(
+            r"\frac{Q \cdot K^T}{\sqrt{d_k}} = \frac{2.5}{\sqrt{4}} = 1.25", font_size=32
+        )
         scale_formula.next_to(dot_result, DOWN, buff=0.3)
 
         self.play(Write(step3))
@@ -705,10 +672,7 @@ class PositionalEncoding(Scene):
         self.play(Write(title))
 
         # Problem statement
-        problem = Text(
-            "Problem: Attention has no sense of word order!",
-            font_size=28, color=RED
-        )
+        problem = Text("Problem: Attention has no sense of word order!", font_size=28, color=RED)
         problem.next_to(title, DOWN, buff=0.5)
         self.play(Write(problem))
         self.wait()
@@ -732,8 +696,7 @@ class PositionalEncoding(Scene):
         self.play(FadeOut(problem), FadeOut(sents), FadeOut(same))
 
         solution = Text(
-            "Solution: Add position information to embeddings",
-            font_size=28, color=GREEN
+            "Solution: Add position information to embeddings", font_size=28, color=GREEN
         )
         solution.next_to(title, DOWN, buff=0.5)
         self.play(Write(solution))
@@ -742,7 +705,7 @@ class PositionalEncoding(Scene):
         formula = MathTex(
             r"PE_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d}}\right) \\",
             r"PE_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d}}\right)",
-            font_size=32
+            font_size=32,
         )
         formula.next_to(solution, DOWN, buff=0.5)
         self.play(Write(formula))
@@ -753,7 +716,9 @@ class PositionalEncoding(Scene):
         for i in range(5):
             pos_vec = VGroup()
             for j in range(8):
-                val = np.sin(i / (10000 ** (j / 8))) if j % 2 == 0 else np.cos(i / (10000 ** (j / 8)))
+                val = (
+                    np.sin(i / (10000 ** (j / 8))) if j % 2 == 0 else np.cos(i / (10000 ** (j / 8)))
+                )
                 cell = Square(side_length=0.3)
                 cell.set_fill(interpolate_color(BLUE, RED, (val + 1) / 2), opacity=0.8)
                 cell.set_stroke(WHITE, 0.5)
@@ -765,10 +730,12 @@ class PositionalEncoding(Scene):
         positions.set_height(2)
         positions.next_to(formula, DOWN, buff=0.5)
 
-        pos_labels = VGroup(*[
-            Text(f"pos={i}", font_size=16).next_to(p, DOWN, buff=0.1)
-            for i, p in enumerate(positions)
-        ])
+        pos_labels = VGroup(
+            *[
+                Text(f"pos={i}", font_size=16).next_to(p, DOWN, buff=0.1)
+                for i, p in enumerate(positions)
+            ]
+        )
 
         self.play(
             LaggedStart(*[FadeIn(p) for p in positions], lag_ratio=0.1),
@@ -778,6 +745,7 @@ class PositionalEncoding(Scene):
 
 
 # Additional simplified scenes for the key concepts
+
 
 class WhatIsAttention(Scene):
     """Simple introduction to attention."""
@@ -790,7 +758,8 @@ class WhatIsAttention(Scene):
         # Key idea
         idea = Text(
             "Attention lets each word look at other words\nto understand context",
-            font_size=32, line_spacing=1.5
+            font_size=32,
+            line_spacing=1.5,
         )
         idea.next_to(title, DOWN, buff=1)
         self.play(Write(idea))
@@ -804,30 +773,20 @@ class WhatIsAttention(Scene):
         self.wait()
 
         # Highlight "bank" and "steep"
-        bank_box = SurroundingRectangle(
-            example_sentence[4:8],  # "bank"
-            color=YELLOW, buff=0.05
-        )
-        steep_box = SurroundingRectangle(
-            example_sentence[13:18],  # "steep"
-            color=GREEN, buff=0.05
-        )
+        bank_box = SurroundingRectangle(example_sentence[4:8], color=YELLOW, buff=0.05)  # "bank"
+        steep_box = SurroundingRectangle(example_sentence[13:18], color=GREEN, buff=0.05)  # "steep"
 
         self.play(Create(bank_box))
         self.wait()
 
-        arrow = CurvedArrow(
-            steep_box.get_top(),
-            bank_box.get_top(),
-            angle=-0.5,
-            color=YELLOW
-        )
+        arrow = CurvedArrow(steep_box.get_top(), bank_box.get_top(), angle=-0.5, color=YELLOW)
 
         self.play(Create(steep_box), Create(arrow))
 
         meaning = Text(
             '"steep" helps us know "bank" means riverbank, not financial bank',
-            font_size=24, color=GREY_B
+            font_size=24,
+            color=GREY_B,
         )
         meaning.next_to(example_sentence, DOWN, buff=0.8)
         self.play(Write(meaning))
