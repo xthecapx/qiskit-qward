@@ -11,8 +11,9 @@
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/serif.css" id="theme">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/revelab@0.2.0/dist/revelab.min.css">
 		<link rel="stylesheet" href="theme.css">
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
 	<body>
 		<div class="reveal">
@@ -39,7 +40,7 @@
 					<h3>How Quantum Computing Works</h3>
 					<div class="slide-content">
 						<!-- Pipeline -->
-						<div style="display:flex; align-items:center; justify-content:center; gap:0; font-size:0.5em; margin-bottom:1em;">
+						<div class="flex items-center justify-center" style="gap:0; font-size:0.5em; margin-bottom:1em;">
 							<div class="card" style="border-color:#2980B9; min-width:130px;">
 								<div class="card-header" style="background-color:rgba(41,128,185,0.1); text-align:center;"><strong>1. Code</strong></div>
 								<div class="card-body" style="padding:0.4em 0.6em; font-size:0.95em;">Write a quantum algorithm using gates and qubits</div>
@@ -61,7 +62,7 @@
 							</div>
 						</div>
 						<!-- Research question -->
-						<div class="card" style="max-width:85%; margin:0 auto; border-color:#6366f1; border-width:2px;">
+						<div class="card mx-auto" style="max-width:85%; border-color:#6366f1; border-width:2px;">
 							<div class="card-body" style="font-size:0.55em; padding:0.6em 1em;">
 								<strong style="color:#6366f1;">Research question:</strong> Current hardware is noisy &mdash; the output histogram often contains errors. How do we know if the quantum program actually worked? We propose the <strong>DSR</strong> (Differential Success Rate), a score that measures how clearly the expected answer stands out above the noise in the histogram.
 							</div>
@@ -90,29 +91,25 @@
 				<section>
 					<h3>Workloads &amp; Hardware</h3>
 					<div class="slide-content">
-						<div class="row" style="font-size:0.55em;">
-							<div class="col-6">
-								<div class="card h-100">
-									<div class="card-header"><strong>Algorithms (Subjects)</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li><strong>Grover search</strong> &mdash; 2 to 14 qubits; scalability, marked count, Hamming weight, symmetry</li>
-											<li><strong>QFT</strong> &mdash; round-trip (2&ndash;10 qubits) and period-detection (3&ndash;6 qubits)</li>
-											<li><strong>vTP</strong> &mdash; 796 jobs from a prior study</li>
-										</ul>
-										<p style="margin-top:0.5em; margin-bottom:0;"><strong>1,281 total quantum jobs</strong></p>
-									</div>
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card flex-1">
+								<div class="card-header"><strong>Algorithms (Subjects)</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li><strong>Grover search</strong> &mdash; 2 to 14 qubits; scalability, marked count, Hamming weight, symmetry</li>
+										<li><strong>QFT</strong> &mdash; round-trip (2&ndash;10 qubits) and period-detection (3&ndash;6 qubits)</li>
+										<li><strong>vTP</strong> &mdash; 796 jobs from a prior study</li>
+									</ul>
+									<p style="margin-top:0.5em; margin-bottom:0;"><strong>1,281 total quantum jobs</strong></p>
 								</div>
 							</div>
-							<div class="col-6">
-								<div class="card h-100">
-									<div class="card-header"><strong>Quantum Hardware</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li><strong>IBM Heron R2</strong><br>fez, torino, kingston, marrakesh<br><em>via IBM Quantum</em></li>
-											<li style="margin-top:0.4em;"><strong>Rigetti Ankaa-3</strong><br><em>via Amazon Web Services</em></li>
-										</ul>
-									</div>
+							<div class="card flex-1">
+								<div class="card-header"><strong>Quantum Hardware</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li><strong>IBM Heron R2</strong><br>fez, torino, kingston, marrakesh<br><em>via IBM Quantum</em></li>
+										<li style="margin-top:0.4em;"><strong>Rigetti Ankaa-3</strong><br><em>via Amazon Web Services</em></li>
+									</ul>
 								</div>
 							</div>
 						</div>
@@ -120,49 +117,43 @@
 				</section>
 
 				<!-- ============================================================ -->
-				<!-- SLIDE 3: EXECUTION PIPELINE                                  -->
+				<!-- SLIDE 5: EXECUTION PIPELINE                                  -->
 				<!-- ============================================================ -->
 				<section>
 					<h3>Execution Pipeline</h3>
 					<div class="slide-content">
-						<div class="row" style="font-size:0.55em;">
-							<div class="col-4">
-								<div class="card h-100" style="border-color:#2980B9;">
-									<div class="card-header" style="background-color:rgba(41,128,185,0.1);"><strong>1. Development</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li>Simulate with Qiskit AER</li>
-											<li>Verify code correctness</li>
-										</ul>
-									</div>
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card flex-1" style="border-color:#2980B9;">
+								<div class="card-header" style="background-color:rgba(41,128,185,0.1);"><strong>1. Development</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>Simulate with Qiskit AER</li>
+										<li>Verify code correctness</li>
+									</ul>
 								</div>
 							</div>
-							<div class="col-4">
-								<div class="card h-100" style="border-color:#27AE60;">
-									<div class="card-header" style="background-color:rgba(39,174,96,0.1);"><strong>2. Execution</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li>1,024 shots per job</li>
-											<li>IBM: optimization levels 0&ndash;3</li>
-											<li>Rigetti: optimization level 3 only</li>
-										</ul>
-									</div>
+							<div class="card flex-1" style="border-color:#27AE60;">
+								<div class="card-header" style="background-color:rgba(39,174,96,0.1);"><strong>2. Execution</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>1,024 shots per job</li>
+										<li>IBM: optimization levels 0&ndash;3</li>
+										<li>Rigetti: optimization level 3 only</li>
+									</ul>
 								</div>
 							</div>
-							<div class="col-4">
-								<div class="card h-100" style="border-color:#E74C3C;">
-									<div class="card-header" style="background-color:rgba(231,76,60,0.1);"><strong>3. Analysis</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li>Compute DSR (Michelson contrast)</li>
-											<li>Compute HF and TVDF</li>
-											<li>Statistical comparison</li>
-										</ul>
-									</div>
+							<div class="card flex-1" style="border-color:#E74C3C;">
+								<div class="card-header" style="background-color:rgba(231,76,60,0.1);"><strong>3. Analysis</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>Compute DSR (Michelson contrast)</li>
+										<li>Compute HF and TVDF</li>
+										<li>Statistical comparison</li>
+									</ul>
 								</div>
 							</div>
 						</div>
-						<div class="card mt-3" style="max-width:85%; margin:0 auto;">
+						<div class="card mt-3 mx-auto" style="max-width:85%;">
 							<div class="card-body" style="font-size:0.5em;">
 								<strong>Dependent variable:</strong> DSR computed from the target state and the returned histogram &nbsp;|&nbsp;
 								<strong>Additional metrics:</strong> Hellinger Fidelity (HF) and Total Variation Distance Fidelity (TVDF)
@@ -172,46 +163,42 @@
 				</section>
 
 				<!-- ============================================================ -->
-				<!-- SLIDE 4: STATISTICAL TOOLS & LIMITATIONS                     -->
+				<!-- SLIDE 6: STATISTICAL TOOLS & LIMITATIONS                     -->
 				<!-- ============================================================ -->
 				<section>
 					<h3>Statistical Analysis &amp; Limitations</h3>
 					<div class="slide-content">
-						<div class="row" style="font-size:0.55em;">
-							<div class="col-7">
-								<div class="card h-100">
-									<div class="card-header"><strong>Non-parametric Statistical Tools</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<table class="table table-sm mb-0" style="font-size:1em; width:100%;">
-											<tbody>
-												<tr>
-													<td style="font-weight:bold; vertical-align:top; width:38%;">Wilcoxon signed-rank</td>
-													<td>Tests whether paired scores (e.g., DSR vs. HF) differ systematically; $p$-values corrected with Bonferroni ($p_{\text{corr}} = p_{\text{raw}} \times 2$)</td>
-												</tr>
-												<tr>
-													<td style="font-weight:bold; vertical-align:top;">Cliff's $\delta$</td>
-													<td>Effect size: proportion of pairwise comparisons where one metric exceeds the other</td>
-												</tr>
-												<tr>
-													<td style="font-weight:bold; vertical-align:top;">Bootstrap 95% CI</td>
-													<td>10,000 resamples for median estimation (groups with $n \geq 5$)</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card" style="flex:7;">
+								<div class="card-header"><strong>Non-parametric Statistical Tools</strong></div>
+								<div class="card-body card-body-left">
+									<table class="table-sm mb-0" style="font-size:1em; width:100%;">
+										<tbody>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top; width:38%;">Wilcoxon signed-rank</td>
+												<td>Tests whether paired scores (e.g., DSR vs. HF) differ systematically; $p$-values corrected with Bonferroni ($p_{\text{corr}} = p_{\text{raw}} \times 2$)</td>
+											</tr>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top;">Cliff's $\delta$</td>
+												<td>Effect size: proportion of pairwise comparisons where one metric exceeds the other</td>
+											</tr>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top;">Bootstrap 95% CI</td>
+												<td>10,000 resamples for median estimation (groups with $n \geq 5$)</td>
+											</tr>
+										</tbody>
+									</table>
 								</div>
 							</div>
-							<div class="col-5">
-								<div class="card h-100" style="border-color:#F39C12;">
-									<div class="card-header" style="background-color:rgba(243,156,18,0.1);"><strong>Limitations</strong></div>
-									<div class="card-body" style="text-align:left;">
-										<ul style="margin-bottom:0;">
-											<li>DSR requires <strong>known expected outcomes</strong> &mdash; not applicable to variational algorithms</li>
-											<li>Circuit depth alone is <strong>not a good predictor</strong> of DSR</li>
-											<li>Correctness of target states $E$ is essential</li>
-											<li>Shot noise and calibration drift affect values</li>
-										</ul>
-									</div>
+							<div class="card" style="flex:5; border-color:#F39C12;">
+								<div class="card-header" style="background-color:rgba(243,156,18,0.1);"><strong>Limitations</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>DSR requires <strong>known expected outcomes</strong> &mdash; not applicable to variational algorithms</li>
+										<li>Circuit depth alone is <strong>not a good predictor</strong> of DSR</li>
+										<li>Correctness of target states $E$ is essential</li>
+										<li>Shot noise and calibration drift affect values</li>
+									</ul>
 								</div>
 							</div>
 						</div>
@@ -219,7 +206,7 @@
 				</section>
 
 				<!-- ============================================================ -->
-				<!-- SLIDE 6: DSR DEGRADATION SIMULATION                          -->
+				<!-- SLIDE 7: DSR DEGRADATION SIMULATION                          -->
 				<!-- ============================================================ -->
 				<section>
 					<h3>DSR Degradation Simulation</h3>
@@ -260,6 +247,5 @@
 				plugins: [ RevealMath.KaTeX ]
 			});
 		</script>
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 	</body>
 </html>
