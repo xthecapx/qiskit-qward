@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>DSR Methods &mdash; English Class Presentation</title>
+		<meta name="description" content="Methods section overview for the DSR paper">
+		<meta name="author" content="Cristian Marquez">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/serif.css" id="theme">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/revelab@0.2.0/dist/revelab.min.css">
+		<link rel="stylesheet" href="theme.css">
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 1: TITLE                                               -->
+				<!-- ============================================================ -->
+				<section class="title-slide">
+					<h3>Differential Success Rate (DSR): A Distribution-Aware Metric for Validating Quantum Algorithm Outputs</h3>
+					<p style="font-size:0.55em;" class="text-muted">English Class &mdash; Methods Section</p>
+					<hr style="width:40%; margin:0.5em auto;">
+					<div style="font-size:0.55em;">
+						<strong>Cristian Marquez</strong><br>
+						<span class="text-muted">Universidad de los Andes</span><br>
+						<span class="text-muted">April 2026</span>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 2: QC PIPELINE & RESEARCH QUESTION                     -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>How Quantum Computing Works</h3>
+					<div class="slide-content">
+						<!-- Pipeline -->
+						<div class="flex items-center justify-center" style="gap:0; font-size:0.5em; margin-bottom:1em;">
+							<div class="card" style="border-color:#2980B9; min-width:130px;">
+								<div class="card-header" style="background-color:rgba(41,128,185,0.1); text-align:center;"><strong>1. Code</strong></div>
+								<div class="card-body" style="padding:0.4em 0.6em; font-size:0.95em;">Write a quantum algorithm using gates and qubits</div>
+							</div>
+							<div style="font-size:1.8em; color:#7F8C8D; padding:0 6px;">&#x2192;</div>
+							<div class="card" style="border-color:#8E44AD; min-width:130px;">
+								<div class="card-header" style="background-color:rgba(142,68,173,0.1); text-align:center;"><strong>2. Transpile</strong></div>
+								<div class="card-body" style="padding:0.4em 0.6em; font-size:0.95em;">Translate the circuit into the hardware's native gates</div>
+							</div>
+							<div style="font-size:1.8em; color:#7F8C8D; padding:0 6px;">&#x2192;</div>
+							<div class="card" style="border-color:#27AE60; min-width:130px;">
+								<div class="card-header" style="background-color:rgba(39,174,96,0.1); text-align:center;"><strong>3. Execute</strong></div>
+								<div class="card-body" style="padding:0.4em 0.6em; font-size:0.95em;">Run on a quantum processor many times (e.g., 1,024 shots)</div>
+							</div>
+							<div style="font-size:1.8em; color:#7F8C8D; padding:0 6px;">&#x2192;</div>
+							<div class="card" style="border-color:#E74C3C; min-width:130px;">
+								<div class="card-header" style="background-color:rgba(231,76,60,0.1); text-align:center;"><strong>4. Output</strong></div>
+								<div class="card-body" style="padding:0.4em 0.6em; font-size:0.95em;">A histogram of results &mdash; which outcome appeared how often?</div>
+							</div>
+						</div>
+						<!-- Research question -->
+						<div class="card mx-auto" style="max-width:85%; border-color:#6366f1; border-width:2px;">
+							<div class="card-body" style="font-size:0.55em; padding:0.6em 1em;">
+								<strong style="color:#6366f1;">Research question:</strong> Current hardware is noisy &mdash; the output histogram often contains errors. How do we know if the quantum program actually worked? We propose the <strong>DSR</strong> (Differential Success Rate), a score that measures how clearly the expected answer stands out above the noise in the histogram.
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 3: DSR HISTOGRAM SETUP                                 -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>DSR: Identifying the Components</h3>
+					<div class="slide-content" style="align-items:center;">
+						<div>
+							<video src="DSRHistogramSetup.mp4" style="max-height:58vh; border-radius:6px; display:block; margin:0 auto;" controls></video>
+							<p style="font-size:0.5em; margin-top:0.5em; text-align:center;">
+								The DSR measures the <strong>gap</strong> between the expected outcome and the strongest competitor in the histogram, normalized into a score from 0 to 1.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 4: WORKLOADS & HARDWARE                                -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>Workloads &amp; Hardware</h3>
+					<div class="slide-content">
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card flex-1">
+								<div class="card-header"><strong>Algorithms (Subjects)</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li><strong>Grover search</strong> &mdash; 2 to 14 qubits; scalability, marked count, Hamming weight, symmetry</li>
+										<li><strong>QFT</strong> &mdash; round-trip (2&ndash;10 qubits) and period-detection (3&ndash;6 qubits)</li>
+										<li><strong>vTP</strong> &mdash; 796 jobs from a prior study</li>
+									</ul>
+									<p style="margin-top:0.5em; margin-bottom:0;"><strong>1,281 total quantum jobs</strong></p>
+								</div>
+							</div>
+							<div class="card flex-1">
+								<div class="card-header"><strong>Quantum Hardware</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li><strong>IBM Heron R2</strong><br>fez, torino, kingston, marrakesh<br><em>via IBM Quantum</em></li>
+										<li style="margin-top:0.4em;"><strong>Rigetti Ankaa-3</strong><br><em>via Amazon Web Services</em></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 5: EXECUTION PIPELINE                                  -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>Execution Pipeline</h3>
+					<div class="slide-content">
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card flex-1" style="border-color:#2980B9;">
+								<div class="card-header" style="background-color:rgba(41,128,185,0.1);"><strong>1. Development</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>Simulate with Qiskit AER</li>
+										<li>Verify code correctness</li>
+									</ul>
+								</div>
+							</div>
+							<div class="card flex-1" style="border-color:#27AE60;">
+								<div class="card-header" style="background-color:rgba(39,174,96,0.1);"><strong>2. Execution</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>1,024 shots per job</li>
+										<li>IBM: optimization levels 0&ndash;3</li>
+										<li>Rigetti: optimization level 3 only</li>
+									</ul>
+								</div>
+							</div>
+							<div class="card flex-1" style="border-color:#E74C3C;">
+								<div class="card-header" style="background-color:rgba(231,76,60,0.1);"><strong>3. Analysis</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>Compute DSR (Michelson contrast)</li>
+										<li>Compute HF and TVDF</li>
+										<li>Statistical comparison</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="card mt-3 mx-auto" style="max-width:85%;">
+							<div class="card-body" style="font-size:0.5em;">
+								<strong>Dependent variable:</strong> DSR computed from the target state and the returned histogram &nbsp;|&nbsp;
+								<strong>Additional metrics:</strong> Hellinger Fidelity (HF) and Total Variation Distance Fidelity (TVDF)
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 6: STATISTICAL TOOLS & LIMITATIONS                     -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>Statistical Analysis &amp; Limitations</h3>
+					<div class="slide-content">
+						<div class="flex gap-3 items-stretch" style="font-size:0.55em;">
+							<div class="card" style="flex:7;">
+								<div class="card-header"><strong>Non-parametric Statistical Tools</strong></div>
+								<div class="card-body card-body-left">
+									<table class="table-sm mb-0" style="font-size:1em; width:100%;">
+										<tbody>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top; width:38%;">Wilcoxon signed-rank</td>
+												<td>Tests whether paired scores (e.g., DSR vs. HF) differ systematically; $p$-values corrected with Bonferroni ($p_{\text{corr}} = p_{\text{raw}} \times 2$)</td>
+											</tr>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top;">Cliff's $\delta$</td>
+												<td>Effect size: proportion of pairwise comparisons where one metric exceeds the other</td>
+											</tr>
+											<tr>
+												<td style="font-weight:bold; vertical-align:top;">Bootstrap 95% CI</td>
+												<td>10,000 resamples for median estimation (groups with $n \geq 5$)</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="card" style="flex:5; border-color:#F39C12;">
+								<div class="card-header" style="background-color:rgba(243,156,18,0.1);"><strong>Limitations</strong></div>
+								<div class="card-body card-body-left">
+									<ul style="margin-bottom:0;">
+										<li>DSR requires <strong>known expected outcomes</strong> &mdash; not applicable to variational algorithms</li>
+										<li>Circuit depth alone is <strong>not a good predictor</strong> of DSR</li>
+										<li>Correctness of target states $E$ is essential</li>
+										<li>Shot noise and calibration drift affect values</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ============================================================ -->
+				<!-- SLIDE 7: DSR DEGRADATION SIMULATION                          -->
+				<!-- ============================================================ -->
+				<section>
+					<h3>DSR Degradation Simulation</h3>
+					<div class="slide-content" style="align-items:center;">
+						<div>
+							<video src="DSRDegradation.mp4" style="max-height:58vh; border-radius:6px; display:block; margin:0 auto;" controls></video>
+							<p style="font-size:0.5em; margin-top:0.5em; text-align:center;">
+								As hardware noise increases, the expected outcome loses distinction in the histogram and the DSR score drops toward zero.
+							</p>
+						</div>
+					</div>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+				slideNumber: 'c/t',
+				showSlideNumber: 'all',
+				transition: 'none',
+				transitionSpeed: 'fast',
+				center: false,
+				margin: 0.08,
+				katex: {
+					version: 'latest',
+					delimiters: [
+						{ left: '$$', right: '$$', display: true },
+						{ left: '$', right: '$', display: false },
+						{ left: '\\(', right: '\\)', display: false },
+						{ left: '\\[', right: '\\]', display: true },
+					],
+					ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+				},
+				plugins: [ RevealMath.KaTeX ]
+			});
+		</script>
+	</body>
+</html>
