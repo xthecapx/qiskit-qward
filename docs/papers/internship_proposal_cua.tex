@@ -1,0 +1,275 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\setlength{\headheight}{13.6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Internship Proposal -- CUA 2026}
+\lhead{Cristian Marquez}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+\title{%
+  \textbf{Internship Research Proposal}\\[0.3em]
+  \large Formalizing the Differential Success Rate as a Metric\\
+  and Building a Quantum Algorithm Monitoring Dashboard\\[1em]
+  \normalsize The Catholic University of America\\
+  Department of Computer Science
+}
+
+\author{
+  Cristian Marquez\\
+  \texttt{ing.cristian.marquez@gmail.com}\\[0.5em]
+  \textit{Advisor:} Daniel Sierra-Sosa, Ph.D.\\
+  \texttt{sierrasosa@cua.edu}
+}
+
+\date{June 29 -- November 14, 2026 \quad (16 active weeks; August recess)}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\clearpage
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introduction and Motivation}
+% ============================================================
+
+Validating the correctness of quantum algorithm executions on noisy intermediate-scale quantum (NISQ) hardware is not yet solved. Unlike classical computing, where deterministic outputs allow one-to-one comparison, quantum executions produce probability distributions whose correctness must be assessed statistically.
+
+To address the distribution-level validation problem, our previous work introduced the \emph{Differential Success Rate} (DSR), a Michelson contrast-based score that quantifies how clearly expected outcomes stand out from the strongest peak in an observed histogram~\cite{dsrPaper2026}. We benchmarked DSR on 1,281 QPU jobs across Grover's search, the Quantum Fourier Transform (QFT), and a teleportation protocol variant, with executions on IBM Quantum Heron R2 and Rigetti Ankaa-3. These results showed that DSR provides a human interpretable numeric success indicator that complements existing fidelity metrics such as Hellinger fidelity (HF) and Total Variation Distance fidelity (TVDF).
+
+When we empirically validate DSR, it naturally opens the question of whether a formulation proposed as a practical \emph{score} can be formalized as a \emph{metric} in the mathematical sense. This question motivates the present internship, which has two objectives.
+\begin{enumerate}[label=(\arabic*)]
+  \item \label{obj:dsr-formalization} Investigate whether the DSR satisfies the axioms of a metric and, if necessary, refine the formulation. If the analysis concludes that no reformulation can satisfy metric axioms without sacrificing empirical sensitivity, the outcome of this objective is a formal characterization of DSR as a \emph{score} (i.e., a bounded indicator without metric-space structure), together with a precise statement of which properties it satisfies.
+  \item \label{obj:monitoring-dashboard} Build a monitoring dashboard that periodically executes quantum algorithms across providers and tracks quality indicators over time. In this case, the dashboard reports DSR as a lightweight score alongside formally established fidelity metrics (HF, TVDF) that do satisfy well-known mathematical properties.
+\end{enumerate}
+
+Together, Objectives~\ref{obj:dsr-formalization} and~\ref{obj:monitoring-dashboard} support both the theoretical basis and the practical monitoring framework for distribution-aware validation of quantum algorithm executions, while providing support for my PhD thesis. Importantly, the dashboard deliverable is independent of whether DSR achieves metric status: it serves as a longitudinal monitoring tool regardless of the theoretical outcome.
+
+% ============================================================
+\section{Background}
+% ============================================================
+
+\subsection{Current DSR Formulation}
+
+Given a histogram $\mathcal{C} : \{0,1\}^n \to \mathbb{Z}_{\geq 0}$ with total shots $S = \sum_x \mathcal{C}(x)$, the probability of each outcome is $p_x = \mathcal{C}(x)/S$. For a set of expected outcomes $E$ with $K = |E|$:
+
+\begin{align}
+  \bar{p}_{\text{exp}} &= \frac{1}{K} \sum_{x \in E} p_x \label{eq:pexp}\\
+  p_{\text{comp}} &= \max_{x \notin E} p_x \label{eq:pcomp}\\
+  \text{DSR} &= \text{clip}\!\left(\frac{\bar{p}_{\text{exp}} - p_{\text{comp}}}{\bar{p}_{\text{exp}} + p_{\text{comp}}},\; 0,\; 1\right) \label{eq:dsr}
+\end{align}
+
+The DSR returns a value in $[0, 1]$, where 1 indicates complete dominance of the expected states and 0 indicates that the expected states are indistinguishable from the noise floor.
+
+\subsection{Metric Axioms}
+
+A function $d: X \times X \to \mathbb{R}_{\geq 0}$ is a \emph{metric} if it satisfies the following:
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{Identity of indiscernibles}: $d(x, y) = 0 \iff x = y$
+  \item \textbf{Symmetry}: $d(x, y) = d(y, x)$
+  \item \textbf{Triangle inequality}: $d(x, z) \leq d(x, y) + d(y, z)$
+\end{enumerate}
+
+For structures weaker than a metric:
+\begin{itemize}
+  \item A \emph{pseudometric} relaxes (i): $d(x,y)=0$ does not imply $x=y$.
+  \item A \emph{divergence} (e.g., KL divergence) may lack symmetry and the triangle inequality but satisfies $D(p \| q) \geq 0$ with equality iff $p = q$.
+\end{itemize}
+
+The DSR in its current form is \emph{not symmetric} (it requires a designated set $E$) and may not satisfy the triangle inequality. During the internship, we will investigate to what mathematical structure DSR belongs to and whether a reformulation can promote it to a stronger structure while preserving its empirical properties.
+
+\subsection{Prior Publications}
+
+This internship builds on the following published and in-progress work.
+
+\begin{enumerate}
+  \item \textbf{CIbSE 2025}~\cite{cibse2025}: Quality concerns when integrating quantum and classical computing (systematic mapping study).
+  \item \textbf{CHILECON 2025}~\cite{qward2026}: qWard---a unified toolkit for pre- and post-runtime quantum circuit metrics.
+  \item \textbf{IEEE Access 2025}~\cite{vTPMarquez_2026}: A variant of the teleportation protocol for single-QPU benchmarking.
+  \item \textbf{IEEE Quantum Week 2026}~\cite{dsrPaper2026}: DSR---a distribution-aware score for validating quantum algorithm outputs (under review).
+\end{enumerate}
+
+% ============================================================
+\section{Research Objectives}
+% ============================================================
+
+\subsection{Objective 1: Theoretical Formalization of DSR}
+
+Determine whether the DSR can be formally defined as a metric, divergence, or related mathematical structure.
+
+\begin{enumerate}[label=O1.\arabic*]
+  \item Evaluate whether DSR satisfies the mathematical properties required of a metric, pseudometric, or divergence.
+  \item Develop formal proofs or provide counterexamples for each relevant mathematical property under consideration.
+  \item Investigate reformulations of DSR that could satisfy stronger mathematical properties while preserving the empirical sensitivity observed in previous experiments.
+  \item Empirically validate any reformulated version of DSR using the existing quantum execution dataset.
+  \item Characterize the relationship between DSR and existing fidelity, distance, and divergence measures, including Hellinger distance, total variation distance, and KL divergence.
+\end{enumerate}
+
+\subsection{Objective 2: Quantum Algorithm Monitoring Dashboard}
+
+Design and implement a web dashboard that tracks quantum algorithm performance across multiple providers over time.
+
+\begin{enumerate}[label=O2.\arabic*]
+  \item Automate periodic execution of selected quantum algorithms across multiple quantum computing providers and backends.
+  \item Compute and store relevant pre-runtime and post-runtime metrics for each execution batch, including fidelity-oriented metrics when applicable, together with execution metadata.
+  \item Build an interactive dashboard that visualizes longitudinal trends in quantum algorithm performance across providers, backends, and execution configurations.
+\end{enumerate}
+
+% ============================================================
+\section{Internship Plan}
+% ============================================================
+
+\subsection{Phase 1: DSR Theoretical Review (Weeks 1--8; Jun 29 -- Sep 26)}
+
+\begin{enumerate}
+  \item \textbf{Literature review} (Weeks 1--2): Survey metric theory, divergence measures, and contrast functions in information theory.
+
+  \item \textbf{Axiom analysis} (Weeks 3--5): For each metric axiom:
+  \begin{itemize}
+    \item Construct formal proofs where the DSR satisfies the axiom.
+    \item Construct counterexamples where it fails.
+  \end{itemize}
+
+  \item \textbf{Reformulation candidates} (Weeks 5--6): Propose alternative formulations that keep the key empirical properties of DSR and simultaneously satisfy stronger mathematical properties.
+  
+  \item \textbf{Empirical validation} (Weeks 6--8): Re-run the existing dataset through any reformulated DSR to verify that empirical properties are preserved. Compare discrimination power, threshold behavior, and correlation with HF/TVDF.
+
+  \item \textbf{Paper writing} (Weeks 7--8): Draft a paper formalizing the results.
+\end{enumerate}
+
+\subsection{Phase 2: Dashboard Development (Weeks 7--16; Sep 15 -- Nov 14)}
+
+\begin{enumerate}
+  \item \textbf{Architecture design} (Weeks 7--8): Define the dashboard system architecture:
+  \begin{itemize}
+    \item Identify the main system components required for execution scheduling, metric computation, data storage, and visualization.
+    \item Select the deployment stack.
+    \item Define the data model needed to store execution results, computed metrics, and execution metadata.
+    \item Specify the interfaces between the execution pipeline, metric computation module, storage layer, and dashboard frontend.
+  \end{itemize}
+
+  \item \textbf{Execution pipeline} (Weeks 9--11): Implement automated batch execution:
+  \begin{itemize}
+    \item Integrate with initial providers such as IBM Quantum and Rigetti.
+    \item Parameterize experiments by algorithm type, backend, qubit count, optimization level, and number of shots.
+    \item Implement error handling, retry logic, and cost tracking.
+  \end{itemize}
+
+  \item \textbf{Metric computation module} (Weeks 11--12): Extend qWard to support batch processing:
+  \begin{itemize}
+    \item Compute relevant pre-runtime and post-runtime metrics for each execution batch.
+    \item Store raw histograms, computed metrics, and execution metadata.
+    \item Support the reformulated DSR from Phase~1 along with the original formulation.
+  \end{itemize}
+
+  \item \textbf{Dashboard frontend} (Weeks 12--14): Build interactive visualizations:
+  \begin{itemize}
+    \item Time-series plots of selected performance and fidelity-oriented metrics.
+    \item Heatmaps across qubit counts, optimization levels, providers, and backends.
+    \item Provider and backend comparison views.
+  \end{itemize}
+
+  \item \textbf{Deployment} (Weeks 14--16): Documentation and deployment to a shared environment accessible to the research group.
+\end{enumerate}
+
+It is important to note that the overlap between theoretical work and dashboard implementation is intentional. The DSR analysis provides the conceptual basis for the study, while the dashboard development creates the infrastructure needed to compare and visualize results between providers over time. Table~\ref{tab:internship-timeline} summarizes the planned sequence of activities throughout the 16-week internship.
+
+\begin{table}[!ht]
+\centering
+\caption{16-week internship timeline (August recess between Weeks 5 and 6).}
+\label{tab:internship-timeline}
+\begin{tabular}{@{}cllp{6.5cm}@{}}
+\toprule
+\textbf{Week} & \textbf{Dates} & \textbf{Phase} & \textbf{Deliverable} \\
+\midrule
+1--2   & Jun 29 -- Jul 11  & Theory    & Literature review on metric theory and divergences \\
+3--5   & Jul 14 -- Aug 1   & Theory    & Axiom analysis: proofs and counterexamples for DSR \\
+\midrule
+\multicolumn{4}{c}{\textit{August recess (Aug 4 -- Aug 29)}} \\
+\midrule
+5--6   & Sep 1 -- Sep 12   & Theory    & Reformulation candidates with preserved properties \\
+6--8   & Sep 8 -- Sep 26   & Theory    & Empirical validation on existing dataset \\
+7--8   & Sep 15 -- Sep 26  & Both      & Paper draft (theory) + dashboard architecture design \\
+9--11  & Sep 29 -- Oct 17  & Dashboard & Batch execution pipeline (IBM + Rigetti) \\
+11--12 & Oct 13 -- Oct 24  & Dashboard & Metric computation module (DSR, HF, TVDF) \\
+12--14 & Oct 20 -- Nov 7   & Dashboard & Frontend visualization and interaction \\
+14--16 & Oct 27 -- Nov 14  & Dashboard & Testing, deployment, documentation \\
+16     & Nov 10 -- Nov 14  & Both      & Final report and presentation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Contingency: DSR Does Not Satisfy Metric Axioms}
+
+If theoretical analysis (Phase~1) concludes that DSR cannot be promoted to a metric without losing its threshold behavior and sensitivity properties, the internship proceeds as follows.
+
+\begin{enumerate}
+  \item \textbf{Formal characterization}: Document the axioms DSR satisfies and the ones it violates, with explicit counterexamples. Classify DSR within the taxonomy of statistical indicators (score, index, contrast function) and state the precise mathematical structure to which it belongs.
+  \item \textbf{Dashboard pivot}: The monitoring dashboard (Phase~2) uses DSR as a \emph{practical score} alongside formally established fidelity metrics, such as HF and TVDF, for cross-provider comparison.
+  \item \textbf{Paper scope adjustment}: The paper shifts toward presenting the monitoring dashboard as the main contribution, supported by the formal characterization of what DSR \emph{can} guarantee as a practical score.
+\end{enumerate}
+
+This contingency arrangement ensures that the internship maintains its productivity independent of the theoretical outcomes obtained. If DSR can be promoted to a metric, the project will deliver a stronger formal measure for quantum output validation. If it cannot, the project will still provide a rigorous characterization of DSR's limitations and a monitoring dashboard that uses DSR appropriately as a practical score alongside established fidelity measures.
+
+
+% ============================================================
+\section{Expected Deliverables}
+% ============================================================
+
+\begin{enumerate}
+  \item \textbf{Theoretical paper}: A manuscript formalizing DSR as a metric, with proofs, counterexamples, and empirical validation.
+  \item \textbf{Dashboard application}: A functional web application that:
+  \begin{itemize}
+    \item Executes selected quantum algorithms periodically across multiple providers and backends.
+    \item Computes and stores relevant pre-runtime and post-runtime metrics for each execution batch.
+    \item Displays longitudinal performance trends across providers, backends, and execution configurations.
+  \end{itemize}
+  \item \textbf{Extended qWard library}: Batch processing capabilities and any reformulated DSR integrated into the open-source qWard package.
+\end{enumerate}
+
+% ============================================================
+\section{Relevance to Doctoral Research}
+% ============================================================
+
+This internship directly contributes to QAQS (Quality-Aware Quantum Software) doctoral research by reinforcing the theoretical foundation of the post-runtime quality targets used in the prediction system. In particular, the formalization of DSR supports a more rigorous definition of how quantum algorithm executions are evaluated from their output.
+
+The dashboard component also contributes to the doctoral work by providing an infrastructure for continuous data collection between providers. The resulting periodically collected execution data can serve as a validation dataset for the circuit footprint characterization and predictive modeling framework, while contributing to the multi-paradigm, multi-provider open dataset proposed in the doctoral research.
+
+% ============================================================
+\bibliographystyle{IEEEtran}
+% Inline bibliography for self-contained document
+\begin{thebibliography}{10}
+
+\bibitem{qward2026}
+C.~Marquez, D.~Sierra-Sosa, and K.~Garc\'es, ``qWard: A unified toolkit for pre- and post-runtime quantum circuit metrics,'' in \emph{Proc. IEEE CHILECON}, 2025. DOI: 10.1109/CHILECON66915.2025.11476435.
+
+\bibitem{vTPMarquez_2026}
+C.~M\'arquez, D.~Sierra-Sosa, and K.~Garc\'es, ``A teleportation protocol variant for single-QPU benchmarking,'' \emph{IEEE Access}, vol.~13, 2025. DOI: 10.1109/ACCESS.2025.3639914.
+
+\bibitem{dsrPaper2026}
+C.~Marquez, D.~Sierra-Sosa, and K.~Garc\'es, ``Differential success rate (DSR): A distribution-aware score for validating quantum algorithm outputs,'' submitted to \emph{IEEE Quantum Week}, 2026.
+
+\bibitem{cibse2025}
+C.~Marquez, J.~Ojeda, and K.~Garc\'es, ``Quality concerns when integrating quantum and classical computing: A systematic mapping study,'' in \emph{Proc. CIbSE}, 2025. DOI: 10.5753/cibse.2025.35330.
+
+\end{thebibliography}
+
+\end{document}
