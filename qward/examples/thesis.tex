@@ -215,6 +215,8 @@ For circuit structure and understandability, Cruz-Lemus et al. \cite{josecruzTow
 
 Complementing these structural approaches, more recently, complexity-focused metrics have emerged. For instance, Shami \cite{shamiCharacterComplexityNovel_2024} proposes character complexity as a novel measure for quantum circuit analysis, while Bu et al. \cite{buComplexityQuantumCircuits_2024} explore the relationship between circuit sensitivity, magic, and coherence with runtime complexity. Furthermore, Cruz-Lemus et al. \cite{cruz-lemusQuantumSoftwareQuality_2024} describe additional pre-runtime metrics for circuit complexity and understandability.
 
+Finally, Díaz-Muñoz et al.~\cite{diazMunozEnvironmentEvaluation_2025} created an automated environment to evaluate the analyzability of hybrid classical-quantum software. Their framework distinguishes between classical software properties (such as cyclomatic complexity, code documentation, and method size) and quantum software properties (such as circuit width, circuit depth, gate complexity, quantum cyclomatic complexity, and conditional instructions). Their work focuses on maintainability as defined by ISO/IEC 25010, but excluding post-runtime metrics such as error rates and fidelity.
+
 \subsubsubsection{Post-runtime Metrics in Literature}
 
 Post-runtime metric research covers verification methods, performance analysis, and benchmarkings. Beyond the comprehensive verification methods reviewed by Gheorghiu et al. \cite{gheorghiuVerificationQuantumComputation_2019}, several studies focus on quality evaluation based on execution.
@@ -246,6 +248,8 @@ Complexity & Character Complexity $C(U)$, based on irreducible character decompo
 Quantum-specific indicators & Sensitivity, average sensitivity (influence), magic, and coherence; quantum Fourier entropy--influence relation. & Bu et al. \cite{buComplexityQuantumCircuits_2024} \\
 \hline
 Quality-oriented dimensions & Platform-level quality attributes (reliability, compatibility, usability) evaluated against ISO/IEC 25010. & Serrano et al. \cite{Serrano2022} \\
+\hline
+Hybrid analyzability & Circuit width (CW), circuit depth (CD), complexity of circuit gates (CCG), quantum cyclomatic complexity (QCC), conditional instructions (CI), measurement operations (MO), auxiliary qubits (AQ); quality levels L1--L5 on a 0--100 scale. & Díaz-Muñoz et al. \cite{diazMunozEnvironmentEvaluation_2025} \\
 \hline
 \end{tabular}
 \end{table}
@@ -307,6 +311,7 @@ Second, this thesis distinguishes itself by its prediction target. The existing 
 
 In response, this thesis addresses the lack of a multi-target prediction approach by incorporating established metrics into a prediction vector and proposing a complementary post-runtime metric designed to capture whether expected quantum states emerge above the noise floor. A detailed comparison between the reviewed approaches is presented in Subsection~\ref{subsec:ml-prediction}.
 
+Third, this thesis stands out from the analyzability-environment approach proposed by Díaz-Muñoz et al.~\cite{diazMunozEnvironmentEvaluation_2025} (presented in Section~\ref{subsec:metric-classification}). In their work, Díaz-Muñoz does not establish a relationship between pre-runtime metrics, hardware behavior, and post-runtime metrics, as their primary focus is on maintainability scoring. In our research instead, we extend the use of pre-runtime metrics into the predictive domain, linking circuit structure to execution outcomes rather than to code quality levels.
 
 Finally, the scope of this research goes beyond a predictive model to deliver a complete quality engineering toolkit. The framework \emph{(i)} implements the circuit footprint through the open-source qWard library, enabling automated metric extraction; \emph{(ii)} validates the predictive power of the footprint through classical supervised regression models; and \emph{(iii)} provides inference capabilities to obtain early estimates of the execution quality for unobserved circuits. This integrated approach positions the contribution as a software engineering artifact---a quality measurement and prediction framework---rather than as an advance in machine learning methodology.
 
@@ -574,6 +579,48 @@ Recent studies provide evidence that ML models trained in specific circuit famil
 To further enhance generalizability, the dataset is obtained by running the algorithms in three different quantum services, shown in the Experimental Space block of Figure~\ref{fig:framework-overview} and detailed in Section~\ref{subsec:scope}. This approach tests whether pre-runtime metrics demonstrate predictive value while expanding the diversity of noise profiles and connectivity constraints in the training data.
 
 The footprint then feeds into the Footprint Validation block of Figure~\ref{fig:framework-overview}, where a correlation and contribution analyze selects the most predictive subset of metrics per target. The selected footprint is forwarded to the ML Validation module, which trains the seven classical supervised regression models specified in Section~\ref{subsec:scope} in order to predict the execution quality (\ref{h:1}). The results of the targets are finally sent through the "Refine footprint" loop, closing the iterative refinement cycle.
+
+\subsection{Dataset Structure}
+\label{subsec:dataset-validation}
+
+The dataset is organized into four feature groups, each capturing a distinct aspect of the quantum circuit structure. Table~\ref{tab:dataset-structure} summarizes these groups.
+
+\begin{table}[ht]
+\renewcommand{\arraystretch}{1.1}
+\centering
+\caption{Feature groups and some representative variables on each category.}
+\label{tab:dataset-structure}
+\footnotesize
+\begin{tabular}{|p{2cm}|p{3cm}|p{5.8cm}|}
+\hline
+\textbf{Feature Group} & \textbf{When Collected} & \textbf{Representative Variables} \\
+\hline
+Pre-runtime metrics & After transpilation, before execution & Circuit depth, width, gate count, CNOT count, multi-qubit ratio, entangling gate density, Halstead volume, critical depth, liveness, parallelism, magic, coherence, sensitivity \\
+\hline
+Backend calibration & Before execution (from provider API) & Median single-qubit gate error, median two-qubit gate error, median readout error, median $T_1$, median $T_2$, number of operational qubits \\
+\hline
+Post-runtime metrics (targets) & After execution & DSR, Hellinger fidelity, TVD, success rate, entropy, dominant outcome probability \\
+\hline
+Gate error characterization & Before execution (from provider API) & Per-gate error rates reported by the backend for the specific qubits used in the transpiled circuit (e.g., CX error on qubit pair [0,1], single-qubit error on qubit 3) \\
+\hline
+\end{tabular}
+\end{table}
+
+The inclusion of gate error characterization as a separate feature group is to explore the impact of hardware noise on quantum software quality. Gate depth and gate-specific error rates are known to propagate across circuit layers; by recording per-gate error rates for the specific qubits allocated during transpilation, the dataset enables an analysis of whether noise-aware features improve prediction beyond what the circuit-only footprint captures implicitly through transpilation artifacts (e.g., inserted SWAP gates).
+
+\subsection{Validation Plan}
+
+The validation procedure is structured to systematically evaluate each algorithmic paradigm under controlled scaling conditions. For each of the three paradigms, the plan specifies:
+
+\begin{enumerate}
+\item \textbf{Fourier-based (QFT, PE).} Circuits are scaled by progressively increasing the number of qubits, which in turn increases pre-runtime metrics such as gate count, CNOT count, circuit depth, and width. Scaling continues until the maximum size for which the backend maintains a post-runtime metric (e.g., fidelity) with a score of at least $1\%$ of getting a positive answer.
+
+\item \textbf{Oracle-based (GO, BV).} In addition to qubit scaling, Grover's algorithm varies the number and Hamming weight of marked states, producing configurations that stress different aspects of the oracle structure. BV varies the secret bit-string length. Each configuration is executed under the same multi-job protocol described above.
+
+\item \textbf{Entanglement-based (vTP, GHZ).} The vTP protocol scales the payload size from 1 to $n$ qubits, while GHZ scales the number of entangled qubits. These algorithms provide a baseline for studying how entanglement degradation affects post-runtime metrics as circuit size grows.
+\end{enumerate}
+
+For all paradigms, the dataset records the four feature groups described in Table~\ref{tab:dataset-structure}. All circuits will be executed using optimization level 3, and the pre-runtime metrics will be evaluated following the transpilation stage. The validation strategy employs a temporal split in which models are trained on earlier executions and validated against subsequent executions collected on different calibration cycles, ensuring that the model does not overfit to a specific hardware snapshot.
 
 \section{Scope and Delimitations}
 \label{subsec:scope}
