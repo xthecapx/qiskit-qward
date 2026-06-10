@@ -163,7 +163,7 @@ The Fourier-based paradigm includes the Quantum Fourier Transform (QFT) and Phas
 
 The oracle-based paradigm groups Grover's search (GO) and the Bernstein-Vazirani (BV) algorithm, since both rely on a black-box oracle followed by interference to reveal hidden information encoded in the function. Although GO operates through amplitude amplification, while BV exploits Walsh-Hadamard interference, both share the oracle structure, which is the selected attribute for this classification.
 
-The entanglement-based paradigm includes the variation of the Teleportation Protocol (vTP) and the GHZ state preparation, which isolates the entanglement operation (the same operation used to scale up the payload in vTP), providing a simpler baseline to study how entanglement degrades as quantum circuits scale.
+The entanglement-based paradigm includes the variation of the Teleportation Protocol (vTP) and the preparation of the GHZ state. Both algorithms use CNOT operations to distribute entanglement across an increasing number of qubits and append random unitary operations chosen from the backend's native gate set. This volumetric strategy increases both qubit count and circuit depth, following the same scaling approach used in current hardware benchmarks and enabling a direct comparison between paradigm-specific and random-circuit-based hardware characterization.
 
 Together, these three paradigms bundle superposition, entanglement, interference, and measurement \cite{juarezramirezTaxonomicViewFundamental_2023} operations, offering diverse algorithm structures for the predictive framework. Notice that all selected algorithms produce known output quantum states, ensuring that post-runtime quality metrics can be computed and that the footprint analysis has a well-defined ground truth for training. Table~\ref{tab:paradigms} summarizes the paradigms and their constituent algorithms.
 
@@ -347,6 +347,9 @@ The objective of this thesis is to verify the hypotheses delineated below.
 
 \item \textbf{Cross-Provider Transferability:} A single predictive model trained using the circuit footprint generalizes across different quantum providers.
 \label{h:3}
+
+\item \textbf{Paradigm-Specific Hardware Suitability:} Predictive models trained on paradigm-specific circuit executions produce better hardware-suitability evaluations than models trained on random-circuit benchmarks.
+\label{h:4}
 \end{enumerate}
 
 \subsection{General and Specific Objectives}
@@ -364,6 +367,9 @@ The objective of this thesis is to verify the hypotheses delineated below.
 
 \item To evaluate the generalizability and soundness of the models by comparing their predicted quality attributes against ground-truth data obtained from real execution on quantum hardware, using unobserved circuit configurations that preserve the structural characteristics of the selected algorithmic primitives.
 \label{o:3}
+
+\item To determine whether paradigm-specific circuit scaling provides more accurate and meaningful characterization compared with random-circuit volumetric scaling.
+\label{o:4}
 \end{enumerate}
 
 \section{Research Methodology}
@@ -617,10 +623,10 @@ The validation procedure is structured to systematically evaluate each algorithm
 
 \item \textbf{Oracle-based (GO, BV).} In addition to qubit scaling, Grover's algorithm varies the number and Hamming weight of marked states, producing configurations that stress different aspects of the oracle structure. BV varies the secret bit-string length. Each configuration is executed under the same multi-job protocol described above.
 
-\item \textbf{Entanglement-based (vTP, GHZ).} The vTP protocol scales the payload size from 1 to $n$ qubits, while GHZ scales the number of entangled qubits. These algorithms provide a baseline for studying how entanglement degradation affects post-runtime metrics as circuit size grows.
+\item \textbf{Entanglement-based (vTP, GHZ).} The vTP protocol scales the payload size from 1 to $n$ qubits, injecting random single-qubit gates per payload qubit. GHZ follows a volumetric growth strategy that increases both qubit count and gate depth by appending random single-qubit and two-qubit operations (for entanglement preparation) drawn from the backend's native gate set. The GHZ random-circuit variant serves as the control group for Hypothesis~\ref{h:4}, enabling a direct comparison between paradigm-specific scaling and random-circuit-based hardware benchmarking.
 \end{enumerate}
 
-For all paradigms, the dataset records the four feature groups described in Table~\ref{tab:dataset-structure}. All circuits will be executed using optimization level 3, and the pre-runtime metrics will be evaluated following the transpilation stage. The validation strategy employs a temporal split in which models are trained on earlier executions and validated against subsequent executions collected on different calibration cycles, ensuring that the model does not overfit to a specific hardware snapshot.
+For all paradigms, the dataset records the four feature groups described in Table~\ref{tab:dataset-structure}. All circuits will be executed using optimization level 3, and the pre-runtime metrics will be evaluated following the transpilation stage. The validation strategy employs a temporal split in which models are trained on earlier executions and validated against subsequent executions collected on different calibration cycles. In addition, the study compares the precision between models trained in paradigm-specific circuits and models trained on the GHZ random-circuit baseline, testing whether structured algorithms provide a richer predictive signal than volumetric random benchmarks (\ref{h:4}).
 
 \section{Scope and Delimitations}
 \label{subsec:scope}
@@ -636,6 +642,8 @@ Because transpilation is target-dependent, the resulting footprint already encod
 To investigate the impact of the hardware context, the study will also evaluate two hardware-aware variants. The first uses only explicit backend calibration features, such as median gate error rates and/or $T_1$/$T_2$ coherence times, all of which are publicly available before execution. The second is a mixed configuration that combines these calibration features with the footprint of the circuit alone. Both variants will be compared against the circuit-only footprint, which beyond the implicit structural encoding after transpilation discussed above contains no explicit backend features, to characterize the extent to which hardware context is necessary for cross-provider prediction (\ref{h:3}).
 
 Because the available dataset is limited, the models will be trained using all the execution records collected. Validation will be performed using newly generated execution data that is not used during model construction. The predicted quality metrics will then be compared with the observed outcomes of these new executions.
+
+Regarding the random-circuit comparison (\ref{h:4}), the underlying rationale is that each algorithmic paradigm produces a distinct structural scaling shape---in terms of depth profile, entanglement pattern, and gate composition---that is not uniformly sampled by the benchmarking using random circuit. Consequently, paradigm-specific benchmark executions may reveal hardware-dependent performance that are not captured by randomly generated workloads, thereby providing empirically guidance regarding which backend is most appropriate for a target algorithm.
 
 Finally, with respect to the predictive modeling component, this research focuses on the application of classical machine learning algorithms rather than deep learning or quantum machine learning approaches. This choice is justified because the input vector and target variables are structured data, avoiding the need for deep architectures that are typically required for unstructured data such as text or images. The study will evaluate a comprehensive suite of regression models, including Linear Regression, Decision Tree Regression, Random Forest, K-Nearest Neighbors (KNN), Support Vector Machine Regression (SVR), and Gradient Boosting algorithms such as XGBoost and LightGBM. The best algorithm selection will be based on the Coefficient of Determination ($R^2$), Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE), with a minimum score of $R^2 \geq 0.80$ and the goal of minimizing the MAE and RMSE respectively.
 
@@ -873,21 +881,23 @@ The research plan is presented as ten phases, three of which have been completed
     
     \textbf{Phase 8: Measurement Validation and Empirical Analysis} \label{p:8} \hfill \textbf{Status: TO DO} \\
     \textit{Estimation:} 2 Months \newline
-    \textbf{Related Goals:} Hypothesis \ref{h:2}, \ref{h:3}; Objective \ref{o:3} \newline
-    \textbf{Description:} Close the GBMF loop by empirically validating the prediction system. Following the framework's validation criteria, the models' predictions are compared against ground-truth data obtained from newly generated QPU executions to evaluate generalization across the selected algorithms and paradigms, and to assess the role of hardware context in cross-provider prediction. This phase determines whether the ``Goal'' established in \hyperref[p:1]{Phase~1} has been met. \newline
+    \textbf{Related Goals:} Hypothesis \ref{h:2}, \ref{h:3}, \ref{h:4}; Objective \ref{o:3}, \ref{o:4} \newline
+    \textbf{Description:} Close the GBMF loop by validating predictions against ground-truth data from new QPU executions. This phase evaluates generalization (\ref{h:2}), cross-provider transferability (\ref{h:3}), and paradigm-specific vs.\ random-circuit hardware characterization (\ref{h:4}). \newline
     \textbf{Tasks:}
     \begin{enumerate}[label=T8.\arabic*, ref=T8.\arabic*, font=\bfseries, leftmargin=3.5em, labelindent=0pt, itemindent=0pt, labelsep=0.5em, noitemsep, topsep=0pt]
-        \item \label{p8:t1} Execute the target algorithms on real hardware to collect new validation data.
-        \item \label{p8:t2} Compare the predicted quality metrics against the observed execution results.
-        \item \label{p8:t3} Compare validation results across pre-runtime-only, hardware-only, and mixed input configurations.
-        \item \label{p8:t4} Quantify predictive power and identify framework limitations.
+        \item \label{p8:t1} Execute target algorithms on real hardware to collect validation data.
+        \item \label{p8:t2} Compare predicted vs.\ observed quality metrics.
+        \item \label{p8:t3} Compare results across pre-runtime-only, hardware-only, and mixed configurations.
+        \item \label{p8:t4} Compare paradigm-trained models against random-circuit-trained models.
+        \item \label{p8:t5} Quantify predictive power and document limitations.
     \end{enumerate}
     \textbf{Acceptance Criteria:}
     \begin{itemize}[leftmargin=1.5em, labelindent=0pt, itemindent=0pt, noitemsep, topsep=0pt]
-        \item Validation dataset collected from newly generated executions on real hardware.
-        \item Predicted quality metrics compared against observed outcomes for the selected algorithms within the target paradigms (validating \ref{h:2}).
-        \item Prediction results compared across pre-runtime-only, hardware-only, and mixed configurations to assess the role of hardware context in cross-provider prediction (validating \ref{h:3}).
-        \item Predictive power and framework limitations documented using $R^2$, $MAE$, and $RMSE$.
+        \item Validation dataset from new QPU executions collected.
+        \item Generalization within paradigms validated (\ref{h:2}).
+        \item Cross-provider prediction assessed across input configurations (\ref{h:3}).
+        \item Paradigm-specific vs.\ random-circuit characterization compared (\ref{h:4}).
+        \item Results reported using $R^2$, $MAE$, and $RMSE$.
     \end{itemize} \\
     \midrule
     
