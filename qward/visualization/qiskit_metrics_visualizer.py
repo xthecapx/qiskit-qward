@@ -188,9 +188,12 @@ class QiskitVisualizer(VisualizationStrategy):
         )
 
         # Extract autopct text objects if available
-        if len(pie_result) > 2:
+        # matplotlib 3.11+ returns PieContainer instead of tuple
+        try:
             autotexts = pie_result[2]
-            # Enhance text readability
+        except (TypeError, IndexError):
+            autotexts = getattr(pie_result, "pctlabels", None)
+        if autotexts:
             for autotext in autotexts:
                 autotext.set_color("white")
                 autotext.set_fontweight("bold")
