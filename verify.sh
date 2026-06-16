@@ -10,22 +10,22 @@ echo "=================================================="
 
 echo ""
 echo "1️⃣  Checking code formatting with Black..."
-black --check .
+uv run black --check .
 echo "✅ Black formatting check passed"
 
 echo ""
 echo "2️⃣  Running Pylint on core library and tests..."
-pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests
+uv run pylint -rn --disable=C,R --ignore-paths=qward/examples qward tests
 echo "✅ Pylint check passed"
 
 echo ""
 echo "3️⃣  Running MyPy type checking..."
-mypy --exclude qward/examples qward
+uv run mypy --exclude qward/examples qward
 echo "✅ MyPy type checking passed"
 
 echo ""
 echo "4️⃣  Running test suite..."
-python -m pytest tests/ -v
+uv run -m pytest tests/ -v
 echo "✅ All tests passed"
 
 echo ""
