@@ -457,9 +457,12 @@
         <span class="p">)</span>
 
         <span class="c1"># Extract autopct text objects if available</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pie_result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># matplotlib 3.11+ returns PieContainer instead of tuple</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">autotexts</span> <span class="o">=</span> <span class="n">pie_result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-            <span class="c1"># Enhance text readability</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+            <span class="n">autotexts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pie_result</span><span class="p">,</span> <span class="s2">&quot;pctlabels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">autotexts</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">autotext</span> <span class="ow">in</span> <span class="n">autotexts</span><span class="p">:</span>
                 <span class="n">autotext</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
                 <span class="n">autotext</span><span class="o">.</span><span class="n">set_fontweight</span><span class="p">(</span><span class="s2">&quot;bold&quot;</span><span class="p">)</span>
