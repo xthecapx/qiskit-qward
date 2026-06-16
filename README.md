@@ -68,10 +68,14 @@ dashboards = visualizer.create_dashboard(save=True)
 # Install from PyPI (when available)
 pip install qward
 
+# Install with development tools (black, pylint, mypy)
+pip install qward[dev]
+
 # Or install from source
 git clone https://github.com/your-org/qiskit-qward.git
 cd qiskit-qward
-pip install -e .
+pip install -e .        # runtime only
+pip install -e ".[dev]" # with dev tools
 ```
 
 ## 📖 Examples
