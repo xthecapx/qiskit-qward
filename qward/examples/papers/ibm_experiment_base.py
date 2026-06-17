@@ -28,6 +28,8 @@ from qiskit import QuantumCircuit
 from qward.algorithms import QuantumCircuitExecutor, IBMBatchResult
 from qward.examples.papers.experiment_helpers import (
     calculate_qward_metrics,
+    calculate_backend_calibration,
+    calculate_gate_error_characterization,
     calculate_statistical_analysis,
 )
 
@@ -38,6 +40,14 @@ try:
     IBM_QUANTUM_AVAILABLE = True
 except ImportError:
     IBM_QUANTUM_AVAILABLE = False
+
+# Transpiler for gate error characterization (re-transpile to get physical layout)
+try:
+    from qiskit.transpiler import generate_preset_pass_manager
+
+    TRANSPILER_AVAILABLE = True
+except ImportError:
+    TRANSPILER_AVAILABLE = False
 
 
 # Type variable for config classes
@@ -231,6 +241,34 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         if optimization_levels is None:
             optimization_levels = [0, 1, 2, 3]
 
+        # --- Capture backend calibration BEFORE execution ---
+        backend_calibration = None
+        backend_obj = None
+        if IBM_QUANTUM_AVAILABLE:
+            try:
+                service_kwargs = {}
+                if channel:
+                    service_kwargs["channel"] = channel
+                if token:
+                    service_kwargs["token"] = token
+                if instance:
+                    service_kwargs["instance"] = instance
+
+                service = QiskitRuntimeService(**service_kwargs)
+                if backend_name:
+                    backend_obj = service.backend(backend_name)
+                else:
+                    backend_obj = service.least_busy(simulator=False, operational=True)
+
+                print("\nCapturing backend calibration...")
+                backend_calibration = calculate_backend_calibration(backend_obj)
+                if backend_calibration:
+                    print(f"  Calibration captured for {backend_obj.name}")
+                else:
+                    print("  Warning: could not extract calibration data")
+            except Exception as e:
+                print(f"  Warning: calibration capture failed: {e}")
+
         # Execute on IBM QPU
         print("\nSubmitting to IBM Quantum...")
         ibm_result = self.executor.run_ibm(
@@ -246,10 +284,34 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             instance=instance,
         )
 
+        # --- Capture gate error characterization per opt level ---
+        gate_error_char = {}
+        if backend_obj and TRANSPILER_AVAILABLE:
+            print("\nCapturing gate error characterization...")
+            for opt_level in optimization_levels:
+                try:
+                    pm = generate_preset_pass_manager(
+                        optimization_level=min(opt_level, 3),
+                        backend=backend_obj,
+                    )
+                    isa_circuit = pm.run(circuit)
+                    char_data = calculate_gate_error_characterization(isa_circuit, backend_obj)
+                    if char_data:
+                        gate_error_char[str(opt_level)] = char_data
+                        print(f"  Opt level {opt_level}: captured")
+                except Exception as e:
+                    print(f"  Opt level {opt_level}: failed ({e})")
+
         # Build rich result (pass pre-calculated QWARD metrics)
         result = self._build_rich_result(
             ibm_result, config, circuit, qward_metrics, original_depth, original_gates
         )
+
+        # Attach calibration and gate error data to result
+        if backend_calibration:
+            result["backend_calibration"] = backend_calibration
+        if gate_error_char:
+            result["gate_error_characterization"] = {"per_opt_level": gate_error_char}
 
         # Print analysis
         self._print_analysis(result, config)

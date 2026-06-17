@@ -54,12 +54,14 @@ class GateErrorCharacterization(BackendMetricCollector):
             physical_qubits_used.update(physical_qubits)
             error_rate, duration_ns = self._query_gate_error(target, op_name, physical_qubits)
 
-            entries.append(GateErrorEntry(
-                gate_name=op_name,
-                physical_qubits=list(physical_qubits),
-                error_rate=error_rate,
-                duration_ns=duration_ns,
-            ))
+            entries.append(
+                GateErrorEntry(
+                    gate_name=op_name,
+                    physical_qubits=list(physical_qubits),
+                    error_rate=error_rate,
+                    duration_ns=duration_ns,
+                )
+            )
 
         return self._build_schema(entries, physical_qubits_used)
 
@@ -121,12 +123,8 @@ class GateErrorCharacterization(BackendMetricCollector):
 
         return GateErrorCharacterizationSchema(
             entries=entries,
-            mean_single_qubit_error=(
-                statistics.mean(single_q_errors) if single_q_errors else None
-            ),
-            mean_two_qubit_error=(
-                statistics.mean(two_q_errors) if two_q_errors else None
-            ),
+            mean_single_qubit_error=(statistics.mean(single_q_errors) if single_q_errors else None),
+            mean_two_qubit_error=(statistics.mean(two_q_errors) if two_q_errors else None),
             max_error=max(all_errors) if all_errors else None,
             weighted_mean_error=weighted_mean,
             num_distinct_physical_qubits=len(physical_qubits_used),

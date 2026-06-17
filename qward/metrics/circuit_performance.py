@@ -35,6 +35,7 @@ try:
     from qward.schemas.circuit_performance_schema import (
         CircuitPerformanceSchema,
         DSRVariantsSchema,
+        FidelityMetricsSchema,
         StatisticalMetricsSchema,
         SuccessMetricsSchema,
     )
@@ -95,6 +96,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
         jobs: Optional[List[JobType]] = None,
         success_criteria: Optional[Callable[[str], bool]] = None,
         expected_outcomes: Optional[List[str]] = None,
+        ideal_distribution: Optional[Dict[str, float]] = None,
     ):
         """
         Initialize a CircuitPerformanceMetrics object.
@@ -105,6 +107,8 @@ class CircuitPerformanceMetrics(MetricCalculator):
             jobs: A list of jobs that executed the circuit (for multiple runs)
             success_criteria: Function that determines if a measurement result is successful
             expected_outcomes: Expected bitstrings for DSR histogram contrast calculations
+            ideal_distribution: Ideal probability distribution {bitstring: prob} for
+                computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity
         """
         super().__init__(circuit)
         self._job = job
@@ -113,6 +117,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             self._jobs = [job]
         self.success_criteria = success_criteria or self._default_success_criteria()
         self._expected_outcomes = list(expected_outcomes) if expected_outcomes else None
+        self._ideal_distribution = ideal_distribution
 
     def _get_metric_type(self) -> MetricsType:
         """Get the type of this metric."""
@@ -281,6 +286,7 @@ class CircuitPerformanceMetrics(MetricCalculator):
             success_metrics=self.get_success_metrics(),
             statistical_metrics=self.get_statistical_metrics(),
             dsr_metrics=self.get_dsr_metrics() if self._expected_outcomes else None,
+            fidelity_metrics=(self.get_fidelity_metrics() if self._ideal_distribution else None),
         )
 
     # =============================================================================
@@ -385,6 +391,85 @@ class CircuitPerformanceMetrics(MetricCalculator):
             return self._get_single_job_dsr_metrics(self._jobs[0])
         else:
             raise ValueError("No jobs available to calculate DSR metrics")
+
+    # =============================================================================
+    # Fidelity Metrics (Hellinger, TVD)
+    # =============================================================================
+
+    def get_fidelity_metrics(self) -> "FidelityMetricsSchema":
+        """
+        Get distribution fidelity metrics as a validated schema object.
+
+        Requires ideal_distribution to be set at initialization.
+
+        Returns:
+            FidelityMetricsSchema: Validated fidelity metrics
+        """
+        self._ensure_schemas_available()
+        fid_dict = self.get_fidelity_metrics_dict()
+        return FidelityMetricsSchema(**fid_dict)
+
+    def get_fidelity_metrics_dict(self) -> Dict[str, Any]:
+        """
+        Get Hellinger fidelity, distance, TVD, and TVD fidelity.
+
+        Compares observed counts against ideal_distribution.
+
+        Returns:
+            Dict[str, Any]: Dictionary with fidelity metric values
+        """
+        if not self._ideal_distribution:
+            raise ValueError("ideal_distribution is required for fidelity metrics")
+
+        if not self._jobs:
+            raise ValueError("No jobs available to calculate fidelity metrics")
+
+        counts = self._extract_counts(self._jobs[0])
+        if not counts:
+            return {
+                "hellinger_fidelity": None,
+                "hellinger_distance": None,
+                "tvd": None,
+                "tvd_fidelity": None,
+            }
+
+        observed = self._normalize_counts(counts)
+
+        hf = self._hellinger_fidelity(observed, self._ideal_distribution)
+        hd = float(np.sqrt(max(0.0, 1.0 - hf)))
+        tvd = self._total_variation_distance(observed, self._ideal_distribution)
+        tvd_fid = 1.0 - tvd
+
+        return {
+            "hellinger_fidelity": round(hf, 6),
+            "hellinger_distance": round(hd, 6),
+            "tvd": round(tvd, 6),
+            "tvd_fidelity": round(tvd_fid, 6),
+        }
+
+    @staticmethod
+    def _normalize_counts(counts: Dict[str, int]) -> Dict[str, float]:
+        """Convert raw counts to probability distribution."""
+        total = sum(counts.values())
+        if total == 0:
+            return {}
+        return {k: v / total for k, v in counts.items()}
+
+    @staticmethod
+    def _hellinger_fidelity(p: Dict[str, float], q: Dict[str, float]) -> float:
+        """Compute Hellinger fidelity between two distributions.
+
+        HF = (sum_i sqrt(p_i * q_i))^2
+        """
+        all_keys = set(p.keys()) | set(q.keys())
+        bc = sum(np.sqrt(p.get(k, 0.0) * q.get(k, 0.0)) for k in all_keys)
+        return float(min(1.0, bc**2))
+
+    @staticmethod
+    def _total_variation_distance(p: Dict[str, float], q: Dict[str, float]) -> float:
+        """Compute Total Variation Distance: TVD = 0.5 * sum_i |p_i - q_i|."""
+        all_keys = set(p.keys()) | set(q.keys())
+        return float(0.5 * sum(abs(p.get(k, 0.0) - q.get(k, 0.0)) for k in all_keys))
 
     # =============================================================================
     # Single Job Metrics
