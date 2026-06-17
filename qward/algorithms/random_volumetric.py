@@ -85,7 +85,7 @@ class RandomVolumetric:
                 if self._native_gates is None:
                     gate = self._random_su4(rng)
                 else:
-                    gate = self._random_native_block(rng, qc, q1, q2)
+                    self._random_native_block(rng, qc, q1, q2)
                     layer_gates.append((None, q1, q2))
                     continue
 
@@ -110,6 +110,7 @@ class RandomVolumetric:
     def _random_su4(self, rng: np.random.Generator) -> UnitaryGate:
         """Generate a random SU(4) unitary gate."""
         from scipy.stats import unitary_group
+
         gate_seed = int(rng.integers(0, 2**31))
         U = unitary_group.rvs(4, random_state=gate_seed)
         return UnitaryGate(U, label="SU4")
@@ -189,9 +190,7 @@ class RandomVolumetricCircuitGenerator:
         native_gates: Optional[List[str]] = None,
         use_barriers: bool = True,
     ) -> QuantumCircuit:
-        return RandomVolumetric(
-            num_qubits, depth, seed, native_gates, use_barriers
-        ).circuit
+        return RandomVolumetric(num_qubits, depth, seed, native_gates, use_barriers).circuit
 
     @staticmethod
     def get_scaling_configs(max_qubits: int = 14) -> List[dict]:
@@ -200,10 +199,12 @@ class RandomVolumetricCircuitGenerator:
         for n in range(2, max_qubits + 1):
             for depth_mult in [1, 2, 3]:
                 d = n * depth_mult
-                configs.append({
-                    "config_id": f"RV{n}-D{d}",
-                    "num_qubits": n,
-                    "depth": d,
-                    "description": f"{n} qubits, depth {d} ({depth_mult}×n)",
-                })
+                configs.append(
+                    {
+                        "config_id": f"RV{n}-D{d}",
+                        "num_qubits": n,
+                        "depth": d,
+                        "description": f"{n} qubits, depth {d} ({depth_mult}×n)",
+                    }
+                )
         return configs

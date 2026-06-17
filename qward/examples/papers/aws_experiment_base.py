@@ -17,6 +17,7 @@ from qiskit import QuantumCircuit
 from qward.algorithms import AWSJobResult, QuantumCircuitExecutor
 from qward.examples.papers.experiment_helpers import (
     calculate_qward_metrics,
+    calculate_backend_calibration,
     calculate_statistical_analysis,
 )
 
@@ -194,6 +195,29 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
         key_id = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
         secret = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
 
+        # --- Capture backend calibration BEFORE execution ---
+        backend_calibration = None
+        try:
+            from qiskit_braket_provider import BraketProvider
+
+            os.environ.setdefault("AWS_DEFAULT_REGION", region)
+            if key_id:
+                os.environ["AWS_ACCESS_KEY_ID"] = key_id
+            if secret:
+                os.environ["AWS_SECRET_ACCESS_KEY"] = secret
+
+            provider = BraketProvider()
+            aws_backend = provider.get_backend(device_id)
+
+            print("\nCapturing backend calibration...")
+            backend_calibration = calculate_backend_calibration(aws_backend)
+            if backend_calibration:
+                print(f"  Calibration captured for {device_id}")
+            else:
+                print("  Warning: could not extract calibration data")
+        except Exception as e:
+            print(f"  Warning: calibration capture failed: {e}")
+
         print("\nSubmitting to AWS Braket...")
         aws_result = self.executor.run_aws(
             circuit,
@@ -218,6 +242,10 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
             original_gates=original_gates,
             expected_outcomes=expected_outcomes,
         )
+
+        # Attach calibration data to result
+        if backend_calibration:
+            result["backend_calibration"] = backend_calibration
 
         self._print_analysis(result, config)
 

@@ -43,10 +43,15 @@ class BackendCalibrationCollector(BackendMetricCollector):
         return self.get_metrics().model_dump()
 
     def _detect_provider(self) -> Optional[str]:
+        # Raw Braket AwsDevice (has properties + arn, no target)
+        if hasattr(self._backend, "properties") and hasattr(self._backend, "arn"):
+            return "aws"
+        # qiskit-braket-provider wraps AwsDevice in _device
+        if hasattr(self._backend, "_device") and hasattr(self._backend._device, "properties"):
+            return "aws"
+        # IBM BackendV2 (has target with qubit_properties containing T1/T2)
         if hasattr(self._backend, "target") and hasattr(self._backend, "num_qubits"):
             return "ibm"
-        if hasattr(self._backend, "properties") and hasattr(self._backend, "id"):
-            return "aws"
         return None
 
     def _extract_ibm(self) -> BackendCalibrationSchema:
@@ -96,9 +101,7 @@ class BackendCalibrationCollector(BackendMetricCollector):
             median_two_qubit_gate_error=(
                 statistics.median(two_qubit_errors) if two_qubit_errors else None
             ),
-            median_readout_error=(
-                statistics.median(readout_errors) if readout_errors else None
-            ),
+            median_readout_error=(statistics.median(readout_errors) if readout_errors else None),
             median_t1_us=statistics.median(t1_values) if t1_values else None,
             median_t2_us=statistics.median(t2_values) if t2_values else None,
             num_operational_qubits=operational_count,
@@ -123,9 +126,17 @@ class BackendCalibrationCollector(BackendMetricCollector):
         return None
 
     def _extract_aws(self) -> BackendCalibrationSchema:
-        """Extract calibration from AWS Braket device properties."""
-        device = self._backend
-        backend_name = getattr(device, "name", getattr(device, "id", str(device)))
+        """Extract calibration from AWS Braket device properties.
+
+        Tries standardized Braket format first (works across providers),
+        falls back to Rigetti-specific provider.specs format.
+        """
+        # Unwrap qiskit-braket-provider wrapper if present
+        if hasattr(self._backend, "_device") and hasattr(self._backend._device, "properties"):
+            device = self._backend._device
+        else:
+            device = self._backend
+        backend_name = getattr(device, "name", getattr(device, "arn", str(device)))
 
         single_qubit_errors: List[float] = []
         two_qubit_errors: List[float] = []
@@ -143,29 +154,69 @@ class BackendCalibrationCollector(BackendMetricCollector):
             else:
                 props_dict = {}
 
-            provider_data = props_dict.get("provider", {})
-            specs = provider_data.get("specs", {})
+            # Try standardized Braket format first (cross-provider)
+            standardized = props_dict.get("standardized", {})
+            one_q = standardized.get("oneQubitProperties", {})
+            two_q = standardized.get("twoQubitProperties", {})
 
-            # Rigetti format: specs contains qubit and gate data
-            qubit_specs = specs.get("1Q", {})
-            gate_specs = specs.get("2Q", {})
+            if one_q:
+                for _qubit_id, qdata in one_q.items():
+                    operational_count += 1
+                    t1_entry = qdata.get("T1", {})
+                    t2_entry = qdata.get("T2", {})
+                    if t1_entry and t1_entry.get("value") is not None:
+                        val = t1_entry["value"]
+                        if t1_entry.get("unit") == "us":
+                            t1_values.append(val)
+                        else:
+                            t1_values.append(val * 1e6)
+                    if t2_entry and t2_entry.get("value") is not None:
+                        val = t2_entry["value"]
+                        if t2_entry.get("unit") == "us":
+                            t2_values.append(val)
+                        else:
+                            t2_values.append(val * 1e6)
 
-            for qubit_id, qdata in qubit_specs.items():
-                operational_count += 1
-                if "T1" in qdata and qdata["T1"] is not None:
-                    t1_values.append(qdata["T1"] * 1e6)  # seconds → μs
-                if "T2" in qdata and qdata["T2"] is not None:
-                    t2_values.append(qdata["T2"] * 1e6)
-                if "f1QRB" in qdata and qdata["f1QRB"] is not None:
-                    single_qubit_errors.append(1.0 - qdata["f1QRB"])
-                if "fRO" in qdata and qdata["fRO"] is not None:
-                    readout_errors.append(1.0 - qdata["fRO"])
+                    for fid_entry in qdata.get("oneQubitFidelity", []):
+                        fid_type = fid_entry.get("fidelityType", {})
+                        fid_name = fid_type.get("name", "")
+                        fid_val = fid_entry.get("fidelity")
+                        if fid_val is None:
+                            continue
+                        if fid_name == "READOUT":
+                            readout_errors.append(1.0 - fid_val)
+                        elif fid_name == "RANDOMIZED_BENCHMARKING":
+                            single_qubit_errors.append(1.0 - fid_val)
 
-            for gate_id, gdata in gate_specs.items():
-                if "fCZ" in gdata and gdata["fCZ"] is not None:
-                    two_qubit_errors.append(1.0 - gdata["fCZ"])
-                elif "fISWAP" in gdata and gdata["fISWAP"] is not None:
-                    two_qubit_errors.append(1.0 - gdata["fISWAP"])
+                for _pair_id, pdata in two_q.items():
+                    for fid_entry in pdata.get("twoQubitGateFidelity", []):
+                        fid_val = fid_entry.get("fidelity")
+                        if fid_val is not None:
+                            two_qubit_errors.append(1.0 - fid_val)
+
+            # Fallback: Rigetti-specific provider.specs format
+            if not one_q:
+                provider_data = props_dict.get("provider", {})
+                specs = provider_data.get("specs", {})
+                qubit_specs = specs.get("1Q", {})
+                gate_specs = specs.get("2Q", {})
+
+                for _qubit_id, qdata in qubit_specs.items():
+                    operational_count += 1
+                    if "T1" in qdata and qdata["T1"] is not None:
+                        t1_values.append(qdata["T1"] * 1e6)
+                    if "T2" in qdata and qdata["T2"] is not None:
+                        t2_values.append(qdata["T2"] * 1e6)
+                    if "f1QRB" in qdata and qdata["f1QRB"] is not None:
+                        single_qubit_errors.append(1.0 - qdata["f1QRB"])
+                    if "fRO" in qdata and qdata["fRO"] is not None:
+                        readout_errors.append(1.0 - qdata["fRO"])
+
+                for _gate_id, gdata in gate_specs.items():
+                    if "fCZ" in gdata and gdata["fCZ"] is not None:
+                        two_qubit_errors.append(1.0 - gdata["fCZ"])
+                    elif "fISWAP" in gdata and gdata["fISWAP"] is not None:
+                        two_qubit_errors.append(1.0 - gdata["fISWAP"])
 
         except Exception:
             pass
@@ -179,9 +230,7 @@ class BackendCalibrationCollector(BackendMetricCollector):
             median_two_qubit_gate_error=(
                 statistics.median(two_qubit_errors) if two_qubit_errors else None
             ),
-            median_readout_error=(
-                statistics.median(readout_errors) if readout_errors else None
-            ),
+            median_readout_error=(statistics.median(readout_errors) if readout_errors else None),
             median_t1_us=statistics.median(t1_values) if t1_values else None,
             median_t2_us=statistics.median(t2_values) if t2_values else None,
             num_operational_qubits=operational_count,
