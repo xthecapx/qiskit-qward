@@ -17,6 +17,9 @@ from qward.metrics.differential_success_rate import (
     compute_dsr_with_flags,
 )
 from qward.metrics.defaults import get_all_pre_runtime_strategies, get_default_strategies
+from qward.metrics.backend_metric_base import BackendMetricCollector
+from qward.metrics.backend_calibration import BackendCalibrationCollector
+from qward.metrics.gate_error_characterization import GateErrorCharacterization
 
 __all__ = [
     "MetricsId",
@@ -32,6 +35,9 @@ __all__ = [
     "compute_dsr_percent",
     "compute_dsr_with_flags",
     "MetricCalculator",
+    "BackendMetricCollector",
+    "BackendCalibrationCollector",
+    "GateErrorCharacterization",
     "get_default_strategies",
     "get_all_pre_runtime_strategies",
 ]

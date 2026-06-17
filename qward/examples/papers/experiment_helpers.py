@@ -2,20 +2,36 @@
 
 import math
 import statistics
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from qiskit import QuantumCircuit
 
 from qward import Scanner
-from qward.metrics import ComplexityMetrics, QiskitMetrics
+from qward.metrics import (
+    BehavioralMetrics,
+    ComplexityMetrics,
+    ElementMetrics,
+    QiskitMetrics,
+    StructuralMetrics,
+    BackendCalibrationCollector,
+    GateErrorCharacterization,
+)
 
 
 def calculate_qward_metrics(circuit: QuantumCircuit) -> Dict[str, Any]:
-    """Calculate QWARD metrics for a circuit before execution."""
+    """Calculate all pre-runtime QWARD metrics for a circuit.
+
+    Includes: QiskitMetrics, ComplexityMetrics, StructuralMetrics,
+    BehavioralMetrics, ElementMetrics. QuantumSpecificMetrics excluded
+    (expensive PyTorch dependency — run separately via enrichment script).
+    """
     try:
         scanner = Scanner(circuit=circuit)
         scanner.add_strategy(QiskitMetrics(circuit))
         scanner.add_strategy(ComplexityMetrics(circuit))
+        scanner.add_strategy(StructuralMetrics(circuit))
+        scanner.add_strategy(BehavioralMetrics(circuit))
+        scanner.add_strategy(ElementMetrics(circuit))
 
         metrics_dict = scanner.calculate_metrics()
 
@@ -39,6 +55,32 @@ def calculate_qward_metrics(circuit: QuantumCircuit) -> Dict[str, Any]:
 
     except Exception as exc:
         return {"error": str(exc)}
+
+
+def calculate_backend_calibration(backend) -> Optional[Dict[str, Any]]:
+    """Capture backend calibration data at execution time."""
+    try:
+        collector = BackendCalibrationCollector(backend)
+        if collector.is_available():
+            return collector.to_dict()
+    except Exception:
+        pass
+    return None
+
+
+def calculate_gate_error_characterization(
+    transpiled_circuit: QuantumCircuit, backend
+) -> Optional[Dict[str, Any]]:
+    """Capture per-gate error characterization for a transpiled circuit."""
+    try:
+        char = GateErrorCharacterization(transpiled_circuit, backend)
+        if char.is_available():
+            result = char.to_dict()
+            result.pop("entries", None)
+            return result
+    except Exception:
+        pass
+    return None
 
 
 def calculate_statistical_analysis(
