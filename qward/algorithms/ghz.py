@@ -77,9 +77,11 @@ class GHZCircuitGenerator:
         """Generate scaling configurations for GHZ experiments."""
         configs = []
         for n in range(2, max_qubits + 1):
-            configs.append({
-                "config_id": f"GHZ{n}",
-                "num_qubits": n,
-                "description": f"{n}-qubit GHZ state",
-            })
+            configs.append(
+                {
+                    "config_id": f"GHZ{n}",
+                    "num_qubits": n,
+                    "description": f"{n}-qubit GHZ state",
+                }
+            )
         return configs

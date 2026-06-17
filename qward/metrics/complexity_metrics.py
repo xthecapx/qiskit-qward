@@ -200,7 +200,7 @@ class ComplexityMetrics(MetricCalculator):
         multi_qubit_count = self._calculate_multi_qubit_count(
             gate_count, single_qubit_count, op_counts
         )
-        multi_qubit_ratio = multi_qubit_count / gate_count if gate_count > 0 else 0
+        multi_qubit_ratio = max(0.0, multi_qubit_count / gate_count) if gate_count > 0 else 0
 
         return GateBasedMetricsSchema(
             gate_count=gate_count,

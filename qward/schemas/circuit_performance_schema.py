@@ -203,6 +203,36 @@ class DSRVariantsSchema(BaseModel):
     total_jobs: Optional[int] = Field(None, ge=0)
 
 
+class FidelityMetricsSchema(BaseModel):
+    """
+    Schema for distribution fidelity metrics (Hellinger, TVD).
+
+    Computed when an ideal probability distribution is available.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "hellinger_fidelity": 0.92,
+                "hellinger_distance": 0.28,
+                "tvd": 0.15,
+                "tvd_fidelity": 0.85,
+            }
+        }
+    )
+
+    hellinger_fidelity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Hellinger fidelity (1 = identical distributions)"
+    )
+    hellinger_distance: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Hellinger distance (0 = identical distributions)"
+    )
+    tvd: Optional[float] = Field(None, ge=0.0, le=1.0, description="Total Variation Distance")
+    tvd_fidelity: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="TVD fidelity (1 - TVD)"
+    )
+
+
 class CircuitPerformanceSchema(BaseModel):
     """
     Complete schema for circuit performance metrics.
@@ -215,6 +245,9 @@ class CircuitPerformanceSchema(BaseModel):
     statistical_metrics: StatisticalMetricsSchema = Field(..., description="Statistical metrics")
     dsr_metrics: Optional[DSRVariantsSchema] = Field(
         None, description="DSR metrics (only when expected_outcomes provided)"
+    )
+    fidelity_metrics: Optional[FidelityMetricsSchema] = Field(
+        None, description="Fidelity metrics (only when ideal_distribution provided)"
     )
 
     def to_flat_dict(self) -> Dict[str, Any]:
@@ -242,6 +275,12 @@ class CircuitPerformanceSchema(BaseModel):
             for key, value in dsr_dict.items():
                 result[f"dsr_metrics.{key}"] = value
 
+        # Flatten fidelity metrics when available
+        if self.fidelity_metrics is not None:
+            fid_dict = self.fidelity_metrics.model_dump()  # pylint: disable=no-member
+            for key, value in fid_dict.items():
+                result[f"fidelity_metrics.{key}"] = value
+
         return result
 
     @classmethod
@@ -259,6 +298,7 @@ class CircuitPerformanceSchema(BaseModel):
         success_metrics = {}
         statistical_metrics = {}
         dsr_metrics = {}
+        fidelity_metrics = {}
 
         for key, value in flat_dict.items():
             if key.startswith("success_metrics."):
@@ -270,11 +310,17 @@ class CircuitPerformanceSchema(BaseModel):
             elif key.startswith("dsr_metrics."):
                 metric_name = key.replace("dsr_metrics.", "")
                 dsr_metrics[metric_name] = value
+            elif key.startswith("fidelity_metrics."):
+                metric_name = key.replace("fidelity_metrics.", "")
+                fidelity_metrics[metric_name] = value
 
         return cls(
             success_metrics=SuccessMetricsSchema(**success_metrics),
             statistical_metrics=StatisticalMetricsSchema(**statistical_metrics),
             dsr_metrics=DSRVariantsSchema(**dsr_metrics) if dsr_metrics else None,
+            fidelity_metrics=(
+                FidelityMetricsSchema(**fidelity_metrics) if fidelity_metrics else None
+            ),
         )
 
     model_config = ConfigDict(

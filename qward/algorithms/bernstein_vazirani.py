@@ -89,26 +89,32 @@ class BernsteinVaziraniCircuitGenerator:
         configs = []
         for n in range(2, max_qubits + 1):
             # All-ones secret
-            configs.append({
-                "config_id": f"BV{n}-ONES",
-                "num_qubits": n,
-                "secret_string": "1" * n,
-                "description": f"{n} qubits, all-ones secret",
-            })
+            configs.append(
+                {
+                    "config_id": f"BV{n}-ONES",
+                    "num_qubits": n,
+                    "secret_string": "1" * n,
+                    "description": f"{n} qubits, all-ones secret",
+                }
+            )
             # Alternating secret
             alt = "".join("1" if i % 2 == 0 else "0" for i in range(n))
-            configs.append({
-                "config_id": f"BV{n}-ALT",
-                "num_qubits": n,
-                "secret_string": alt,
-                "description": f"{n} qubits, alternating secret",
-            })
+            configs.append(
+                {
+                    "config_id": f"BV{n}-ALT",
+                    "num_qubits": n,
+                    "secret_string": alt,
+                    "description": f"{n} qubits, alternating secret",
+                }
+            )
             # Single-bit secret (last bit)
             single = "0" * (n - 1) + "1"
-            configs.append({
-                "config_id": f"BV{n}-SINGLE",
-                "num_qubits": n,
-                "secret_string": single,
-                "description": f"{n} qubits, single-bit secret",
-            })
+            configs.append(
+                {
+                    "config_id": f"BV{n}-SINGLE",
+                    "num_qubits": n,
+                    "secret_string": single,
+                    "description": f"{n} qubits, single-bit secret",
+                }
+            )
         return configs

@@ -21,8 +21,12 @@ class GateErrorCharacterizationSchema(BaseModel):
         json_schema_extra={
             "example": {
                 "entries": [
-                    {"gate_name": "ecr", "physical_qubits": [0, 1],
-                     "error_rate": 0.005, "duration_ns": 660.0}
+                    {
+                        "gate_name": "ecr",
+                        "physical_qubits": [0, 1],
+                        "error_rate": 0.005,
+                        "duration_ns": 660.0,
+                    }
                 ],
                 "mean_single_qubit_error": 0.00023,
                 "mean_two_qubit_error": 0.0045,
