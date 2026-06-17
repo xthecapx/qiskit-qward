@@ -76,6 +76,18 @@ from .matrix_product_verification import (
     BuhrmanSpalekVerification,
     MatrixProductVerification,
 )
+from .bernstein_vazirani import (
+    BernsteinVazirani,
+    BernsteinVaziraniCircuitGenerator,
+)
+from .ghz import (
+    GHZ,
+    GHZCircuitGenerator,
+)
+from .random_volumetric import (
+    RandomVolumetric,
+    RandomVolumetricCircuitGenerator,
+)
 from .eigensolver import (
     QuantumEigensolver,
     ClassicalEigensolver,
@@ -153,6 +165,15 @@ __all__ = [
     "QuantumFreivaldsVerification",
     "BuhrmanSpalekVerification",
     "MatrixProductVerification",
+    # Bernstein-Vazirani
+    "BernsteinVazirani",
+    "BernsteinVaziraniCircuitGenerator",
+    # GHZ
+    "GHZ",
+    "GHZCircuitGenerator",
+    # Random Volumetric (mirror circuit)
+    "RandomVolumetric",
+    "RandomVolumetricCircuitGenerator",
     # Eigensolver
     "QuantumEigensolver",
     "ClassicalEigensolver",
