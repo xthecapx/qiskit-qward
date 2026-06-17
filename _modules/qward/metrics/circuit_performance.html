@@ -291,6 +291,7 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">qward.schemas.circuit_performance_schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">CircuitPerformanceSchema</span><span class="p">,</span>
         <span class="n">DSRVariantsSchema</span><span class="p">,</span>
+        <span class="n">FidelityMetricsSchema</span><span class="p">,</span>
         <span class="n">StatisticalMetricsSchema</span><span class="p">,</span>
         <span class="n">SuccessMetricsSchema</span><span class="p">,</span>
     <span class="p">)</span>
@@ -353,6 +354,7 @@
         <span class="n">jobs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">success_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">expected_outcomes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ideal_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a CircuitPerformanceMetrics object.</span>
@@ -363,6 +365,8 @@
 <span class="sd">            jobs: A list of jobs that executed the circuit (for multiple runs)</span>
 <span class="sd">            success_criteria: Function that determines if a measurement result is successful</span>
 <span class="sd">            expected_outcomes: Expected bitstrings for DSR histogram contrast calculations</span>
+<span class="sd">            ideal_distribution: Ideal probability distribution {bitstring: prob} for</span>
+<span class="sd">                computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span>
@@ -371,6 +375,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">job</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">success_criteria</span> <span class="o">=</span> <span class="n">success_criteria</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_success_criteria</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">expected_outcomes</span><span class="p">)</span> <span class="k">if</span> <span class="n">expected_outcomes</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_distribution</span> <span class="o">=</span> <span class="n">ideal_distribution</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the type of this metric.&quot;&quot;&quot;</span>
@@ -544,6 +549,7 @@
             <span class="n">success_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_success_metrics</span><span class="p">(),</span>
             <span class="n">statistical_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_statistical_metrics</span><span class="p">(),</span>
             <span class="n">dsr_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dsr_metrics</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">fidelity_metrics</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_distribution</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">)</span></div>
 
 
@@ -667,6 +673,91 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate DSR metrics&quot;</span><span class="p">)</span></div>
 
+
+    <span class="c1"># =============================================================================</span>
+    <span class="c1"># Fidelity Metrics (Hellinger, TVD)</span>
+    <span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FidelityMetricsSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get distribution fidelity metrics as a validated schema object.</span>
+
+<span class="sd">        Requires ideal_distribution to be set at initialization.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            FidelityMetricsSchema: Validated fidelity metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
+        <span class="n">fid_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fidelity_metrics_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">FidelityMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">fid_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CircuitPerformanceMetrics.get_fidelity_metrics_dict">
+<a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fidelity_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Hellinger fidelity, distance, TVD, and TVD fidelity.</span>
+
+<span class="sd">        Compares observed counts against ideal_distribution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: Dictionary with fidelity metric values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_distribution</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ideal_distribution is required for fidelity metrics&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No jobs available to calculate fidelity metrics&quot;</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_counts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;hellinger_fidelity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;hellinger_distance&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;tvd&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;tvd_fidelity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="n">observed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+
+        <span class="n">hf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hellinger_fidelity</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_distribution</span><span class="p">)</span>
+        <span class="n">hd</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">hf</span><span class="p">)))</span>
+        <span class="n">tvd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_variation_distance</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_distribution</span><span class="p">)</span>
+        <span class="n">tvd_fid</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">tvd</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;hellinger_fidelity&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">hf</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="s2">&quot;hellinger_distance&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">hd</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="s2">&quot;tvd&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">tvd</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="s2">&quot;tvd_fidelity&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">tvd_fid</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+        <span class="p">}</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert raw counts to probability distribution.&quot;&quot;&quot;</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="o">/</span> <span class="n">total</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hellinger_fidelity</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">q</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute Hellinger fidelity between two distributions.</span>
+
+<span class="sd">        HF = (sum_i sqrt(p_i * q_i))^2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">bc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bc</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_total_variation_distance</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">q</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute Total Variation Distance: TVD = 0.5 * sum_i |p_i - q_i|.&quot;&quot;&quot;</span>
+        <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">))</span>
 
     <span class="c1"># =============================================================================</span>
     <span class="c1"># Single Job Metrics</span>
