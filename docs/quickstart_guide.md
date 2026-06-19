@@ -50,7 +50,7 @@ Let's analyze a simple Bell state circuit:
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 # 1. Create a Bell state circuit
 circuit = QuantumCircuit(2, 2)
@@ -58,7 +58,7 @@ circuit.h(0)
 circuit.cx(0, 1)
 circuit.measure_all()
 
-# 2. Run on simulator (optional, needed for CircuitPerformanceMetrics)
+# 2. Run on simulator (optional, needed for FidelityMetrics)
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1000)
 
@@ -66,7 +66,7 @@ job = simulator.run(circuit, shots=1000)
 scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 results = scanner.calculate_metrics()
 print("Available metrics:", list(results.keys()))
@@ -160,12 +160,12 @@ print(f"Parallelism factor: {metrics.advanced_metrics.parallelism_factor:.3f}")
 print(f"Weighted complexity: {metrics.derived_metrics.weighted_complexity}")
 ```
 
-### CircuitPerformanceMetrics
+### FidelityMetrics
 Analyzes execution performance:
 
 ```python
 # Requires job execution results
-circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
+circuit_performance = FidelityMetrics(circuit=circuit, job=job)
 metrics = circuit_performance.get_metrics()
 
 # Success analysis
@@ -180,7 +180,7 @@ print(f"Uniformity: {metrics.statistical_metrics.uniformity:.3f}")
 
 ## Custom Success Criteria
 
-Define custom success criteria for CircuitPerformanceMetrics:
+Define custom success criteria for FidelityMetrics:
 
 ```python
 # Custom success criteria for Bell state
@@ -188,8 +188,8 @@ def bell_state_success(result: str) -> bool:
     clean_result = result.replace(" ", "")
     return clean_result in ["00", "11"]  # |00⟩ or |11⟩ states
 
-# Use with CircuitPerformanceMetrics
-circuit_performance = CircuitPerformanceMetrics(
+# Use with FidelityMetrics
+circuit_performance = FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=bell_state_success
@@ -218,7 +218,7 @@ visualizer.create_dashboard(save=True, show=False)
 scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 # Create unified visualizer for full control APIs
 visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
@@ -247,7 +247,7 @@ all_qiskit_plots = visualizer.generate_plots(
 
 # NEW API: Generate single plot
 single_plot = visualizer.generate_plot(
-    metric_name=Metrics.CIRCUIT_PERFORMANCE,
+    metric_name=Metrics.FIDELITY,
     plot_name=Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
     save=True, 
     show=False

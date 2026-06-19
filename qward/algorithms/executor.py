@@ -21,7 +21,12 @@ from qiskit_aer import AerSimulator
 from qiskit_aer.noise import NoiseModel
 
 from qward import Scanner, Visualizer
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import (
+    QiskitMetrics,
+    ComplexityMetrics,
+    CircuitPerformanceMetrics,
+    FidelityMetrics,
+)
 from qward.metrics.differential_success_rate import (
     compute_dsr,
     compute_dsr_ratio,

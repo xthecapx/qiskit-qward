@@ -9,6 +9,13 @@ from qiskit import QuantumCircuit
 from qward import Scanner
 from qward.metrics import QiskitMetrics, ComplexityMetrics
 
+# Functional alternative (no Scanner instance needed):
+#   from qward import scan_pre, scan_post, scan_job, scan_batch
+#   scan_pre(circuit)            # pre-runtime metrics
+#   scan_post(circuit, counts=...)  # post-runtime from counts dict
+#   scan_job(circuit, job=job)   # post-runtime from a job
+#   scan_batch([(circuit, job), ...])  # multiple circuits
+
 circuit = QuantumCircuit(2)
 circuit.h(0)
 circuit.cx(0, 1)
@@ -51,7 +58,7 @@ Scanner(
 
 **Parameters:**
 - `circuit`: The quantum circuit to analyze
-- `job`: Optional job for post-runtime metrics (CircuitPerformanceMetrics)
+- `job`: Optional job for post-runtime metrics (FidelityMetrics)
 - `strategies`: List of metric classes or instances
 
 ## Methods
@@ -77,8 +84,8 @@ Calculate all metrics and return DataFrames.
 results = scanner.calculate_metrics()
 # results["QiskitMetrics"] -> DataFrame
 # results["ComplexityMetrics"] -> DataFrame
-# results["CircuitPerformance.individual_jobs"] -> DataFrame
-# results["CircuitPerformance.aggregate"] -> DataFrame (if multiple jobs)
+# results["FidelityMetrics.individual_jobs"] -> DataFrame
+# results["FidelityMetrics.aggregate"] -> DataFrame (if multiple jobs)
 ```
 
 ### scan(include_all_pre_runtime=True) -> ScanResult
@@ -136,7 +143,7 @@ result.visualize(
 - QuantumSpecificMetrics
 
 **Post-runtime** (requires job):
-- CircuitPerformanceMetrics
+- FidelityMetrics
 - DifferentialSuccessRate
 
 ```python
@@ -150,13 +157,13 @@ strategies = get_all_pre_runtime_strategies()
 
 ## Multiple Jobs Support
 
-CircuitPerformanceMetrics supports multiple jobs:
+FidelityMetrics supports multiple jobs:
 
 ```python
-from qward.metrics import CircuitPerformanceMetrics
+from qward.metrics import FidelityMetrics
 
 # Multiple jobs
-perf = CircuitPerformanceMetrics(circuit=circuit)
+perf = FidelityMetrics(circuit=circuit)
 perf.add_job(job1)
 perf.add_job(job2)
 perf.add_job(job3)
@@ -165,6 +172,6 @@ scanner.add_strategy(perf)
 results = scanner.calculate_metrics()
 
 # Returns two DataFrames:
-results["CircuitPerformance.individual_jobs"]  # Per-job metrics
-results["CircuitPerformance.aggregate"]        # Aggregate statistics
+results["FidelityMetrics.individual_jobs"]  # Per-job metrics
+results["FidelityMetrics.aggregate"]        # Aggregate statistics
 ```

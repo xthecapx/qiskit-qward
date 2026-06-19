@@ -13,7 +13,12 @@ This is the recommended starting point for new users.
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner, Visualizer
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import (
+    QiskitMetrics,
+    ComplexityMetrics,
+    CircuitPerformanceMetrics,
+    FidelityMetrics,
+)
 from qward.visualization.constants import Metrics, Plots
 from qward.visualization import PlotConfig
 
@@ -42,7 +47,7 @@ def fluent_api_example():
 
 
 def fluent_performance_example():
-    """Example 0b: Fluent API with CircuitPerformanceMetrics."""
+    """Example 0b: Fluent API with FidelityMetrics."""
     print("\n=== Example 0b: Fluent API + Performance ===\n")
 
     circuit = create_bell_circuit()
@@ -54,7 +59,7 @@ def fluent_performance_example():
 
     result = (
         Scanner(circuit)
-        .add(CircuitPerformanceMetrics, job=job, success_criteria=bell_success)
+        .add(FidelityMetrics, job=job, success_criteria=bell_success)
         .scan()
         .summary()
     )

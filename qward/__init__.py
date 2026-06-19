@@ -12,6 +12,7 @@ from qward.metrics import (
     MetricsType,
     QiskitMetrics,
     CircuitPerformanceMetrics,
+    FidelityMetrics,
     ElementMetrics,
     StructuralMetrics,
     BehavioralMetrics,
@@ -20,6 +21,7 @@ from qward.metrics import (
     get_default_strategies,
 )
 from qward.visualization import Metrics, PlotConfig, Plots, Visualizer
+from qward.scan import scan_batch, scan_job, scan_post, scan_pre
 
 from qward.version import __version__
 
@@ -30,6 +32,7 @@ __all__ = [
     "MetricsType",
     "QiskitMetrics",
     "CircuitPerformanceMetrics",
+    "FidelityMetrics",
     "ElementMetrics",
     "StructuralMetrics",
     "BehavioralMetrics",
@@ -42,4 +45,8 @@ __all__ = [
     "PlotConfig",
     "get_default_strategies",
     "get_all_pre_runtime_strategies",
+    "scan_pre",
+    "scan_post",
+    "scan_job",
+    "scan_batch",
 ]

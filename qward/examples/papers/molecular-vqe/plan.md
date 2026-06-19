@@ -811,7 +811,7 @@ class QuantumSubspaceExpansion:
 ```python
 from qward.algorithms import QuantumCircuitExecutor, get_preset_noise_config
 from qward import Scanner
-from qward.metrics import CircuitPerformanceMetrics
+from qward.metrics import FidelityMetrics
 
 # Circuit analysis
 scanner = Scanner(vqe_circuit)
@@ -936,7 +936,7 @@ fig.savefig('img/convergence_comparison.png')
 
 ```python
 from qward import Scanner, Visualizer
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 # Analyze VQE circuit
 scanner = Scanner(vqe_circuit)
@@ -948,7 +948,7 @@ def correct_eigenstate(outcome):
     """Check if measurement outcome encodes ground state."""
     return outcome in ground_state_bitstrings
 
-perf = CircuitPerformanceMetrics(
+perf = FidelityMetrics(
     circuit=vqe_circuit,
     job=job_result,
     success_criteria=correct_eigenstate

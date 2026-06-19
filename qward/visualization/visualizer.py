@@ -63,10 +63,13 @@ class Visualizer:
     def _auto_register_default_strategies(self) -> None:
         """Auto-register default visualization strategies based on available metrics."""
         # Register CircuitPerformance strategy if data is available
-        if any(key.startswith("CircuitPerformance") for key in self.metrics_data.keys()):
-            from .circuit_performance_visualizer import CircuitPerformanceVisualizer
+        if any(
+            key.startswith("CircuitPerformance") or key == "FidelityMetrics"
+            for key in self.metrics_data.keys()
+        ):
+            from .fidelity_visualizer import FidelityVisualizer
 
-            self.register_strategy("CircuitPerformance", CircuitPerformanceVisualizer)
+            self.register_strategy("CircuitPerformance", FidelityVisualizer)
 
         # Register Qiskit strategy if data is available
         if "QiskitMetrics" in self.metrics_data:

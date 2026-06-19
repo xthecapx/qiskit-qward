@@ -11,8 +11,9 @@ def get_default_strategies() -> List[Type[MetricCalculator]]:
     """
     Get the default list of metric strategies.
 
-    Note: CircuitPerformance is not included in defaults since it requires
-    job execution results and should be added manually when needed.
+    Note: FidelityMetrics (and legacy CircuitPerformanceMetrics) are not
+    included in defaults since they require execution results (job or counts)
+    and should be added manually when needed.
 
     Returns:
         List[Type[MetricCalculator]]: List of default metric strategy classes

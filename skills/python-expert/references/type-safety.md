@@ -110,7 +110,7 @@ class MetricsType(Enum):
 class MetricsId(Enum):
     QISKIT = auto()
     COMPLEXITY = auto()
-    CIRCUIT_PERFORMANCE = auto()
+    FIDELITY = auto()
     BEHAVIORAL = auto()
     STRUCTURAL = auto()
     ELEMENT = auto()

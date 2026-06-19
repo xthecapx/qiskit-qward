@@ -22,7 +22,7 @@ from qiskit_aer.noise import (
 from qward import Scanner, Visualizer
 from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
 from qward.metrics.defaults import get_default_strategies
-from qward.visualization import PlotConfig, CircuitPerformanceVisualizer
+from qward.visualization import PlotConfig, FidelityVisualizer
 from qward.visualization.constants import Metrics, Plots
 from qward.examples.utils import create_example_circuit, get_display
 

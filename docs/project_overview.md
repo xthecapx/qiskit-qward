@@ -53,12 +53,12 @@ Calculates comprehensive circuit complexity based on research literature:
 - **Quantum Volume Estimation**: Both standard and enhanced QV calculations
 - **Returns**: `ComplexityMetricsSchema` with comprehensive validation
 
-#### CircuitPerformanceMetrics
+#### FidelityMetrics
 Analyzes execution results and performance characteristics:
 - **Success Analysis**: Customizable success criteria and error rate calculation
 - **Statistical Analysis**: Shot distribution, entropy, and uniformity measures
 - **Multi-job Support**: Aggregate analysis across multiple execution runs
-- **Returns**: `CircuitPerformanceSchema` with cross-field validation
+- **Returns**: `FidelitySchema` with field validation (all values in [0,1])
 
 #### **ElementMetrics**
 
@@ -157,7 +157,7 @@ QWARD includes a sophisticated visualization system that automatically creates p
 - Quantum Volume analysis with contributing factors
 - Efficiency and parallelism metric visualization
 
-#### CircuitPerformanceMetrics Visualizations
+#### FidelityMetrics Visualizations
 - Success vs error rate comparisons across jobs
 - Shot distribution visualization (successful vs failed)
 - Aggregate statistical summaries
@@ -241,12 +241,12 @@ print(f"Circuit depth: {metrics.basic_metrics.depth}")
 
 ### Advanced Analysis
 ```python
-from qward.metrics import CircuitPerformanceMetrics
+from qward import FidelityMetrics
 from qward.visualization import Visualizer
 
 # Execute circuit and analyze performance
 job = simulator.run(circuit, shots=1024)
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()

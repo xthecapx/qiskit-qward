@@ -82,7 +82,7 @@ qward/
 │   ├── defaults.py          # Default strategies
 │   ├── qiskit_metrics.py
 │   ├── complexity_metrics.py
-│   ├── circuit_performance.py
+│   ├── fidelity_metrics.py
 │   ├── element_metrics.py
 │   ├── structural_metrics.py
 │   ├── behavioral_metrics.py

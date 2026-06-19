@@ -9,7 +9,7 @@ tests/
 ├── test_metrics/
 │   ├── test_qiskit_metrics.py
 │   ├── test_complexity_metrics.py
-│   └── test_circuit_performance.py
+│   └── test_fidelity_metrics.py
 ├── test_schemas/
 │   └── test_schema_validation.py
 └── test_visualization/
@@ -65,7 +65,7 @@ def test_qiskit_metrics_any_size(num_qubits):
 @pytest.mark.parametrize("metric_class,expected_type", [
     (QiskitMetrics, MetricsType.PRE_RUNTIME),
     (ComplexityMetrics, MetricsType.PRE_RUNTIME),
-    (CircuitPerformanceMetrics, MetricsType.POST_RUNTIME),
+    (FidelityMetrics, MetricsType.POST_RUNTIME),
 ])
 def test_metric_types(bell_circuit, metric_class, expected_type):
     metric = metric_class(bell_circuit)
@@ -114,7 +114,7 @@ def test_scanner_with_mock_metric(bell_circuit):
     mock_metric.get_metrics.assert_called_once()
     assert "mock" in results
 
-@patch('qward.metrics.circuit_performance.execute')
+@patch('qward.metrics.fidelity_metrics.execute')
 def test_performance_with_mock_job(mock_execute, bell_circuit):
     mock_execute.return_value = {"00": 500, "11": 524}
     # test circuit performance with mocked execution

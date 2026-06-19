@@ -141,6 +141,13 @@ class Scanner:
                 self._process_circuit_performance_metrics(
                     strategy, metric_results, metric_dataframes
                 )
+            elif metric_name == "FidelityMetrics" and len(getattr(strategy, "_jobs", [])) > 1:
+                from qward.metrics.fidelity_metrics import FidelityMetrics
+
+                assert isinstance(strategy, FidelityMetrics)
+                schemas = strategy.get_metrics_all()
+                rows = [s.to_flat_dict() for s in schemas]
+                metric_dataframes["FidelityMetrics"] = pd.DataFrame(rows)
             else:
                 self._process_standard_metrics(metric_name, metric_results, metric_dataframes)
 

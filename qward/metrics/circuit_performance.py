@@ -1,6 +1,12 @@
 """
 Circuit performance metrics implementation for QWARD.
 
+.. deprecated::
+    Use :class:`qward.metrics.fidelity_metrics.FidelityMetrics` instead.
+    CircuitPerformanceMetrics is retained for backward compatibility but
+    new code should use FidelityMetrics which provides a simpler API
+    with counts-based input and DSR (Michelson only) + HF + TVD.
+
 This module provides the CircuitPerformanceMetrics class for analyzing the performance of
 quantum circuits based on job execution results. It supports both single job
 and multiple job analysis with customizable success criteria.
