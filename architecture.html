@@ -306,16 +306,16 @@
         +get_metrics() ComplexityMetricsSchema
     }
 
-    class CircuitPerformanceMetrics {
+    class FidelityMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
-        +get_metrics() CircuitPerformanceSchema
+        +get_metrics() FidelitySchema
     }
 
     class SchemaModule {
         &lt;&lt;Validation Layer&gt;&gt;
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +CircuitPerformanceSchema
+        +FidelitySchema
         +validate_data()
         +generate_json_schema()
         +to_flat_dict()
@@ -328,19 +328,19 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. CircuitPerformanceMetrics : implements
+    MetricCalculator &lt;|.. FidelityMetrics : implements
     
     %% Schema Integration
     QiskitMetrics --&gt; SchemaModule : validates with
     ComplexityMetrics --&gt; SchemaModule : validates with
-    CircuitPerformanceMetrics --&gt; SchemaModule : validates with
+    FidelityMetrics --&gt; SchemaModule : validates with
 
     %% Pattern Notes
     note for Scanner &quot;Context: Orchestrates metric calculation and returns dictionary of DataFrames&quot;
     note for MetricCalculator &quot;Strategy Interface: Common interface returning validated schema objects&quot;
     note for QiskitMetrics &quot;Returns validated Qiskit-native metrics with type safety&quot;
     note for ComplexityMetrics &quot;Returns validated complexity analysis metrics with constraints&quot;
-    note for CircuitPerformanceMetrics &quot;Returns validated execution performance metrics with cross-field validation&quot;
+    note for FidelityMetrics &quot;Returns validated execution performance metrics with cross-field validation&quot;
     note for SchemaModule &quot;Pydantic-based validation with automatic type checking and JSON schema generation&quot;
     </pre><section id="key-points">
 <h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
@@ -489,7 +489,7 @@
         +get_derived_metrics() DerivedMetricsSchema
     }
 
-    class CircuitPerformanceMetrics {
+    class FidelityMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
         #_job: Optional[JobType]
         #_jobs: List[JobType]
@@ -498,9 +498,7 @@
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() CircuitPerformanceSchema
-        +get_success_metrics() SuccessMetricsSchema
-        +get_statistical_metrics() StatisticalMetricsSchema
+        +get_metrics() FidelitySchema
         +add_job(job)
         +_default_success_criteria() Callable[[str], bool]
     }
@@ -518,6 +516,7 @@
         QISKIT
         COMPLEXITY
         CIRCUIT_PERFORMANCE
+        FIDELITY
     }
 
     %% Strategy Pattern Relationships
@@ -527,7 +526,7 @@
     %% Strategy Interface Implementation
     MetricCalculator &lt;|.. QiskitMetrics : implements
     MetricCalculator &lt;|.. ComplexityMetrics : implements
-    MetricCalculator &lt;|.. CircuitPerformanceMetrics : implements
+    MetricCalculator &lt;|.. FidelityMetrics : implements
     
     %% Strategy Interface Dependencies
     MetricCalculator --&gt; MetricsType : defines type
@@ -543,7 +542,7 @@
     
     note for ComplexityMetrics &quot;Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking&quot;
     
-    note for CircuitPerformanceMetrics &quot;Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria&quot;
+    note for FidelityMetrics &quot;Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria&quot;
     </pre></section>
 <section id="folder-structure">
 <h2>Folder Structure<a class="headerlink" href="#folder-structure" title="Link to this heading">¶</a></h2>
@@ -560,7 +559,7 @@
 │   ├── defaults.py             # Default metric configurations│    
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   ├── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── circuit_performance.py  # FidelityMetrics implementation
 │   ├── behavioral_metrics.py   # BehavioralMetrics implementation
 │   ├── structural_metrics.py   # StructuralMetrics implementation
 │   ├── element_metrics.py      # ElementMetrics implementation
@@ -643,9 +642,9 @@
 <h3>ComplexityMetrics<a class="headerlink" href="#complexitymetrics" title="Link to this heading">¶</a></h3>
 <p>The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> with appropriate constraints and cross-field validation.</p>
 </section>
-<section id="circuitperformancemetrics">
-<h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
-<p>The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validation for both individual job metrics and aggregate statistics across multiple jobs.</p>
+<section id="fidelitymetrics">
+<h3>FidelityMetrics<a class="headerlink" href="#fidelitymetrics" title="Link to this heading">¶</a></h3>
+<p>The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results, including DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. It accepts either a job object or a raw counts dictionary with target state/histogram. The class returns a validated <code class="docutils literal notranslate"><span class="pre">FidelitySchema</span></code> object with all fields in [0,1] range.</p>
 </section>
 <section id="elementmetrics">
 <h3><strong>ElementMetrics</strong><a class="headerlink" href="#elementmetrics" title="Link to this heading">¶</a></h3>
@@ -700,7 +699,7 @@
 <section id="comprehensive-analysis-with-multiple-metrics">
 <h3>Comprehensive Analysis with Multiple Metrics<a class="headerlink" href="#comprehensive-analysis-with-multiple-metrics" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">FidelityMetrics</span>
 
 <span class="c1"># Create a scanner with multiple metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
@@ -709,7 +708,7 @@
 
 <span class="c1"># For circuit performance, you need job execution results</span>
 <span class="k">if</span> <span class="n">job</span><span class="p">:</span>  <span class="c1"># Assuming you have a job from circuit execution</span>
-    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+    <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics (returns dictionary of DataFrames)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -726,7 +725,7 @@
 </section>
 <section id="circuit-performance-analysis-with-custom-criteria">
 <h3>Circuit Performance Analysis with Custom Criteria<a class="headerlink" href="#circuit-performance-analysis-with-custom-criteria" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityMetrics</span>
 
 <span class="c1"># Define custom success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">bell_state_success</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -734,7 +733,7 @@
     <span class="k">return</span> <span class="n">clean_result</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;0000&quot;</span><span class="p">,</span> <span class="s2">&quot;1111&quot;</span><span class="p">]</span>  <span class="c1"># |00⟩ or |11⟩ states</span>
 
 <span class="c1"># Create circuit performance metric with custom criteria</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> 
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> 
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
@@ -837,7 +836,7 @@
 <ul class="simple">
 <li><p>Handle job and result errors appropriately</p></li>
 <li><p>Use appropriate Qiskit runtime services for backend execution</p></li>
-<li><p>Validate success criteria for CircuitPerformanceMetrics metrics</p></li>
+<li><p>Validate success criteria for FidelityMetrics metrics</p></li>
 </ul>
 </li>
 <li><p><strong>Data Management</strong></p>
@@ -873,7 +872,7 @@
 <section id="type-safe-constants-system">
 <h4>🎯 <strong>Type-Safe Constants System</strong><a class="headerlink" href="#type-safe-constants-system" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Metrics.QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.CIRCUIT_PERFORMANCE</span></code></p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Metrics.QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.FIDELITY</span></code></p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Plots</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Plots.QISKIT.CIRCUIT_STRUCTURE</span></code>, <code class="docutils literal notranslate"><span class="pre">Plots.COMPLEXITY.COMPLEXITY_RADAR</span></code>, etc.</p></li>
 <li><p><strong>IDE Autocompletion</strong>: Full IntelliSense support for all plot names</p></li>
 <li><p><strong>Error Prevention</strong>: Compile-time detection of typos in metric and plot names</p></li>
@@ -1094,7 +1093,7 @@
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="c1"># Option 1: Use unified Visualizer with type-safe constants (recommended)</span>
@@ -1118,7 +1117,7 @@
 
 <span class="c1"># NEW API: Generate single plot</span>
 <span class="n">single_plot</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span> 
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">FIDELITY</span><span class="p">,</span> 
     <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span> 
     <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
     <span class="n">show</span><span class="o">=</span><span class="kc">False</span>
@@ -1261,7 +1260,7 @@
 <li><a class="reference internal" href="#schema-validation">Schema Validation</a></li>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
+<li><a class="reference internal" href="#fidelitymetrics">FidelityMetrics</a></li>
 <li><a class="reference internal" href="#elementmetrics"><strong>ElementMetrics</strong></a></li>
 <li><a class="reference internal" href="#structuralmetrics"><strong>StructuralMetrics</strong></a></li>
 <li><a class="reference internal" href="#behavioralmetrics"><strong>BehavioralMetrics</strong></a></li>

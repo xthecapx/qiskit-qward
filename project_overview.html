@@ -334,14 +334,14 @@
 <li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> with comprehensive validation</p></li>
 </ul>
 </section>
-<section id="circuitperformancemetrics">
-<h4>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h4>
+<section id="fidelitymetrics">
+<h4>FidelityMetrics<a class="headerlink" href="#fidelitymetrics" title="Link to this heading">¶</a></h4>
 <p>Analyzes execution results and performance characteristics:</p>
 <ul class="simple">
 <li><p><strong>Success Analysis</strong>: Customizable success criteria and error rate calculation</p></li>
 <li><p><strong>Statistical Analysis</strong>: Shot distribution, entropy, and uniformity measures</p></li>
 <li><p><strong>Multi-job Support</strong>: Aggregate analysis across multiple execution runs</p></li>
-<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> with cross-field validation</p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">FidelitySchema</span></code> with field validation (all values in [0,1])</p></li>
 </ul>
 </section>
 <section id="elementmetrics">
@@ -457,8 +457,8 @@
 <li><p>Efficiency and parallelism metric visualization</p></li>
 </ul>
 </section>
-<section id="circuitperformancemetrics-visualizations">
-<h4>CircuitPerformanceMetrics Visualizations<a class="headerlink" href="#circuitperformancemetrics-visualizations" title="Link to this heading">¶</a></h4>
+<section id="fidelitymetrics-visualizations">
+<h4>FidelityMetrics Visualizations<a class="headerlink" href="#fidelitymetrics-visualizations" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>Success vs error rate comparisons across jobs</p></li>
 <li><p>Shot distribution visualization (successful vs failed)</p></li>
@@ -571,12 +571,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="advanced-analysis">
 <h3>Advanced Analysis<a class="headerlink" href="#advanced-analysis" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityMetrics</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
 
 <span class="c1"># Execute circuit and analyze performance</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -701,7 +701,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#metric-calculators">Metric Calculators</a><ul>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
+<li><a class="reference internal" href="#fidelitymetrics">FidelityMetrics</a></li>
 <li><a class="reference internal" href="#elementmetrics"><strong>ElementMetrics</strong></a></li>
 <li><a class="reference internal" href="#structuralmetrics"><strong>StructuralMetrics</strong></a></li>
 <li><a class="reference internal" href="#behavioralmetrics"><strong>BehavioralMetrics</strong></a></li>
@@ -720,7 +720,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#comprehensive-visualization-suite">Comprehensive Visualization Suite</a><ul>
 <li><a class="reference internal" href="#qiskitmetrics-visualizations">QiskitMetrics Visualizations</a></li>
 <li><a class="reference internal" href="#complexitymetrics-visualizations">ComplexityMetrics Visualizations</a></li>
-<li><a class="reference internal" href="#circuitperformancemetrics-visualizations">CircuitPerformanceMetrics Visualizations</a></li>
+<li><a class="reference internal" href="#fidelitymetrics-visualizations">FidelityMetrics Visualizations</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#customization-and-styling">Customization and Styling</a></li>

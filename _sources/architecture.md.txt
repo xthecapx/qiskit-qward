@@ -47,16 +47,16 @@ classDiagram
         +get_metrics() ComplexityMetricsSchema
     }
 
-    class CircuitPerformanceMetrics {
+    class FidelityMetrics {
         <<Concrete Strategy>>
-        +get_metrics() CircuitPerformanceSchema
+        +get_metrics() FidelitySchema
     }
 
     class SchemaModule {
         <<Validation Layer>>
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
-        +CircuitPerformanceSchema
+        +FidelitySchema
         +validate_data()
         +generate_json_schema()
         +to_flat_dict()
@@ -69,19 +69,19 @@ classDiagram
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
     MetricCalculator <|.. ComplexityMetrics : implements
-    MetricCalculator <|.. CircuitPerformanceMetrics : implements
+    MetricCalculator <|.. FidelityMetrics : implements
     
     %% Schema Integration
     QiskitMetrics --> SchemaModule : validates with
     ComplexityMetrics --> SchemaModule : validates with
-    CircuitPerformanceMetrics --> SchemaModule : validates with
+    FidelityMetrics --> SchemaModule : validates with
 
     %% Pattern Notes
     note for Scanner "Context: Orchestrates metric calculation and returns dictionary of DataFrames"
     note for MetricCalculator "Strategy Interface: Common interface returning validated schema objects"
     note for QiskitMetrics "Returns validated Qiskit-native metrics with type safety"
     note for ComplexityMetrics "Returns validated complexity analysis metrics with constraints"
-    note for CircuitPerformanceMetrics "Returns validated execution performance metrics with cross-field validation"
+    note for FidelityMetrics "Returns validated execution performance metrics with cross-field validation"
     note for SchemaModule "Pydantic-based validation with automatic type checking and JSON schema generation"
 ```
 
@@ -230,7 +230,7 @@ classDiagram
         +get_derived_metrics() DerivedMetricsSchema
     }
 
-    class CircuitPerformanceMetrics {
+    class FidelityMetrics {
         <<Concrete Strategy>>
         #_job: Optional[JobType]
         #_jobs: List[JobType]
@@ -239,9 +239,7 @@ classDiagram
         +_get_metric_type() MetricsType
         +_get_metric_id() MetricsId
         +is_ready() bool
-        +get_metrics() CircuitPerformanceSchema
-        +get_success_metrics() SuccessMetricsSchema
-        +get_statistical_metrics() StatisticalMetricsSchema
+        +get_metrics() FidelitySchema
         +add_job(job)
         +_default_success_criteria() Callable[[str], bool]
     }
@@ -259,6 +257,7 @@ classDiagram
         QISKIT
         COMPLEXITY
         CIRCUIT_PERFORMANCE
+        FIDELITY
     }
 
     %% Strategy Pattern Relationships
@@ -268,7 +267,7 @@ classDiagram
     %% Strategy Interface Implementation
     MetricCalculator <|.. QiskitMetrics : implements
     MetricCalculator <|.. ComplexityMetrics : implements
-    MetricCalculator <|.. CircuitPerformanceMetrics : implements
+    MetricCalculator <|.. FidelityMetrics : implements
     
     %% Strategy Interface Dependencies
     MetricCalculator --> MetricsType : defines type
@@ -284,7 +283,7 @@ classDiagram
     
     note for ComplexityMetrics "Concrete Strategy: Comprehensive complexity analysis with validated schemas and constraint checking"
     
-    note for CircuitPerformanceMetrics "Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria"
+    note for FidelityMetrics "Concrete Strategy: Circuit performance analysis with validated schema output and custom criteria"
 ```
 
 ## Folder Structure
@@ -304,7 +303,7 @@ The QWARD library is organized into the following folder structure:
 │   ├── defaults.py             # Default metric configurations│    
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   ├── circuit_performance.py  # CircuitPerformanceMetrics implementation
+│   ├── circuit_performance.py  # FidelityMetrics implementation
 │   ├── behavioral_metrics.py   # BehavioralMetrics implementation
 │   ├── structural_metrics.py   # StructuralMetrics implementation
 │   ├── element_metrics.py      # ElementMetrics implementation
@@ -379,8 +378,8 @@ The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, i
 ### ComplexityMetrics
 The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
 
-### CircuitPerformanceMetrics
-The CircuitPerformanceMetrics class calculates performance metrics for quantum circuits, such as success rate and error rate. It supports both single job and multiple job analysis with customizable success criteria. The class returns a validated `CircuitPerformanceSchema` object with validation for both individual job metrics and aggregate statistics across multiple jobs.
+### FidelityMetrics
+The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results, including DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. It accepts either a job object or a raw counts dictionary with target state/histogram. The class returns a validated `FidelitySchema` object with all fields in [0,1] range.
 
 
 ### **ElementMetrics**
@@ -431,7 +430,7 @@ print(f"Number of qubits: {metrics.basic_metrics.num_qubits}")
 ### Comprehensive Analysis with Multiple Metrics
 ```python
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 # Create a scanner with multiple metrics
 scanner = Scanner(circuit=circuit)
@@ -440,7 +439,7 @@ scanner.add_strategy(ComplexityMetrics(circuit))
 
 # For circuit performance, you need job execution results
 if job:  # Assuming you have a job from circuit execution
-    scanner.add_strategy(CircuitPerformanceMetrics(circuit, job=job))
+    scanner.add_strategy(FidelityMetrics(circuit, job=job))
 
 # Calculate all metrics (returns dictionary of DataFrames)
 results = scanner.calculate_metrics()
@@ -456,7 +455,7 @@ print(f"Parallelism Efficiency: {complexity_schema.advanced_metrics.parallelism_
 
 ### Circuit Performance Analysis with Custom Criteria
 ```python
-from qward.metrics import CircuitPerformanceMetrics
+from qward import FidelityMetrics
 
 # Define custom success criteria
 def bell_state_success(result: str) -> bool:
@@ -464,7 +463,7 @@ def bell_state_success(result: str) -> bool:
     return clean_result in ["0000", "1111"]  # |00⟩ or |11⟩ states
 
 # Create circuit performance metric with custom criteria
-circuit_performance = CircuitPerformanceMetrics(
+circuit_performance = FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=bell_state_success
@@ -557,7 +556,7 @@ results = scanner.calculate_metrics()
 3. **Execution**
    - Handle job and result errors appropriately
    - Use appropriate Qiskit runtime services for backend execution
-   - Validate success criteria for CircuitPerformanceMetrics metrics
+   - Validate success criteria for FidelityMetrics metrics
 
 4. **Data Management**
    - Use consistent naming conventions for analysis results
@@ -583,7 +582,7 @@ QWARD includes a comprehensive visualization system for analyzing and presenting
 ### New API Features (v0.9.0)
 
 #### 🎯 **Type-Safe Constants System**
-- **`Metrics`** constants: `Metrics.QISKIT`, `Metrics.COMPLEXITY`, `Metrics.CIRCUIT_PERFORMANCE`
+- **`Metrics`** constants: `Metrics.QISKIT`, `Metrics.COMPLEXITY`, `Metrics.FIDELITY`
 - **`Plots`** constants: `Plots.QISKIT.CIRCUIT_STRUCTURE`, `Plots.COMPLEXITY.COMPLEXITY_RADAR`, etc.
 - **IDE Autocompletion**: Full IntelliSense support for all plot names
 - **Error Prevention**: Compile-time detection of typos in metric and plot names
@@ -777,7 +776,7 @@ from qward.visualization.constants import Metrics, Plots
 scanner = Scanner(circuit=circuit)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 metrics_dict = scanner.calculate_metrics()
 
 # Option 1: Use unified Visualizer with type-safe constants (recommended)
@@ -801,7 +800,7 @@ all_qiskit_plots = visualizer.generate_plots({
 
 # NEW API: Generate single plot
 single_plot = visualizer.generate_plot(
-    Metrics.CIRCUIT_PERFORMANCE, 
+    Metrics.FIDELITY, 
     Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, 
     save=True, 
     show=False

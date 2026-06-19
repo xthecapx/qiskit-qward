@@ -16,7 +16,7 @@ The Scanner class is the main entry point for analyzing quantum circuits in QWAR
     from qiskit import QuantumCircuit
     from qiskit_aer import AerSimulator
     from qward import Scanner
-    from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+    from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
     
     # Create circuit and execute
     circuit = QuantumCircuit(2, 2)
@@ -31,7 +31,7 @@ The Scanner class is the main entry point for analyzing quantum circuits in QWAR
     scanner = Scanner(circuit=circuit, job=job)
     scanner.add_strategy(QiskitMetrics(circuit))
     scanner.add_strategy(ComplexityMetrics(circuit))
-    scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+    scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
     
     # Calculate metrics (returns DataFrames)
     results = scanner.calculate_metrics()
@@ -50,7 +50,7 @@ The Scanner automatically detects when metric calculators return schema objects 
     # Schema objects are automatically converted
     # QiskitMetrics.get_metrics() → QiskitMetricsSchema → DataFrame
     # ComplexityMetrics.get_metrics() → ComplexityMetricsSchema → DataFrame
-    # CircuitPerformanceMetrics.get_metrics() → CircuitPerformanceSchema → DataFrame
+    # FidelityMetrics.get_metrics() → FidelitySchema → DataFrame
 
 API Reference
 -------------

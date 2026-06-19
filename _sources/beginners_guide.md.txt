@@ -22,7 +22,7 @@ Metric calculators are classes that perform specific calculations or data extrac
 
 - `QiskitMetrics`: Extracts basic properties directly available from a `QuantumCircuit` object (e.g., depth, width, gate counts)
 - `ComplexityMetrics`: Calculates a wide range of complexity indicators, including those from "Character Complexity: A Novel Measure for Quantum Circuit Analysis" by D. Shami
-- `CircuitPerformanceMetrics`: Calculates success rates, error rates, and statistical metrics based on execution counts from a job, given a user-defined success criterion
+- `FidelityMetrics`: Calculates success rates, error rates, and statistical metrics based on execution counts from a job, given a user-defined success criterion
 
 You can also create your own custom metric calculators by subclassing `qward.metrics.base_metric.MetricCalculator`.
 
@@ -112,7 +112,7 @@ Let's analyze a simple quantum coin flip circuit. This uses a single qubit in su
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 from qward.examples.utils import create_example_circuit, get_display
 
 display = get_display()
@@ -139,7 +139,7 @@ scanner.add_strategy(ComplexityMetrics(circuit=circuit))
 def coin_flip_success_q0_is_0(bitstring):
     return bitstring.endswith('0')  # True if q0 is '0'
 
-scanner.add_strategy(CircuitPerformanceMetrics(
+scanner.add_strategy(FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=coin_flip_success_q0_is_0
@@ -180,18 +180,18 @@ print(f"  Parallelism Factor: {complexity_schema.advanced_metrics.parallelism_fa
 print(f"  Weighted Complexity: {complexity_schema.derived_metrics.weighted_complexity}")
 
 # CircuitPerformance with schema validation
-circuit_performance = CircuitPerformanceMetrics(
+circuit_performance = FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=coin_flip_success_q0_is_0
 )
-performance_schema = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
+performance_schema = circuit_performance.get_metrics()  # Returns FidelitySchema
 
-print("\n✅ CircuitPerformanceMetrics Schema:")
-print(f"  Success Rate: {performance_schema.success_metrics.success_rate:.3f}")
-print(f"  Error Rate: {performance_schema.success_metrics.error_rate:.3f}")  # Automatically validated
-print(f"  Total Shots: {performance_schema.success_metrics.total_shots}")
-print(f"  Successful Shots: {performance_schema.success_metrics.successful_shots}")
+print("\n✅ FidelityMetrics Schema:")
+print(f"  Success Rate: {performance_schema.success_rate:.3f}")
+print(f"  DSR: {performance_schema.dsr:.3f}")
+print(f"  Hellinger Fidelity: {performance_schema.hellinger_fidelity:.3f}")
+print(f"  Shots: {performance_schema.shots}")
 ```
 
 ### Understanding Schema Validation
@@ -255,7 +255,7 @@ results = (
     Scanner(circuit=circuit)
     .add(QiskitMetrics)
     .add(ComplexityMetrics)
-    .add(CircuitPerformanceMetrics, job=job, success_criteria=coin_flip_success_q0_is_0)
+    .add(FidelityMetrics, job=job, success_criteria=coin_flip_success_q0_is_0)
     .scan()
 )
 
@@ -287,7 +287,7 @@ Let's analyze a 3-qubit GHZ state circuit:
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 from qward.examples.utils import get_display
 
 display = get_display()
@@ -302,7 +302,7 @@ circuit.measure([0,1,2], [0,1,2])
 print("3-qubit GHZ Circuit:")
 display(circuit.draw(output='mpl'))
 
-# 2. Simulate (optional, needed for CircuitPerformanceMetrics)
+# 2. Simulate (optional, needed for FidelityMetrics)
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
@@ -311,11 +311,11 @@ scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
 
-# Example CircuitPerformanceMetrics: success if all qubits are '0' (state '000')
+# Example FidelityMetrics: success if all qubits are '0' (state '000')
 def all_zeros(bitstring):
     return bitstring.replace(" ", "") == '000'
 
-scanner.add_strategy(CircuitPerformanceMetrics(
+scanner.add_strategy(FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=all_zeros
@@ -376,13 +376,13 @@ if "ComplexityMetrics" in all_metrics_results:
 
 ## Circuit Performance Analysis with Schema Validation
 
-The `CircuitPerformanceMetrics` calculator provides comprehensive validation for both single job and multiple job scenarios:
+The `FidelityMetrics` calculator provides comprehensive validation for both single job and multiple job scenarios:
 
 ```python
-from qward.metrics import CircuitPerformanceMetrics
+from qward import FidelityMetrics
 
 # Create circuit performance calculator
-circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
+circuit_performance = FidelityMetrics(circuit=circuit, job=job)
 
 # Schema-based approach with validation
 metrics = circuit_performance.get_metrics()
@@ -536,8 +536,8 @@ def robust_success_criteria(result: str) -> bool:
     # Define your success condition
     return clean_result.startswith("00")  # Example: first two qubits are 0
 
-# Use with CircuitPerformanceMetrics calculator
-circuit_performance = CircuitPerformanceMetrics(
+# Use with FidelityMetrics calculator
+circuit_performance = FidelityMetrics(
     circuit=circuit, 
     job=job, 
     success_criteria=robust_success_criteria
@@ -557,7 +557,7 @@ from qward.visualization import Visualizer
 scanner = Scanner(circuit=circuit, job=job)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 # Create unified visualizer
 visualizer = Visualizer(scanner=scanner, output_dir="my_analysis")
@@ -585,7 +585,7 @@ QWARD provides three specialized visualizers:
 - **Complexity Radar Chart**: Normalized complexity indicators in a radar plot
 - **Efficiency Metrics**: Parallelism and circuit efficiency analysis
 
-#### 3. CircuitPerformanceMetrics Visualizations
+#### 3. FidelityMetrics Visualizations
 - **Success vs Error Rates**: Comparison across different jobs
 - **Shot Distribution**: Successful vs failed shots as stacked bars
 - **Aggregate Summary**: Statistical summary across multiple jobs

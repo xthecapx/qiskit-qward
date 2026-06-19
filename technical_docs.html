@@ -306,21 +306,21 @@
 <li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">ComplexityMetricsSchema</span></code> object with validated data</p></li>
 </ul>
 </section>
-<section id="circuitperformancemetrics">
-<h3>CircuitPerformanceMetrics<a class="headerlink" href="#circuitperformancemetrics" title="Link to this heading">¶</a></h3>
+<section id="fidelitymetrics">
+<h3>FidelityMetrics<a class="headerlink" href="#fidelitymetrics" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><strong>Purpose</strong>: Calculates performance metrics from execution results</p></li>
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsType.POST_RUNTIME</span></code></p></li>
-<li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.CIRCUIT_PERFORMANCE</span></code></p></li>
-<li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">job:</span> <span class="pre">Optional[Job]=None,</span> <span class="pre">jobs:</span> <span class="pre">Optional[List[Job]]=None,</span> <span class="pre">result:</span> <span class="pre">Optional[Dict]=None,</span> <span class="pre">success_criteria:</span> <span class="pre">Optional[Callable]=None)</span></code></p></li>
-<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceSchema</span></code> object with validated data</p></li>
+<li><p><strong>ID</strong>: <code class="docutils literal notranslate"><span class="pre">MetricsId.FIDELITY</span></code></p></li>
+<li><p><strong>Constructor</strong>: <code class="docutils literal notranslate"><span class="pre">FidelityMetrics(circuit:</span> <span class="pre">QuantumCircuit,</span> <span class="pre">job:</span> <span class="pre">Optional[Job]=None,</span> <span class="pre">jobs:</span> <span class="pre">Optional[List[Job]]=None,</span> <span class="pre">result:</span> <span class="pre">Optional[Dict]=None,</span> <span class="pre">success_criteria:</span> <span class="pre">Optional[Callable]=None)</span></code></p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">FidelitySchema</span></code> object with validated data</p></li>
 </ul>
 </section>
 <section id="metric-types-and-ids">
 <h3>Metric Types and IDs<a class="headerlink" href="#metric-types-and-ids" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">MetricsType(Enum)</span></code>: Defines when metrics can be calculated (<code class="docutils literal notranslate"><span class="pre">PRE_RUNTIME</span></code>, <code class="docutils literal notranslate"><span class="pre">POST_RUNTIME</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MetricsId(Enum)</span></code>: Defines unique IDs for strategy types (e.g., <code class="docutils literal notranslate"><span class="pre">QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">CIRCUIT_PERFORMANCE</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MetricsId(Enum)</span></code>: Defines unique IDs for strategy types (e.g., <code class="docutils literal notranslate"><span class="pre">QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">FIDELITY</span></code>).</p></li>
 </ul>
 </section>
 </section>
@@ -330,7 +330,7 @@
 <h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">FidelityMetrics</span>
 
 <span class="c1"># Create circuit</span>
 <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -343,7 +343,7 @@
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
 
 <span class="c1"># Method 2: Add metrics via constructor (using classes)</span>
-<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">])</span>
+<span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">FidelityMetrics</span><span class="p">])</span>
 
 <span class="c1"># Calculate metrics (returns DataFrames)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
@@ -363,23 +363,23 @@
 <span class="n">sim</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
-<span class="c1"># For CircuitPerformanceMetrics, we need the Qiskit Job object</span>
-<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformanceMetrics</span>
+<span class="c1"># For FidelityMetrics, we need the Qiskit Job object</span>
+<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to FidelityMetrics</span>
 
 <span class="c1"># Define success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">outcome</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">&quot;00&quot;</span>  <span class="c1"># Success if both qubits measure 0</span>
 
-<span class="c1"># Add CircuitPerformanceMetrics with job</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="c1"># Add FidelityMetrics with job</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="c1"># Access schema object directly</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
-<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns FidelitySchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -391,23 +391,23 @@
 <span class="n">sim</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
-<span class="c1"># For CircuitPerformanceMetrics, we need the Qiskit Job object</span>
-<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to CircuitPerformanceMetrics</span>
+<span class="c1"># For FidelityMetrics, we need the Qiskit Job object</span>
+<span class="n">qiskit_job_obj</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="c1"># Re-run to get a job object to pass to FidelityMetrics</span>
 
 <span class="c1"># Define success criteria</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">outcome</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">&quot;00&quot;</span>  <span class="c1"># Success if both qubits measure 0</span>
 
-<span class="c1"># Add CircuitPerformanceMetrics with job</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="c1"># Add FidelityMetrics with job</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="c1"># Calculate all metrics</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
 <span class="c1"># Access schema object directly</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
-<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">qiskit_job_obj</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">performance_metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns FidelitySchema</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -582,7 +582,7 @@
 </section>
 <section id="circuitperformancevisualizer-qward-visualization-circuit-performance-visualizer-circuitperformancevisualizer">
 <h4><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)<a class="headerlink" href="#circuitperformancevisualizer-qward-visualization-circuit-performance-visualizer-circuitperformancevisualizer" title="Link to this heading">¶</a></h4>
-<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> metric outputs. It provides methods like:</p>
+<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code> metric outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_success_error_comparison()</span></code>: Creates bar charts comparing success vs. error rates across jobs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_shot_distribution()</span></code>: Shows distribution of successful vs. failed shots</p></li>
@@ -722,7 +722,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">FidelityMetrics</span>
 
 <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span> <span class="n">qc</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
@@ -735,13 +735,13 @@
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">qc</span><span class="p">))</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">criteria</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;00&#39;</span> <span class="ow">or</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;11&#39;</span> <span class="c1"># GHZ state</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">))</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 <span class="c1"># print(results[&quot;CircuitPerformance.aggregate&quot;])</span>
 
 <span class="c1"># Direct schema access</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">qc</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span> <span class="n">success_criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
 <span class="n">performance_schema</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">performance_schema</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -919,7 +919,7 @@
 </section>
 <section id="id7">
 <h4><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code> (<code class="docutils literal notranslate"><span class="pre">qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer</span></code>)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
-<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> metric outputs. It provides methods like:</p>
+<p>Specialized visualizer for <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code> metric outputs. It provides methods like:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_success_error_comparison()</span></code>: Creates bar charts comparing success vs. error rates across jobs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">plot_shot_distribution()</span></code>: Shows distribution of successful vs. failed shots</p></li>
@@ -1009,7 +1009,7 @@
 <li><a class="reference internal" href="#metric-calculators">Metric Calculators</a><ul>
 <li><a class="reference internal" href="#qiskitmetrics">QiskitMetrics</a></li>
 <li><a class="reference internal" href="#complexitymetrics">ComplexityMetrics</a></li>
-<li><a class="reference internal" href="#circuitperformancemetrics">CircuitPerformanceMetrics</a></li>
+<li><a class="reference internal" href="#fidelitymetrics">FidelityMetrics</a></li>
 <li><a class="reference internal" href="#metric-types-and-ids">Metric Types and IDs</a></li>
 </ul>
 </li>

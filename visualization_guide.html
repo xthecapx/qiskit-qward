@@ -270,7 +270,7 @@
 <section id="type-safe-constants">
 <h3>🎯 <strong>Type-Safe Constants</strong><a class="headerlink" href="#type-safe-constants" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Metrics.QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.CIRCUIT_PERFORMANCE</span></code></p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Metrics</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Metrics.QISKIT</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.COMPLEXITY</span></code>, <code class="docutils literal notranslate"><span class="pre">Metrics.FIDELITY</span></code></p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Plots</span></code></strong> constants: <code class="docutils literal notranslate"><span class="pre">Plots.QISKIT.CIRCUIT_STRUCTURE</span></code>, <code class="docutils literal notranslate"><span class="pre">Plots.COMPLEXITY.COMPLEXITY_RADAR</span></code>, etc.</p></li>
 <li><p><strong>IDE Autocompletion</strong>: Full IntelliSense support for all plot names</p></li>
 <li><p><strong>Error Prevention</strong>: Compile-time detection of typos in metric and plot names</p></li>
@@ -426,7 +426,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">,</span> <span class="n">FidelityMetrics</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visualizer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metrics</span><span class="p">,</span> <span class="n">Plots</span>
 
@@ -436,13 +436,13 @@
 <span class="n">circuit</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Run simulation for CircuitPerformanceMetrics</span>
+<span class="c1"># Run simulation for FidelityMetrics</span>
 <span class="n">simulator</span> <span class="o">=</span> <span class="n">AerSimulator</span><span class="p">()</span>
 <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 
 <span class="c1"># Create scanner with all metrics</span>
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">strategies</span><span class="o">=</span><span class="p">[</span><span class="n">QiskitMetrics</span><span class="p">,</span> <span class="n">ComplexityMetrics</span><span class="p">])</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">circuit_performance</span><span class="p">)</span>
 
 <span class="c1"># Create unified visualizer</span>
@@ -466,7 +466,7 @@
 
 <span class="c1"># NEW API: Generate single plot</span>
 <span class="n">single_plot</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plot</span><span class="p">(</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">,</span> 
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">FIDELITY</span><span class="p">,</span> 
     <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span><span class="p">,</span> 
     <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
     <span class="n">show</span><span class="o">=</span><span class="kc">False</span>
@@ -608,7 +608,7 @@
 <td><p>Gate-based metrics, complexity radar, efficiency metrics</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></p></td>
-<td><p>CircuitPerformanceMetrics</p></td>
+<td><p>FidelityMetrics</p></td>
 <td><p>3 plots</p></td>
 <td><p>Success rates, shot distribution, aggregate summary</p></td>
 </tr>
@@ -752,7 +752,7 @@ python<span class="w"> </span>qward/examples/new_api_usage_example.py
 <span class="c1"># Run main visualizer examples (updated with new API)</span>
 python<span class="w"> </span>qward/examples/example_visualizer.py
 
-<span class="c1"># Run CircuitPerformanceMetrics demo (updated with new API)</span>
+<span class="c1"># Run FidelityMetrics demo (updated with new API)</span>
 python<span class="w"> </span>qward/examples/visualization_demo.py
 
 <span class="c1"># Run direct strategy examples (updated with new API)</span>
@@ -940,7 +940,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 </section>
 <section id="circuitperformancevisualizer">
 <h3>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h3>
-<p>Visualizes performance metrics from <code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code> with success rates, shot distribution, and execution analysis.</p>
+<p>Visualizes performance metrics from <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code> with success rates, shot distribution, and execution analysis.</p>
 <section id="id4">
 <h4>Available Plots (New API)<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plots</span>
@@ -1061,7 +1061,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">QiskitMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
 <span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">ComplexityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="p">))</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
 
 <span class="c1"># Use unified visualizer with custom config</span>
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span>
@@ -1083,7 +1083,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
         <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">,</span>
         <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span>
     <span class="p">],</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># All plots</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">FIDELITY</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># All plots</span>
 <span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="c1"># NEW API: Explore what was created</span>
@@ -1124,8 +1124,8 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
     
     <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
-<span class="c1"># Analyze with CircuitPerformanceMetrics</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
+<span class="c1"># Analyze with FidelityMetrics</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
     <span class="n">circuit_performance</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
@@ -1165,7 +1165,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
     <span class="k">return</span> <span class="n">clean</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;00&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">]</span>
 
 <span class="c1"># Use custom criteria</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span>
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
@@ -1198,7 +1198,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <span class="n">bell_analysis</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">generate_plots</span><span class="p">({</span>
     <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span><span class="p">],</span>
     <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="p">:</span> <span class="p">[</span><span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span><span class="p">],</span>
-    <span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="p">:</span> <span class="p">[</span>
+    <span class="n">Metrics</span><span class="o">.</span><span class="n">FIDELITY</span><span class="p">:</span> <span class="p">[</span>
         <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>
     <span class="p">]</span>
 <span class="p">},</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1672,7 +1672,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <span class="c1"># Metric Constants</span>
 <span class="n">Metrics</span><span class="o">.</span><span class="n">QISKIT</span>                    <span class="c1"># &quot;QiskitMetrics&quot;</span>
 <span class="n">Metrics</span><span class="o">.</span><span class="n">COMPLEXITY</span>               <span class="c1"># &quot;ComplexityMetrics&quot;  </span>
-<span class="n">Metrics</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span>      <span class="c1"># &quot;CircuitPerformance&quot;</span>
+<span class="n">Metrics</span><span class="o">.</span><span class="n">FIDELITY</span>                 <span class="c1"># &quot;FidelityMetrics&quot;</span>
 
 <span class="c1"># QiskitMetrics Plot Constants</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">QISKIT</span><span class="o">.</span><span class="n">CIRCUIT_STRUCTURE</span>   <span class="c1"># &quot;circuit_structure&quot;</span>
@@ -1685,7 +1685,7 @@ python<span class="w"> </span>qward/examples/visualization_quickstart.py
 <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">COMPLEXITY_RADAR</span>    <span class="c1"># &quot;complexity_radar&quot;</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">COMPLEXITY</span><span class="o">.</span><span class="n">EFFICIENCY_METRICS</span>  <span class="c1"># &quot;efficiency_metrics&quot;</span>
 
-<span class="c1"># CircuitPerformanceMetrics Plot Constants</span>
+<span class="c1"># FidelityMetrics Plot Constants</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SUCCESS_ERROR_COMPARISON</span>  <span class="c1"># &quot;success_error_comparison&quot;</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">SHOT_DISTRIBUTION</span>         <span class="c1"># &quot;shot_distribution&quot;</span>
 <span class="n">Plots</span><span class="o">.</span><span class="n">CIRCUIT_PERFORMANCE</span><span class="o">.</span><span class="n">AGGREGATE_SUMMARY</span>         <span class="c1"># &quot;aggregate_summary&quot;</span>
