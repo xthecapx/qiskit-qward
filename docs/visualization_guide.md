@@ -7,7 +7,7 @@ QWARD provides a comprehensive visualization system for quantum circuit metrics 
 ## New API Features (v0.9.0)
 
 ### 🎯 **Type-Safe Constants**
-- **`Metrics`** constants: `Metrics.QISKIT`, `Metrics.COMPLEXITY`, `Metrics.CIRCUIT_PERFORMANCE`
+- **`Metrics`** constants: `Metrics.QISKIT`, `Metrics.COMPLEXITY`, `Metrics.FIDELITY`
 - **`Plots`** constants: `Plots.QISKIT.CIRCUIT_STRUCTURE`, `Plots.COMPLEXITY.COMPLEXITY_RADAR`, etc.
 - **IDE Autocompletion**: Full IntelliSense support for all plot names
 - **Error Prevention**: Compile-time detection of typos in metric and plot names
@@ -151,7 +151,7 @@ classDiagram
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 from qward.visualization import Visualizer
 from qward.visualization.constants import Metrics, Plots
 
@@ -161,13 +161,13 @@ circuit.h(0)
 circuit.cx(0, 1)
 circuit.measure_all()
 
-# Run simulation for CircuitPerformanceMetrics
+# Run simulation for FidelityMetrics
 simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
 # Create scanner with all metrics
 scanner = Scanner(circuit=circuit, strategies=[QiskitMetrics, ComplexityMetrics])
-circuit_performance = CircuitPerformanceMetrics(circuit=circuit, job=job)
+circuit_performance = FidelityMetrics(circuit=circuit, job=job)
 scanner.add_strategy(circuit_performance)
 
 # Create unified visualizer
@@ -191,7 +191,7 @@ all_qiskit_plots = visualizer.generate_plots({
 
 # NEW API: Generate single plot
 single_plot = visualizer.generate_plot(
-    Metrics.CIRCUIT_PERFORMANCE, 
+    Metrics.FIDELITY, 
     Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON, 
     save=True, 
     show=False
@@ -312,7 +312,7 @@ qiskit_strategy.create_dashboard(save=True, show=False)
 |----------|-------------|----------------|--------------|
 | `QiskitVisualizer` | QiskitMetrics | 4 plots | Circuit structure, gate distribution, instruction metrics, circuit summary |
 | `ComplexityVisualizer` | ComplexityMetrics | 3 plots | Gate-based metrics, complexity radar, efficiency metrics |
-| `CircuitPerformanceVisualizer` | CircuitPerformanceMetrics | 3 plots | Success rates, shot distribution, aggregate summary |
+| `CircuitPerformanceVisualizer` | FidelityMetrics | 3 plots | Success rates, shot distribution, aggregate summary |
 
 ### 🎛️ Plot Discovery and Metadata
 
@@ -449,7 +449,7 @@ python qward/examples/new_api_usage_example.py
 # Run main visualizer examples (updated with new API)
 python qward/examples/example_visualizer.py
 
-# Run CircuitPerformanceMetrics demo (updated with new API)
+# Run FidelityMetrics demo (updated with new API)
 python qward/examples/visualization_demo.py
 
 # Run direct strategy examples (updated with new API)
@@ -624,7 +624,7 @@ selected_figures = complexity_viz.generate_plots([
 
 ### CircuitPerformanceVisualizer
 
-Visualizes performance metrics from `CircuitPerformanceMetrics` with success rates, shot distribution, and execution analysis.
+Visualizes performance metrics from `FidelityMetrics` with success rates, shot distribution, and execution analysis.
 
 #### Available Plots (New API)
 
@@ -740,7 +740,7 @@ config = PlotConfig(
 scanner = Scanner(circuit=circuit)
 scanner.add_strategy(QiskitMetrics(circuit))
 scanner.add_strategy(ComplexityMetrics(circuit))
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 # Use unified visualizer with custom config
 visualizer = Visualizer(
@@ -762,7 +762,7 @@ analysis_plots = visualizer.generate_plots({
         Plots.COMPLEXITY.COMPLEXITY_RADAR,
         Plots.COMPLEXITY.EFFICIENCY_METRICS
     ],
-    Metrics.CIRCUIT_PERFORMANCE: None  # All plots
+    Metrics.FIDELITY: None  # All plots
 }, save=True, show=False)
 
 # NEW API: Explore what was created
@@ -803,8 +803,8 @@ for noise_level in noise_levels:
     
     jobs.append(job)
 
-# Analyze with CircuitPerformanceMetrics
-circuit_performance = CircuitPerformanceMetrics(circuit=circuit)
+# Analyze with FidelityMetrics
+circuit_performance = FidelityMetrics(circuit=circuit)
 for job in jobs:
     circuit_performance.add_job(job)
 
@@ -844,7 +844,7 @@ def bell_state_success(outcome):
     return clean in ["00", "11"]
 
 # Use custom criteria
-circuit_performance = CircuitPerformanceMetrics(
+circuit_performance = FidelityMetrics(
     circuit=circuit,
     job=job,
     success_criteria=bell_state_success
@@ -877,7 +877,7 @@ dashboards = visualizer.create_dashboard(save=True, show=False)
 bell_analysis = visualizer.generate_plots({
     Metrics.QISKIT: [Plots.QISKIT.CIRCUIT_STRUCTURE],
     Metrics.COMPLEXITY: [Plots.COMPLEXITY.COMPLEXITY_RADAR],
-    Metrics.CIRCUIT_PERFORMANCE: [
+    Metrics.FIDELITY: [
         Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON
     ]
 }, save=True, show=False)
@@ -1322,7 +1322,7 @@ from qward.visualization.constants import Metrics, Plots
 # Metric Constants
 Metrics.QISKIT                    # "QiskitMetrics"
 Metrics.COMPLEXITY               # "ComplexityMetrics"  
-Metrics.CIRCUIT_PERFORMANCE      # "CircuitPerformance"
+Metrics.FIDELITY                 # "FidelityMetrics"
 
 # QiskitMetrics Plot Constants
 Plots.QISKIT.CIRCUIT_STRUCTURE   # "circuit_structure"
@@ -1335,7 +1335,7 @@ Plots.COMPLEXITY.GATE_BASED_METRICS  # "gate_based_metrics"
 Plots.COMPLEXITY.COMPLEXITY_RADAR    # "complexity_radar"
 Plots.COMPLEXITY.EFFICIENCY_METRICS  # "efficiency_metrics"
 
-# CircuitPerformanceMetrics Plot Constants
+# FidelityMetrics Plot Constants
 Plots.CIRCUIT_PERFORMANCE.SUCCESS_ERROR_COMPARISON  # "success_error_comparison"
 Plots.CIRCUIT_PERFORMANCE.SHOT_DISTRIBUTION         # "shot_distribution"
 Plots.CIRCUIT_PERFORMANCE.AGGREGATE_SUMMARY         # "aggregate_summary"

@@ -109,7 +109,7 @@ The `ComplexityVisualizer` creates sophisticated visualizations for circuit comp
 CircuitPerformanceVisualizer
 ----------------------------
 
-The `CircuitPerformanceVisualizer` creates performance analysis visualizations from `CircuitPerformanceMetrics`. It handles both single job and multiple job scenarios with support for custom success criteria.
+The `CircuitPerformanceVisualizer` creates performance analysis visualizations from `FidelityMetrics`. It handles both single job and multiple job scenarios with support for custom success criteria.
 
 **Visualization Types:**
 - **Success Analysis**: Success rates, error rates, and performance trends
@@ -130,7 +130,7 @@ The `CircuitPerformanceVisualizer` creates performance analysis visualizations f
     from qiskit import QuantumCircuit
     from qiskit_aer import AerSimulator
     from qward import Scanner
-    from qward.metrics import CircuitPerformanceMetrics
+    from qward import FidelityMetrics
     from qward.visualization import CircuitPerformanceVisualizer
     
     # Create and execute circuit
@@ -147,7 +147,7 @@ The `CircuitPerformanceVisualizer` creates performance analysis visualizations f
         return result.replace(" ", "") in ["00", "11"]
     
     scanner = Scanner(circuit=circuit, job=job)
-    scanner.add_strategy(CircuitPerformanceMetrics(
+    scanner.add_strategy(FidelityMetrics(
         circuit=circuit, 
         job=job, 
         success_criteria=bell_state_success

@@ -12,7 +12,7 @@ The `Visualizer` class is the main entry point for creating visualizations in QW
 **Supported Metric Types:**
 - **QiskitMetrics**: Basic circuit properties and instruction analysis
 - **ComplexityMetrics**: Multi-dimensional circuit complexity analysis
-- **CircuitPerformanceMetrics**: Performance analysis with custom success criteria
+- **FidelityMetrics**: Performance analysis with custom success criteria
 
 **Usage Patterns:**
 
@@ -78,7 +78,7 @@ The `Visualizer` class is the main entry point for creating visualizations in QW
     from qiskit import QuantumCircuit
     from qiskit_aer import AerSimulator
     from qward import Scanner
-    from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+    from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
     from qward.visualization import Visualizer
     
     # Create and execute circuit
@@ -98,7 +98,7 @@ The `Visualizer` class is the main entry point for creating visualizations in QW
     scanner = Scanner(circuit=circuit, job=job)
     scanner.add_strategy(QiskitMetrics(circuit))
     scanner.add_strategy(ComplexityMetrics(circuit))
-    scanner.add_strategy(CircuitPerformanceMetrics(
+    scanner.add_strategy(FidelityMetrics(
         circuit=circuit, 
         job=job, 
         success_criteria=bell_state_success

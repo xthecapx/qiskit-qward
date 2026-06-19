@@ -10,7 +10,7 @@
   - Hardware presets: `IBM-HERON-R1`, `IBM-HERON-R2`, `IBM-HERON-R3`, `RIGETTI-ANKAA3`
   - `get_preset_noise_config(name)` returns `NoiseConfig`
   - `NoiseModelGenerator.create_from_config(config)` returns `NoiseModel`
-- **Scanner/Metrics**: `qward.Scanner` with strategy pattern (`QiskitMetrics`, `ComplexityMetrics`, `CircuitPerformanceMetrics`)
+- **Scanner/Metrics**: `qward.Scanner` with strategy pattern (`QiskitMetrics`, `ComplexityMetrics`, `FidelityMetrics`)
 
 ### Eigensolver Library Module (COMPLETE)
 - Library location: `qward/algorithms/eigensolver/`

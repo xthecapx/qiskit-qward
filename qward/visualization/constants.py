@@ -12,7 +12,8 @@ class Metrics:
 
     QISKIT = "QiskitMetrics"
     COMPLEXITY = "ComplexityMetrics"
-    CIRCUIT_PERFORMANCE = "CircuitPerformance"
+    CIRCUIT_PERFORMANCE = "CircuitPerformance"  # deprecated alias
+    FIDELITY = "FidelityMetrics"
     ELEMENT = "ElementMetrics"
     STRUCTURAL = "StructuralMetrics"
     BEHAVIORAL = "BehavioralMetrics"
@@ -37,12 +38,14 @@ class Plots:
         COMPLEXITY_RADAR = "complexity_radar"
         EFFICIENCY_METRICS = "efficiency_metrics"
 
-    class CircuitPerformance:
-        """Plot constants for CircuitPerformance visualizations."""
+    class Fidelity:
+        """Plot constants for Fidelity visualizations."""
 
         SUCCESS_ERROR_COMPARISON = "success_error_comparison"
         SHOT_DISTRIBUTION = "shot_distribution"
         AGGREGATE_SUMMARY = "aggregate_summary"
+
+    CircuitPerformance = Fidelity
 
     class Element:
         """Plot constants for ElementMetrics visualizations."""

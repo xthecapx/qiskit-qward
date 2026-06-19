@@ -583,7 +583,7 @@ Used for QPU experiment selection:
 # Without running execution, just get metrics
 metrics = executor.get_circuit_metrics(
     circuit,
-    job=job,                          # Optional: for CircuitPerformanceMetrics
+    job=job,                          # Optional: for FidelityMetrics
     success_criteria=bell_success,    # Optional
     expected_outcomes=["00", "11"],   # Optional for DSR
 )
@@ -591,7 +591,7 @@ metrics = executor.get_circuit_metrics(
 # metrics is Dict[str, DataFrame]:
 # - "qiskit": QiskitMetrics (depth, width, gate counts...)
 # - "complexity": ComplexityMetrics (gate density, entanglement ratio...)
-# - "circuit_performance": CircuitPerformanceMetrics (success rate, error rate...)
+# - "fidelity_metrics": FidelityMetrics (success rate, error rate...)
 ```
 
 ---

@@ -426,7 +426,7 @@ eigen-solver/
 
 ```python
 from qward import Scanner, Visualizer
-from qward.metrics import CircuitPerformanceMetrics
+from qward.metrics import FidelityMetrics
 
 # Circuit analysis
 Scanner(vqe_circuit).scan().summary().visualize(save=True, show=False)
@@ -435,7 +435,7 @@ Scanner(vqe_circuit).scan().summary().visualize(save=True, show=False)
 def eigenstate_criteria(outcome):
     return outcome == target_eigenstate
 
-perf = CircuitPerformanceMetrics(
+perf = FidelityMetrics(
     circuit=vqe_circuit,
     job=job_result,
     success_criteria=eigenstate_criteria

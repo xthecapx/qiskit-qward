@@ -1,7 +1,8 @@
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qward.metrics.circuit_performance import CircuitPerformanceMetrics
+from qward.metrics.circuit_performance import CircuitPerformanceMetrics  # noqa: F401
+from qward.metrics.fidelity_metrics import FidelityMetrics
 from qward.scanner import Scanner
 
 # from qward.metrics.behavioral_metrics import BehavioralMetrics
