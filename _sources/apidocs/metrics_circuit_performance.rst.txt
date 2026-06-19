@@ -1,10 +1,10 @@
 Circuit Performance Metrics
 ============================
 
-CircuitPerformanceMetrics analyzes quantum circuit execution performance using the unified schema-based API.
+FidelityMetrics analyzes quantum circuit execution performance using the unified schema-based API.
 
 **Key Features:**
-- **Unified API**: Single `get_metrics()` method returns `CircuitPerformanceSchema`
+- **Unified API**: Single `get_metrics()` method returns `FidelitySchema`
 - **Custom Success Criteria**: User-defined success conditions for flexible analysis
 - **Multi-Job Support**: Handles both single job and multiple job analysis
 - **Type Safety**: Full validation with automatic constraint checking
@@ -19,7 +19,7 @@ CircuitPerformanceMetrics analyzes quantum circuit execution performance using t
 
     from qiskit import QuantumCircuit
     from qiskit_aer import AerSimulator
-    from qward.metrics import CircuitPerformanceMetrics
+    from qward import FidelityMetrics
     
     # Create and execute circuit
     circuit = QuantumCircuit(2, 2)
@@ -36,27 +36,27 @@ CircuitPerformanceMetrics analyzes quantum circuit execution performance using t
         return clean_result in ["00", "11"]  # |00⟩ or |11⟩ states
     
     # Analyze with type-safe API
-    circuit_performance = CircuitPerformanceMetrics(
+    circuit_performance = FidelityMetrics(
         circuit=circuit, 
         job=job, 
         success_criteria=bell_state_success
     )
-    metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
-    
-    # Access validated performance data
-    print(f"Success rate: {metrics.success_metrics.success_rate:.3f}")
-    print(f"Error rate: {metrics.success_metrics.error_rate:.3f}")
-    print(f"Entropy: {metrics.statistical_metrics.entropy:.3f}")
+    metrics = circuit_performance.get_metrics()  # Returns FidelitySchema
+
+    # Access validated fidelity data
+    print(f"Success rate: {metrics.success_rate:.3f}")
+    print(f"DSR: {metrics.dsr:.3f}")
+    print(f"Hellinger fidelity: {metrics.hellinger_fidelity:.3f}")
 
 API Reference
 -------------
 
-.. automodule:: qward.metrics.circuit_performance
+.. automodule:: qward.metrics.fidelity_metrics
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. autoclass:: qward.metrics.circuit_performance.CircuitPerformanceMetrics
+.. autoclass:: qward.metrics.fidelity_metrics.FidelityMetrics
    :members:
    :undoc-members:
    :show-inheritance:

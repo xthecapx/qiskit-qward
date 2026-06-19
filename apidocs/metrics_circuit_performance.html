@@ -261,9 +261,9 @@
         <article role="main" id="furo-main-content">
           <section id="circuit-performance-metrics">
 <h1>Circuit Performance Metrics<a class="headerlink" href="#circuit-performance-metrics" title="Link to this heading">¶</a></h1>
-<p>CircuitPerformanceMetrics analyzes quantum circuit execution performance using the unified schema-based API.</p>
+<p>FidelityMetrics analyzes quantum circuit execution performance using the unified schema-based API.</p>
 <p><strong>Key Features:</strong>
-- <strong>Unified API</strong>: Single <cite>get_metrics()</cite> method returns <cite>CircuitPerformanceSchema</cite>
+- <strong>Unified API</strong>: Single <cite>get_metrics()</cite> method returns <cite>FidelitySchema</cite>
 - <strong>Custom Success Criteria</strong>: User-defined success conditions for flexible analysis
 - <strong>Multi-Job Support</strong>: Handles both single job and multiple job analysis
 - <strong>Type Safety</strong>: Full validation with automatic constraint checking</p>
@@ -273,7 +273,7 @@
 <p><strong>Usage Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityMetrics</span>
 
 <span class="c1"># Create and execute circuit</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -290,365 +290,89 @@
     <span class="k">return</span> <span class="n">clean_result</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;00&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">]</span>  <span class="c1"># |00⟩ or |11⟩ states</span>
 
 <span class="c1"># Analyze with type-safe API</span>
-<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
+<span class="n">circuit_performance</span> <span class="o">=</span> <span class="n">FidelityMetrics</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span>
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
 <span class="p">)</span>
-<span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns CircuitPerformanceSchema</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">circuit_performance</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>  <span class="c1"># Returns FidelitySchema</span>
 
-<span class="c1"># Access validated performance data</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_metrics</span><span class="o">.</span><span class="n">error_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entropy: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">statistical_metrics</span><span class="o">.</span><span class="n">entropy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Access validated fidelity data</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DSR: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">dsr</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hellinger fidelity: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">hellinger_fidelity</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="module-qward.metrics.circuit_performance">
-<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.circuit_performance" title="Link to this heading">¶</a></h2>
-<p>Circuit performance metrics implementation for QWARD.</p>
-<p>This module provides the CircuitPerformanceMetrics class for analyzing the performance of
-quantum circuits based on job execution results. It supports both single job
-and multiple job analysis with customizable success criteria.</p>
-<p>Supports multiple job types:
-- AerJob: Qiskit Aer simulator jobs
-- QiskitJob (JobV1): Traditional Qiskit jobs
-- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
-<p>The performance metrics help evaluate the success rate and statistical
-properties of quantum circuit executions.</p>
+<section id="module-qward.metrics.fidelity_metrics">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.fidelity_metrics" title="Link to this heading">¶</a></h2>
+<p>Fidelity metrics for quantum circuit output validation.</p>
+<p>Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate
+from execution results. Accepts either a job object or raw counts dictionary.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Calculate circuit performance metrics for quantum circuits.</p>
-<p>This class provides methods for analyzing the performance of quantum circuits
-based on job execution results. It supports both single job and multiple job
-analysis with customizable success criteria.</p>
-<p>Supports multiple job types:
-- AerJob: Qiskit Aer simulator jobs
-- QiskitJob (JobV1): Traditional Qiskit jobs
-- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
-<p>The performance metrics include:
-- Success metrics: Success rate, error rate, successful shots analysis
-- Statistical metrics: Entropy, uniformity, concentration analysis</p>
+<p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
+<p>Supports two usage modes:
+- With a job object (AerJob or RuntimeJobV2)
+- With raw counts dictionary (no credentials needed)</p>
 <p class="rubric">Example</p>
-<p># Basic usage with default success criteria (ground state)
-performance = CircuitPerformanceMetrics(circuit, job=job)
-metrics = performance.get_metrics()</p>
-<p># With RuntimeJobV2 from SamplerV2
-from qiskit_ibm_runtime import SamplerV2 as Sampler
-sampler = Sampler(backend)
-job = sampler.run([circuit])  # Returns RuntimeJobV2
-performance = CircuitPerformanceMetrics(circuit, job=job)
-success_metrics = performance.get_success_metrics()</p>
-<p># With custom success criteria
-def custom_success(state): return state == “101”</p>
-<dl class="simple">
-<dt>performance = CircuitPerformanceMetrics(</dt><dd><p>circuit,
-job=job,
-success_criteria=custom_success</p>
-</dd>
-</dl>
-<p>)
-success_metrics = performance.get_success_metrics()</p>
-<p>Initialize a CircuitPerformanceMetrics object.</p>
+<p># From counts (credential-free)
+fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)
+schema = fm.get_metrics()</p>
+<p># From job
+fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=[“00”])
+schema = fm.get_metrics()</p>
+<p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
-<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
-<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
-<li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
-<li><p><strong>expected_outcomes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – Expected bitstrings for DSR histogram contrast calculations</p></li>
-<li><p><strong>ideal_distribution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span>) – Ideal probability distribution {bitstring: prob} for
-computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
-</ul>
+<dd class="field-odd"><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.add_job">
-<span class="sig-name descname"><span class="pre">add_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.add_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.add_job" title="Link to this definition">¶</a></dt>
-<dd><p>Add one or more jobs to the list of jobs for multiple job metrics.</p>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.add_job">
+<span class="sig-name descname"><span class="pre">add_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.add_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.add_job" title="Link to this definition">¶</a></dt>
+<dd><p>Add one or more jobs for multi-job analysis.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A single job or a list of jobs to add</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_bell_state_distribution">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_bell_state_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_bell_state_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_bell_state_distribution" title="Link to this definition">¶</a></dt>
-<dd><p>Create the expected distribution for a Bell state (<a href="#id1"><span class="problematic" id="id2">|</span></a>00⟩ + <a href="#id3"><span class="problematic" id="id4">|</span></a>11⟩)/√2.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Bell state distribution</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, float]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_ground_state_distribution">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_ground_state_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_ground_state_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_ground_state_distribution" title="Link to this definition">¶</a></dt>
-<dd><p>Create a distribution where only the ground state (<a href="#id5"><span class="problematic" id="id6">|</span></a>000…⟩) has probability 1.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_qubits</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of qubits in the circuit</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ground state distribution</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, float]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_uniform_distribution">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_uniform_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_uniform_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_uniform_distribution" title="Link to this definition">¶</a></dt>
-<dd><p>Create a uniform distribution over all possible measurement outcomes.</p>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics">
+<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Compute all fidelity metrics and return validated schema.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_qubits</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of qubits in the circuit</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Uniform probability distribution</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, float]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics">
-<span class="sig-name descname"><span class="pre">get_dsr_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_dsr_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get Differential Success Rate metrics as a validated schema object.</p>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all">
+<span class="sig-name descname"><span class="pre">get_metrics_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all" title="Link to this definition">¶</a></dt>
+<dd><p>Compute fidelity metrics for each job. Returns one schema per job.</p>
+<p>When using counts (no jobs), returns a single-element list.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated DSR metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>DSRVariantsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValueError</strong> – If expected outcomes are not configured</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics_dict">
-<span class="sig-name descname"><span class="pre">get_dsr_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_dsr_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Get Differential Success Rate metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing DSR variant and mismatch metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics">
-<span class="sig-name descname"><span class="pre">get_fidelity_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_fidelity_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get distribution fidelity metrics as a validated schema object.</p>
-<p>Requires ideal_distribution to be set at initialization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated fidelity metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>FidelityMetricsSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict">
-<span class="sig-name descname"><span class="pre">get_fidelity_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_fidelity_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Get Hellinger fidelity, distance, TVD, and TVD fidelity.</p>
-<p>Compares observed counts against ideal_distribution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with fidelity metric values</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_metrics">
-<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get all performance metrics as a structured, validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Complete validated performance metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_multiple_jobs_metrics">
-<span class="sig-name descname"><span class="pre">get_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_multiple_jobs_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate circuit performance metrics from multiple job results.</p>
-<p>DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Circuit performance metrics for multiple jobs with individual and aggregate data</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_single_job_metrics">
-<span class="sig-name descname"><span class="pre">get_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_single_job_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate circuit performance metrics from a single job result.</p>
-<p>DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Circuit performance metrics for a single job</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, Any]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics">
-<span class="sig-name descname"><span class="pre">get_statistical_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_statistical_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get statistical analysis metrics as a validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated statistical metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>StatisticalMetricsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics_dict">
-<span class="sig-name descname"><span class="pre">get_statistical_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_statistical_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Get statistical analysis metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing entropy, uniformity, and concentration metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics">
-<span class="sig-name descname"><span class="pre">get_structured_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get multiple jobs metrics as a validated schema object.</p>
-<p>DEPRECATED: Use get_structured_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated aggregate metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_single_job_metrics">
-<span class="sig-name descname"><span class="pre">get_structured_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_structured_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_single_job_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get single job metrics as a validated schema object.</p>
-<p>DEPRECATED: Use get_structured_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated single job metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics">
-<span class="sig-name descname"><span class="pre">get_success_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_success_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Get success rate analysis metrics as a validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated success metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>SuccessMetricsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics_dict">
-<span class="sig-name descname"><span class="pre">get_success_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_success_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics_dict" title="Link to this definition">¶</a></dt>
-<dd><p>Get success rate analysis metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing success rate, error rate, and shot analysis</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.is_ready">
-<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.is_ready" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.is_ready">
+<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.is_ready" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -657,70 +381,39 @@ computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
-<p>Calculate circuit performance metrics for quantum circuits.</p>
-<p>This class provides methods for analyzing the performance of quantum circuits
-based on job execution results. It supports both single job and multiple job
-analysis with customizable success criteria.</p>
-<p>Supports multiple job types:
-- AerJob: Qiskit Aer simulator jobs
-- QiskitJob (JobV1): Traditional Qiskit jobs
-- RuntimeJobV2: IBM Quantum Runtime V2 primitive jobs (SamplerV2, EstimatorV2)</p>
-<p>The performance metrics include:
-- Success metrics: Success rate, error rate, successful shots analysis
-- Statistical metrics: Entropy, uniformity, concentration analysis</p>
+<p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
+<p>Supports two usage modes:
+- With a job object (AerJob or RuntimeJobV2)
+- With raw counts dictionary (no credentials needed)</p>
 <p class="rubric">Example</p>
-<p># Basic usage with default success criteria (ground state)
-performance = CircuitPerformanceMetrics(circuit, job=job)
-metrics = performance.get_metrics()</p>
-<p># With RuntimeJobV2 from SamplerV2
-from qiskit_ibm_runtime import SamplerV2 as Sampler
-sampler = Sampler(backend)
-job = sampler.run([circuit])  # Returns RuntimeJobV2
-performance = CircuitPerformanceMetrics(circuit, job=job)
-success_metrics = performance.get_success_metrics()</p>
-<p># With custom success criteria
-def custom_success(state): return state == “101”</p>
-<dl class="simple">
-<dt>performance = CircuitPerformanceMetrics(</dt><dd><p>circuit,
-job=job,
-success_criteria=custom_success</p>
-</dd>
-</dl>
-<p>)
-success_metrics = performance.get_success_metrics()</p>
-<p>Initialize a CircuitPerformanceMetrics object.</p>
+<p># From counts (credential-free)
+fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)
+schema = fm.get_metrics()</p>
+<p># From job
+fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=[“00”])
+schema = fm.get_metrics()</p>
+<p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p></li>
-<li><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – A single job that executed the circuit</p></li>
-<li><p><strong>jobs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A list of jobs that executed the circuit (for multiple runs)</p></li>
-<li><p><strong>success_criteria</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]]</span>) – Function that determines if a measurement result is successful</p></li>
-<li><p><strong>expected_outcomes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – Expected bitstrings for DSR histogram contrast calculations</p></li>
-<li><p><strong>ideal_distribution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span>) – Ideal probability distribution {bitstring: prob} for
-computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
-</ul>
+<dd class="field-odd"><p><strong>circuit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuantumCircuit</span></code></span>) – The quantum circuit to analyze</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="id7">
-<span class="sig-name descname"><span class="pre">add_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.add_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
-<dd><p>Add one or more jobs to the list of jobs for multiple job metrics.</p>
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">add_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.add_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Add one or more jobs for multi-job analysis.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>]]]</span>) – A single job or a list of jobs to add</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.circuit">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span></em><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.circuit" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.circuit">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circuit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">QuantumCircuit</span></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.circuit" title="Link to this definition">¶</a></dt>
 <dd><p>Get the quantum circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -733,272 +426,31 @@ computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id8">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_bell_state_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_bell_state_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
-<dd><p>Create the expected distribution for a Bell state (<a href="#id9"><span class="problematic" id="id10">|</span></a>00⟩ + <a href="#id11"><span class="problematic" id="id12">|</span></a>11⟩)/√2.</p>
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>Compute all fidelity metrics and return validated schema.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Bell state distribution</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, float]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id13">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_ground_state_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_ground_state_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition">¶</a></dt>
-<dd><p>Create a distribution where only the ground state (<a href="#id14"><span class="problematic" id="id15">|</span></a>000…⟩) has probability 1.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_qubits</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of qubits in the circuit</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ground state distribution</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, float]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id16">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_uniform_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.create_uniform_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id16" title="Link to this definition">¶</a></dt>
-<dd><p>Create a uniform distribution over all possible measurement outcomes.</p>
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">get_metrics_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd><p>Compute fidelity metrics for each job. Returns one schema per job.</p>
+<p>When using counts (no jobs), returns a single-element list.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_qubits</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of qubits in the circuit</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Uniform probability distribution</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, float]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id17">
-<span class="sig-name descname"><span class="pre">get_dsr_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_dsr_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition">¶</a></dt>
-<dd><p>Get Differential Success Rate metrics as a validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated DSR metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>DSRVariantsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValueError</strong> – If expected outcomes are not configured</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id18">
-<span class="sig-name descname"><span class="pre">get_dsr_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_dsr_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id18" title="Link to this definition">¶</a></dt>
-<dd><p>Get Differential Success Rate metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing DSR variant and mismatch metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id19">
-<span class="sig-name descname"><span class="pre">get_fidelity_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_fidelity_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition">¶</a></dt>
-<dd><p>Get distribution fidelity metrics as a validated schema object.</p>
-<p>Requires ideal_distribution to be set at initialization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated fidelity metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>FidelityMetricsSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id20">
-<span class="sig-name descname"><span class="pre">get_fidelity_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_fidelity_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id20" title="Link to this definition">¶</a></dt>
-<dd><p>Get Hellinger fidelity, distance, TVD, and TVD fidelity.</p>
-<p>Compares observed counts against ideal_distribution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with fidelity metric values</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id21">
-<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition">¶</a></dt>
-<dd><p>Get all performance metrics as a structured, validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Complete validated performance metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id22">
-<span class="sig-name descname"><span class="pre">get_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id22" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate circuit performance metrics from multiple job results.</p>
-<p>DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Circuit performance metrics for multiple jobs with individual and aggregate data</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id23">
-<span class="sig-name descname"><span class="pre">get_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id23" title="Link to this definition">¶</a></dt>
-<dd><p>Calculate circuit performance metrics from a single job result.</p>
-<p>DEPRECATED: Use get_success_metrics() or get_statistical_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>job</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AerJob</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeJobV2</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Optional job to use for metrics calculation. If None, uses self._job.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Circuit performance metrics for a single job</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id24">
-<span class="sig-name descname"><span class="pre">get_statistical_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_statistical_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id24" title="Link to this definition">¶</a></dt>
-<dd><p>Get statistical analysis metrics as a validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated statistical metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>StatisticalMetricsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id25">
-<span class="sig-name descname"><span class="pre">get_statistical_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_statistical_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id25" title="Link to this definition">¶</a></dt>
-<dd><p>Get statistical analysis metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing entropy, uniformity, and concentration metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id26">
-<span class="sig-name descname"><span class="pre">get_structured_multiple_jobs_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id26" title="Link to this definition">¶</a></dt>
-<dd><p>Get multiple jobs metrics as a validated schema object.</p>
-<p>DEPRECATED: Use get_structured_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated aggregate metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id27">
-<span class="sig-name descname"><span class="pre">get_structured_single_job_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_structured_single_job_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id27" title="Link to this definition">¶</a></dt>
-<dd><p>Get single job metrics as a validated schema object.</p>
-<p>DEPRECATED: Use get_structured_metrics() instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated single job metrics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>CircuitPerformanceSchema</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id28">
-<span class="sig-name descname"><span class="pre">get_success_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_success_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id28" title="Link to this definition">¶</a></dt>
-<dd><p>Get success rate analysis metrics as a validated schema object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Validated success metrics schema</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>SuccessMetricsSchema</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ImportError</strong> – If Pydantic schemas are not available</p></li>
-<li><p><strong>ValidationError</strong> – If metrics data doesn’t match schema constraints</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id29">
-<span class="sig-name descname"><span class="pre">get_success_metrics_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.get_success_metrics_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id29" title="Link to this definition">¶</a></dt>
-<dd><p>Get success rate analysis metrics as a dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing success rate, error rate, and shot analysis</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict[str, Any]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.id">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.id" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id7" title="qward.metrics.types.MetricsId"><span class="pre">MetricsId</span></a></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.id" title="Link to this definition">¶</a></dt>
 <dd><p>Get the ID of the metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1011,33 +463,36 @@ computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="id30">
-<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/circuit_performance.html#CircuitPerformanceMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id30" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">is_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.is_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
 <dd><p>Check if the metric is ready to be calculated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the metric is ready to be calculated, False otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.metric_type">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id17" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.metric_type" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.metric_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id18" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.metric_type" title="Link to this definition">¶</a></dt>
 <dd><p>Get the type of this metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The type of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id17" title="qward.metrics.types.MetricsType">MetricsType</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id18" title="qward.metrics.types.MetricsType">MetricsType</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qward.metrics.circuit_performance.CircuitPerformanceMetrics.name">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.name" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.name" title="Link to this definition">¶</a></dt>
 <dd><p>Get the name of the metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1110,51 +565,23 @@ computing Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Circuit Performance Metrics</a><ul>
-<li><a class="reference internal" href="#module-qward.metrics.circuit_performance">API Reference</a><ul>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code></a><ul>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.add_job"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.add_job()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_bell_state_distribution"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_bell_state_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_ground_state_distribution"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_ground_state_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.create_uniform_distribution"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_uniform_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_dsr_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_dsr_metrics_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_dsr_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_fidelity_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_fidelity_metrics_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_fidelity_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_multiple_jobs_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_multiple_jobs_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_single_job_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_single_job_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_statistical_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_statistical_metrics_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_statistical_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_structured_single_job_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_structured_single_job_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_success_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.get_success_metrics_dict"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_success_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.is_ready"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#module-qward.metrics.fidelity_metrics">API Reference</a><ul>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code></a><ul>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.add_job"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.add_job()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics_all()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.is_ready"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.is_ready()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics</span></code></a><ul>
-<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.add_job()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.circuit"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.circuit</span></code></a></li>
-<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_bell_state_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_ground_state_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.create_uniform_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_dsr_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_dsr_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_fidelity_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_fidelity_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_multiple_jobs_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_single_job_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id24"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_statistical_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id25"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_statistical_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#id26"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_structured_multiple_jobs_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id27"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_structured_single_job_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id28"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_success_metrics()</span></code></a></li>
-<li><a class="reference internal" href="#id29"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.get_success_metrics_dict()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.id"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.id</span></code></a></li>
-<li><a class="reference internal" href="#id30"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.is_ready()</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.metric_type</span></code></a></li>
-<li><a class="reference internal" href="#qward.metrics.circuit_performance.CircuitPerformanceMetrics.name"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceMetrics.name</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code></a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.add_job()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.circuit"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.circuit</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics_all()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.id"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.id</span></code></a></li>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.metric_type</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.name"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.name</span></code></a></li>
 </ul>
 </li>
 </ul>

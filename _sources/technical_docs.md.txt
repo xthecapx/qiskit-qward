@@ -35,16 +35,16 @@ QWARD provides several built-in metric calculators:
 -   **Constructor**: `ComplexityMetrics(circuit: QuantumCircuit)`
 -   **Returns**: `ComplexityMetricsSchema` object with validated data
 
-### CircuitPerformanceMetrics
+### FidelityMetrics
 -   **Purpose**: Calculates performance metrics from execution results
 -   **Type**: `MetricsType.POST_RUNTIME`
--   **ID**: `MetricsId.CIRCUIT_PERFORMANCE`
--   **Constructor**: `CircuitPerformanceMetrics(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
--   **Returns**: `CircuitPerformanceSchema` object with validated data
+-   **ID**: `MetricsId.FIDELITY`
+-   **Constructor**: `FidelityMetrics(circuit: QuantumCircuit, job: Optional[Job]=None, jobs: Optional[List[Job]]=None, result: Optional[Dict]=None, success_criteria: Optional[Callable]=None)`
+-   **Returns**: `FidelitySchema` object with validated data
 
 ### Metric Types and IDs
 -   `MetricsType(Enum)`: Defines when metrics can be calculated (`PRE_RUNTIME`, `POST_RUNTIME`).
--   `MetricsId(Enum)`: Defines unique IDs for strategy types (e.g., `QISKIT`, `COMPLEXITY`, `CIRCUIT_PERFORMANCE`).
+-   `MetricsId(Enum)`: Defines unique IDs for strategy types (e.g., `QISKIT`, `COMPLEXITY`, `FIDELITY`).
 
 ## Usage Examples
 
@@ -52,7 +52,7 @@ QWARD provides several built-in metric calculators:
 ```python
 from qiskit import QuantumCircuit
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 # Create circuit
 qc = QuantumCircuit(2)
@@ -65,7 +65,7 @@ scanner.add_strategy(QiskitMetrics(qc))
 scanner.add_strategy(ComplexityMetrics(qc))
 
 # Method 2: Add metrics via constructor (using classes)
-scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics])
+scanner = Scanner(circuit=qc, strategies=[QiskitMetrics, ComplexityMetrics, FidelityMetrics])
 
 # Calculate metrics (returns DataFrames)
 results = scanner.calculate_metrics()
@@ -84,23 +84,23 @@ from qiskit_aer import AerSimulator
 sim = AerSimulator()
 job = sim.run(qc, shots=1024)
 
-# For CircuitPerformanceMetrics, we need the Qiskit Job object
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformanceMetrics
+# For FidelityMetrics, we need the Qiskit Job object
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to FidelityMetrics
 
 # Define success criteria
 def criteria(outcome):
     return outcome == "00"  # Success if both qubits measure 0
 
-# Add CircuitPerformanceMetrics with job
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+# Add FidelityMetrics with job
+scanner.add_strategy(FidelityMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()
 
 # Access schema object directly
-circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
-performance_metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
-print(f"Success rate: {performance_metrics.success_metrics.success_rate:.3f}")
+circuit_performance = FidelityMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
+performance_metrics = circuit_performance.get_metrics()  # Returns FidelitySchema
+print(f"Success rate: {performance_metrics.success_rate:.3f}")
 ```
 
 ### Alternative Approach with Job Object
@@ -111,23 +111,23 @@ from qiskit_aer import AerSimulator
 sim = AerSimulator()
 job = sim.run(qc, shots=1024)
 
-# For CircuitPerformanceMetrics, we need the Qiskit Job object
-qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to CircuitPerformanceMetrics
+# For FidelityMetrics, we need the Qiskit Job object
+qiskit_job_obj = sim.run(qc) # Re-run to get a job object to pass to FidelityMetrics
 
 # Define success criteria
 def criteria(outcome):
     return outcome == "00"  # Success if both qubits measure 0
 
-# Add CircuitPerformanceMetrics with job
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
+# Add FidelityMetrics with job
+scanner.add_strategy(FidelityMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria))
 
 # Calculate all metrics
 results = scanner.calculate_metrics()
 
 # Access schema object directly
-circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
-performance_metrics = circuit_performance.get_metrics()  # Returns CircuitPerformanceSchema
-print(f"Success rate: {performance_metrics.success_metrics.success_rate:.3f}")
+circuit_performance = FidelityMetrics(circuit=qc, job=qiskit_job_obj, success_criteria=criteria)
+performance_metrics = circuit_performance.get_metrics()  # Returns FidelitySchema
+print(f"Success rate: {performance_metrics.success_rate:.3f}")
 ```
 
 ## Schema Validation
@@ -286,7 +286,7 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
-Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
+Specialized visualizer for `FidelityMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
 - `plot_aggregate_summary()`: Creates summary plots of aggregate statistics
@@ -417,7 +417,7 @@ complexity_schema = cm.get_metrics()
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 qc = QuantumCircuit(2,2); qc.h(0); qc.cx(0,1); qc.measure_all()
 
@@ -430,13 +430,13 @@ scanner.add_strategy(QiskitMetrics(qc))
 scanner.add_strategy(ComplexityMetrics(qc))
 
 def criteria(s): return s == '00' or s == '11' # GHZ state
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=criteria))
+scanner.add_strategy(FidelityMetrics(circuit=qc, job=job, success_criteria=criteria))
 
 results = scanner.calculate_metrics()
 # print(results["CircuitPerformance.aggregate"])
 
 # Direct schema access
-circuit_performance = CircuitPerformanceMetrics(circuit=qc, job=job, success_criteria=criteria)
+circuit_performance = FidelityMetrics(circuit=qc, job=job, success_criteria=criteria)
 performance_schema = circuit_performance.get_metrics()
 print(f"Success rate: {performance_schema.success_metrics.success_rate:.3f}")
 ```
@@ -600,7 +600,7 @@ Specialized visualizer for `ComplexityMetrics` outputs. It provides methods like
 
 #### `CircuitPerformanceVisualizer` (`qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer`)
 
-Specialized visualizer for `CircuitPerformanceMetrics` metric outputs. It provides methods like:
+Specialized visualizer for `FidelityMetrics` metric outputs. It provides methods like:
 - `plot_success_error_comparison()`: Creates bar charts comparing success vs. error rates across jobs
 - `plot_shot_distribution()`: Shows distribution of successful vs. failed shots
 - `plot_aggregate_summary()`: Creates summary plots of aggregate statistics

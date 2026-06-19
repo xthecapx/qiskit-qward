@@ -917,7 +917,7 @@ Expected key: “ComplexityMetrics”.</p></li>
 </section>
 <section id="circuitperformancevisualizer">
 <h2>CircuitPerformanceVisualizer<a class="headerlink" href="#circuitperformancevisualizer" title="Link to this heading">¶</a></h2>
-<p>The <cite>CircuitPerformanceVisualizer</cite> creates performance analysis visualizations from <cite>CircuitPerformanceMetrics</cite>. It handles both single job and multiple job scenarios with support for custom success criteria.</p>
+<p>The <cite>CircuitPerformanceVisualizer</cite> creates performance analysis visualizations from <cite>FidelityMetrics</cite>. It handles both single job and multiple job scenarios with support for custom success criteria.</p>
 <p><strong>Visualization Types:</strong>
 - <strong>Success Analysis</strong>: Success rates, error rates, and performance trends
 - <strong>Statistical Analysis</strong>: Entropy, uniformity, and concentration metrics
@@ -932,7 +932,7 @@ Expected key: “ComplexityMetrics”.</p></li>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_aer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AerSimulator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceMetrics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityMetrics</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">CircuitPerformanceVisualizer</span>
 
 <span class="c1"># Create and execute circuit</span>
@@ -949,7 +949,7 @@ Expected key: “ComplexityMetrics”.</p></li>
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;00&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">]</span>
 
 <span class="n">scanner</span> <span class="o">=</span> <span class="n">Scanner</span><span class="p">(</span><span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">)</span>
-<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">CircuitPerformanceMetrics</span><span class="p">(</span>
+<span class="n">scanner</span><span class="o">.</span><span class="n">add_strategy</span><span class="p">(</span><span class="n">FidelityMetrics</span><span class="p">(</span>
     <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">,</span>
     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
     <span class="n">success_criteria</span><span class="o">=</span><span class="n">bell_state_success</span>
@@ -964,285 +964,6 @@ Expected key: “ComplexityMetrics”.</p></li>
 <span class="n">all_plots</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<p id="module-qward.visualization.circuit_performance_visualizer">CircuitPerformance visualization strategy for QWARD.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="visualization_base.html#id0" title="qward.visualization.base.VisualizationStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></a></p>
-<p>Visualization strategy for CircuitPerformance metrics with performance analysis.</p>
-<p>Initialize the CircuitPerformance visualization strategy.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>metrics_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</span>) – Dictionary containing CircuitPerformance metrics.
-Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.aggregate”.</p></li>
-<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory to save plots.</p></li>
-<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="visualization_base.html#id9" title="qward.visualization.base.PlotConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotConfig</span></code></a>]</span>) – Plot configuration settings.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.PLOT_REGISTRY">
-<span class="sig-name descname"><span class="pre">PLOT_REGISTRY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">,</span> <a class="reference internal" href="visualization_base.html#qward.visualization.base.PlotMetadata" title="qward.visualization.base.PlotMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotMetadata</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'aggregate_summary':</span> <span class="pre">PlotMetadata(name='aggregate_summary',</span> <span class="pre">method_name='plot_aggregate_summary',</span> <span class="pre">description='Comprehensive</span> <span class="pre">summary</span> <span class="pre">of</span> <span class="pre">all</span> <span class="pre">performance</span> <span class="pre">metrics</span> <span class="pre">in</span> <span class="pre">a</span> <span class="pre">dashboard</span> <span class="pre">format',</span> <span class="pre">plot_type=&lt;PlotType.BAR_CHART:</span> <span class="pre">'bar_chart'&gt;,</span> <span class="pre">filename='aggregate_summary',</span> <span class="pre">dependencies=['success_metrics',</span> <span class="pre">'statistical_metrics'],</span> <span class="pre">category='Summary'),</span> <span class="pre">'shot_distribution':</span> <span class="pre">PlotMetadata(name='shot_distribution',</span> <span class="pre">method_name='plot_shot_distribution',</span> <span class="pre">description='Shows</span> <span class="pre">the</span> <span class="pre">distribution</span> <span class="pre">of</span> <span class="pre">measurement</span> <span class="pre">outcomes</span> <span class="pre">across</span> <span class="pre">shots',</span> <span class="pre">plot_type=&lt;PlotType.STACKED_BAR:</span> <span class="pre">'stacked_bar'&gt;,</span> <span class="pre">filename='shot_distribution',</span> <span class="pre">dependencies=['success_metrics.total_shots',</span> <span class="pre">'success_metrics.successful_shots'],</span> <span class="pre">category='Execution</span> <span class="pre">Analysis'),</span> <span class="pre">'success_error_comparison':</span> <span class="pre">PlotMetadata(name='success_error_comparison',</span> <span class="pre">method_name='plot_success_error_comparison',</span> <span class="pre">description='Compares</span> <span class="pre">success</span> <span class="pre">rates</span> <span class="pre">and</span> <span class="pre">error</span> <span class="pre">rates</span> <span class="pre">across</span> <span class="pre">different</span> <span class="pre">circuit</span> <span class="pre">executions',</span> <span class="pre">plot_type=&lt;PlotType.GROUPED_BAR:</span> <span class="pre">'grouped_bar'&gt;,</span> <span class="pre">filename='success_error_comparison',</span> <span class="pre">dependencies=['success_metrics.success_rate',</span> <span class="pre">'success_metrics.error_rate'],</span> <span class="pre">category='Performance</span> <span class="pre">Analysis')}</span></em><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.PLOT_REGISTRY" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.create_dashboard">
-<span class="sig-name descname"><span class="pre">create_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.create_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.create_dashboard" title="Link to this definition">¶</a></dt>
-<dd><p>Create a comprehensive dashboard with all CircuitPerformance plots.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_available_plots">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_available_plots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.get_available_plots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_available_plots" title="Link to this definition">¶</a></dt>
-<dd><p>Return list of available plot names for this strategy.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_plot_metadata">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_plot_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.get_plot_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_plot_metadata" title="Link to this definition">¶</a></dt>
-<dd><p>Get metadata for a specific plot.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="visualization_base.html#qward.visualization.base.PlotMetadata" title="qward.visualization.base.PlotMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotMetadata</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_aggregate_summary">
-<span class="sig-name descname"><span class="pre">plot_aggregate_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_aggregate_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_aggregate_summary" title="Link to this definition">¶</a></dt>
-<dd><p>Plot aggregate statistics summary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_shot_distribution">
-<span class="sig-name descname"><span class="pre">plot_shot_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_shot_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_shot_distribution" title="Link to this definition">¶</a></dt>
-<dd><p>Plot shot distribution (successful vs failed) as stacked bars.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_success_error_comparison">
-<span class="sig-name descname"><span class="pre">plot_success_error_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_success_error_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_success_error_comparison" title="Link to this definition">¶</a></dt>
-<dd><p>Plot success vs error rates for individual jobs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="id17">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CircuitPerformanceVisualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'img'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="visualization_base.html#id0" title="qward.visualization.base.VisualizationStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisualizationStrategy</span></code></a></p>
-<p>Visualization strategy for CircuitPerformance metrics with performance analysis.</p>
-<p>Initialize the CircuitPerformance visualization strategy.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>metrics_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>]</span>) – Dictionary containing CircuitPerformance metrics.
-Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.aggregate”.</p></li>
-<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory to save plots.</p></li>
-<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="visualization_base.html#id9" title="qward.visualization.base.PlotConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotConfig</span></code></a>]</span>) – Plot configuration settings.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id18">
-<span class="sig-name descname"><span class="pre">PLOT_REGISTRY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">,</span> <a class="reference internal" href="visualization_base.html#qward.visualization.base.PlotMetadata" title="qward.visualization.base.PlotMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotMetadata</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'aggregate_summary':</span> <span class="pre">PlotMetadata(name='aggregate_summary',</span> <span class="pre">method_name='plot_aggregate_summary',</span> <span class="pre">description='Comprehensive</span> <span class="pre">summary</span> <span class="pre">of</span> <span class="pre">all</span> <span class="pre">performance</span> <span class="pre">metrics</span> <span class="pre">in</span> <span class="pre">a</span> <span class="pre">dashboard</span> <span class="pre">format',</span> <span class="pre">plot_type=&lt;PlotType.BAR_CHART:</span> <span class="pre">'bar_chart'&gt;,</span> <span class="pre">filename='aggregate_summary',</span> <span class="pre">dependencies=['success_metrics',</span> <span class="pre">'statistical_metrics'],</span> <span class="pre">category='Summary'),</span> <span class="pre">'shot_distribution':</span> <span class="pre">PlotMetadata(name='shot_distribution',</span> <span class="pre">method_name='plot_shot_distribution',</span> <span class="pre">description='Shows</span> <span class="pre">the</span> <span class="pre">distribution</span> <span class="pre">of</span> <span class="pre">measurement</span> <span class="pre">outcomes</span> <span class="pre">across</span> <span class="pre">shots',</span> <span class="pre">plot_type=&lt;PlotType.STACKED_BAR:</span> <span class="pre">'stacked_bar'&gt;,</span> <span class="pre">filename='shot_distribution',</span> <span class="pre">dependencies=['success_metrics.total_shots',</span> <span class="pre">'success_metrics.successful_shots'],</span> <span class="pre">category='Execution</span> <span class="pre">Analysis'),</span> <span class="pre">'success_error_comparison':</span> <span class="pre">PlotMetadata(name='success_error_comparison',</span> <span class="pre">method_name='plot_success_error_comparison',</span> <span class="pre">description='Compares</span> <span class="pre">success</span> <span class="pre">rates</span> <span class="pre">and</span> <span class="pre">error</span> <span class="pre">rates</span> <span class="pre">across</span> <span class="pre">different</span> <span class="pre">circuit</span> <span class="pre">executions',</span> <span class="pre">plot_type=&lt;PlotType.GROUPED_BAR:</span> <span class="pre">'grouped_bar'&gt;,</span> <span class="pre">filename='success_error_comparison',</span> <span class="pre">dependencies=['success_metrics.success_rate',</span> <span class="pre">'success_metrics.error_rate'],</span> <span class="pre">category='Performance</span> <span class="pre">Analysis')}</span></em><a class="headerlink" href="#id18" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id19">
-<span class="sig-name descname"><span class="pre">create_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.create_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition">¶</a></dt>
-<dd><p>Create a comprehensive dashboard with all CircuitPerformance plots.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_all_plots">
-<span class="sig-name descname"><span class="pre">generate_all_plots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_all_plots" title="Link to this definition">¶</a></dt>
-<dd><p>Generate all available plots.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>save</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to save the plots</p></li>
-<li><p><strong>show</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to display the plots</p></li>
-<li><p><strong>**kwargs</strong> – Additional arguments passed to plot methods</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary mapping plot names to Figure objects</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plot">
-<span class="sig-name descname"><span class="pre">generate_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plot" title="Link to this definition">¶</a></dt>
-<dd><p>Generate a single plot by name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>plot_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the plot to generate</p></li>
-<li><p><strong>save</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to save the plot</p></li>
-<li><p><strong>show</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to display the plot</p></li>
-<li><p><strong>**kwargs</strong> – Additional arguments passed to the plot method</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>matplotlib Figure object</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If plot_name is not available</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plots">
-<span class="sig-name descname"><span class="pre">generate_plots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plots" title="Link to this definition">¶</a></dt>
-<dd><p>Generate multiple plots and return as dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>plot_names</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – List of plot names to generate. If None, generates all available plots.</p></li>
-<li><p><strong>save</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to save the plots</p></li>
-<li><p><strong>show</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to display the plots</p></li>
-<li><p><strong>**kwargs</strong> – Additional arguments passed to plot methods</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary mapping plot names to Figure objects</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id20">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_available_plots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.get_available_plots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id20" title="Link to this definition">¶</a></dt>
-<dd><p>Return list of available plot names for this strategy.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id21">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_plot_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.get_plot_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition">¶</a></dt>
-<dd><p>Get metadata for a specific plot.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="visualization_base.html#qward.visualization.base.PlotMetadata" title="qward.visualization.base.PlotMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlotMetadata</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id22">
-<span class="sig-name descname"><span class="pre">plot_aggregate_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_aggregate_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id22" title="Link to this definition">¶</a></dt>
-<dd><p>Plot aggregate statistics summary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id23">
-<span class="sig-name descname"><span class="pre">plot_shot_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_shot_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id23" title="Link to this definition">¶</a></dt>
-<dd><p>Plot shot distribution (successful vs failed) as stacked bars.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id24">
-<span class="sig-name descname"><span class="pre">plot_success_error_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_ax_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/visualization/circuit_performance_visualizer.html#CircuitPerformanceVisualizer.plot_success_error_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id24" title="Link to this definition">¶</a></dt>
-<dd><p>Plot success vs error rates for individual jobs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.save_plot">
-<span class="sig-name descname"><span class="pre">save_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.save_plot" title="Link to this definition">¶</a></dt>
-<dd><p>Save a plot with consistent settings.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fig</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span>) – Matplotlib figure to save</p></li>
-<li><p><strong>filename</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the file (without extension)</p></li>
-<li><p><strong>**kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Additional arguments for savefig</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Full path to saved file</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.show_plot">
-<span class="sig-name descname"><span class="pre">show_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.show_plot" title="Link to this definition">¶</a></dt>
-<dd><p>Display a plot.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 
@@ -1360,34 +1081,7 @@ Expected keys: “CircuitPerformance.individual_jobs”, “CircuitPerformance.a
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#circuitperformancevisualizer">CircuitPerformanceVisualizer</a><ul>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></a><ul>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.PLOT_REGISTRY"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.PLOT_REGISTRY</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.create_dashboard"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.create_dashboard()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_available_plots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.get_available_plots()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.get_plot_metadata"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.get_plot_metadata()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_aggregate_summary"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_aggregate_summary()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_shot_distribution"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_shot_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.plot_success_error_comparison"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_success_error_comparison()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer</span></code></a><ul>
-<li><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.PLOT_REGISTRY</span></code></a></li>
-<li><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.create_dashboard()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_all_plots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.generate_all_plots()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plot"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.generate_plot()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.generate_plots"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.generate_plots()</span></code></a></li>
-<li><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.get_available_plots()</span></code></a></li>
-<li><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.get_plot_metadata()</span></code></a></li>
-<li><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_aggregate_summary()</span></code></a></li>
-<li><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_shot_distribution()</span></code></a></li>
-<li><a class="reference internal" href="#id24"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.plot_success_error_comparison()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.save_plot"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.save_plot()</span></code></a></li>
-<li><a class="reference internal" href="#qward.visualization.circuit_performance_visualizer.CircuitPerformanceVisualizer.show_plot"><code class="docutils literal notranslate"><span class="pre">CircuitPerformanceVisualizer.show_plot()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#circuitperformancevisualizer">CircuitPerformanceVisualizer</a></li>
 </ul>
 </li>
 </ul>
