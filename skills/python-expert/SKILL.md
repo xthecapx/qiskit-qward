@@ -19,7 +19,7 @@ qward/
 │   ├── types.py            # MetricsType, MetricsId enums
 │   ├── qiskit_metrics.py   # Concrete Strategy
 │   ├── complexity_metrics.py
-│   ├── circuit_performance.py
+│   ├── fidelity_metrics.py
 │   ├── behavioral_metrics.py
 │   ├── structural_metrics.py
 │   ├── element_metrics.py
@@ -150,7 +150,7 @@ class MetricsType(Enum):
 class MetricsId(Enum):
     QISKIT = "qiskit"
     COMPLEXITY = "complexity"
-    CIRCUIT_PERFORMANCE = "circuit_performance"
+    FIDELITY = "fidelity_metrics"
 ```
 
 ### Context Managers

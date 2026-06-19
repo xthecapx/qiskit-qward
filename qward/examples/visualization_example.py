@@ -21,7 +21,7 @@ from qward.visualization import (
     PlotConfig,
     QiskitVisualizer,
     ComplexityVisualizer,
-    CircuitPerformanceVisualizer,
+    FidelityVisualizer,
     VisualizationStrategy,
     PlotMetadata,
     PlotType,
@@ -180,8 +180,8 @@ def direct_complexity_strategy():
 
 
 def direct_performance_strategy():
-    """Example: Using CircuitPerformanceVisualizer directly."""
-    print("\n=== Example 5: Direct CircuitPerformanceVisualizer ===\n")
+    """Example: Using FidelityVisualizer directly."""
+    print("\n=== Example 5: Direct FidelityVisualizer ===\n")
 
     circuit = create_sample_circuit()
     simulator = AerSimulator()
@@ -200,7 +200,7 @@ def direct_performance_strategy():
     # Extract CircuitPerformance data
     perf_data = {k: v for k, v in metrics_data.items() if k.startswith("CircuitPerformance")}
 
-    strategy = CircuitPerformanceVisualizer(
+    strategy = FidelityVisualizer(
         metrics_dict=perf_data,
         output_dir="qward/examples/img/direct_performance",
     )
@@ -208,7 +208,7 @@ def direct_performance_strategy():
     # Generate plots
     strategy.generate_plot(Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON, save=True, show=False)
     strategy.create_dashboard(save=True, show=False)
-    print("  ✓ CircuitPerformanceVisualizer plots saved")
+    print("  ✓ FidelityVisualizer plots saved")
 
 
 # =============================================================================

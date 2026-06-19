@@ -163,7 +163,7 @@ class MyPostRuntimeMetric(MetricCalculator):
         return MetricsType.POST_RUNTIME
 
     def _get_metric_id(self) -> MetricsId:
-        return MetricsId.CIRCUIT_PERFORMANCE
+        return MetricsId.FIDELITY
 
     def is_ready(self) -> bool:
         return self.circuit is not None and self._job is not None

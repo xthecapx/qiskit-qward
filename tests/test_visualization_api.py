@@ -14,7 +14,7 @@ from qward.visualization import (
     Visualizer,
     QiskitVisualizer,
     ComplexityVisualizer,
-    CircuitPerformanceVisualizer,
+    FidelityVisualizer,
     PlotConfig,
     PlotMetadata,
     PlotType,
@@ -330,14 +330,14 @@ class TestNewVisualizationAPI(unittest.TestCase):
         self.assertIn(Plots.Complexity.COMPLEXITY_RADAR, complexity_plots)
         self.assertIn(Plots.Complexity.GATE_BASED_METRICS, complexity_plots)
 
-        # Test CircuitPerformanceVisualizer registry
-        perf_plots = CircuitPerformanceVisualizer.get_available_plots()
+        # Test FidelityVisualizer registry
+        perf_plots = FidelityVisualizer.get_available_plots()
         self.assertIn(Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON, perf_plots)
         self.assertIn(Plots.CircuitPerformance.SHOT_DISTRIBUTION, perf_plots)
 
     def test_metadata_completeness(self):
         """Test that all plots have complete metadata."""
-        visualizers = [QiskitVisualizer, ComplexityVisualizer, CircuitPerformanceVisualizer]
+        visualizers = [QiskitVisualizer, ComplexityVisualizer, FidelityVisualizer]
 
         for visualizer_class in visualizers:
             available_plots = visualizer_class.get_available_plots()

@@ -83,23 +83,23 @@ metrics.derived_metrics.weighted_complexity      # float
 metrics.derived_metrics.loschmidt_echo_bound    # float
 ```
 
-## CircuitPerformanceMetrics
+## FidelityMetrics
 
 Post-runtime execution performance analysis.
 
 ```python
-from qward.metrics import CircuitPerformanceMetrics
+from qward.metrics import FidelityMetrics
 
 # With custom success criteria
 def bell_success(result: str) -> bool:
     return result.replace(" ", "") in ["00", "11"]
 
-perf = CircuitPerformanceMetrics(
+perf = FidelityMetrics(
     circuit=circuit,
     job=job,
     success_criteria=bell_success
 )
-metrics = perf.get_metrics()  # CircuitPerformanceSchema
+metrics = perf.get_metrics()  # FidelitySchema
 
 # Success metrics
 metrics.success_metrics.success_rate       # float (0.0-1.0)
@@ -119,17 +119,30 @@ metrics.success_metrics.std_success_rate   # float
 metrics.success_metrics.total_trials       # int
 ```
 
+### From Counts Directly
+
+FidelityMetrics accepts a `counts` dict directly — no job object is required:
+
+```python
+perf = FidelityMetrics(
+    circuit=circuit,
+    counts={"00": 480, "11": 500, "01": 22, "10": 22},
+    success_criteria=bell_success,
+)
+metrics = perf.get_metrics()
+```
+
 ### Multiple Jobs
 
 ```python
-perf = CircuitPerformanceMetrics(circuit=circuit, success_criteria=bell_success)
+perf = FidelityMetrics(circuit=circuit, success_criteria=bell_success)
 perf.add_job(job1)
 perf.add_job(job2)
 perf.add_job(job3)
 
 # Scanner produces two DataFrames:
-# "CircuitPerformance.individual_jobs" - per-job metrics
-# "CircuitPerformance.aggregate" - mean, std, min, max across jobs
+# "FidelityMetrics.individual_jobs" - per-job metrics
+# "FidelityMetrics.aggregate" - mean, std, min, max across jobs
 ```
 
 ## ElementMetrics

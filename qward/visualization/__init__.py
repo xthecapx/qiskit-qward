@@ -6,7 +6,9 @@ dynamic metrics that benefit from graphical representation using a strategy patt
 """
 
 from .base import VisualizationStrategy, PlotConfig, PlotType, PlotMetadata
-from .circuit_performance_visualizer import CircuitPerformanceVisualizer
+from .fidelity_visualizer import FidelityVisualizer
+
+CircuitPerformanceVisualizer = FidelityVisualizer
 from .qiskit_metrics_visualizer import QiskitVisualizer
 from .complexity_metrics_visualizer import ComplexityVisualizer
 from .element_metrics_visualizer import ElementMetricsVisualizer
@@ -35,6 +37,7 @@ __all__ = [
     "PlotConfig",
     "PlotType",
     "PlotMetadata",
+    "FidelityVisualizer",
     "CircuitPerformanceVisualizer",
     "QiskitVisualizer",
     "ComplexityVisualizer",

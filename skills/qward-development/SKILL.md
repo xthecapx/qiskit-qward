@@ -1,6 +1,6 @@
 ---
 name: qward-development
-description: QWARD library for quantum circuit analysis, metrics extraction, performance evaluation, and visualization. Use when analyzing quantum circuits with Scanner, extracting metrics (QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics, ElementMetrics, StructuralMetrics, BehavioralMetrics, QuantumSpecificMetrics), visualizing results with the Visualizer API, implementing custom metric strategies, running experiments with BaseExperimentRunner, using noise model presets (IBM Heron, Rigetti Ankaa), or extending QWARD with custom metrics. Covers the Strategy pattern architecture, Pydantic schema validation, fluent API chaining, and the type-safe visualization system.
+description: QWARD library for quantum circuit analysis, metrics extraction, performance evaluation, and visualization. Use when analyzing quantum circuits with Scanner, extracting metrics (QiskitMetrics, ComplexityMetrics, FidelityMetrics, ElementMetrics, StructuralMetrics, BehavioralMetrics, QuantumSpecificMetrics), visualizing results with the Visualizer API, implementing custom metric strategies, running experiments with BaseExperimentRunner, using noise model presets (IBM Heron, Rigetti Ankaa), or extending QWARD with custom metrics. Covers the Strategy pattern architecture, Pydantic schema validation, fluent API chaining, and the type-safe visualization system.
 ---
 
 # QWARD Development
@@ -11,7 +11,7 @@ QWARD (Quantum Circuit Analysis and Runtime Development) is a Python library for
 
 **Key capabilities:**
 - **Scanner**: Strategy pattern-based circuit analysis with fluent API
-- **8 Metric Types**: QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics, ElementMetrics, StructuralMetrics, BehavioralMetrics, QuantumSpecificMetrics, DifferentialSuccessRate
+- **8 Metric Types**: QiskitMetrics, ComplexityMetrics, FidelityMetrics, ElementMetrics, StructuralMetrics, BehavioralMetrics, QuantumSpecificMetrics, DifferentialSuccessRate
 - **Schema Validation**: Pydantic-based type safety with IDE autocomplete
 - **Visualization**: Type-safe constants, granular plot control, dashboards
 - **Algorithms**: Grover, QFT, Phase Estimation, Teleportation implementations
@@ -33,6 +33,26 @@ circuit.measure_all()
 Scanner(circuit).scan().summary().visualize(save=True, show=False)
 ```
 
+## Functional Scan API
+
+For one-shot analysis without managing a Scanner instance, use the functional `scan_*` helpers:
+
+```python
+from qward import scan_pre, scan_post, scan_job, scan_batch
+
+# Pre-runtime metrics only (circuit structure/complexity)
+results = scan_pre(circuit)
+
+# Post-runtime metrics from measurement counts (no job object needed)
+results = scan_post(circuit, counts={"00": 512, "11": 512})
+
+# Post-runtime metrics from a job
+results = scan_job(circuit, job=job)
+
+# Batch analysis over multiple circuits/jobs
+results = scan_batch([(circuit1, job1), (circuit2, job2)])
+```
+
 ## Core Architecture
 
 QWARD uses the **Strategy Pattern** for extensible metric calculation:
@@ -42,7 +62,7 @@ Scanner (Context)
     │
     ├── QiskitMetrics ──────► QiskitMetricsSchema
     ├── ComplexityMetrics ──► ComplexityMetricsSchema
-    ├── CircuitPerformanceMetrics ──► CircuitPerformanceSchema
+    ├── FidelityMetrics ──► FidelitySchema
     ├── ElementMetrics ─────► ElementMetricsSchema
     ├── StructuralMetrics ──► StructuralMetricsSchema
     ├── BehavioralMetrics ──► BehavioralMetricsSchema
@@ -127,7 +147,7 @@ print(f"Circuit efficiency: {metrics.advanced_metrics.circuit_efficiency:.3f}")
 
 ```python
 from qiskit_aer import AerSimulator
-from qward.metrics import CircuitPerformanceMetrics
+from qward.metrics import FidelityMetrics
 
 # Run circuit
 simulator = AerSimulator()
@@ -137,7 +157,7 @@ job = simulator.run(circuit, shots=1024)
 def bell_success(result: str) -> bool:
     return result.replace(" ", "") in ["00", "11"]
 
-perf = CircuitPerformanceMetrics(circuit=circuit, job=job, success_criteria=bell_success)
+perf = FidelityMetrics(circuit=circuit, job=job, success_criteria=bell_success)
 metrics = perf.get_metrics()
 print(f"Success rate: {metrics.success_metrics.success_rate:.1%}")
 ```
@@ -191,7 +211,7 @@ results = runner.run_campaign(
 | `StructuralMetrics` | Pre-runtime | layering, graph connectivity, topology |
 | `BehavioralMetrics` | Pre-runtime | state evolution, interference patterns |
 | `QuantumSpecificMetrics` | Pre-runtime | entanglement, non-classicality |
-| `CircuitPerformanceMetrics` | Post-runtime | success rate, error rate, statistics |
+| `FidelityMetrics` | Post-runtime | success rate, error rate, statistics |
 | `DifferentialSuccessRate` | Post-runtime | DSR analysis, ideal vs noisy comparison |
 
 ## Noise Model Presets
@@ -212,7 +232,7 @@ noise_model = NoiseModelGenerator.create_from_config(config)
 2. **Use schemas for type safety** - Get IDE autocomplete and validation
 3. **Use fluent API for quick analysis** - `Scanner(circuit).scan().summary().visualize()`
 4. **Use type-safe constants for visualization** - Prevents typos, enables autocomplete
-5. **Define success criteria** - Required for meaningful CircuitPerformanceMetrics
+5. **Define success criteria** - Required for meaningful FidelityMetrics
 6. **Use noise presets** - Hardware-calibrated for realistic simulation
 7. **Run experiments systematically** - Use BaseExperimentRunner for campaigns
 
@@ -224,7 +244,7 @@ QWARD integrates seamlessly with Qiskit:
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qward import Scanner
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 
 # Build circuit with Qiskit
 circuit = QuantumCircuit(3)
@@ -243,7 +263,7 @@ simulator = AerSimulator()
 job = simulator.run(circuit, shots=1024)
 
 # Analyze performance (post-runtime)
-scanner.add_strategy(CircuitPerformanceMetrics(circuit=circuit, job=job))
+scanner.add_strategy(FidelityMetrics(circuit=circuit, job=job))
 
 # Get all results
 results = scanner.calculate_metrics()

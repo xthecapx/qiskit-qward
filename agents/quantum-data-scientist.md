@@ -165,7 +165,7 @@ Use the QWARD library for standardized analysis:
 
 ```python
 from qward import Scanner, Visualizer
-from qward.metrics import QiskitMetrics, ComplexityMetrics, CircuitPerformanceMetrics
+from qward.metrics import QiskitMetrics, ComplexityMetrics, FidelityMetrics
 from qward.visualization.constants import Metrics, Plots
 
 # Analyze circuit with all metrics
@@ -175,7 +175,7 @@ Scanner(circuit).scan().summary().visualize(save=True, show=False)
 def success_criteria(outcome):
     return outcome.replace(" ", "") in ["00", "11"]
 
-perf = CircuitPerformanceMetrics(circuit=circuit, job=job, success_criteria=success_criteria)
+perf = FidelityMetrics(circuit=circuit, job=job, success_criteria=success_criteria)
 ```
 
 ### Noise Model Presets

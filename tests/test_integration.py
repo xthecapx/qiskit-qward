@@ -15,7 +15,7 @@ from qward.visualization import (
     Visualizer,
     QiskitVisualizer,
     ComplexityVisualizer,
-    CircuitPerformanceVisualizer,
+    FidelityVisualizer,
 )
 from qward.visualization.constants import Metrics, Plots
 
@@ -236,9 +236,9 @@ class TestIntegration(unittest.TestCase):
             self.assertIsInstance(complexity_plots, dict)
             self.assertGreater(len(complexity_plots), 0)
 
-            # Test CircuitPerformanceVisualizer with new API
+            # Test FidelityVisualizer with new API
             perf_data = {k: v for k, v in results.items() if k.startswith("CircuitPerformance")}
-            perf_viz = CircuitPerformanceVisualizer(metrics_dict=perf_data, output_dir=temp_dir)
+            perf_viz = FidelityVisualizer(metrics_dict=perf_data, output_dir=temp_dir)
             perf_plots = perf_viz.generate_all_plots(save=True, show=False)
             self.assertIsInstance(perf_plots, dict)
             self.assertGreater(len(perf_plots), 0)

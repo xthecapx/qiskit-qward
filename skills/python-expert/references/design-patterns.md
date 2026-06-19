@@ -136,7 +136,7 @@ class ScannerBuilder:
 
     def with_performance_metrics(self, job=None) -> 'ScannerBuilder':
         self._scanner.add_strategy(
-            CircuitPerformanceMetrics(self._scanner.circuit, job=job)
+            FidelityMetrics(self._scanner.circuit, job=job)
         )
         return self
 

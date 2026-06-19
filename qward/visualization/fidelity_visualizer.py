@@ -1,5 +1,5 @@
 """
-CircuitPerformance visualization strategy for QWARD.
+Fidelity visualization strategy for QWARD.
 """
 
 from typing import Dict, List, Optional
@@ -11,13 +11,13 @@ from .base import VisualizationStrategy, PlotConfig, PlotMetadata, PlotType, Plo
 from .constants import Plots
 
 
-class CircuitPerformanceVisualizer(VisualizationStrategy):
-    """Visualization strategy for CircuitPerformance metrics with performance analysis."""
+class FidelityVisualizer(VisualizationStrategy):
+    """Visualization strategy for fidelity metrics with performance analysis."""
 
     # Class-level plot registry
     PLOT_REGISTRY: PlotRegistry = {
-        Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON: PlotMetadata(
-            name=Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON,
+        Plots.Fidelity.SUCCESS_ERROR_COMPARISON: PlotMetadata(
+            name=Plots.Fidelity.SUCCESS_ERROR_COMPARISON,
             method_name="plot_success_error_comparison",
             description="Compares success rates and error rates across different circuit executions",
             plot_type=PlotType.GROUPED_BAR,
@@ -25,8 +25,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             dependencies=["success_metrics.success_rate", "success_metrics.error_rate"],
             category="Performance Analysis",
         ),
-        Plots.CircuitPerformance.SHOT_DISTRIBUTION: PlotMetadata(
-            name=Plots.CircuitPerformance.SHOT_DISTRIBUTION,
+        Plots.Fidelity.SHOT_DISTRIBUTION: PlotMetadata(
+            name=Plots.Fidelity.SHOT_DISTRIBUTION,
             method_name="plot_shot_distribution",
             description="Shows the distribution of measurement outcomes across shots",
             plot_type=PlotType.STACKED_BAR,
@@ -34,8 +34,8 @@ class CircuitPerformanceVisualizer(VisualizationStrategy):
             dependencies=["success_metrics.total_shots", "success_metrics.successful_shots"],
             category="Execution Analysis",
         ),
-        Plots.CircuitPerformance.AGGREGATE_SUMMARY: PlotMetadata(
-            name=Plots.CircuitPerformance.AGGREGATE_SUMMARY,
+        Plots.Fidelity.AGGREGATE_SUMMARY: PlotMetadata(
+            name=Plots.Fidelity.AGGREGATE_SUMMARY,
             method_name="plot_aggregate_summary",
             description="Comprehensive summary of all performance metrics in a dashboard format",
             plot_type=PlotType.BAR_CHART,

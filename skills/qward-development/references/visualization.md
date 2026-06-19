@@ -28,7 +28,7 @@ from qward.visualization.constants import Metrics, Plots
 # Metric constants (prevents typos)
 Metrics.QISKIT              # "QiskitMetrics"
 Metrics.COMPLEXITY          # "ComplexityMetrics"
-Metrics.CIRCUIT_PERFORMANCE # "CircuitPerformance"
+Metrics.FIDELITY            # "FidelityMetrics"
 
 # Plot constants (IDE autocomplete) - Note: PascalCase for metric, UPPER_CASE for plot
 Plots.Qiskit.CIRCUIT_STRUCTURE      # "circuit_structure"
@@ -40,9 +40,9 @@ Plots.Complexity.GATE_BASED_METRICS # "gate_based_metrics"
 Plots.Complexity.COMPLEXITY_RADAR   # "complexity_radar"
 Plots.Complexity.EFFICIENCY_METRICS # "efficiency_metrics"
 
-Plots.CircuitPerformance.SUCCESS_ERROR_COMPARISON  # "success_error_comparison"
-Plots.CircuitPerformance.SHOT_DISTRIBUTION         # "shot_distribution"
-Plots.CircuitPerformance.AGGREGATE_SUMMARY         # "aggregate_summary"
+Plots.Fidelity.SUCCESS_ERROR_COMPARISON  # "success_error_comparison"
+Plots.Fidelity.SHOT_DISTRIBUTION         # "shot_distribution"
+Plots.Fidelity.AGGREGATE_SUMMARY         # "aggregate_summary"
 ```
 
 ## Visualizer Class
@@ -158,7 +158,7 @@ For direct access to specific visualizers:
 from qward.visualization import (
     QiskitVisualizer,
     ComplexityVisualizer,
-    CircuitPerformanceVisualizer
+    FidelityVisualizer
 )
 
 # Get metrics data
@@ -193,7 +193,7 @@ qiskit_viz.create_dashboard(save=True)
 | `complexity_radar` | Radar chart of normalized complexity |
 | `efficiency_metrics` | Parallelism and circuit efficiency |
 
-### CircuitPerformanceMetrics (3 plots)
+### FidelityMetrics (3 plots)
 | Plot | Description |
 |------|-------------|
 | `success_error_comparison` | Success vs error rate comparison |

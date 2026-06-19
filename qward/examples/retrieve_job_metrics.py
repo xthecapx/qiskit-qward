@@ -21,7 +21,7 @@ from qiskit.qpy import load
 from qiskit_ibm_runtime import QiskitRuntimeService
 
 from qward import Scanner
-from qward.metrics import CircuitPerformanceMetrics, ComplexityMetrics, QiskitMetrics
+from qward.metrics import FidelityMetrics, ComplexityMetrics, QiskitMetrics
 from qward.metrics.behavioral_metrics import BehavioralMetrics
 from qward.metrics.element_metrics import ElementMetrics
 from qward.metrics.structural_metrics import StructuralMetrics
@@ -212,7 +212,7 @@ def compute_post_metrics(
         if expected_outcomes:
             print(f"  [auto-detected expected_outcomes={expected_outcomes} from dominant count]")
 
-    perf = CircuitPerformanceMetrics(
+    perf = FidelityMetrics(
         circuit=circuit,
         job=job,
         expected_outcomes=expected_outcomes,
