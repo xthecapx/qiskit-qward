@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -149,7 +150,7 @@ class TestScanCLI(unittest.TestCase):
 
     def test_help(self):
         result = subprocess.run(
-            ["uv", "run", "-m", "qward.scan", "--help"],
+            [sys.executable, "-m", "qward.scan", "--help"],
             capture_output=True,
             text=True,
             check=False,
@@ -169,7 +170,7 @@ class TestScanCLI(unittest.TestCase):
 
         try:
             result = subprocess.run(
-                ["uv", "run", "-m", "qward.scan", "pre", "--circuit", qpy_path],
+                [sys.executable, "-m", "qward.scan", "pre", "--circuit", qpy_path],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -196,8 +197,7 @@ class TestScanCLI(unittest.TestCase):
         try:
             result = subprocess.run(
                 [
-                    "uv",
-                    "run",
+                    sys.executable,
                     "-m",
                     "qward.scan",
                     "counts",
