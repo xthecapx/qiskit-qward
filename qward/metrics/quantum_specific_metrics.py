@@ -154,7 +154,8 @@ class QuantumSpecificMetrics(MetricCalculator):
             instr = ci.operation
             qargs = ci.qubits
             if instr.name not in ["measure", "barrier", "reset"]:
-                qc_unitary.append(instr, qargs)
+                qubit_indices = [circuit.qubits.index(q) for q in qargs]
+                qc_unitary.append(instr, qubit_indices)
         return qc_unitary
 
     def _make_pauli_x_on_n(self, n_qubits: int, target: int) -> np.ndarray:
