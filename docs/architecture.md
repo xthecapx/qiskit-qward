@@ -49,7 +49,8 @@ classDiagram
 
     class FidelityMetrics {
         <<Concrete Strategy>>
-        +get_metrics() FidelitySchema
+        +get_metrics() FidelitySchema | EstimatorSchema
+        +primitive_type: str
     }
 
     class SchemaModule {
@@ -57,6 +58,7 @@ classDiagram
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
         +FidelitySchema
+        +EstimatorSchema
         +validate_data()
         +generate_json_schema()
         +to_flat_dict()
@@ -81,7 +83,7 @@ classDiagram
     note for MetricCalculator "Strategy Interface: Common interface returning validated schema objects"
     note for QiskitMetrics "Returns validated Qiskit-native metrics with type safety"
     note for ComplexityMetrics "Returns validated complexity analysis metrics with constraints"
-    note for FidelityMetrics "Returns validated execution performance metrics with cross-field validation"
+    note for FidelityMetrics "Auto-detects primitive type. Sampler→FidelitySchema, Estimator→EstimatorSchema"
     note for SchemaModule "Pydantic-based validation with automatic type checking and JSON schema generation"
 ```
 
@@ -258,6 +260,7 @@ classDiagram
         COMPLEXITY
         CIRCUIT_PERFORMANCE
         FIDELITY
+        ESTIMATOR
     }
 
     %% Strategy Pattern Relationships
@@ -300,10 +303,11 @@ The QWARD library is organized into the following folder structure:
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
 │   ├── types.py                # MetricsType and MetricsId enums
-│   ├── defaults.py             # Default metric configurations│    
+│   ├── defaults.py             # Default metric configurations
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   ├── circuit_performance.py  # FidelityMetrics implementation
+│   ├── fidelity_metrics.py     # FidelityMetrics (Sampler + Estimator unified)
+│   ├── estimator_metrics.py    # EstimatorMetrics (internal, used by FidelityMetrics)
 │   ├── behavioral_metrics.py   # BehavioralMetrics implementation
 │   ├── structural_metrics.py   # StructuralMetrics implementation
 │   ├── element_metrics.py      # ElementMetrics implementation
@@ -334,11 +338,17 @@ The QWARD library is organized into the following folder structure:
 │   ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
 │   ├── direct_strategy_example.py # Direct strategy usage examples
 │   └── visualization_quickstart.py # Quick visualization example
+├── scan/                       # High-level scan functions
+│   ├── __init__.py
+│   ├── _core.py                # scan_pre, scan_post (credential-free)
+│   └── _ibm.py                 # scan_job, scan_batch (IBM Quantum)
 └── schemas/                    # Pydantic schema definitions
     ├── behavioral_metrics_schema.py
     ├── circuit_performance_schema.py
     ├── complexity_metrics_schema.py
     ├── element_metrics_schema.py
+    ├── estimator_schema.py     # EstimatorSchema (expectation value metrics)
+    ├── fidelity_schema.py      # FidelitySchema (Sampler fidelity metrics)
     ├── legacy_schemas.py
     ├── loc_metrics_schema.py
     ├── qiskit_metrics_schema.py
@@ -379,7 +389,12 @@ The QiskitMetrics class extracts metrics directly from QuantumCircuit objects, i
 The ComplexityMetrics class calculates comprehensive circuit complexity metrics based on research literature, including gate-based metrics, entanglement metrics, standardized metrics, advanced metrics, and derived metrics. All metrics are validated through a `ComplexityMetricsSchema` with appropriate constraints and cross-field validation.
 
 ### FidelityMetrics
-The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results, including DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. It accepts either a job object or a raw counts dictionary with target state/histogram. The class returns a validated `FidelitySchema` object with all fields in [0,1] range.
+The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results. It automatically detects the primitive type (Sampler or Estimator) and computes appropriate metrics:
+
+- **Sampler path** (counts/histograms): DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. Returns a validated `FidelitySchema`.
+- **Estimator path** (expectation values): Success probability, observable fidelity, SNR, relative error, and depolarization factor. Returns a validated `EstimatorSchema`.
+
+It accepts a job object, raw counts dictionary, or raw expectation value arrays. Job primitive type is auto-detected from result structure (`data.evs` → Estimator, classical registers → Sampler).
 
 
 ### **ElementMetrics**

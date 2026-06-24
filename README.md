@@ -57,10 +57,12 @@ dashboards = visualizer.create_dashboard(save=True)
 
 - **Circuit Analysis**: Comprehensive metrics for quantum circuit complexity and structure
 - **Performance Monitoring**: Track success rates, fidelity, and execution statistics
+- **Dual Primitive Support**: Automatic detection of Sampler (counts) and Estimator (expectation values) results
 - **Visualization**: Rich, interactive plots and dashboards for metric analysis
 - **Schema Validation**: Type-safe metrics with Pydantic-based validation
 - **Extensible Architecture**: Plugin-based system for custom metrics and visualizations
 - **Multi-Backend Support**: Works with Qiskit Aer, IBM Quantum, and other providers
+- **Job Retrieval**: Analyze completed IBM Quantum jobs by ID with `scan_job`
 
 ## 🛠️ Installation
 
@@ -86,6 +88,7 @@ Explore comprehensive examples in the [`qward/examples/`](qward/examples/) direc
 - **[Circuit Performance](qward/examples/circuit_performance_demo.py)** - Performance analysis
 - **[Visualization Demo](qward/examples/visualization_demo.py)** - Visualization capabilities
 - **[Aer Integration](qward/examples/aer.py)** - Using QWARD with Qiskit Aer
+- **[Estimator on IBM QPU](qward/examples/estimator_ibm_experiment.py)** - Estimator primitive with real hardware
 
 ## 🧪 Development & Linting
 

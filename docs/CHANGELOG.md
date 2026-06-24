@@ -1,5 +1,31 @@
 # QWARD Changelog
 
+## Version 0.25.0 - Estimator Primitive Support (2026)
+
+### Estimator Metrics
+- **Unified FidelityMetrics**: Auto-detects primitive type (Sampler vs Estimator) from inputs or job results
+- **EstimatorMetrics**: Computes success probability, observable fidelity, SNR, relative error, and depolarization factor from expectation values
+- **EstimatorSchema**: Pydantic-validated schema with `to_flat_dict()` for DataFrame conversion
+- **Primitive type detection**: Checks for `data.evs` (Estimator) vs classical registers (Sampler)
+
+### scan_job / scan_batch Estimator Support
+- **Auto-detection**: `scan_job` and `scan_batch` now detect Estimator results automatically
+- **New parameters**: `ideal_expectation_values` and `observable_labels` for Estimator fidelity
+- **Metadata**: `_meta` DataFrame now includes `primitive_type` column
+- **Helper functions**: `detect_primitive_type_from_job()`, `extract_estimator_from_job()`
+
+### API
+- `scan_post()` accepts Estimator params (`expectation_values`, `standard_deviations`, `ideal_expectation_values`, `observable_labels`)
+- `FidelityMetrics.primitive_type` property returns `"sampler"`, `"estimator"`, or `"unknown"`
+- `counts` parameter in `scan_post` is now optional (was required positional)
+- Raises `ValueError` if both `counts` and `expectation_values` provided
+
+### Validation
+- Added `unsubscriptable-object` to `.pylintrc` global disable (Pydantic false positive)
+- 322 tests passing, pylint 10/10, mypy 0 errors
+
+---
+
 ## Version 0.9.0 - Simplified Unified API (2025)
 
 ### 🚀 **Complete API Simplification**
