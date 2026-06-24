@@ -257,7 +257,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;Fidelity metrics for quantum circuit output validation.</span>
 
 <span class="sd">Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate</span>
-<span class="sd">from execution results. Accepts either a job object or raw counts dictionary.</span>
+<span class="sd">from Sampler results, or expectation-value-based metrics from Estimator results.</span>
+<span class="sd">Automatically detects the primitive type from the provided inputs.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
@@ -280,35 +281,49 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">FidelityMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post-runtime fidelity metrics for quantum circuit outputs.</span>
 
-<span class="sd">    Supports two usage modes:</span>
-<span class="sd">    - With a job object (AerJob or RuntimeJobV2)</span>
-<span class="sd">    - With raw counts dictionary (no credentials needed)</span>
+<span class="sd">    Handles both Qiskit primitive types automatically:</span>
+<span class="sd">    - **Sampler** (counts/histograms): DSR, Hellinger fidelity, TVD, success rate</span>
+<span class="sd">    - **Estimator** (expectation values): success probability, observable fidelity,</span>
+<span class="sd">      SNR, depolarization factor</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        # From counts (credential-free)</span>
+<span class="sd">        # Sampler path — from counts</span>
 <span class="sd">        fm = FidelityMetrics(circuit, counts={&quot;00&quot;: 900, &quot;11&quot;: 100}, target_state=&quot;00&quot;)</span>
-<span class="sd">        schema = fm.get_metrics()</span>
 
-<span class="sd">        # From job</span>
-<span class="sd">        fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=[&quot;00&quot;])</span>
-<span class="sd">        schema = fm.get_metrics()</span>
+<span class="sd">        # Sampler path — from job</span>
+<span class="sd">        fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[&quot;00&quot;])</span>
+
+<span class="sd">        # Estimator path — from values</span>
+<span class="sd">        fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))</span>
+
+<span class="sd">        # Estimator path — from job (auto-detected)</span>
+<span class="sd">        fm = FidelityMetrics(circuit, job=estimator_job)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">JobType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">jobs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">counts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">expected_outcomes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">target_histogram</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">target_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">success_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expectation_values</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">standard_deviations</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ideal_expectation_values</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">observable_labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Provide either &#39;counts&#39; (Sampler) or &#39;expectation_values&#39; (Estimator), not both.&quot;</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide either &#39;job&#39;/&#39;jobs&#39; or &#39;counts&#39;, not both.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide either &#39;job&#39; or &#39;expectation_values&#39;, not both.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_success_criteria</span> <span class="o">=</span> <span class="n">success_criteria</span>
@@ -316,6 +331,11 @@
         <span class="k">if</span> <span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">job</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="o">=</span> <span class="n">expectation_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_standard_deviations</span> <span class="o">=</span> <span class="n">standard_deviations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ideal_expectation_values</span> <span class="o">=</span> <span class="n">ideal_expectation_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observable_labels</span> <span class="o">=</span> <span class="n">observable_labels</span>
 
         <span class="k">if</span> <span class="n">target_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">expected_outcomes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -326,6 +346,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span> <span class="o">=</span> <span class="n">expected_outcomes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_histogram</span> <span class="o">=</span> <span class="n">target_histogram</span>
 
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">primitive_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detected primitive type: &#39;sampler&#39;, &#39;estimator&#39;, or &#39;unknown&#39;.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;estimator&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_job_primitive_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">POST_RUNTIME</span>
 
@@ -335,36 +368,53 @@
 <div class="viewcode-block" id="FidelityMetrics.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FidelityMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FidelitySchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute all fidelity metrics and return validated schema.&quot;&quot;&quot;</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_counts</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">FidelitySchema</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_schema</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity metrics based on detected primitive type.</span>
+
+<span class="sd">        Returns FidelitySchema for Sampler results, EstimatorSchema for Estimator results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive_type</span>
+        <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">&quot;estimator&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_estimator_metrics</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_sampler_metrics</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FidelityMetrics.get_metrics_all">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FidelitySchema</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity metrics for each job. Returns one schema per job.</span>
 
 <span class="sd">        When using counts (no jobs), returns a single-element list.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()]</span>
 
-        <span class="n">schemas</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">schemas</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
-            <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_counts</span><span class="p">(</span><span class="n">job</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
-                <span class="n">schemas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FidelitySchema</span><span class="p">())</span>
-                <span class="k">continue</span>
-            <span class="n">schemas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_schema</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span>
+            <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_job_primitive_type</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">&quot;estimator&quot;</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.estimator_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimatorMetrics</span>
+
+                <span class="n">em</span> <span class="o">=</span> <span class="n">EstimatorMetrics</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
+                    <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+                    <span class="n">ideal_expectation_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ideal_expectation_values</span><span class="p">,</span>
+                    <span class="n">observable_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_observable_labels</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">schemas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">em</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_counts</span><span class="p">(</span><span class="n">job</span><span class="p">))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
+                    <span class="n">schemas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FidelitySchema</span><span class="p">())</span>
+                    <span class="k">continue</span>
+                <span class="n">schemas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute_schema</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">schemas</span></div>
 
 
@@ -381,6 +431,52 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_sampler_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FidelitySchema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sampler path: compute from measurement counts.&quot;&quot;&quot;</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_counts</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">FidelitySchema</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_schema</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_estimator_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimator path: delegate to EstimatorMetrics.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.estimator_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimatorMetrics</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">em</span> <span class="o">=</span> <span class="n">EstimatorMetrics</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
+                <span class="n">expectation_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span><span class="p">,</span>
+                <span class="n">standard_deviations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_standard_deviations</span><span class="p">,</span>
+                <span class="n">ideal_expectation_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ideal_expectation_values</span><span class="p">,</span>
+                <span class="n">observable_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_observable_labels</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">em</span> <span class="o">=</span> <span class="n">EstimatorMetrics</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
+                <span class="n">job</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span><span class="p">,</span>
+                <span class="n">ideal_expectation_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ideal_expectation_values</span><span class="p">,</span>
+                <span class="n">observable_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_observable_labels</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">em</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_job_primitive_type</span><span class="p">(</span><span class="n">job</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect if a job produced Sampler or Estimator results.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">job</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;__getitem__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;evs&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s2">&quot;estimator&quot;</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">FidelitySchema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity schema from already-normalized counts.&quot;&quot;&quot;</span>

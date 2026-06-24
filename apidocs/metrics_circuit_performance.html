@@ -307,22 +307,28 @@
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.fidelity_metrics" title="Link to this heading">¶</a></h2>
 <p>Fidelity metrics for quantum circuit output validation.</p>
 <p>Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate
-from execution results. Accepts either a job object or raw counts dictionary.</p>
+from Sampler results, or expectation-value-based metrics from Estimator results.
+Automatically detects the primitive type from the provided inputs.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
 <p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
-<p>Supports two usage modes:
-- With a job object (AerJob or RuntimeJobV2)
-- With raw counts dictionary (no credentials needed)</p>
+<p>Handles both Qiskit primitive types automatically:
+- <strong>Sampler</strong> (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
+- <strong>Estimator</strong> (expectation values): success probability, observable fidelity,</p>
+<blockquote>
+<div><p>SNR, depolarization factor</p>
+</div></blockquote>
 <p class="rubric">Example</p>
-<p># From counts (credential-free)
-fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)
-schema = fm.get_metrics()</p>
-<p># From job
-fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=[“00”])
-schema = fm.get_metrics()</p>
+<p># Sampler path — from counts
+fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)</p>
+<p># Sampler path — from job
+fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[“00”])</p>
+<p># Estimator path — from values
+fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))</p>
+<p># Estimator path — from job (auto-detected)
+fm = FidelityMetrics(circuit, job=estimator_job)</p>
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -343,10 +349,11 @@ schema = fm.get_metrics()</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics" title="Link to this definition">¶</a></dt>
-<dd><p>Compute all fidelity metrics and return validated schema.</p>
+<dd><p>Compute fidelity metrics based on detected primitive type.</p>
+<p>Returns FidelitySchema for Sampler results, EstimatorSchema for Estimator results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -358,7 +365,7 @@ schema = fm.get_metrics()</p>
 <p>When using counts (no jobs), returns a single-element list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -377,23 +384,39 @@ schema = fm.get_metrics()</p>
 </dl>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.primitive_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">primitive_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.primitive_type" title="Link to this definition">¶</a></dt>
+<dd><p>‘sampler’, ‘estimator’, or ‘unknown’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Detected primitive type</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
 <p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
-<p>Supports two usage modes:
-- With a job object (AerJob or RuntimeJobV2)
-- With raw counts dictionary (no credentials needed)</p>
+<p>Handles both Qiskit primitive types automatically:
+- <strong>Sampler</strong> (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
+- <strong>Estimator</strong> (expectation values): success probability, observable fidelity,</p>
+<blockquote>
+<div><p>SNR, depolarization factor</p>
+</div></blockquote>
 <p class="rubric">Example</p>
-<p># From counts (credential-free)
-fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)
-schema = fm.get_metrics()</p>
-<p># From job
-fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=[“00”])
-schema = fm.get_metrics()</p>
+<p># Sampler path — from counts
+fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)</p>
+<p># Sampler path — from job
+fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[“00”])</p>
+<p># Estimator path — from values
+fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))</p>
+<p># Estimator path — from job (auto-detected)
+fm = FidelityMetrics(circuit, job=estimator_job)</p>
 <p>Initialize a MetricCalculator object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -428,10 +451,11 @@ schema = fm.get_metrics()</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id2">
 <span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
-<dd><p>Compute all fidelity metrics and return validated schema.</p>
+<dd><p>Compute fidelity metrics based on detected primitive type.</p>
+<p>Returns FidelitySchema for Sampler results, EstimatorSchema for Estimator results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -443,7 +467,7 @@ schema = fm.get_metrics()</p>
 <p>When using counts (no jobs), returns a single-element list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FidelitySchema</span></code>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -478,14 +502,14 @@ schema = fm.get_metrics()</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics.metric_type">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id18" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.metric_type" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">metric_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metrics_base.html#id19" title="qward.metrics.types.MetricsType"><span class="pre">MetricsType</span></a></em><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics.metric_type" title="Link to this definition">¶</a></dt>
 <dd><p>Get the type of this metric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The type of this metric</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id18" title="qward.metrics.types.MetricsType">MetricsType</a></p>
+<dd class="field-even"><p><a class="reference internal" href="metrics_base.html#id19" title="qward.metrics.types.MetricsType">MetricsType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -500,6 +524,17 @@ schema = fm.get_metrics()</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id5">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">primitive_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd><p>‘sampler’, ‘estimator’, or ‘unknown’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Detected primitive type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -571,6 +606,7 @@ schema = fm.get_metrics()</p>
 <li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.get_metrics_all()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.is_ready"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.is_ready()</span></code></a></li>
+<li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.primitive_type"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.primitive_type</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code></a><ul>
@@ -582,6 +618,7 @@ schema = fm.get_metrics()</p>
 <li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.is_ready()</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.metric_type"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.metric_type</span></code></a></li>
 <li><a class="reference internal" href="#qward.metrics.fidelity_metrics.FidelityMetrics.name"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.name</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.primitive_type</span></code></a></li>
 </ul>
 </li>
 </ul>
