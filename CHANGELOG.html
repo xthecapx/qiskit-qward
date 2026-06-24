@@ -261,6 +261,44 @@
         <article role="main" id="furo-main-content">
           <section id="qward-changelog">
 <h1>QWARD Changelog<a class="headerlink" href="#qward-changelog" title="Link to this heading">¶</a></h1>
+<section id="version-0-25-0-estimator-primitive-support-2026">
+<h2>Version 0.25.0 - Estimator Primitive Support (2026)<a class="headerlink" href="#version-0-25-0-estimator-primitive-support-2026" title="Link to this heading">¶</a></h2>
+<section id="estimator-metrics">
+<h3>Estimator Metrics<a class="headerlink" href="#estimator-metrics" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Unified FidelityMetrics</strong>: Auto-detects primitive type (Sampler vs Estimator) from inputs or job results</p></li>
+<li><p><strong>EstimatorMetrics</strong>: Computes success probability, observable fidelity, SNR, relative error, and depolarization factor from expectation values</p></li>
+<li><p><strong>EstimatorSchema</strong>: Pydantic-validated schema with <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> for DataFrame conversion</p></li>
+<li><p><strong>Primitive type detection</strong>: Checks for <code class="docutils literal notranslate"><span class="pre">data.evs</span></code> (Estimator) vs classical registers (Sampler)</p></li>
+</ul>
+</section>
+<section id="scan-job-scan-batch-estimator-support">
+<h3>scan_job / scan_batch Estimator Support<a class="headerlink" href="#scan-job-scan-batch-estimator-support" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Auto-detection</strong>: <code class="docutils literal notranslate"><span class="pre">scan_job</span></code> and <code class="docutils literal notranslate"><span class="pre">scan_batch</span></code> now detect Estimator results automatically</p></li>
+<li><p><strong>New parameters</strong>: <code class="docutils literal notranslate"><span class="pre">ideal_expectation_values</span></code> and <code class="docutils literal notranslate"><span class="pre">observable_labels</span></code> for Estimator fidelity</p></li>
+<li><p><strong>Metadata</strong>: <code class="docutils literal notranslate"><span class="pre">_meta</span></code> DataFrame now includes <code class="docutils literal notranslate"><span class="pre">primitive_type</span></code> column</p></li>
+<li><p><strong>Helper functions</strong>: <code class="docutils literal notranslate"><span class="pre">detect_primitive_type_from_job()</span></code>, <code class="docutils literal notranslate"><span class="pre">extract_estimator_from_job()</span></code></p></li>
+</ul>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scan_post()</span></code> accepts Estimator params (<code class="docutils literal notranslate"><span class="pre">expectation_values</span></code>, <code class="docutils literal notranslate"><span class="pre">standard_deviations</span></code>, <code class="docutils literal notranslate"><span class="pre">ideal_expectation_values</span></code>, <code class="docutils literal notranslate"><span class="pre">observable_labels</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FidelityMetrics.primitive_type</span></code> property returns <code class="docutils literal notranslate"><span class="pre">&quot;sampler&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;estimator&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">counts</span></code> parameter in <code class="docutils literal notranslate"><span class="pre">scan_post</span></code> is now optional (was required positional)</p></li>
+<li><p>Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if both <code class="docutils literal notranslate"><span class="pre">counts</span></code> and <code class="docutils literal notranslate"><span class="pre">expectation_values</span></code> provided</p></li>
+</ul>
+</section>
+<section id="validation">
+<h3>Validation<a class="headerlink" href="#validation" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">unsubscriptable-object</span></code> to <code class="docutils literal notranslate"><span class="pre">.pylintrc</span></code> global disable (Pydantic false positive)</p></li>
+<li><p>322 tests passing, pylint 10/10, mypy 0 errors</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
 <section id="version-0-9-0-simplified-unified-api-2025">
 <h2>Version 0.9.0 - Simplified Unified API (2025)<a class="headerlink" href="#version-0-9-0-simplified-unified-api-2025" title="Link to this heading">¶</a></h2>
 <section id="complete-api-simplification">
@@ -1093,6 +1131,13 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">QWARD Changelog</a><ul>
+<li><a class="reference internal" href="#version-0-25-0-estimator-primitive-support-2026">Version 0.25.0 - Estimator Primitive Support (2026)</a><ul>
+<li><a class="reference internal" href="#estimator-metrics">Estimator Metrics</a></li>
+<li><a class="reference internal" href="#scan-job-scan-batch-estimator-support">scan_job / scan_batch Estimator Support</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+<li><a class="reference internal" href="#validation">Validation</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#version-0-9-0-simplified-unified-api-2025">Version 0.9.0 - Simplified Unified API (2025)</a><ul>
 <li><a class="reference internal" href="#complete-api-simplification">🚀 <strong>Complete API Simplification</strong></a><ul>
 <li><a class="reference internal" href="#unified-schema-based-api">Unified Schema-Based API</a></li>

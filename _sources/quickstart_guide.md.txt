@@ -161,21 +161,55 @@ print(f"Weighted complexity: {metrics.derived_metrics.weighted_complexity}")
 ```
 
 ### FidelityMetrics
-Analyzes execution performance:
+Analyzes execution performance from both Qiskit primitive types:
 
 ```python
-# Requires job execution results
-circuit_performance = FidelityMetrics(circuit=circuit, job=job)
-metrics = circuit_performance.get_metrics()
+# Sampler path — from measurement counts
+fm = FidelityMetrics(circuit=circuit, counts={"00": 900, "11": 100}, target_state="00")
+schema = fm.get_metrics()  # Returns FidelitySchema
+print(f"DSR: {schema.dsr:.3f}")
+print(f"Success rate: {schema.success_rate:.3f}")
+print(f"Hellinger fidelity: {schema.hellinger_fidelity:.3f}")
 
-# Success analysis
-print(f"Success rate: {metrics.success_metrics.success_rate:.3f}")
-print(f"Error rate: {metrics.success_metrics.error_rate:.3f}")
-print(f"Successful shots: {metrics.success_metrics.successful_shots}")
+# Estimator path — from expectation values
+import numpy as np
+fm = FidelityMetrics(
+    circuit=circuit,
+    expectation_values=np.array([0.95, -0.02]),
+    standard_deviations=np.array([0.01, 0.03]),
+    ideal_expectation_values=np.array([1.0, 0.0]),
+    observable_labels=["ZZ", "XI"],
+)
+schema = fm.get_metrics()  # Returns EstimatorSchema
+print(f"Observable fidelity: {schema.mean_observable_fidelity:.3f}")
+print(f"SNR: {schema.mean_snr:.1f}")
+print(f"Depolarization factor: {schema.depolarization_factor:.3f}")
 
-# Statistical analysis
-print(f"Entropy: {metrics.statistical_metrics.entropy:.3f}")
-print(f"Uniformity: {metrics.statistical_metrics.uniformity:.3f}")
+# Job auto-detection — works with both primitives
+fm = FidelityMetrics(circuit=circuit, job=job)
+print(f"Detected primitive: {fm.primitive_type}")  # "sampler" or "estimator"
+```
+
+### Analyzing IBM Quantum Jobs by ID
+
+Retrieve and analyze completed IBM Quantum jobs without re-running them:
+
+```python
+from qward.scan import scan_job
+import numpy as np
+
+# Sampler job — provide expected outcomes
+results = scan_job("your-job-id", target_state="00")
+print(results["FidelityMetrics"])  # DSR, success_rate, HF, TVD
+
+# Estimator job — auto-detected, provide ideal values for fidelity
+results = scan_job(
+    "your-estimator-job-id",
+    ideal_expectation_values=np.array([1.0, 1.0, 0.0]),
+    observable_labels=["ZZZ", "XXX", "XZX"],
+)
+print(results["FidelityMetrics"])  # observable_fidelity, SNR, depolarization
+print(results["_meta"])  # job_id, backend, primitive_type
 ```
 
 ## Custom Success Criteria

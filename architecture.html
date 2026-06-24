@@ -308,7 +308,8 @@
 
     class FidelityMetrics {
         &lt;&lt;Concrete Strategy&gt;&gt;
-        +get_metrics() FidelitySchema
+        +get_metrics() FidelitySchema | EstimatorSchema
+        +primitive_type: str
     }
 
     class SchemaModule {
@@ -316,6 +317,7 @@
         +QiskitMetricsSchema
         +ComplexityMetricsSchema
         +FidelitySchema
+        +EstimatorSchema
         +validate_data()
         +generate_json_schema()
         +to_flat_dict()
@@ -340,7 +342,7 @@
     note for MetricCalculator &quot;Strategy Interface: Common interface returning validated schema objects&quot;
     note for QiskitMetrics &quot;Returns validated Qiskit-native metrics with type safety&quot;
     note for ComplexityMetrics &quot;Returns validated complexity analysis metrics with constraints&quot;
-    note for FidelityMetrics &quot;Returns validated execution performance metrics with cross-field validation&quot;
+    note for FidelityMetrics &quot;Auto-detects primitive type. Sampler→FidelitySchema, Estimator→EstimatorSchema&quot;
     note for SchemaModule &quot;Pydantic-based validation with automatic type checking and JSON schema generation&quot;
     </pre><section id="key-points">
 <h3>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h3>
@@ -517,6 +519,7 @@
         COMPLEXITY
         CIRCUIT_PERFORMANCE
         FIDELITY
+        ESTIMATOR
     }
 
     %% Strategy Pattern Relationships
@@ -556,10 +559,11 @@
 │   ├── __init__.py
 │   ├── base_metric.py          # Base MetricCalculator class
 │   ├── types.py                # MetricsType and MetricsId enums
-│   ├── defaults.py             # Default metric configurations│    
+│   ├── defaults.py             # Default metric configurations
 │   ├── qiskit_metrics.py       # QiskitMetrics implementation
 │   ├── complexity_metrics.py   # ComplexityMetrics implementation
-│   ├── circuit_performance.py  # FidelityMetrics implementation
+│   ├── fidelity_metrics.py     # FidelityMetrics (Sampler + Estimator unified)
+│   ├── estimator_metrics.py    # EstimatorMetrics (internal, used by FidelityMetrics)
 │   ├── behavioral_metrics.py   # BehavioralMetrics implementation
 │   ├── structural_metrics.py   # StructuralMetrics implementation
 │   ├── element_metrics.py      # ElementMetrics implementation
@@ -590,11 +594,17 @@
 │   ├── visualization_demo.py   # CircuitPerformanceVisualizer demo
 │   ├── direct_strategy_example.py # Direct strategy usage examples
 │   └── visualization_quickstart.py # Quick visualization example
+├── scan/                       # High-level scan functions
+│   ├── __init__.py
+│   ├── _core.py                # scan_pre, scan_post (credential-free)
+│   └── _ibm.py                 # scan_job, scan_batch (IBM Quantum)
 └── schemas/                    # Pydantic schema definitions
     ├── behavioral_metrics_schema.py
     ├── circuit_performance_schema.py
     ├── complexity_metrics_schema.py
     ├── element_metrics_schema.py
+    ├── estimator_schema.py     # EstimatorSchema (expectation value metrics)
+    ├── fidelity_schema.py      # FidelitySchema (Sampler fidelity metrics)
     ├── legacy_schemas.py
     ├── loc_metrics_schema.py
     ├── qiskit_metrics_schema.py
@@ -644,7 +654,12 @@
 </section>
 <section id="fidelitymetrics">
 <h3>FidelityMetrics<a class="headerlink" href="#fidelitymetrics" title="Link to this heading">¶</a></h3>
-<p>The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results, including DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. It accepts either a job object or a raw counts dictionary with target state/histogram. The class returns a validated <code class="docutils literal notranslate"><span class="pre">FidelitySchema</span></code> object with all fields in [0,1] range.</p>
+<p>The FidelityMetrics class calculates fidelity metrics for quantum circuits from execution results. It automatically detects the primitive type (Sampler or Estimator) and computes appropriate metrics:</p>
+<ul class="simple">
+<li><p><strong>Sampler path</strong> (counts/histograms): DSR (Michelson contrast), Hellinger fidelity, TVD, and success rate. Returns a validated <code class="docutils literal notranslate"><span class="pre">FidelitySchema</span></code>.</p></li>
+<li><p><strong>Estimator path</strong> (expectation values): Success probability, observable fidelity, SNR, relative error, and depolarization factor. Returns a validated <code class="docutils literal notranslate"><span class="pre">EstimatorSchema</span></code>.</p></li>
+</ul>
+<p>It accepts a job object, raw counts dictionary, or raw expectation value arrays. Job primitive type is auto-detected from result structure (<code class="docutils literal notranslate"><span class="pre">data.evs</span></code> → Estimator, classical registers → Sampler).</p>
 </section>
 <section id="elementmetrics">
 <h3><strong>ElementMetrics</strong><a class="headerlink" href="#elementmetrics" title="Link to this heading">¶</a></h3>
