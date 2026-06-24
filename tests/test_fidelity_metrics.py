@@ -384,5 +384,96 @@ class TestFidelityMetricsMultiJob(unittest.TestCase):
             )
 
 
+class TestFidelityMetricsEstimatorPath(unittest.TestCase):
+    """Test FidelityMetrics with Estimator primitive inputs."""
+
+    def setUp(self):
+        self.circuit = QuantumCircuit(2)
+        self.circuit.h(0)
+        self.circuit.cx(0, 1)
+
+    def test_expectation_values_returns_estimator_schema(self):
+        import numpy as np
+        from qward.schemas.estimator_schema import EstimatorSchema
+
+        fm = FidelityMetrics(self.circuit, expectation_values=np.array([1.0, 0.0]))
+        schema = fm.get_metrics()
+        self.assertIsInstance(schema, EstimatorSchema)
+        self.assertEqual(schema.num_observables, 2)
+
+    def test_primitive_type_detected(self):
+        import numpy as np
+
+        fm_sampler = FidelityMetrics(self.circuit, counts={"00": 500, "11": 500})
+        self.assertEqual(fm_sampler.primitive_type, "sampler")
+
+        fm_estimator = FidelityMetrics(self.circuit, expectation_values=np.array([0.9]))
+        self.assertEqual(fm_estimator.primitive_type, "estimator")
+
+    def test_counts_and_evs_raises(self):
+        import numpy as np
+
+        with self.assertRaises(ValueError):
+            FidelityMetrics(
+                self.circuit,
+                counts={"00": 500},
+                expectation_values=np.array([1.0]),
+            )
+
+    def test_job_auto_detection_estimator(self):
+        import numpy as np
+        from qiskit.primitives import StatevectorEstimator
+        from qiskit.quantum_info import SparsePauliOp
+        from qward.schemas.estimator_schema import EstimatorSchema
+
+        estimator = StatevectorEstimator()
+        obs = SparsePauliOp.from_list([("ZZ", 1.0)])
+        job = estimator.run([(self.circuit, [obs])])
+
+        fm = FidelityMetrics(self.circuit, job=job)
+        self.assertEqual(fm.primitive_type, "estimator")
+        schema = fm.get_metrics()
+        self.assertIsInstance(schema, EstimatorSchema)
+        self.assertAlmostEqual(schema.expectation_values[0], 1.0, places=10)
+
+    def test_job_auto_detection_sampler(self):
+        circuit = QuantumCircuit(2)
+        circuit.h(0)
+        circuit.cx(0, 1)
+        circuit.measure_all()
+
+        sim = AerSimulator()
+        job = sim.run(circuit, shots=1024)
+
+        fm = FidelityMetrics(circuit, job=job, expected_outcomes=["00", "11"])
+        self.assertEqual(fm.primitive_type, "sampler")
+        schema = fm.get_metrics()
+        self.assertIsInstance(schema, FidelitySchema)
+
+    def test_estimator_with_ideal_values(self):
+        import numpy as np
+        from qward.schemas.estimator_schema import EstimatorSchema
+
+        fm = FidelityMetrics(
+            self.circuit,
+            expectation_values=np.array([0.8]),
+            ideal_expectation_values=np.array([1.0]),
+        )
+        schema = fm.get_metrics()
+        self.assertIsInstance(schema, EstimatorSchema)
+        self.assertAlmostEqual(schema.observable_fidelities[0], 0.9)
+        self.assertAlmostEqual(schema.depolarization_factor, 0.8)
+
+    def test_is_ready_with_evs(self):
+        import numpy as np
+
+        fm = FidelityMetrics(self.circuit, expectation_values=np.array([0.5]))
+        self.assertTrue(fm.is_ready())
+
+    def test_is_ready_no_input(self):
+        fm = FidelityMetrics(self.circuit)
+        self.assertFalse(fm.is_ready())
+
+
 if __name__ == "__main__":
     unittest.main()
