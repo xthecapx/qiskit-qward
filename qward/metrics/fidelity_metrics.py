@@ -1,7 +1,8 @@
 """Fidelity metrics for quantum circuit output validation.
 
 Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate
-from execution results. Accepts either a job object or raw counts dictionary.
+from Sampler results, or expectation-value-based metrics from Estimator results.
+Automatically detects the primitive type from the provided inputs.
 """
 
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -22,35 +23,49 @@ JobType = Union[AerJob, RuntimeJobV2]
 class FidelityMetrics(MetricCalculator):
     """Post-runtime fidelity metrics for quantum circuit outputs.
 
-    Supports two usage modes:
-    - With a job object (AerJob or RuntimeJobV2)
-    - With raw counts dictionary (no credentials needed)
+    Handles both Qiskit primitive types automatically:
+    - **Sampler** (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
+    - **Estimator** (expectation values): success probability, observable fidelity,
+      SNR, depolarization factor
 
     Example:
-        # From counts (credential-free)
+        # Sampler path — from counts
         fm = FidelityMetrics(circuit, counts={"00": 900, "11": 100}, target_state="00")
-        schema = fm.get_metrics()
 
-        # From job
-        fm = FidelityMetrics(circuit, job=aer_job, expected_outcomes=["00"])
-        schema = fm.get_metrics()
+        # Sampler path — from job
+        fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=["00"])
+
+        # Estimator path — from values
+        fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))
+
+        # Estimator path — from job (auto-detected)
+        fm = FidelityMetrics(circuit, job=estimator_job)
     """
 
     def __init__(
         self,
         circuit: QuantumCircuit,
         *,
-        job: Optional[JobType] = None,
+        job: Optional[Any] = None,
         jobs: Optional[List[JobType]] = None,
         counts: Optional[Dict[str, int]] = None,
         expected_outcomes: Optional[List[str]] = None,
         target_histogram: Optional[Dict[str, float]] = None,
         target_state: Optional[str] = None,
         success_criteria: Optional[Callable[[str], bool]] = None,
+        expectation_values: Optional[np.ndarray] = None,
+        standard_deviations: Optional[np.ndarray] = None,
+        ideal_expectation_values: Optional[np.ndarray] = None,
+        observable_labels: Optional[List[str]] = None,
     ):
-        super().__init__(circuit)
+        if counts is not None and expectation_values is not None:
+            raise ValueError(
+                "Provide either 'counts' (Sampler) or 'expectation_values' (Estimator), not both."
+            )
         if counts is not None and (job is not None or jobs is not None):
             raise ValueError("Provide either 'job'/'jobs' or 'counts', not both.")
+        if expectation_values is not None and (job is not None or jobs is not None):
+            raise ValueError("Provide either 'job' or 'expectation_values', not both.")
 
         self._counts = counts
         self._success_criteria = success_criteria
@@ -58,6 +73,11 @@ class FidelityMetrics(MetricCalculator):
         if job is not None and job not in self._jobs:
             self._jobs.append(job)
         self._job = self._jobs[0] if self._jobs else None
+
+        self._expectation_values = expectation_values
+        self._standard_deviations = standard_deviations
+        self._ideal_expectation_values = ideal_expectation_values
+        self._observable_labels = observable_labels
 
         if target_state is not None:
             if expected_outcomes is None:
@@ -68,6 +88,19 @@ class FidelityMetrics(MetricCalculator):
         self._expected_outcomes = expected_outcomes
         self._target_histogram = target_histogram
 
+        super().__init__(circuit)
+
+    @property
+    def primitive_type(self) -> str:
+        """Detected primitive type: 'sampler', 'estimator', or 'unknown'."""
+        if self._expectation_values is not None:
+            return "estimator"
+        if self._counts is not None:
+            return "sampler"
+        if self._job is not None:
+            return self._detect_job_primitive_type(self._job)
+        return "unknown"
+
     def _get_metric_type(self) -> MetricsType:
         return MetricsType.POST_RUNTIME
 
@@ -75,30 +108,47 @@ class FidelityMetrics(MetricCalculator):
         return MetricsId.FIDELITY
 
     def is_ready(self) -> bool:
-        return self.circuit is not None and (len(self._jobs) > 0 or self._counts is not None)
+        return self.circuit is not None and (
+            len(self._jobs) > 0 or self._counts is not None or self._expectation_values is not None
+        )
 
-    def get_metrics(self) -> FidelitySchema:
-        """Compute all fidelity metrics and return validated schema."""
-        counts = self._resolve_counts()
-        if not counts:
-            return FidelitySchema()
-        return self._compute_schema(counts)
+    def get_metrics(self) -> Any:
+        """Compute fidelity metrics based on detected primitive type.
 
-    def get_metrics_all(self) -> List[FidelitySchema]:
+        Returns FidelitySchema for Sampler results, EstimatorSchema for Estimator results.
+        """
+        ptype = self.primitive_type
+        if ptype == "estimator":
+            return self._compute_estimator_metrics()
+        return self._compute_sampler_metrics()
+
+    def get_metrics_all(self) -> List[Any]:
         """Compute fidelity metrics for each job. Returns one schema per job.
 
         When using counts (no jobs), returns a single-element list.
         """
-        if self._counts is not None or len(self._jobs) <= 1:
+        if self._counts is not None or self._expectation_values is not None or len(self._jobs) <= 1:
             return [self.get_metrics()]
 
-        schemas = []
+        schemas: List[Any] = []
         for job in self._jobs:
-            counts = self._normalize_keys(self._extract_counts(job))
-            if not counts:
-                schemas.append(FidelitySchema())
-                continue
-            schemas.append(self._compute_schema(counts))
+            ptype = self._detect_job_primitive_type(job)
+            if ptype == "estimator":
+                from qward.metrics.estimator_metrics import EstimatorMetrics
+
+                em = EstimatorMetrics(
+                    self.circuit,
+                    job=job,
+                    ideal_expectation_values=self._ideal_expectation_values,
+                    observable_labels=self._observable_labels,
+                )
+                schemas.append(em.get_metrics())
+            else:
+                counts = self._normalize_keys(self._extract_counts(job))
+                if not counts:
+                    schemas.append(FidelitySchema())
+                    continue
+                schemas.append(self._compute_schema(counts))
         return schemas
 
     def add_job(self, job: Union[JobType, List[JobType]]) -> None:
@@ -111,6 +161,52 @@ class FidelityMetrics(MetricCalculator):
             self._jobs.append(job)
         if not self._job and self._jobs:
             self._job = self._jobs[0]
+
+    def _compute_sampler_metrics(self) -> FidelitySchema:
+        """Sampler path: compute from measurement counts."""
+        counts = self._resolve_counts()
+        if not counts:
+            return FidelitySchema()
+        return self._compute_schema(counts)
+
+    def _compute_estimator_metrics(self) -> Any:
+        """Estimator path: delegate to EstimatorMetrics."""
+        from qward.metrics.estimator_metrics import EstimatorMetrics
+
+        if self._expectation_values is not None:
+            em = EstimatorMetrics(
+                self.circuit,
+                expectation_values=self._expectation_values,
+                standard_deviations=self._standard_deviations,
+                ideal_expectation_values=self._ideal_expectation_values,
+                observable_labels=self._observable_labels,
+            )
+        else:
+            em = EstimatorMetrics(
+                self.circuit,
+                job=self._job,
+                ideal_expectation_values=self._ideal_expectation_values,
+                observable_labels=self._observable_labels,
+            )
+        return em.get_metrics()
+
+    @staticmethod
+    def _detect_job_primitive_type(job: Any) -> str:
+        """Detect if a job produced Sampler or Estimator results."""
+        try:
+            result = job.result() if hasattr(job, "result") else job
+            if hasattr(result, "__getitem__") and len(result) > 0:
+                pub_result = result[0]
+            elif hasattr(result, "data"):
+                pub_result = result
+            else:
+                return "sampler"
+
+            if hasattr(pub_result, "data") and hasattr(pub_result.data, "evs"):
+                return "estimator"
+        except Exception:
+            pass
+        return "sampler"
 
     def _compute_schema(self, counts: Dict[str, int]) -> FidelitySchema:
         """Compute fidelity schema from already-normalized counts."""
