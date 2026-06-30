@@ -330,6 +330,8 @@ Finally, the scope of this research goes beyond a predictive model to deliver a 
 
 The execution of quantum circuits on NISQ hardware is inherently stochastic, expensive, and opaque. Developers are required to deploy their quantum circuits on a QPU without knowing in advance whether the resulting outputs will be informative or valid, while each execution utilizes limited and expensive computational resources\footnote{For instance, as of June 2025, IBM offers services starting at \$1.60 USD per second for pay-as-you-go access (see \url{https://www.ibm.com/quantum/pricing}), while Amazon Braket charges a \$0.30 per-task fee plus a variable per-shot fee for on-demand QPU access (see \url{https://aws.amazon.com/braket/pricing/}).}. This reality demands methods that can provide quantitative insight into a circuit's expected behavior before committing to execution.
 
+This economic barrier is amplified by the cloud-based delivery model that currently dominates access to QC resources \cite{mnaathrIntegratingQuantumComputing}. The QPU resources are accessed via remote cloud services due to hardware limitations and deployment constraints. Pre-runtime quality estimation addresses this challenge by enabling developers to estimate circuit performance before its execution in a quantum provider, thereby reducing unnecessary executions and focusing costly cloud resources on circuits more likely to produce meaningful results.
+
 As discussed in Section~\ref{section:introduction}, existing benchmarks such as Quantum Volume \cite{proctorBenchmarkingQuantumComputers2025_2025} characterize hardware capability but do not provide circuit-specific predictive insights \cite{millsApplicationMotivatedHolistic2021}. This transforms every execution into an experiment with uncertain return, hindering the adoption of quantum computing as a reliable engineering tool.
 
 The central problem addressed by this thesis is the absence of a quality model that links the structural properties of a quantum circuit to its expected execution outcomes \cite{Piattini2020, Serrano2022}. Without such a model, developers lack the tools to \emph{(i)} estimate whether a given circuit will produce meaningful results on a target device, \emph{(ii)} compare the expected quality across different providers, and \emph{(iii)} make informed design decisions before incurring execution costs.
@@ -356,8 +358,7 @@ The objective of this thesis is to verify the hypotheses delineated below.
 \item \textbf{Cross-Provider Transferability:} A single predictive model trained using the circuit footprint generalizes across different quantum providers.
 \label{h:3}
 
-% matizar que los benchmark son complementarios, que no interfieren unos con otros. moverme en un marco mas amplico, para tener la hipotesis en un espectro mas grande
-\item \textbf{Paradigm-Specific Hardware Suitability:} Predictive models trained on paradigm-specific circuit executions produce better hardware-suitability evaluations than models trained on random-circuit benchmarks.
+\item \textbf{Complementary Benchmarking Signal:} Paradigm-specific circuit executions provide complementary information about algorithm execution quality that is not fully captured by random-circuit benchmarks alone.
 \label{h:4}
 \end{enumerate}
 
@@ -377,9 +378,11 @@ The objective of this thesis is to verify the hypotheses delineated below.
 \item To evaluate the generalizability and soundness of the models by comparing their predicted quality attributes against ground-truth data obtained from real execution on quantum hardware, using unobserved circuit configurations that preserve the structural characteristics of the selected algorithmic primitives.
 \label{o:3}
 
-\item To determine whether paradigm-specific circuit scaling provides more accurate and meaningful characterization compared with random-circuit volumetric scaling.
+\item To determine whether paradigm-specific circuit executions contribute complementary predictive information beyond what random-circuit volumetric benchmarks capture.
 \label{o:4}
 \end{enumerate}
+
+The hypotheses will be validated according to the plan defined in \ref{section:work}. In summary, hypothesis~\ref{h:1} is tested by constructing the circuit footprint and measuring its predictive accuracy against post-runtime metrics. Hypothesis~\ref{h:2} is evaluated by testing whether models trained on selected circuit instances generalize to unobserved configurations within the same algorithmic paradigms. Hypothesis~\ref{h:3} is examined through cross-provider prediction experiments that compare circuit-only, calibration-only, and mixed feature configurations. Finally, Hypothesis~\ref{h:4} is evaluated by comparing random-circuit-only, paradigm-specific-only, and combined training configurations, determining whether paradigm-specific executions contribute to predictive signals not captured by random-circuit benchmarks alone.
 
 \section{Research Methodology}
 \label{section:methodology}
@@ -403,7 +406,7 @@ The foundation for this research was established through a systematic mapping st
 
 Building on the findings of the mapping study, a subsequent study focusing on quantum software development tools revealed a clear disconnection between the theoretical metrics proposed in academia and their practical implementation. This gap directly motivated the development of qWard \cite{marquezQwardUnifiedToolkit_2025, QiskitqwardFrameworkAnalyzing}, a Python library designed to facilitate the quality analysis of quantum algorithms.
 
-In order to empirically validate the metric-based methodology, the next experiment supporting this thesis was named "Teleportation Protocol Variant for Single-QPU Benchmarking" \cite{ieeevTp2025}. This empirical study, conducted on IBM and Rigetti quantum platforms, systematically tested circuit reliability. It identified a strong and predictable link between the structural characteristics of the circuit before runtime---payload size and circuit depth---and the observed success rates during post runtime. These findings provided the first layer of evidence that specific circuit design choices have a quantifiable impact on execution reliability.
+As an initial empirical step toward the metric-based methodology, the next experiment supporting this thesis was named "Teleportation Protocol Variant for Single-QPU Benchmarking" \cite{ieeevTp2025}. This empirical study, conducted on IBM and Rigetti quantum platforms, systematically tested circuit reliability. It identified a strong and predictable link between the structural characteristics of the circuit before runtime---payload size and circuit depth---and the observed success rates during post runtime. These findings provided the first layer of evidence that specific circuit design choices have a quantifiable impact on execution reliability.
 
 The experimental data produced during these studies have been published as open datasets to ensure reproducibility and support future research. The first dataset \cite{data_1} contains 292 QPU execution records from the IBM Sherbrooke QPU, covering the vTP pilot experiment with payload sizes from 1 to 10 qubits. The second dataset \cite{data_2} extends the scope to 1,281 QPU executions across three algorithms (GO, QFT, and vTP) on IBM Quantum and AWS (Rigetti Ankaa-3), including raw measurement histograms, expected quantum states, backend metadata, circuit parameters, and pre-computed fidelity metrics (e.g., DSR, HF, and TVD).
 
@@ -538,7 +541,7 @@ Statistical & dominant\_outcome\_probability & Probability of the most frequent 
 \subsection{Teleportation Protocol Variant Experiment (IEEE Access)}
 \label{subsection:vtp}
 
-This study \cite{ieeevTp2025} was designed to validate the relationship between the pre-runtime and post-runtime metrics, thereby supporting the validation of \ref{h:1}. The experiment included the creation of a benchmarking framework to systematically test circuit reliability by measuring success rates across different configurations. To this end, we designed a variation of the teleportation protocol, referred to as vTP, that enables testing of quantum teleportation on a single QPU.
+This study \cite{ieeevTp2025} provided preliminary empirical evidence of a relationship between selected pre-runtime circuit characteristics and post-runtime execution outcomes. The experiment included the creation of a benchmarking framework to systematically test circuit reliability by measuring success rates across different configurations. To this end, we designed a variation of the teleportation protocol, referred to as vTP, that enables testing of quantum teleportation on a single QPU.
 
 The validation of a successful quantum state teleportation was based on the mathematical property of unitary matrices, where the inverse is equal to the conjugate transpose, expressed as $U^{*}U=I$. Using this principle, a successful state transfer should produce a zero measurement on the message qubit. This criterion provided a measurable indicator of circuit reliability over all experimental runs.
 
@@ -549,7 +552,7 @@ The results of this research provided the first layer of evidence that circuit d
 \subsection{Machine Learning for Quantum Circuit Quality Prediction}
 \label{subsec:ml-prediction}
 
-Together, the three studies above demonstrated that pre-runtime circuit metrics exhibit statistical correlations, suggesting a generalization capacity to predict post-runtime execution metrics. In summary, the systematic mapping study identified the research opportunity. The qWard library provided the tooling for metric extraction and classification. Finally, the vTP experiment revealed a correlation between the circuit structure and the execution reliability. 
+Together, the three studies above motivate the predictive framework developed in this thesis. The systematic mapping study identified the research opportunity, the qWard library provided the tooling for metric extraction and classification, and the vTP experiment provided preliminary evidence that selected circuit-structure metrics correlate with execution reliability.
 
 Figure~\ref{fig:framework-overview} provides an overview of the machine learning pipeline, which is divided into five conceptual modules. (1) the Experimental Space, comprising six target algorithms executed on three quantum computing services; (2) the qWard Library, employed to extract pre-runtime metrics; (3) the Footprint Validation stage, which identifies for each target the most predictive subset of metrics; (4) the ML Validation stage, in which seven regression models are trained; and (5) the post-runtime target metrics (DSR, HF, TVD), used as ground-truth labels, linked within a loop that closes the evaluation cycle.
 
@@ -897,7 +900,7 @@ The research plan is presented as ten phases, three of which have been completed
         \item \label{p8:t1} Execute target algorithms on real hardware to collect validation data.
         \item \label{p8:t2} Compare predicted vs.\ observed quality metrics.
         \item \label{p8:t3} Compare results across pre-runtime-only, hardware-only, and mixed configurations.
-        \item \label{p8:t4} Compare paradigm-trained models against random-circuit-trained models.
+        \item \label{p8:t4} Compare random-circuit-only, paradigm-specific-only, and combined training configurations.
         \item \label{p8:t5} Quantify predictive power and document limitations.
     \end{enumerate}
     \textbf{Acceptance Criteria:}
@@ -905,7 +908,7 @@ The research plan is presented as ten phases, three of which have been completed
         \item Validation dataset from new QPU executions collected.
         \item Generalization within paradigms validated (\ref{h:2}).
         \item Cross-provider prediction assessed across input configurations (\ref{h:3}).
-        \item Paradigm-specific vs.\ random-circuit characterization compared (\ref{h:4}).
+        \item Complementary predictive value of paradigm-specific and random-circuit executions assessed (\ref{h:4}).
         \item Results reported using $R^2$, $MAE$, and $RMSE$.
     \end{itemize} \\
     \midrule
