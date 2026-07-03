@@ -91,7 +91,24 @@ setuptools.setup(
             "black==26.1.0",
             "pylint==4.0.4",
             "mypy==1.19.1",
-        ]
+        ],
+        # AWS Braket support. Pulls the qbraid/braket/pytket stack, which is heavy
+        # and, in older resolutions, drags in ancient numba/llvmlite that cannot
+        # build on modern Python. Only install when you need AWS backends.
+        "aws": [
+            "qbraid[braket]==0.11.0",
+            "qiskit-braket-provider>=0.11.0",
+        ],
+        # Torch-based metrics (imported lazily by QuantumSpecificMetrics).
+        "torch": [
+            "torch==2.8.0",
+        ],
+        # Convenience: install every optional feature at once.
+        "all": [
+            "qbraid[braket]==0.11.0",
+            "qiskit-braket-provider>=0.11.0",
+            "torch==2.8.0",
+        ],
     },
     include_package_data=True,
     python_requires=">=3.11",
