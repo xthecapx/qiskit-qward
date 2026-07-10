@@ -33,6 +33,7 @@ from qward.metrics.differential_success_rate import (
     compute_dsr_log_ratio,
     compute_dsr_normalized_margin,
     compute_dsr_with_flags,
+    DSRProfiler,
 )
 from .noise_generator import NoiseConfig, NoiseModelGenerator
 
@@ -103,12 +104,14 @@ class IBMBatchResult:
 class AWSJobResult:
     """Result from an AWS Braket job execution.
 
-    The primary quality metric is the Differential Success Rate (DSR), computed
-    from the observed counts and the caller-supplied ``expected_outcomes``.  All
-    four DSR variants (Michelson, ratio, log-ratio, normalized margin) are stored
-    so downstream analyses can pick the contrast measure that best fits their
-    needs.  A ``peak_mismatch`` flag indicates whether the highest-count outcome
-    was *not* among the expected outcomes.
+    The primary quality indicator is the **DSR evaluation profile**: ``success_rate``,
+    ``chance_corrected_success``, ``coarse_tvd_similarity``, and
+    ``coarse_hellinger_fidelity``, all computed only from the observed counts and the
+    caller-supplied ``expected_outcomes`` (no simulated ideal histogram required). The
+    original Michelson-contrast DSR and its ratio/log-ratio/normalized-margin variants
+    are also stored as an optional fifth "peak-contrast" layer, so downstream analyses
+    can pick the contrast measure that best fits their needs. A ``peak_mismatch`` flag
+    indicates whether the highest-count outcome was *not* among the expected outcomes.
     """
 
     job_id: str
@@ -117,7 +120,15 @@ class AWSJobResult:
     counts: Optional[Dict[str, int]] = None
     circuit_depth: int = 0
     original_circuit_depth: int = 0
-    # DSR metrics (primary quality indicator)
+    # DSR profile (histogram-free, task-level evaluation; primary quality indicator)
+    success_rate: Optional[float] = None
+    chance_baseline: Optional[float] = None
+    chance_corrected_success: Optional[float] = None
+    coarse_tvd: Optional[float] = None
+    coarse_tvd_similarity: Optional[float] = None
+    coarse_hellinger_distance: Optional[float] = None
+    coarse_hellinger_fidelity: Optional[float] = None
+    # Optional fifth "peak-contrast" layer (Michelson DSR + variants)
     dsr_michelson: Optional[float] = None
     dsr_ratio: Optional[float] = None
     dsr_log_ratio: Optional[float] = None
@@ -1230,10 +1241,11 @@ class QuantumCircuitExecutor:
         expected_outcomes: Optional[List[str]],
         show_progress: bool = True,
     ) -> Dict[str, Any]:
-        """Compute all DSR variants from raw counts and expected outcomes.
+        """Compute the DSR evaluation profile plus the optional Michelson
+        "peak-contrast" layer from raw counts and expected outcomes.
 
         Returns a dict suitable for unpacking into an ``AWSJobResult`` constructor
-        (keys match the DSR field names of the dataclass).
+        (keys match the field names of the dataclass).
 
         Args:
             counts: Measurement outcome counts (little-endian / Qiskit convention)
@@ -1241,11 +1253,24 @@ class QuantumCircuitExecutor:
             show_progress: Whether to print warnings on failure
 
         Returns:
-            Dict with keys ``dsr_michelson``, ``dsr_ratio``, ``dsr_log_ratio``,
-            ``dsr_normalized_margin``, and ``peak_mismatch``.  All values are
-            ``None`` when ``expected_outcomes`` is not provided or counts are empty.
+            Dict with the four DSR-profile keys (``success_rate``,
+            ``chance_baseline``, ``chance_corrected_success``, ``coarse_tvd``,
+            ``coarse_tvd_similarity``, ``coarse_hellinger_distance``,
+            ``coarse_hellinger_fidelity``) plus the optional Michelson layer
+            (``dsr_michelson``, ``dsr_ratio``, ``dsr_log_ratio``,
+            ``dsr_normalized_margin``, ``peak_mismatch``). All values are
+            ``None`` when ``expected_outcomes`` is not provided, counts are
+            empty, or the number of measured qubits cannot be inferred from
+            inconsistent bitstring lengths.
         """
         empty: Dict[str, Any] = {
+            "success_rate": None,
+            "chance_baseline": None,
+            "chance_corrected_success": None,
+            "coarse_tvd": None,
+            "coarse_tvd_similarity": None,
+            "coarse_hellinger_distance": None,
+            "coarse_hellinger_fidelity": None,
             "dsr_michelson": None,
             "dsr_ratio": None,
             "dsr_log_ratio": None,
@@ -1257,8 +1282,16 @@ class QuantumCircuitExecutor:
             return empty
 
         try:
+            profile = DSRProfiler(counts, expected_outcomes).profile()
             dsr_michelson_val, peak_mismatch_val = compute_dsr_with_flags(counts, expected_outcomes)
             return {
+                "success_rate": profile.success_rate,
+                "chance_baseline": profile.chance_baseline,
+                "chance_corrected_success": profile.chance_corrected_success,
+                "coarse_tvd": profile.coarse_tvd,
+                "coarse_tvd_similarity": profile.coarse_tvd_similarity,
+                "coarse_hellinger_distance": profile.coarse_hellinger_distance,
+                "coarse_hellinger_fidelity": profile.coarse_hellinger_fidelity,
                 "dsr_michelson": float(dsr_michelson_val),
                 "dsr_ratio": float(compute_dsr_ratio(counts, expected_outcomes)),
                 "dsr_log_ratio": float(compute_dsr_log_ratio(counts, expected_outcomes)),
@@ -1269,7 +1302,7 @@ class QuantumCircuitExecutor:
             }
         except Exception as e:
             if show_progress:
-                print(f">>> Warning: Could not compute DSR: {e}")
+                print(f">>> Warning: Could not compute DSR profile: {e}")
             return empty
 
     @staticmethod
@@ -1415,9 +1448,18 @@ class QuantumCircuitExecutor:
                 pct = (count / total) * 100
                 print(f"  |{outcome}⟩: {count} ({pct:.1f}%)")
 
-        # Display DSR metrics
+        # Display DSR profile (histogram-free, task-level evaluation)
+        if result.success_rate is not None:
+            print(f"\n--- DSR Profile (expected: {result.expected_outcomes}) ---")
+            print(f"  Success rate:              {result.success_rate:.4f}")
+            print(f"  Chance baseline:           {result.chance_baseline:.4f}")
+            print(f"  Chance-corrected success:  {result.chance_corrected_success:.4f}")
+            print(f"  Coarse TVD similarity:     {result.coarse_tvd_similarity:.4f}")
+            print(f"  Coarse Hellinger fidelity: {result.coarse_hellinger_fidelity:.4f}")
+
+        # Display optional Michelson "peak-contrast" layer
         if result.dsr_michelson is not None:
-            print(f"\n--- DSR Metrics (expected: {result.expected_outcomes}) ---")
+            print("\n--- DSR Peak-Contrast Layer (optional, Michelson) ---")
             print(f"  DSR Michelson:         {result.dsr_michelson:.4f}")
             print(f"  DSR Ratio:             {result.dsr_ratio:.4f}")
             print(f"  DSR Log-Ratio:         {result.dsr_log_ratio:.4f}")

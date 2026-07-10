@@ -18,6 +18,8 @@ from qward.metrics import (
     StructuralMetrics,
     BehavioralMetrics,
     QuantumSpecificMetrics,
+    DSRProfiler,
+    compute_dsr_profile,
     get_all_pre_runtime_strategies,
     get_default_strategies,
 )
@@ -39,6 +41,8 @@ __all__ = [
     "StructuralMetrics",
     "BehavioralMetrics",
     "QuantumSpecificMetrics",
+    "DSRProfiler",
+    "compute_dsr_profile",
     "ScanResult",
     "Scanner",
     "Visualizer",

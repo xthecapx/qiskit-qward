@@ -3,12 +3,17 @@ Build a unified DSR_result.csv from JSON files (Grover/QFT) and CSV files
 (Teleportation).
 
 JSON is the single source of truth for Grover and QFT experiments — all
-pre-computed metrics (DSR variants, Hellinger fidelity, TVD) are read
-directly from the enriched individual_results.
+pre-computed metrics (the DSR profile, the optional Michelson layer,
+Hellinger fidelity, TVD) are read directly from the enriched
+individual_results (see ``enrich_dsr_profile.py`` / ``enrich_hellinger.py``).
 
 Teleportation data lives in CSV files (different schema, no JSON equivalent).
-DSR is computed on the fly; Hellinger/TVD are computed from the delta ideal
-distribution (the single expected state), so HF = TVD-F = p(expected_state).
+The DSR profile and Michelson layer are computed on the fly via
+``DSRProfiler``. Because teleportation has a single expected outcome (K=1),
+the coarse profile components collapse exactly to the full-distribution
+Hellinger fidelity / TVD fidelity (see math notes / paper): HF = TVD-F =
+coarse_hellinger_fidelity = coarse_tvd_similarity = success_rate =
+p(expected_state).
 
 This script replaces running ``differential_success_rate_experiment.py``
 manually and supersedes the old two-CSV setup (DSR_result.csv +
@@ -32,6 +37,8 @@ from differential_success_rate_experiment import (
     _expected_from_config,
 )
 
+from qward.metrics.differential_success_rate import DSRProfiler
+
 # ── Column order ──────────────────────────────────────────────────────────────
 
 FIELDNAMES = [
@@ -51,10 +58,21 @@ FIELDNAMES = [
     "expected_outcomes",
     "histogram",
     "peak_mismatch",
+    # DSR profile (histogram-free, task-level evaluation)
+    "success_rate",
+    "chance_baseline",
+    "chance_corrected_success",
+    "coarse_tvd",
+    "coarse_tvd_similarity",
+    "coarse_hellinger_distance",
+    "coarse_hellinger_fidelity",
+    # Optional fifth "peak-contrast" layer (Michelson DSR + variants)
     "dsr_michelson",
     "dsr_ratio",
     "dsr_log_ratio",
     "dsr_normalized_margin",
+    # Full-distribution fidelity metrics (require a simulated ideal histogram;
+    # small circuits only)
     "hellinger_fidelity",
     "hellinger_distance",
     "tvd",
@@ -128,6 +146,13 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
                 "expected_outcomes": ",".join(expected),
                 "histogram": json.dumps(counts, sort_keys=True),
                 "peak_mismatch": str(bool(result.get("peak_mismatch", False))),
+                "success_rate": _fmt(result.get("success_rate")),
+                "chance_baseline": _fmt(result.get("chance_baseline")),
+                "chance_corrected_success": _fmt(result.get("chance_corrected_success")),
+                "coarse_tvd": _fmt(result.get("coarse_tvd")),
+                "coarse_tvd_similarity": _fmt(result.get("coarse_tvd_similarity")),
+                "coarse_hellinger_distance": _fmt(result.get("coarse_hellinger_distance")),
+                "coarse_hellinger_fidelity": _fmt(result.get("coarse_hellinger_fidelity")),
                 "dsr_michelson": _fmt(result.get("dsr_michelson")),
                 "dsr_ratio": _fmt(result.get("dsr_ratio")),
                 "dsr_log_ratio": _fmt(result.get("dsr_log_ratio")),
@@ -168,12 +193,14 @@ def _collect_json_paths() -> List[Path]:
 
 
 def _compute_teleportation_fidelity(row: Dict[str, str]) -> None:
-    """Compute Hellinger fidelity, Hellinger distance, TVD, and TVD fidelity
-    for a teleportation row.
+    """Compute the DSR profile plus full-distribution Hellinger/TVD for a
+    teleportation row.
 
     For teleportation the ideal output is a single deterministic state
-    (e.g. '000'), so the ideal distribution is a delta function. Under a delta
-    ideal: HF = TVD-F = p(expected_state).
+    (e.g. '000'), so K=1 and the coarse profile components collapse exactly
+    to the full-distribution metrics computed here under a delta ideal:
+    success_rate = coarse_tvd_similarity = coarse_hellinger_fidelity =
+    HF = TVD-F = p(expected_state).
 
     Wide histograms (keys longer than num_qubits, caused by full-circuit
     measurement on AWS) are marginalized to the last *num_qubits* bits before
@@ -225,6 +252,26 @@ def _compute_teleportation_fidelity(row: Dict[str, str]) -> None:
     row["tvd"] = _fmt(tvd)
     row["tvd_fidelity"] = _fmt(tvd_fid)
 
+    # DSR profile (canonical implementation; K=1 here so it is consistent
+    # with the full-distribution numbers above by construction).
+    try:
+        profile = DSRProfiler(
+            hist, [expected_state], num_measured_qubits=nq, include_michelson=True
+        ).profile()
+    except ValueError:
+        return
+
+    row["success_rate"] = _fmt(profile.success_rate)
+    row["chance_baseline"] = _fmt(profile.chance_baseline)
+    row["chance_corrected_success"] = _fmt(profile.chance_corrected_success)
+    row["coarse_tvd"] = _fmt(profile.coarse_tvd)
+    row["coarse_tvd_similarity"] = _fmt(profile.coarse_tvd_similarity)
+    row["coarse_hellinger_distance"] = _fmt(profile.coarse_hellinger_distance)
+    row["coarse_hellinger_fidelity"] = _fmt(profile.coarse_hellinger_fidelity)
+    # Refresh the optional Michelson layer from the same canonical path.
+    row["dsr_michelson"] = _fmt(profile.dsr_michelson)
+    row["peak_mismatch"] = str(bool(profile.peak_mismatch))
+
 
 def _teleportation_rows_with_fidelity(
     teleportation_dir: Path,
@@ -236,10 +283,20 @@ def _teleportation_rows_with_fidelity(
     for row in rows:
         _compute_teleportation_fidelity(row)
         # Ensure columns exist even if computation failed
-        row.setdefault("hellinger_fidelity", "")
-        row.setdefault("hellinger_distance", "")
-        row.setdefault("tvd", "")
-        row.setdefault("tvd_fidelity", "")
+        for field in (
+            "hellinger_fidelity",
+            "hellinger_distance",
+            "tvd",
+            "tvd_fidelity",
+            "success_rate",
+            "chance_baseline",
+            "chance_corrected_success",
+            "coarse_tvd",
+            "coarse_tvd_similarity",
+            "coarse_hellinger_distance",
+            "coarse_hellinger_fidelity",
+        ):
+            row.setdefault(field, "")
 
     return rows
 
