@@ -1,11 +1,14 @@
 """Fidelity metrics for quantum circuit output validation.
 
-Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate
-from Sampler results, or expectation-value-based metrics from Estimator results.
-Automatically detects the primitive type from the provided inputs.
+Computes the DSR evaluation profile (success rate, chance-corrected
+success, coarse TVD similarity, coarse Hellinger fidelity), the optional
+Michelson "peak-contrast" DSR layer, full-histogram Hellinger fidelity/TVD,
+and success rate from Sampler results, or expectation-value-based metrics
+from Estimator results. Automatically detects the primitive type from the
+provided inputs.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -13,7 +16,7 @@ from qiskit_aer import AerJob
 from qiskit_ibm_runtime import RuntimeJobV2
 
 from qward.metrics.base_metric import MetricCalculator
-from qward.metrics.differential_success_rate import compute_dsr_with_flags
+from qward.metrics.differential_success_rate import DSRProfiler, compute_dsr_with_flags
 from qward.metrics.types import MetricsId, MetricsType
 from qward.schemas.fidelity_schema import FidelitySchema
 
@@ -24,9 +27,21 @@ class FidelityMetrics(MetricCalculator):
     """Post-runtime fidelity metrics for quantum circuit outputs.
 
     Handles both Qiskit primitive types automatically:
-    - **Sampler** (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
-    - **Estimator** (expectation values): success probability, observable fidelity,
-      SNR, depolarization factor
+    - **Sampler** (counts/histograms): the DSR evaluation profile (success
+      rate, chance-corrected success, coarse TVD similarity, coarse
+      Hellinger fidelity), the optional Michelson "peak-contrast" DSR layer,
+      and (when a ``target_histogram`` is supplied) the full-distribution
+      Hellinger fidelity and TVD.
+    - **Estimator** (expectation values): success probability, observable
+      fidelity, SNR, depolarization factor
+
+    The DSR profile (``chance_corrected_success``, ``coarse_tvd_similarity``,
+    ``coarse_hellinger_fidelity``, plus ``success_rate``) only requires
+    ``expected_outcomes`` -- never a simulated ideal histogram. It is
+    computed whenever ``expected_outcomes`` is provided and
+    ``num_measured_qubits`` can be inferred from the observed bitstrings (or
+    is supplied explicitly); see ``num_measured_qubits`` / ``expected_weights``
+    below.
 
     Example:
         # Sampler path — from counts
@@ -34,6 +49,14 @@ class FidelityMetrics(MetricCalculator):
 
         # Sampler path — from job
         fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=["00"])
+
+        # Multi-marked target with a non-uniform reference distribution over E
+        fm = FidelityMetrics(
+            circuit,
+            counts=counts,
+            expected_outcomes=["001", "010", "100"],
+            expected_weights={"001": 0.5, "010": 0.25, "100": 0.25},
+        )
 
         # Estimator path — from values
         fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))
@@ -57,6 +80,10 @@ class FidelityMetrics(MetricCalculator):
         standard_deviations: Optional[np.ndarray] = None,
         ideal_expectation_values: Optional[np.ndarray] = None,
         observable_labels: Optional[List[str]] = None,
+        num_measured_qubits: Optional[int] = None,
+        expected_weights: Optional[Mapping[str, float]] = None,
+        include_dsr_profile: bool = True,
+        include_michelson: bool = True,
     ):
         if counts is not None and expectation_values is not None:
             raise ValueError(
@@ -87,6 +114,10 @@ class FidelityMetrics(MetricCalculator):
 
         self._expected_outcomes = expected_outcomes
         self._target_histogram = target_histogram
+        self._num_measured_qubits = num_measured_qubits
+        self._expected_weights = expected_weights
+        self._include_dsr_profile = include_dsr_profile
+        self._include_michelson = include_michelson
 
         super().__init__(circuit)
 
@@ -220,12 +251,18 @@ class FidelityMetrics(MetricCalculator):
 
         if self._expected_outcomes:
             result["expected_outcomes"] = self._expected_outcomes
-            dsr, peak_mismatch = compute_dsr_with_flags(counts, self._expected_outcomes)
-            result["dsr"] = round(dsr, 6)
-            result["peak_mismatch"] = peak_mismatch
+
+            if self._include_michelson:
+                dsr, peak_mismatch = compute_dsr_with_flags(counts, self._expected_outcomes)
+                result["dsr"] = round(dsr, 6)
+                result["peak_mismatch"] = peak_mismatch
 
             success_count = sum(counts.get(o, 0) for o in self._expected_outcomes)
             result["success_rate"] = round(success_count / total, 6) if total > 0 else None
+
+            if self._include_dsr_profile:
+                profile_fields = self._compute_dsr_profile_fields(counts)
+                result.update(profile_fields)
 
         if self._success_criteria and not self._expected_outcomes:
             success_count = sum(c for state, c in counts.items() if self._success_criteria(state))
@@ -240,6 +277,34 @@ class FidelityMetrics(MetricCalculator):
             result["tvd_fidelity"] = round(1.0 - tvd, 6)
 
         return FidelitySchema(**result)
+
+    def _compute_dsr_profile_fields(self, counts: Dict[str, int]) -> Dict[str, Any]:
+        """Compute the chance-corrected/coarse-metric components of the DSR
+        profile. Never raises: returns {} if the profile cannot be computed
+        (e.g. inconsistent bitstring lengths and no explicit
+        ``num_measured_qubits``), since these fields are additive and must
+        not break existing ``FidelityMetrics`` usage.
+        """
+        try:
+            profiler = DSRProfiler(
+                counts,
+                self._expected_outcomes,
+                num_measured_qubits=self._num_measured_qubits,
+                expected_weights=self._expected_weights,
+                include_michelson=False,
+            )
+            profile = profiler.profile()
+        except ValueError:
+            return {}
+
+        return {
+            "chance_baseline": profile.chance_baseline,
+            "chance_corrected_success": profile.chance_corrected_success,
+            "coarse_tvd": profile.coarse_tvd,
+            "coarse_tvd_similarity": profile.coarse_tvd_similarity,
+            "coarse_hellinger_distance": profile.coarse_hellinger_distance,
+            "coarse_hellinger_fidelity": profile.coarse_hellinger_fidelity,
+        }
 
     def _resolve_counts(self) -> Dict[str, int]:
         """Get counts from either direct input or job extraction.
