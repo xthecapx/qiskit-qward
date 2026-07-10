@@ -994,8 +994,15 @@ def _render_combined_depth(
     algorithms: List[str],
     filtered_data: Dict[str, List[Dict[str, str]]],
     depth_cap: Optional[int] = None,
+    metric_field: str = "dsr_michelson",
+    metric_label: str = "DSR",
 ) -> None:
-    """Render a depth-binned DSR boxplot onto *ax*."""
+    """Render a depth-binned boxplot of *metric_field* onto *ax*.
+
+    Defaults to the legacy Michelson DSR for backward compatibility; pass
+    ``metric_field="chance_corrected_success"`` (profile) to reproduce the
+    same figure with the histogram-free profile component instead.
+    """
     bin_sz = _COMBINED_DEPTH_BIN
     cap = depth_cap if depth_cap is not None else _COMBINED_DEPTH_CAP
 
@@ -1005,11 +1012,11 @@ def _render_combined_depth(
         binned: Dict[int, List[float]] = {}
         for r in filtered_data.get(algo, []):
             d = _to_float(r.get("transpiled_depth", ""))
-            dsr = _to_float(r.get("dsr_michelson", ""))
-            if d is None or dsr is None or d > cap:
+            metric_val = _to_float(r.get(metric_field, ""))
+            if d is None or metric_val is None or d > cap:
                 continue
             b = int((d // bin_sz) * bin_sz)
-            binned.setdefault(b, []).append(dsr)
+            binned.setdefault(b, []).append(metric_val)
         algo_binned[algo] = binned
         all_bins.update(binned.keys())
 
@@ -1062,7 +1069,7 @@ def _render_combined_depth(
     ax.set_xlim(-0.5, len(bins_sorted) - 0.5)
 
     ax.set_xlabel("Depth", fontsize=LABEL_SIZE, fontweight="bold")
-    ax.set_ylabel("DSR", fontsize=LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel(metric_label, fontsize=LABEL_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
 
@@ -1080,8 +1087,16 @@ def _render_combined_depth(
 def _plot_combined_depth_comparison(
     rows: List[Dict[str, str]],
     output_dir: Path,
+    metric_field: str = "dsr_michelson",
+    metric_label: str = "DSR",
+    filename_prefix: str = "1_combined_dsr_comparison_depth",
 ) -> None:
-    """Create separate IBM and Rigetti depth-binned DSR plots."""
+    """Create separate IBM and Rigetti depth-binned plots of *metric_field*.
+
+    Defaults reproduce the original Michelson-DSR figures; pass
+    ``metric_field="chance_corrected_success"`` with a distinct
+    ``filename_prefix`` to additionally generate the profile-based versions.
+    """
     ibm_rows, aws_rows = _split_by_provider(rows)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1089,10 +1104,10 @@ def _plot_combined_depth_comparison(
     ibm_algos, _, ibm_data = _prepare_combined_data(ibm_rows, optimization_levels=None)
     if ibm_data:
         fig, ax = plt.subplots(figsize=(15, 6))
-        _render_combined_depth(ax, ibm_algos, ibm_data)
+        _render_combined_depth(ax, ibm_algos, ibm_data, metric_field=metric_field, metric_label=metric_label)
         plt.tight_layout()
         fig.savefig(
-            output_dir / "1_combined_dsr_comparison_depth_ibm.png",
+            output_dir / f"{filename_prefix}_ibm.png",
             dpi=300,
             bbox_inches="tight",
             facecolor="white",
@@ -1103,10 +1118,12 @@ def _plot_combined_depth_comparison(
     aws_algos, _, aws_data = _prepare_combined_data(aws_rows, optimization_levels=None)
     if aws_data:
         fig, ax = plt.subplots(figsize=(15, 6))
-        _render_combined_depth(ax, aws_algos, aws_data, depth_cap=300)
+        _render_combined_depth(
+            ax, aws_algos, aws_data, depth_cap=300, metric_field=metric_field, metric_label=metric_label
+        )
         plt.tight_layout()
         fig.savefig(
-            output_dir / "1_combined_dsr_comparison_depth_aws.png",
+            output_dir / f"{filename_prefix}_aws.png",
             dpi=300,
             bbox_inches="tight",
             facecolor="white",
@@ -1117,8 +1134,16 @@ def _plot_combined_depth_comparison(
 def _plot_qft_heatmap_by_optimization(
     rows: List[Dict[str, str]],
     output_dir: Path,
+    metric_field: str = "dsr_michelson",
+    metric_label: str = r"$\widetilde{\mathbf{DSR}}$",
+    filename: str = "1_combined_dsr_qft_heatmap_optimization.png",
 ) -> None:
-    """Heatmap of median QFT DSR: optimization level (y) vs qubits (x)."""
+    """Heatmap of median *metric_field* for QFT: optimization level (y) vs qubits (x).
+
+    Defaults reproduce the original Michelson-DSR heatmap; pass
+    ``metric_field="chance_corrected_success"`` with a distinct ``filename``
+    to additionally generate the profile-based version.
+    """
     from matplotlib.colors import LinearSegmentedColormap
 
     qft_rows = [r for r in rows if r.get("algorithm") == "QFT"]
@@ -1139,9 +1164,9 @@ def _plot_qft_heatmap_by_optimization(
         grouped: Dict[float, List[float]] = {}
         for r in opt_rows:
             x = _to_float(r.get("num_qubits", ""))
-            dsr = _to_float(r.get("dsr_michelson", ""))
-            if x is not None and dsr is not None:
-                grouped.setdefault(x, []).append(dsr)
+            metric_val = _to_float(r.get(metric_field, ""))
+            if x is not None and metric_val is not None:
+                grouped.setdefault(x, []).append(metric_val)
         grouped_all[ol] = grouped
         all_xs.update(grouped.keys())
 
@@ -1191,12 +1216,12 @@ def _plot_qft_heatmap_by_optimization(
     apply_axes_defaults(ax)
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label(r"$\widetilde{\mathbf{DSR}}$", fontsize=LABEL_SIZE, labelpad=8)
+    cbar.set_label(metric_label, fontsize=LABEL_SIZE, labelpad=8)
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(
-        output_dir / "1_combined_dsr_qft_heatmap_optimization.png",
+        output_dir / filename,
         dpi=300,
         bbox_inches="tight",
         facecolor="white",
@@ -1684,6 +1709,25 @@ def main() -> int:
     print("Generated combined comparison plot (depth)")
     _plot_qft_heatmap_by_optimization(ibm_rows, args.out_dir)
     print("Generated QFT heatmap by optimization level")
+
+    # Profile-based counterparts (chance-corrected success), for the DSR-profile
+    # manuscript delta: same depth-binned / heatmap views, histogram-free metric.
+    _plot_combined_depth_comparison(
+        rows,
+        args.out_dir,
+        metric_field="chance_corrected_success",
+        metric_label="Chance-Corrected Success",
+        filename_prefix="2_combined_chance_corrected_comparison_depth",
+    )
+    print("Generated combined comparison plot (depth, chance-corrected success)")
+    _plot_qft_heatmap_by_optimization(
+        ibm_rows,
+        args.out_dir,
+        metric_field="chance_corrected_success",
+        metric_label="Chance-Corrected Success",
+        filename="2_combined_chance_corrected_qft_heatmap_optimization.png",
+    )
+    print("Generated QFT heatmap by optimization level (chance-corrected success)")
 
     # DSR vs Qubits (individual + grid) — IBM only (optimization-level plots)
     _plot_combined_regions_by_optimization(ibm_rows, args.out_dir)
