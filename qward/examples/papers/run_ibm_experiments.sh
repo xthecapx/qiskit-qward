@@ -17,8 +17,11 @@
 #   # Use saved credentials
 #   ./run_ibm_experiments.sh
 #
-#   # BV beyond-wall section only (29/30/31 ALT, opt=3, 1024 shots)
+#   # BV beyond-wall section only (29/30/31 ALT, opt=3, 1024 shots, 5 runs)
 #   ./run_ibm_experiments.sh bv-wall
+#
+#   # BV ladder with 10 repeats per config
+#   BV_RUNS=10 ./run_ibm_experiments.sh bv-ladder
 #
 #   # Use environment variables
 #   export IBM_QUANTUM_TOKEN="your_token_here"
@@ -173,11 +176,14 @@ run_qft() {
 # Beyond-wall section: n_secret = 29/30/31 (total qubits 30/31/32).
 # Ideal HF/TVDF require a statevector past this machine's wall; DSR does not.
 # Waits via executor poll_interval=10 until DONE or --timeout.
+# Override repeats with: BV_RUNS=10 ./run_ibm_experiments.sh bv-ladder
+BV_RUNS="${BV_RUNS:-5}"
+
 run_bv_wall() {
     echo "=============================================="
     echo "BV BEYOND-WALL EXPERIMENTS (HF/TVDF section)"
     echo "=============================================="
-    local BV_ARGS="--opt-levels 3 --shots 1024 --timeout 3600"
+    local BV_ARGS="--opt-levels 3 --shots 1024 --runs ${BV_RUNS} --timeout 3600"
     run_experiment "BV" "BV29-ALT" "bv/bv_ibm.py" $BV_ARGS
     run_experiment "BV" "BV30-ALT" "bv/bv_ibm.py" $BV_ARGS
     run_experiment "BV" "BV31-ALT" "bv/bv_ibm.py" $BV_ARGS
@@ -188,7 +194,7 @@ run_bv_ladder() {
     echo "=============================================="
     echo "BV SCALABILITY LADDER (combined DSR figure)"
     echo "=============================================="
-    local BV_ARGS="--opt-levels 3 --shots 1024 --timeout 3600"
+    local BV_ARGS="--opt-levels 3 --shots 1024 --runs ${BV_RUNS} --timeout 3600"
     for n in 2 3 4 5 6 7 8 9 10 11 12 13 14; do
         run_experiment "BV" "BV${n}-ALT" "bv/bv_ibm.py" $BV_ARGS
     done
