@@ -46,6 +46,8 @@ DATASETS = {
     "grover-ibm": PAPERS_DIR / "grover" / "data" / "qpu" / "raw",
     "qft-aws": PAPERS_DIR / "qft" / "data" / "qpu" / "aws",
     "qft-ibm": PAPERS_DIR / "qft" / "data" / "qpu" / "raw",
+    # Histogram-free DSR profile only (full HF/TVDF ideal sim is infeasible at n=29).
+    "bv-ibm": PAPERS_DIR / "bv" / "data" / "qpu" / "raw",
 }
 
 # ---------------------------------------------------------------------------
@@ -111,6 +113,17 @@ def _compute_ideal_probs(circuit, measured_qubits=None) -> Dict[str, float]:
 # ---------------------------------------------------------------------------
 # Expected outcomes derivation (for DSR backfill)
 # ---------------------------------------------------------------------------
+
+
+def _expected_outcomes_bv(config: Dict) -> List[str]:
+    """BV has a single analytic expected bitstring (Qiskit little-endian reverse)."""
+    expected = config.get("expected_outcome")
+    if expected:
+        return [str(expected).replace(" ", "")]
+    secret = config.get("secret_string")
+    if secret:
+        return [str(secret).replace(" ", "")[::-1]]
+    return []
 
 
 def _expected_outcomes_grover(config: Dict) -> List[str]:
@@ -467,7 +480,9 @@ def main():
     }
 
     if args.dataset == "all":
-        targets = list(DATASETS.keys())
+        # BV is histogram-free only: full ideal HF/TVDF is infeasible at 30 qubits.
+        # Use enrich_dsr_profile.py --dataset bv-ibm for that dataset.
+        targets = [k for k in DATASETS.keys() if not k.startswith("bv-")]
     else:
         targets = [args.dataset]
 
@@ -478,6 +493,10 @@ def main():
         print("(FORCE - re-enriching all files)")
 
     for name in targets:
+        if name not in dataset_algorithm:
+            print(f"SKIP {name}: not supported by enrich_hellinger "
+                  f"(use enrich_dsr_profile.py for histogram-free DSR).")
+            continue
         _run_dataset(
             name,
             DATASETS[name],
