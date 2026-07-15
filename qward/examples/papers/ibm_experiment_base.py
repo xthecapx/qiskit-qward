@@ -14,6 +14,7 @@ Subclass `IBMExperimentBase` to create algorithm-specific implementations
 
 import argparse
 import json
+import os
 import statistics
 import glob as glob_module
 from abc import ABC, abstractmethod
@@ -23,6 +24,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Callable, TypeVar, Generic
 
+from dotenv import load_dotenv
 from qiskit import QuantumCircuit
 
 from qward.algorithms import QuantumCircuitExecutor, IBMBatchResult
@@ -32,6 +34,32 @@ from qward.examples.papers.experiment_helpers import (
     calculate_gate_error_characterization,
     calculate_statistical_analysis,
 )
+
+# Load repo-root .env so IBM_QUANTUM_* are available without exporting by hand.
+# Walk up from this file to find the nearest .env (qiskit-qward/.env).
+_ENV_CANDIDATES = [
+    Path(__file__).resolve().parents[3] / ".env",  # qiskit-qward/.env
+    Path.cwd() / ".env",
+]
+for _env_path in _ENV_CANDIDATES:
+    if _env_path.exists():
+        load_dotenv(_env_path, override=False)
+        break
+else:
+    load_dotenv(override=False)
+
+
+def resolve_ibm_credentials(
+    channel: Optional[str] = None,
+    token: Optional[str] = None,
+    instance: Optional[str] = None,
+) -> Dict[str, Optional[str]]:
+    """CLI args win; otherwise fall back to IBM_QUANTUM_* from the environment / .env."""
+    return {
+        "channel": channel or os.getenv("IBM_QUANTUM_CHANNEL"),
+        "token": token or os.getenv("IBM_QUANTUM_TOKEN"),
+        "instance": instance or os.getenv("IBM_QUANTUM_INSTANCE"),
+    }
 
 # IBM Quantum imports (optional)
 try:
@@ -1563,10 +1591,11 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
 
         # Handle --update command
         if parsed.update:
+            creds = resolve_ibm_credentials(parsed.channel, parsed.token, parsed.instance)
             result = self.update_from_ibm(
-                channel=parsed.channel,
-                token=parsed.token,
-                instance=parsed.instance,
+                channel=creds["channel"],
+                token=creds["token"],
+                instance=creds["instance"],
                 dry_run=parsed.dry_run,
                 force=parsed.force,
             )
@@ -1596,11 +1625,12 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                     )
                     return None
 
+            creds = resolve_ibm_credentials(parsed.channel, parsed.token, parsed.instance)
             result = self.recover_batches(
                 batches=batches,
-                channel=parsed.channel,
-                token=parsed.token,
-                instance=parsed.instance,
+                channel=creds["channel"],
+                token=creds["token"],
+                instance=creds["instance"],
                 dry_run=parsed.dry_run,
             )
             return result
@@ -1630,14 +1660,27 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         self.timeout = parsed.timeout
         self.executor = QuantumCircuitExecutor(shots=parsed.shots)
 
+        creds = resolve_ibm_credentials(parsed.channel, parsed.token, parsed.instance)
+        if not creds["token"]:
+            print(
+                "Warning: no IBM_QUANTUM_TOKEN from CLI or .env; "
+                "falling back to QiskitRuntimeService saved account."
+            )
+        else:
+            print(
+                f"Using IBM credentials from "
+                f"{'CLI' if parsed.token else '.env/environment'} "
+                f"(channel={creds['channel']!r}, instance={creds['instance']!r})"
+            )
+
         result = self.run(
             config_id=parsed.config,
             backend_name=parsed.backend,
             optimization_levels=parsed.opt_levels,
             save_results=not parsed.no_save,
-            channel=parsed.channel,
-            token=parsed.token,
-            instance=parsed.instance,
+            channel=creds["channel"],
+            token=creds["token"],
+            instance=creds["instance"],
         )
 
         print("\n" + "=" * 70)

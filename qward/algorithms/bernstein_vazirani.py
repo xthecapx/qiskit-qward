@@ -3,6 +3,19 @@ Bernstein-Vazirani algorithm implementation.
 
 Determines a hidden bitstring s from an oracle f(x) = s·x mod 2
 using a single quantum query.
+
+enabled_algorithms = {
+    "BV": True,
+    "QPE": True,
+    "RND": False,
+    "GHZ": True,
+}
+algorithm_n_values = {
+    "BV":  [25, 50, 75],
+    "QPE": [10,20,30],
+    "RND": [25, 50, 75, 100],
+    "GHZ": [25, 50, 75, 100],
+}
 """
 
 from typing import List, Optional

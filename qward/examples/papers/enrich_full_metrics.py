@@ -35,6 +35,7 @@ from qward.metrics import (
 )
 from qward.algorithms.grover import Grover
 from qward.algorithms.qft import QFTCircuitGenerator
+from qward.algorithms import BernsteinVazirani
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -47,6 +48,7 @@ DATASETS = {
     "grover-ibm": PAPERS_DIR / "grover" / "data" / "qpu" / "raw",
     "qft-aws": PAPERS_DIR / "qft" / "data" / "qpu" / "aws",
     "qft-ibm": PAPERS_DIR / "qft" / "data" / "qpu" / "raw",
+    "bv-ibm": PAPERS_DIR / "bv" / "data" / "qpu" / "raw",
 }
 
 # ---------------------------------------------------------------------------
@@ -76,6 +78,13 @@ def _build_qft_circuit(config: Dict) -> QuantumCircuit:
         raise ValueError(f"Unknown QFT test_mode: {test_mode}")
 
 
+def _build_bv_circuit(config: Dict) -> QuantumCircuit:
+    secret = config.get("secret_string")
+    if not secret:
+        raise ValueError("BV config missing secret_string")
+    return BernsteinVazirani(secret_string=secret, use_barriers=True).circuit
+
+
 def _reconstruct_circuit(data: Dict) -> Optional[QuantumCircuit]:
     """Reconstruct circuit from JSON data config."""
     algorithm = data.get("algorithm", "").upper()
@@ -83,10 +92,11 @@ def _reconstruct_circuit(data: Dict) -> Optional[QuantumCircuit]:
 
     if "GROVER" in algorithm:
         return _build_grover_circuit(config)
-    elif "QFT" in algorithm:
+    if "QFT" in algorithm:
         return _build_qft_circuit(config)
-    else:
-        return None
+    if "BERNSTEIN" in algorithm or algorithm == "BV":
+        return _build_bv_circuit(config)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +186,11 @@ def enrich_file(filepath: Path, dry_run: bool = False) -> str:
 
     for ir in individual_results:
         ir["qward_metrics"] = metrics
+        # Match IBMExperimentBase fields derived from the original circuit.
+        if ir.get("circuit_depth") is None:
+            ir["circuit_depth"] = circuit.depth()
+        if ir.get("total_gates") is None:
+            ir["total_gates"] = circuit.size()
 
     with open(filepath, "w") as f:
         json.dump(data, f, indent=2)
