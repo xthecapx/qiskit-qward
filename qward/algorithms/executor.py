@@ -85,6 +85,7 @@ class IBMJobResult:
     success_rate: Optional[float] = None
     error: Optional[str] = None
     raw_result: Any = None
+    run_index: int = 0
 
 
 @dataclass
@@ -597,6 +598,7 @@ class QuantumCircuitExecutor:
         *,
         backend_name: Optional[str] = None,
         optimization_levels: Optional[List[int]] = None,
+        num_runs: int = 1,
         success_criteria: Optional[Callable[[str], bool]] = None,
         expected_outcomes: Optional[List[str]] = None,
         timeout: int = 600,
@@ -618,6 +620,9 @@ class QuantumCircuitExecutor:
             backend_name: Optional IBM backend name. If None, uses the least busy
                 operational backend
             optimization_levels: List of optimization levels to test (default: [0, 2, 3])
+            num_runs: Number of independent jobs per optimization level (default: 1).
+                Each run is submitted in the same IBM Batch so histograms remain
+                independent samples for boxplots.
             success_criteria: Optional function to define success criteria for metrics
             expected_outcomes: Optional expected bitstrings for DSR metric calculations
             timeout: Maximum time to wait for job completion in seconds (default: 600)
@@ -659,6 +664,9 @@ class QuantumCircuitExecutor:
 
         if optimization_levels is None:
             optimization_levels = [0, 2, 3]
+
+        if num_runs < 1:
+            raise ValueError(f"num_runs must be >= 1, got {num_runs}")
 
         try:
             # Connect to IBM Quantum service
@@ -703,21 +711,29 @@ class QuantumCircuitExecutor:
                     backend=backend,
                 )
 
-            # Transpile circuits and submit jobs
-            jobs = {}
+            # Transpile once per opt level; submit num_runs jobs each in the same batch
             isa_circuits = {}
+            for opt_level in optimization_levels:
+                isa_circuits[opt_level] = pass_managers[opt_level].run(circuit)
+
+            # List of (opt_level, run_index, job_handle)
+            submitted_jobs: List[tuple] = []
 
             with batch:
                 sampler = Sampler()
                 for opt_level in optimization_levels:
-                    isa_circuits[opt_level] = pass_managers[opt_level].run(circuit)
-                    jobs[opt_level] = sampler.run([isa_circuits[opt_level]], shots=self.shots)
-
-                    if show_progress:
-                        print(
-                            f">>> Submitted job for opt_level={opt_level}, "
-                            f"transpiled depth={isa_circuits[opt_level].depth()}"
-                        )
+                    isa = isa_circuits[opt_level]
+                    for run_idx in range(num_runs):
+                        job = sampler.run([isa], shots=self.shots)
+                        submitted_jobs.append((opt_level, run_idx, job))
+                        if show_progress:
+                            run_label = (
+                                f", run={run_idx + 1}/{num_runs}" if num_runs > 1 else ""
+                            )
+                            print(
+                                f">>> Submitted job for opt_level={opt_level}{run_label}, "
+                                f"transpiled depth={isa.depth()}"
+                            )
 
             # Wait for job completion
             if show_progress:
@@ -736,11 +752,12 @@ class QuantumCircuitExecutor:
 
                 # Check individual job statuses
                 job_statuses = []
-                for opt_level, job in jobs.items():
+                for opt_level, run_idx, job in submitted_jobs:
                     status = str(job.status())
                     job_statuses.append(status)
                     if show_progress:
-                        print(f"    - Opt level {opt_level}: {status}")
+                        run_label = f" run={run_idx + 1}" if num_runs > 1 else ""
+                        print(f"    - Opt level {opt_level}{run_label}: {status}")
 
                 # Check if all jobs are completed
                 completed_states = {"DONE", "CANCELLED", "ERROR"}
@@ -762,8 +779,7 @@ class QuantumCircuitExecutor:
 
             # Collect results
             job_results = []
-            for opt_level in optimization_levels:
-                job = jobs[opt_level]
+            for opt_level, run_idx, job in submitted_jobs:
                 isa_circuit = isa_circuits[opt_level]
 
                 job_result = IBMJobResult(
@@ -771,6 +787,7 @@ class QuantumCircuitExecutor:
                     optimization_level=opt_level,
                     status=str(job.status()),
                     circuit_depth=isa_circuit.depth(),
+                    run_index=run_idx,
                 )
 
                 try:

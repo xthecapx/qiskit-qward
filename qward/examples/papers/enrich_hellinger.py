@@ -26,6 +26,7 @@ from typing import Dict, List, Optional
 
 from qiskit.quantum_info import Statevector, hellinger_fidelity, hellinger_distance
 
+from qward.algorithms.bernstein_vazirani import BernsteinVazirani
 from qward.algorithms.grover import Grover
 from qward.algorithms.qft import QFTCircuitGenerator
 from qward.metrics.differential_success_rate import (
@@ -41,12 +42,15 @@ from qward.metrics.differential_success_rate import (
 
 PAPERS_DIR = Path(__file__).resolve().parent
 
+# Full ideal HF/TVDF requires a statevector over n+1 qubits (ancilla). Skip beyond
+# the paper ladder; wall sizes (n≥29) remain DSR-only via enrich_dsr_profile.
+BV_HF_MAX_QUBITS = 14
+
 DATASETS = {
     "grover-aws": PAPERS_DIR / "grover" / "data" / "qpu" / "aws",
     "grover-ibm": PAPERS_DIR / "grover" / "data" / "qpu" / "raw",
     "qft-aws": PAPERS_DIR / "qft" / "data" / "qpu" / "aws",
     "qft-ibm": PAPERS_DIR / "qft" / "data" / "qpu" / "raw",
-    # Histogram-free DSR profile only (full HF/TVDF ideal sim is infeasible at n=29).
     "bv-ibm": PAPERS_DIR / "bv" / "data" / "qpu" / "raw",
 }
 
@@ -91,6 +95,21 @@ def _build_qft_circuit(config: Dict):
         return gen.circuit, measured_qubits
     else:
         raise ValueError(f"Unknown QFT test_mode: {test_mode}")
+
+
+def _build_bv_circuit(config: Dict):
+    """Reconstruct a Bernstein–Vazirani circuit from config.
+
+    Returns:
+        (circuit, measured_qubits) — query qubits ``[0..n-1]``; ancilla at ``n``
+        is traced out when computing ideal probabilities.
+    """
+    secret = config.get("secret_string")
+    if not secret:
+        raise ValueError("BV config missing secret_string")
+    n = len(str(secret).replace(" ", ""))
+    circuit = BernsteinVazirani(secret_string=secret, use_barriers=True).circuit
+    return circuit, list(range(n))
 
 
 def _compute_ideal_probs(circuit, measured_qubits=None) -> Dict[str, float]:
@@ -253,12 +272,23 @@ def _enrich_file(
         ):
             return None
 
+    if algorithm in ("BERNSTEIN-VAZIRANI", "BV"):
+        n_secret = int(config.get("num_qubits") or 0)
+        if n_secret > BV_HF_MAX_QUBITS:
+            print(
+                f"  SKIP {path.name}: BV n={n_secret} > {BV_HF_MAX_QUBITS} "
+                "(HF/TVDF infeasible; use enrich_dsr_profile for DSR)"
+            )
+            return None
+
     # Reconstruct circuit and compute ideal probs
     try:
         if algorithm == "GROVER":
             circuit, measured_qubits = _build_grover_circuit(config)
         elif algorithm == "QFT":
             circuit, measured_qubits = _build_qft_circuit(config)
+        elif algorithm in ("BERNSTEIN-VAZIRANI", "BV"):
+            circuit, measured_qubits = _build_bv_circuit(config)
         else:
             print(f"  SKIP {path.name}: unknown algorithm {algorithm}")
             return None
@@ -278,8 +308,10 @@ def _enrich_file(
     # Derive expected outcomes for DSR backfill
     if algorithm == "GROVER":
         expected_outcomes = _expected_outcomes_grover(config)
-    else:
+    elif algorithm == "QFT":
         expected_outcomes = _expected_outcomes_qft(config)
+    else:
+        expected_outcomes = _expected_outcomes_bv(config)
 
     # Enrich each individual result
     hellinger_fids = []
@@ -324,17 +356,20 @@ def _enrich_file(
         tvd_vals.append(tvd)
         tvd_fid_vals.append(tvd_fid)
 
-        # Backfill DSR if missing
-        if _needs_dsr_backfill(result):
+        # Backfill DSR variants if missing (profile enrich may only set Michelson)
+        if _needs_dsr_backfill(result) or "dsr_ratio" not in result:
             _backfill_dsr(result, expected_outcomes)
             dsr_backfilled = True
 
         # Collect DSR values for batch summary
         if "dsr_michelson" in result:
             dsr_michelson_vals.append(result["dsr_michelson"])
-            dsr_ratio_vals.append(result["dsr_ratio"])
-            dsr_log_ratio_vals.append(result["dsr_log_ratio"])
-            dsr_norm_margin_vals.append(result["dsr_normalized_margin"])
+            if "dsr_ratio" in result:
+                dsr_ratio_vals.append(result["dsr_ratio"])
+            if "dsr_log_ratio" in result:
+                dsr_log_ratio_vals.append(result["dsr_log_ratio"])
+            if "dsr_normalized_margin" in result:
+                dsr_norm_margin_vals.append(result["dsr_normalized_margin"])
 
     # Update batch_summary
     batch = payload.get("batch_summary", {})
@@ -457,7 +492,7 @@ def main():
         "--dataset",
         type=str,
         default="all",
-        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "all"],
+        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "bv-ibm", "all"],
         help="Which dataset to process (default: all)",
     )
     parser.add_argument(
@@ -477,14 +512,10 @@ def main():
         "grover-ibm": "GROVER",
         "qft-aws": "QFT",
         "qft-ibm": "QFT",
+        "bv-ibm": "BERNSTEIN-VAZIRANI",
     }
 
-    if args.dataset == "all":
-        # BV is histogram-free only: full ideal HF/TVDF is infeasible at 30 qubits.
-        # Use enrich_dsr_profile.py --dataset bv-ibm for that dataset.
-        targets = [k for k in DATASETS.keys() if not k.startswith("bv-")]
-    else:
-        targets = [args.dataset]
+    targets = list(DATASETS.keys()) if args.dataset == "all" else [args.dataset]
 
     print(f"Enriching {len(targets)} dataset(s)...")
     if args.dry_run:
@@ -493,10 +524,6 @@ def main():
         print("(FORCE - re-enriching all files)")
 
     for name in targets:
-        if name not in dataset_algorithm:
-            print(f"SKIP {name}: not supported by enrich_hellinger "
-                  f"(use enrich_dsr_profile.py for histogram-free DSR).")
-            continue
         _run_dataset(
             name,
             DATASETS[name],

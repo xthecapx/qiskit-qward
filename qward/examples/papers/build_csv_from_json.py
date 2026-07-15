@@ -109,6 +109,8 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
         payload = json.loads(path.read_text())
         config = payload.get("config", {})
         algorithm = payload.get("algorithm", "unknown")
+        if algorithm in ("BERNSTEIN-VAZIRANI", "BV"):
+            algorithm = "BV"
         execution_type = payload.get("execution_type", "")
         root_backend = payload.get("backend_name", payload.get("device_name", ""))
         root_config_id = payload.get("config_id", "")
@@ -120,6 +122,10 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
 
             # expected_outcomes — prefer result-level, fall back to config
             expected = result.get("expected_outcomes")
+            if not expected and result.get("expected_outcome"):
+                expected = [str(result["expected_outcome"]).replace(" ", "")]
+            if not expected and config.get("expected_outcome"):
+                expected = [str(config["expected_outcome"]).replace(" ", "")]
             if not expected:
                 expected = _expected_from_config(config, result)
             if not expected:
@@ -177,6 +183,7 @@ DATASETS = {
     "grover-aws": ("GROVER", PAPERS / "grover" / "data" / "qpu" / "aws"),
     "qft-ibm": ("QFT", PAPERS / "qft" / "data" / "qpu" / "raw"),
     "qft-aws": ("QFT", PAPERS / "qft" / "data" / "qpu" / "aws"),
+    "bv-ibm": ("BV", PAPERS / "bv" / "data" / "qpu" / "raw"),
 }
 
 
@@ -321,6 +328,7 @@ def main() -> int:
 
     grover_count = sum(1 for r in json_rows if r["algorithm"] == "GROVER")
     qft_count = sum(1 for r in json_rows if r["algorithm"] == "QFT")
+    bv_count = sum(1 for r in json_rows if r["algorithm"] == "BV")
 
     # ── Teleportation (CSV) ──
     tp_rows = _teleportation_rows_with_fidelity(args.teleportation_dir)
@@ -341,6 +349,7 @@ def main() -> int:
     print(f"Wrote {len(all_rows)} rows to {args.output}")
     print(f"  Grover (JSON):       {grover_count:4d} rows  ({len(json_paths)} files total)")
     print(f"  QFT (JSON):          {qft_count:4d} rows")
+    print(f"  BV (JSON):           {bv_count:4d} rows")
     print(f"  Teleportation (CSV): {len(tp_rows):4d} rows")
     print(f"  Grand total:         {len(all_rows):4d} rows")
     return 0

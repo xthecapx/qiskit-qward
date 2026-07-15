@@ -231,6 +231,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         config_id: str,
         backend_name: Optional[str] = None,
         optimization_levels: Optional[List[int]] = None,
+        num_runs: int = 1,
         save_results: bool = True,
         channel: Optional[str] = None,
         token: Optional[str] = None,
@@ -299,10 +300,16 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
 
         # Execute on IBM QPU
         print("\nSubmitting to IBM Quantum...")
+        if num_runs > 1:
+            print(
+                f"  Repeating each opt level {num_runs} times "
+                f"({len(optimization_levels) * num_runs} jobs in one batch)"
+            )
         ibm_result = self.executor.run_ibm(
             circuit,
             backend_name=backend_name,
             optimization_levels=optimization_levels,
+            num_runs=num_runs,
             success_criteria=success_criteria,
             timeout=self.timeout,
             poll_interval=10,
@@ -391,11 +398,16 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             success_rates.append(evaluation.get("success_rate", 0.0))
 
             # Build individual result
+            run_idx = getattr(job, "run_index", 0)
             run_result = {
-                "experiment_id": f"{config_desc.get('config_id', 'unknown')}_IBM-QPU_{job.optimization_level:03d}",
+                "experiment_id": (
+                    f"{config_desc.get('config_id', 'unknown')}_IBM-QPU_"
+                    f"{job.optimization_level:03d}_{run_idx:03d}"
+                ),
                 "config_id": config_desc.get("config_id", "unknown"),
                 "noise_model": "IBM-QPU",
                 "optimization_level": job.optimization_level,
+                "run_index": run_idx,
                 "job_id": job.job_id,
                 "timestamp": datetime.now().isoformat(),
                 "num_qubits": config_desc.get("num_qubits", circuit.num_qubits),
@@ -1490,6 +1502,13 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             help="Optimization levels to test (default: 0 1 2 3)",
         )
         parser.add_argument(
+            "--runs",
+            "-r",
+            type=int,
+            default=1,
+            help="Independent jobs per optimization level in one batch (default: 1)",
+        )
+        parser.add_argument(
             "--shots", "-s", type=int, default=1024, help="Number of shots (default: 1024)"
         )
         parser.add_argument(
@@ -1677,6 +1696,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             config_id=parsed.config,
             backend_name=parsed.backend,
             optimization_levels=parsed.opt_levels,
+            num_runs=parsed.runs,
             save_results=not parsed.no_save,
             channel=creds["channel"],
             token=creds["token"],

@@ -54,7 +54,11 @@ ALGORITHM_COLORS = {
     "GROVER": COLORBREWER_PALETTE[1],  # Teal
     "QFT": COLORBREWER_PALETTE[2],  # Orange
     "TELEPORTATION": COLORBREWER_PALETTE[3],  # Purple
+    "BV": COLORBREWER_PALETTE[4],  # Pink
 }
+
+# Legend / boxplot order for combined IBM figures
+COMBINED_ALGO_ORDER = ("GROVER", "QFT", "BV", "TELEPORTATION")
 
 # ---------------------------------------------------------------------------
 # Algorithm-specific filter limits
@@ -73,6 +77,10 @@ GROVER_MAX_DEPTH = None
 # QFT: no qubit or depth cap (per-algorithm plots use IBM data, full 2-10 range)
 QFT_MAX_QUBITS = None
 QFT_MAX_DEPTH = None
+
+# BV: paper ladder only (n=2..14 ALT); wall sizes (29–31) are DSR-only, not in combined figs
+BV_MAX_QUBITS = 14
+BV_MAX_DEPTH = None
 
 # Depth binning for readable boxplots (too many unique depths otherwise)
 DEPTH_BIN_SIZE = 500  # Default bin size
@@ -779,11 +787,13 @@ def _plot_algorithm_heatmap(
 _COMBINED_MAX_QUBITS = {
     "GROVER": None,  # show all (2-8 in IBM data)
     "QFT": None,  # show all (2-10 in IBM data)
+    "BV": BV_MAX_QUBITS,  # ladder only (exclude wall n≥29)
     "TELEPORTATION": TELEPORTATION_MAX_QUBITS,  # 3
 }
 _COMBINED_MAX_DEPTH = {
     "GROVER": GROVER_MAX_DEPTH,  # 5000
     "QFT": QFT_MAX_DEPTH,  # None
+    "BV": BV_MAX_DEPTH,
     "TELEPORTATION": TELEPORTATION_MAX_DEPTH,  # 1000
 }
 
@@ -806,7 +816,9 @@ def _prepare_combined_data(
         (algorithms, qubits, filtered_data) where *filtered_data* maps each
         algorithm name to its filtered row list.
     """
-    algorithms = sorted({r.get("algorithm", "") for r in rows if r.get("algorithm")})
+    present = {r.get("algorithm", "") for r in rows if r.get("algorithm")}
+    algorithms = [a for a in COMBINED_ALGO_ORDER if a in present]
+    algorithms += sorted(a for a in present if a not in COMBINED_ALGO_ORDER)
 
     filtered_data: Dict[str, List[Dict[str, str]]] = {}
     all_qubits: set = set()
@@ -819,6 +831,14 @@ def _prepare_combined_data(
                 for r in algo_rows
                 if r.get("optimization_level", "") == ""  # AWS: no opt level, always keep
                 or r.get("optimization_level", "") in optimization_levels
+            ]
+        # BV combined plots: ALT ladder only (paper lock)
+        if algo == "BV":
+            algo_rows = [
+                r
+                for r in algo_rows
+                if "-ALT" in str(r.get("config_id", ""))
+                or "-ALT" in str(r.get("source_file", ""))
             ]
         # Apply depth filter
         max_depth = _COMBINED_MAX_DEPTH.get(algo)
@@ -922,7 +942,11 @@ def _render_combined_comparison(
 
     # Legend
     legend_elements = [
-        Patch(facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]), alpha=0.7, label=algo)
+        Patch(
+            facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
+            alpha=0.7,
+            label=ALGO_DISPLAY_NAMES.get(algo, algo),
+        )
         for algo in algorithms
     ]
     ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
@@ -1077,7 +1101,7 @@ def _render_combined_depth(
         Patch(
             facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
             alpha=0.7,
-            label=algo,
+            label=ALGO_DISPLAY_NAMES.get(algo, algo),
         )
         for algo in algorithms
     ]
@@ -1310,6 +1334,7 @@ def _render_region_on_ax(
 ALGO_DISPLAY_NAMES = {
     "GROVER": "Grover",
     "QFT": "QFT",
+    "BV": "BV",
     "TELEPORTATION": "vTP",
 }
 

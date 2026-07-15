@@ -11,11 +11,11 @@ Usage:
 
 Beyond-wall HF/TVDF section (ALT, opt=3, 1024 shots; waits/polls IBM):
     uv run python qward/examples/papers/bv/bv_ibm.py \\
-        --config BV29-ALT --opt-levels 3 --shots 1024 --timeout 3600
+        --config BV29-ALT --opt-levels 3 --shots 1024 --runs 5 --timeout 3600
+
+Repeat each config several times in one IBM batch (boxplots):
     uv run python qward/examples/papers/bv/bv_ibm.py \\
-        --config BV30-ALT --opt-levels 3 --shots 1024 --timeout 3600
-    uv run python qward/examples/papers/bv/bv_ibm.py \\
-        --config BV31-ALT --opt-levels 3 --shots 1024 --timeout 3600
+        --config BV5-ALT --opt-levels 3 --shots 1024 --runs 5
 
 If the wait times out, re-fetch later:
     uv run python qward/examples/papers/bv/bv_ibm.py --update

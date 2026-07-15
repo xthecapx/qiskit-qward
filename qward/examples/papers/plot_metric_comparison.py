@@ -48,7 +48,14 @@ DATASETS = {
         PAPERS_DIR / "qft" / "data" / "qpu" / "raw",
         PAPERS_DIR / "qft" / "data" / "qpu" / "aws",
     ],
+    "BV": [
+        PAPERS_DIR / "bv" / "data" / "qpu" / "raw",
+    ],
 }
+
+# BV wall sizes (n≥29) cannot compute HF/TVDF; exclude from metric comparison.
+BV_METRIC_MAX_QUBITS = 14
+
 
 # ---------------------------------------------------------------------------
 # Metric definitions
@@ -71,12 +78,17 @@ METRIC_COLORS = {
 # ---------------------------------------------------------------------------
 
 
-def _load_results(directories: List[Path], provider: str = "all") -> List[Dict]:
+def _load_results(
+    directories: List[Path],
+    provider: str = "all",
+    algorithm: str = "",
+) -> List[Dict]:
     """Load individual results from all JSON files in the given directories.
 
     Args:
         directories: List of directories to scan for JSON files.
         provider: ``"all"`` (default), ``"ibm"``, or ``"aws"``.
+        algorithm: Dataset key used for algorithm-specific filters (e.g. BV).
     """
     results = []
     for directory in directories:
@@ -101,21 +113,25 @@ def _load_results(directories: List[Path], provider: str = "all") -> List[Dict]:
                 counts = result.get("counts")
                 if not counts:
                     continue
-                # Only include results that have all three metrics
-                if (
-                    "dsr_michelson" not in result
-                    or "hellinger_fidelity" not in result
-                    or "tvd_fidelity" not in result
-                ):
+                # Only include results that have all three metrics with real values
+                # (wall-size BV stores hellinger_fidelity=null / tvd_fidelity=null)
+                hf = result.get("hellinger_fidelity")
+                tvd_f = result.get("tvd_fidelity")
+                dsr = result.get("dsr_michelson")
+                if dsr is None or hf is None or tvd_f is None:
+                    continue
+
+                nq = result.get("num_qubits", config.get("num_qubits"))
+                if algorithm == "BV" and nq is not None and int(nq) > BV_METRIC_MAX_QUBITS:
                     continue
 
                 results.append(
                     {
-                        "num_qubits": result.get("num_qubits", config.get("num_qubits")),
+                        "num_qubits": nq,
                         "optimization_level": result.get("optimization_level"),
-                        "dsr_michelson": result["dsr_michelson"],
-                        "hellinger_fidelity": result["hellinger_fidelity"],
-                        "tvd_fidelity": result["tvd_fidelity"],
+                        "dsr_michelson": dsr,
+                        "hellinger_fidelity": hf,
+                        "tvd_fidelity": tvd_f,
                     }
                 )
     return results
@@ -259,7 +275,7 @@ def _plot_algorithm(
     """Generate the metric comparison plot for a single algorithm."""
     _apply_plot_style()
 
-    results = _load_results(directories, provider=provider)
+    results = _load_results(directories, provider=provider, algorithm=algorithm)
     if not results:
         print(f"  {algorithm} ({provider}): no results found, skipping")
         return
