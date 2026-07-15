@@ -8,6 +8,17 @@ even at high qubit counts, unlike Grover/QFT which degrade with depth.
 Usage:
     uv run python qward/examples/papers/bv/bv_ibm.py --config BV3-ONES
     uv run python qward/examples/papers/bv/bv_ibm.py --list
+
+Beyond-wall HF/TVDF section (ALT, opt=3, 1024 shots; waits/polls IBM):
+    uv run python qward/examples/papers/bv/bv_ibm.py \\
+        --config BV29-ALT --opt-levels 3 --shots 1024 --timeout 3600
+    uv run python qward/examples/papers/bv/bv_ibm.py \\
+        --config BV30-ALT --opt-levels 3 --shots 1024 --timeout 3600
+    uv run python qward/examples/papers/bv/bv_ibm.py \\
+        --config BV31-ALT --opt-levels 3 --shots 1024 --timeout 3600
+
+If the wait times out, re-fetch later:
+    uv run python qward/examples/papers/bv/bv_ibm.py --update
 """
 
 from pathlib import Path
@@ -27,7 +38,7 @@ from qward.examples.papers.bv.bv_configs import (
 class BVIBMExperiment(IBMExperimentBase[BVExperimentConfig]):
     """Bernstein-Vazirani experiment runner for IBM QPU."""
 
-    def __init__(self, shots: int = 1024, timeout: int = 600):
+    def __init__(self, shots: int = 1024, timeout: int = 3600):
         super().__init__(
             shots=shots,
             timeout=timeout,
@@ -92,10 +103,16 @@ class BVIBMExperiment(IBMExperimentBase[BVExperimentConfig]):
         }
 
     def get_priority_configs(self) -> List[Dict[str, Any]]:
-        """BV should maintain high success at all qubit counts."""
-        return [
-            {"config_id": f"BV{n}-ONES", "qubits": n, "expected_success": 1.0} for n in range(2, 15)
+        """Priority: combined-plot ALT ladder, then beyond-wall ALT sizes."""
+        ladder = [
+            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0}
+            for n in range(2, 15)
         ]
+        wall = [
+            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0}
+            for n in (29, 30, 31)
+        ]
+        return ladder + wall
 
 
 if __name__ == "__main__":

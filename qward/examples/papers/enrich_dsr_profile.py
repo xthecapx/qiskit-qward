@@ -40,6 +40,7 @@ from enrich_hellinger import (
     DATASETS,
     _expected_outcomes_grover,
     _expected_outcomes_qft,
+    _expected_outcomes_bv,
 )
 
 from qward.metrics.differential_success_rate import DSRProfiler
@@ -187,6 +188,8 @@ def _enrich_file(
     elif algorithm == "QFT":
         expected_outcomes = _expected_outcomes_qft(config)
         _check_qft_period_divides_evenly(config)
+    elif algorithm in ("BERNSTEIN-VAZIRANI", "BV"):
+        expected_outcomes = _expected_outcomes_bv(config)
     else:
         print(f"  SKIP {path.name}: unknown algorithm {algorithm}")
         return None
@@ -205,7 +208,11 @@ def _enrich_file(
         if not counts:
             continue
 
-        result_expected = result.get("expected_outcomes") or expected_outcomes
+        result_expected = result.get("expected_outcomes")
+        if not result_expected and result.get("expected_outcome"):
+            result_expected = [str(result["expected_outcome"]).replace(" ", "")]
+        if not result_expected:
+            result_expected = expected_outcomes
         profile = _backfill_profile(result, result_expected, expected_weights)
         if profile is None:
             continue
@@ -330,7 +337,7 @@ def main():
         "--dataset",
         type=str,
         default="all",
-        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "all"],
+        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "bv-ibm", "all"],
         help="Which dataset to process (default: all)",
     )
     parser.add_argument(
@@ -350,6 +357,7 @@ def main():
         "grover-ibm": "GROVER",
         "qft-aws": "QFT",
         "qft-ibm": "QFT",
+        "bv-ibm": "BERNSTEIN-VAZIRANI",
     }
 
     targets = list(DATASETS.keys()) if args.dataset == "all" else [args.dataset]

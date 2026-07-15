@@ -49,9 +49,17 @@ class BVExperimentConfig:
 
 
 def _generate_configs() -> List[BVExperimentConfig]:
-    """Generate all BV experiment configurations."""
+    """Generate BV experiment configurations.
+
+    Includes:
+      * Scalability ladder for the combined DSR figure: n = 2..14
+      * Beyond-wall sizes for the HF/TVDF-infeasibility section: n = 29, 30, 31
+        (total qubits = n+1 = 30, 31, 32 — past the classical statevector wall)
+    """
     configs = []
-    for n in range(2, 15):
+    # Combined-plot ladder + mid sizes; wall demonstration at 29..31.
+    qubit_sizes = list(range(2, 15)) + [29, 30, 31]
+    for n in qubit_sizes:
         # All-ones
         configs.append(
             BVExperimentConfig(
@@ -61,7 +69,7 @@ def _generate_configs() -> List[BVExperimentConfig]:
                 description=f"{n} qubits, all-ones secret",
             )
         )
-        # Alternating
+        # Alternating (default pattern for paper figures)
         alt = "".join("1" if i % 2 == 0 else "0" for i in range(n))
         configs.append(
             BVExperimentConfig(
