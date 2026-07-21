@@ -1153,6 +1153,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         job_ids: Optional[List[str]] = None,
         transpiled_depths: Optional[Dict[int, int]] = None,
         original_depth: Optional[int] = None,
+        default_opt_level: Optional[int] = None,
     ) -> Optional[Dict[str, Any]]:
         """Recover a timed-out batch by fetching results from IBM Cloud.
 
@@ -1167,6 +1168,9 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             job_ids: Optional list of known job IDs (opt0, opt1, opt2, opt3)
             transpiled_depths: Optional dict mapping opt_level -> transpiled depth
             original_depth: Optional original circuit depth
+            default_opt_level: If set (e.g. 3 for BV multi-run), every recovered
+                job is tagged with this optimization level and ``run_index=i``.
+                If None, jobs are assumed to be one-per-opt-level (opt = 0..n-1).
 
         Returns:
             Complete result dict (same structure as _build_rich_result), or None on failure
@@ -1233,10 +1237,18 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         all_completed = True
 
         for i, ibm_job in enumerate(ibm_jobs_sorted):
-            opt_level = i  # Assumes jobs were submitted in order 0, 1, 2, 3
+            # Multi-run recovery (e.g. BV --runs 9 --opt-levels 3): fixed opt + run_index.
+            # Legacy Grover/QFT: one job per opt level in submission order.
+            if default_opt_level is not None:
+                opt_level = int(default_opt_level)
+                run_index = i
+            else:
+                opt_level = i
+                run_index = 0
             jid = ibm_job.job_id()
             status_str = str(ibm_job.status()).replace("JobStatus.", "")
-            print(f"\n  Job {jid} (opt_level={opt_level}): {status_str}")
+            run_label = f" run={run_index}" if default_opt_level is not None else ""
+            print(f"\n  Job {jid} (opt_level={opt_level}{run_label}): {status_str}")
 
             t_depth = (transpiled_depths or {}).get(opt_level, 0)
 
@@ -1265,10 +1277,11 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 print(f"    Job not completed (status: {status_str})")
 
             run_result = {
-                "experiment_id": f"{config_id}_IBM-QPU_{opt_level:03d}",
+                "experiment_id": f"{config_id}_IBM-QPU_{opt_level:03d}_{run_index:03d}",
                 "config_id": config_id,
                 "noise_model": "IBM-QPU",
                 "optimization_level": opt_level,
+                "run_index": run_index,
                 "job_id": jid,
                 "timestamp": datetime.now().isoformat(),
                 "num_qubits": config_desc.get("num_qubits", circuit.num_qubits),
@@ -1424,6 +1437,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                     job_ids=batch_info.get("job_ids"),
                     transpiled_depths=batch_info.get("transpiled_depths"),
                     original_depth=batch_info.get("original_depth"),
+                    default_opt_level=batch_info.get("default_opt_level"),
                 )
 
                 if result:
@@ -1567,6 +1581,15 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             default=None,
             help="With --recover --batch-id: backend name for the batch being recovered",
         )
+        parser.add_argument(
+            "--recover-opt-level",
+            type=int,
+            default=None,
+            help=(
+                "With --recover: tag all jobs with this optimization level and "
+                "run_index=0..n-1 (use 3 for BV multi-run batches)"
+            ),
+        )
         return parser
 
     def list_configs(self) -> None:
@@ -1632,6 +1655,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                         "batch_id": parsed.batch_id,
                         "config_id": parsed.recover_config,
                         "backend_name": parsed.recover_backend or "unknown",
+                        "default_opt_level": parsed.recover_opt_level,
                     }
                 ]
             else:
@@ -1643,6 +1667,9 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                         "Use --batch-id, --recover-config, --recover-backend to recover a specific batch."
                     )
                     return None
+                if parsed.recover_opt_level is not None:
+                    for batch in batches:
+                        batch.setdefault("default_opt_level", parsed.recover_opt_level)
 
             creds = resolve_ibm_credentials(parsed.channel, parsed.token, parsed.instance)
             result = self.recover_batches(
