@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
 
 from qward.utils.styles import (
     COLORBREWER_PALETTE,
@@ -785,16 +785,19 @@ def _plot_algorithm_heatmap(
 # These match the ranges shown in the individual per-algorithm boxplots
 # and are intentionally different from the AWS-specific constants above.
 _COMBINED_MAX_QUBITS = {
-    "GROVER": None,  # show all (2-8 in IBM data)
+    # Grover first hits all-zero DSR at 6 qubits; omit 7–8 zero repeats.
+    "GROVER": 6,
     "QFT": None,  # show all (2-10 in IBM data)
     "BV": BV_MAX_QUBITS,  # ladder only (exclude wall n≥29)
-    "TELEPORTATION": TELEPORTATION_MAX_QUBITS,  # 3
+    # Combined figures: show vTP at n=1 and the collapse at n=2; omit n≥3 zeros.
+    "TELEPORTATION": 2,
 }
 _COMBINED_MAX_DEPTH = {
     "GROVER": GROVER_MAX_DEPTH,  # 5000
     "QFT": QFT_MAX_DEPTH,  # None
     "BV": BV_MAX_DEPTH,
-    "TELEPORTATION": TELEPORTATION_MAX_DEPTH,  # 1000
+    # Keep 1-qubit vTP only in the shallow bin of the combined depth figure.
+    "TELEPORTATION": 100,
 }
 
 
@@ -929,6 +932,31 @@ def _render_combined_comparison(
                 whiskerprops=dict(linewidth=2),
                 capprops=dict(linewidth=2),
             )
+            # Collapsed boxes (e.g. all-zero vTP at n=2) hide facecolor; draw a
+            # short filled stub so the series color stays visible on the axis.
+            half_w = width * 0.42
+            stub_h = 0.06
+            for vals, pos in zip(box_data, positions):
+                arr = np.asarray(vals, dtype=float)
+                iqr = float(np.percentile(arr, 75) - np.percentile(arr, 25))
+                if iqr < 0.02:
+                    med = float(np.median(arr))
+                    # For zeros, grow upward from the baseline so the stub is
+                    # not clipped into the x-axis line.
+                    y0 = 0.0 if med <= stub_h / 2 else med - stub_h / 2
+                    ax.add_patch(
+                        Rectangle(
+                            (pos - half_w, y0),
+                            2 * half_w,
+                            stub_h,
+                            facecolor=color,
+                            edgecolor="black",
+                            linewidth=1.8,
+                            alpha=0.95,
+                            zorder=5,
+                            clip_on=False,
+                        )
+                    )
 
     # Styling
     ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE, fontweight="bold")
@@ -939,17 +967,7 @@ def _render_combined_comparison(
     ax.set_xticks(full_range)
     ax.set_xticklabels([str(q) for q in full_range])
     ax.set_xlim(q_min - 0.5, q_max + 0.5)
-
-    # Legend
-    legend_elements = [
-        Patch(
-            facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
-            alpha=0.7,
-            label=ALGO_DISPLAY_NAMES.get(algo, algo),
-        )
-        for algo in algorithms
-    ]
-    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
+    # No legend: algorithm colors are described in the paper captions.
 
 
 def _split_by_provider(
@@ -1096,16 +1114,7 @@ def _render_combined_depth(
     ax.set_ylabel(metric_label, fontsize=LABEL_SIZE, fontweight="bold")
     apply_axes_defaults(ax)
     ax.set_ylim(-0.05, 1.05)
-
-    legend_elements = [
-        Patch(
-            facecolor=ALGORITHM_COLORS.get(algo, COLORBREWER_PALETTE[8]),
-            alpha=0.7,
-            label=ALGO_DISPLAY_NAMES.get(algo, algo),
-        )
-        for algo in algorithms
-    ]
-    ax.legend(handles=legend_elements, fontsize=LEGEND_SIZE, loc="upper right")
+    # No legend: algorithm colors are described in the paper captions.
 
 
 def _plot_combined_depth_comparison(

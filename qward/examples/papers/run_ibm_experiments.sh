@@ -41,14 +41,24 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Load repo-root .env (qward/examples/papers -> ../../../.env)
+# Load IBM vars only from repo-root .env (skip AWS / invalid bash assignments)
 ENV_FILE="$(cd "$(dirname "$0")/../../.." && pwd)/.env"
 if [ -f "$ENV_FILE" ]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-    set +a
-    echo "Loaded credentials from $ENV_FILE"
+    while IFS= read -r line || [ -n "$line" ]; do
+        case "$line" in
+            \#*|"") continue ;;
+            IBM_QUANTUM_*=*)
+                key="${line%%=*}"
+                val="${line#*=}"
+                val="${val%\"}"
+                val="${val#\"}"
+                val="${val%\'}"
+                val="${val#\'}"
+                export "$key=$val"
+                ;;
+        esac
+    done < "$ENV_FILE"
+    echo "Loaded IBM credentials from $ENV_FILE (AWS vars ignored)"
 else
     echo "No .env at $ENV_FILE (will rely on exported env or saved Qiskit account)"
 fi

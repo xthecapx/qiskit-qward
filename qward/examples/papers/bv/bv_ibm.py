@@ -17,8 +17,15 @@ Repeat each config several times in one IBM batch (boxplots):
     uv run python qward/examples/papers/bv/bv_ibm.py \\
         --config BV5-ALT --opt-levels 3 --shots 1024 --runs 5
 
-If the wait times out, re-fetch later:
-    uv run python qward/examples/papers/bv/bv_ibm.py --update
+If the wait times out / JSON was not saved, recover from the IBM batch ID
+(look for ">>> Batch ID: ..." in the terminal log, or the session id in IBM Quantum):
+
+    uv run python qward/examples/papers/bv/bv_ibm.py \\
+        --recover \\
+        --batch-id <BATCH_OR_SESSION_ID> \\
+        --recover-config BV8-ALT \\
+        --recover-backend ibm_kingston \\
+        --recover-opt-level 3
 """
 
 from pathlib import Path
