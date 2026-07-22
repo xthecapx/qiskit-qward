@@ -113,6 +113,7 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
             algorithm = "BV"
         execution_type = payload.get("execution_type", "")
         root_backend = payload.get("backend_name", payload.get("device_name", ""))
+        root_backend_type = payload.get("batch_summary", {}).get("backend_type", "")
         root_config_id = payload.get("config_id", "")
 
         for result in payload.get("individual_results", []):
@@ -139,7 +140,7 @@ def _extract_rows_from_json(json_paths: List[Path]) -> List[Dict[str, str]]:
                 "algorithm": str(algorithm),
                 "execution_type": str(execution_type),
                 "backend_name": str(result.get("backend_name", root_backend)),
-                "backend_type": str(result.get("backend_type", "")),
+                "backend_type": str(result.get("backend_type") or root_backend_type),
                 "noise_model": str(result.get("noise_model", payload.get("noise_id", ""))),
                 "config_id": str(result.get("config_id", root_config_id)),
                 "result_id": str(result.get("experiment_id", result.get("job_id", ""))),
@@ -184,6 +185,10 @@ DATASETS = {
     "qft-ibm": ("QFT", PAPERS / "qft" / "data" / "qpu" / "raw"),
     "qft-aws": ("QFT", PAPERS / "qft" / "data" / "qpu" / "aws"),
     "bv-ibm": ("BV", PAPERS / "bv" / "data" / "qpu" / "raw"),
+    "bvsb-ibm": (
+        "BV-SIGNAL-BACKGROUND",
+        PAPERS / "bv" / "data" / "qpu" / "signal_background" / "raw",
+    ),
 }
 
 
@@ -329,6 +334,7 @@ def main() -> int:
     grover_count = sum(1 for r in json_rows if r["algorithm"] == "GROVER")
     qft_count = sum(1 for r in json_rows if r["algorithm"] == "QFT")
     bv_count = sum(1 for r in json_rows if r["algorithm"] == "BV")
+    bvsb_count = sum(1 for r in json_rows if r["algorithm"] == "BV-SIGNAL-BACKGROUND")
 
     # ── Teleportation (CSV) ──
     tp_rows = _teleportation_rows_with_fidelity(args.teleportation_dir)
@@ -350,6 +356,7 @@ def main() -> int:
     print(f"  Grover (JSON):       {grover_count:4d} rows  ({len(json_paths)} files total)")
     print(f"  QFT (JSON):          {qft_count:4d} rows")
     print(f"  BV (JSON):           {bv_count:4d} rows")
+    print(f"  BVsb (JSON):         {bvsb_count:4d} rows")
     print(f"  Teleportation (CSV): {len(tp_rows):4d} rows")
     print(f"  Grand total:         {len(all_rows):4d} rows")
     return 0
