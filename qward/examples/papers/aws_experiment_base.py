@@ -157,7 +157,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
     def run(
         self,
         config_id: str,
-        device_id: str = "Ankaa-3",
+        device_id: str = "Cepheus-1-108Q",
         region: str = "us-west-1",
         save_results: bool = True,
         wait_for_results: bool = True,
@@ -505,7 +505,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
     def run_batch(
         self,
         config_ids: Optional[List[str]] = None,
-        device_id: str = "Ankaa-3",
+        device_id: str = "Cepheus-1-108Q",
         region: str = "us-west-1",
         save_results: bool = True,
         batch_timeout: int = 30,
@@ -523,7 +523,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
         Args:
             config_ids: List of config IDs to run. If ``None``, uses
                 ``get_priority_configs()`` (or falls back to all config IDs).
-            device_id: AWS Braket device name (default: "Ankaa-3").
+            device_id: AWS Braket device name (default: "Cepheus-1-108Q").
             region: AWS region (default: "us-west-1").
             save_results: Whether to save each result to disk (default: True).
             batch_timeout: Max seconds to wait per job (default: 30).
@@ -695,6 +695,11 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
                         "timeout",
                     }:
                         report["issues"].append(f"pending_status:{status}")
+                    if status in {"error", "failed"} and not result.get("job_id"):
+                        # No job_id means the submission itself failed before reaching
+                        # AWS (e.g. a bad device name) - nothing to retrieve, but flag
+                        # it so it isn't reported as "healthy".
+                        report["issues"].append("failed_submission")
                     if result.get("dsr_michelson") is None and bool(counts):
                         report["issues"].append("missing_dsr")
 
@@ -762,6 +767,64 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
                 )
 
         print("=" * 70)
+
+    def retrieve_by_job_id(
+        self,
+        job_id: str,
+        config_id: str,
+        device_id: str = "Cepheus-1-108Q",
+        region: str = "us-west-1",
+        save_results: bool = True,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Retrieve a previously submitted AWS job directly by its ARN.
+
+        Unlike ``update_from_aws()``, this doesn't need a local JSON file to
+        already exist - only the Job ID printed at submission time. Use this
+        when that file is missing (runtime restarted, ``%pip install
+        --force-reinstall`` wiped the package directory it lived in, etc.).
+        Rebuilds and (optionally) saves the same rich JSON result ``run()``
+        would have produced.
+        """
+        config = self.get_config(config_id)
+        circuit = self.create_circuit(config)
+        original_depth = circuit.depth()
+        original_gates = circuit.size()
+        qward_metrics = calculate_qward_metrics(circuit)
+        expected_outcomes = self.get_expected_outcomes(config)
+
+        key_id = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
+        secret = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
+
+        print(f"\nRetrieving job {job_id} directly from AWS Braket...")
+        aws_result = self.executor.retrieve_aws_job(
+            job_id,
+            device_id=device_id,
+            region=region,
+            aws_access_key_id=key_id,
+            aws_secret_access_key=secret,
+            expected_outcomes=expected_outcomes,
+            show_progress=True,
+        )
+
+        result = self._build_rich_result(
+            aws_result=aws_result,
+            config=config,
+            circuit=circuit,
+            qward_metrics=qward_metrics,
+            original_depth=original_depth,
+            original_gates=original_gates,
+            expected_outcomes=expected_outcomes,
+        )
+
+        self._print_analysis(result, config)
+
+        if save_results:
+            save_path = self._save_results(result, config, aws_result.device_name or device_id)
+            print(f"\nResults saved to: {save_path}")
+
+        return result
 
     def update_from_aws(
         self,
@@ -912,7 +975,10 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
                 continue
 
             resolved_device = (
-                device_id or result.get("backend_name") or data.get("device_name") or "Ankaa-3"
+                device_id
+                or result.get("backend_name")
+                or data.get("device_name")
+                or "Cepheus-1-108Q"
             )
             resolved_region = region or result.get("region") or data.get("region") or "us-west-1"
             expected_outcomes = self._resolve_expected_outcomes(
@@ -1123,7 +1189,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
             "--device",
             "-d",
             default=None,
-            help="AWS Braket device name (default for runs: Ankaa-3)",
+            help="AWS Braket device name (default for runs: Cepheus-1-108Q)",
         )
         parser.add_argument(
             "--region",
@@ -1248,7 +1314,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
             self.executor = QuantumCircuitExecutor(shots=parsed.shots)
             return self.run_batch(
                 config_ids=parsed.batch_configs,
-                device_id=parsed.device or "Ankaa-3",
+                device_id=parsed.device or "Cepheus-1-108Q",
                 region=parsed.region or "us-west-1",
                 save_results=not parsed.no_save,
                 batch_timeout=parsed.batch_timeout,
@@ -1283,7 +1349,7 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
 
         result = self.run(
             config_id=parsed.config,
-            device_id=parsed.device or "Ankaa-3",
+            device_id=parsed.device or "Cepheus-1-108Q",
             region=parsed.region or "us-west-1",
             save_results=not parsed.no_save,
             wait_for_results=not parsed.no_wait,

@@ -5,10 +5,10 @@
 # Run this script to execute all missing experiments on AWS Braket hardware.
 #
 # Usage:
-#   ./run_aws_experiments.sh [grover|qft|bv|coin_toss|all]
+#   ./run_aws_experiments.sh [grover|qft|bv|bvsb|coin_toss|all]
 #
 # Environment Variables (optional):
-#   AWS_BRAKET_DEVICE      - Device name (default: Ankaa-3)
+#   AWS_BRAKET_DEVICE      - Device name (default: Cepheus-1-108Q)
 #   AWS_BRAKET_REGION      - Region (default: us-west-1)
 #   AWS_ACCESS_KEY_ID      - AWS access key
 #   AWS_SECRET_ACCESS_KEY  - AWS secret key
@@ -16,7 +16,7 @@
 #
 # Examples:
 #   ./run_aws_experiments.sh
-#   AWS_BRAKET_DEVICE="Ankaa-3" AWS_BRAKET_REGION="us-west-1" ./run_aws_experiments.sh grover
+#   AWS_BRAKET_DEVICE="Cepheus-1-108Q" AWS_BRAKET_REGION="us-west-1" ./run_aws_experiments.sh grover
 #   AWS_NO_WAIT=1 ./run_aws_experiments.sh qft
 # =============================================================================
 
@@ -28,7 +28,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-DEVICE="${AWS_BRAKET_DEVICE:-Ankaa-3}"
+DEVICE="${AWS_BRAKET_DEVICE:-Cepheus-1-108Q}"
 REGION="${AWS_BRAKET_REGION:-${AWS_REGION:-us-west-1}}"
 
 COMMON_ARGS=(--device "$DEVICE" --region "$REGION")
@@ -157,6 +157,20 @@ run_bv() {
 }
 
 # =============================================================================
+# BV SIGNAL-PLUS-BACKGROUND EXPERIMENTS
+# =============================================================================
+run_bvsb() {
+    echo "=============================================="
+    echo "BV SIGNAL-PLUS-BACKGROUND EXPERIMENTS"
+    echo "=============================================="
+
+    # Coherent (non-dynamic) variant, portable to Rigetti/AWS Braket.
+    run_experiment "BVSB" "BVSB27" "bv/bv_signal_background_aws.py"
+    run_experiment "BVSB" "BVSB28" "bv/bv_signal_background_aws.py"
+    run_experiment "BVSB" "BVSB29" "bv/bv_signal_background_aws.py"
+}
+
+# =============================================================================
 # COIN TOSS EXPERIMENTS (Ry rotations)
 # =============================================================================
 run_coin_toss() {
@@ -193,6 +207,9 @@ case "${1:-all}" in
     bv)
         run_bv
         ;;
+    bvsb)
+        run_bvsb
+        ;;
     coin_toss|coin-toss|cointoss)
         run_coin_toss
         ;;
@@ -200,6 +217,7 @@ case "${1:-all}" in
         run_grover
         run_qft
         run_bv
+        run_bvsb
         run_coin_toss
         ;;
 esac
@@ -211,5 +229,6 @@ echo "Results saved in:"
 echo "  - grover/data/qpu/aws/"
 echo "  - qft/data/qpu/aws/"
 echo "  - bv/data/qpu/aws/"
+echo "  - bv/data/qpu/signal_background/aws/"
 echo "  - coin_toss/data/qpu/aws/"
 echo "=============================================="
