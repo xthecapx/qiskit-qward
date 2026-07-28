@@ -1032,6 +1032,103 @@ def _plot_combined_comparison(
         plt.close(fig)
 
 
+def _rigetti_device_label(backend_name: str) -> Optional[str]:
+    """Canonicalize a Rigetti backend name into a device-generation label."""
+    name = backend_name.lower()
+    if "ankaa" in name:
+        return "Ankaa-3"
+    if "cepheus" in name:
+        return "Cepheus-1-108Q"
+    return None
+
+
+def _plot_device_comparison(rows: List[Dict[str, str]], output_dir: Path) -> None:
+    """Compare Rigetti device generations (Ankaa-3 vs Cepheus-1-108Q) per algorithm.
+
+    One subplot per algorithm, showing mean DSR (Michelson) vs number of
+    qubits with one line per device generation. Lets the retired Ankaa-3
+    baseline be compared directly against newly collected Cepheus-1-108Q
+    data as the Rigetti campaign is re-run on the new hardware.
+    """
+    aws_rows = [r for r in rows if r.get("execution_type", "").upper().startswith("AWS")]
+    if not aws_rows:
+        return
+
+    present = {r.get("algorithm", "") for r in aws_rows} - {""}
+    algorithms = [a for a in COMBINED_ALGO_ORDER if a in present]
+    algorithms += sorted(present - set(COMBINED_ALGO_ORDER))
+    if not algorithms:
+        return
+
+    device_colors = {"Ankaa-3": COLORBREWER_PALETTE[2], "Cepheus-1-108Q": COLORBREWER_PALETTE[1]}
+    device_markers = {"Ankaa-3": "o", "Cepheus-1-108Q": "^"}
+
+    ncols = 2
+    nrows = (len(algorithms) + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(14, 5.5 * nrows), squeeze=False)
+
+    any_plotted = False
+    for idx, algo in enumerate(algorithms):
+        ax = axes[idx // ncols][idx % ncols]
+        algo_rows = [r for r in aws_rows if r.get("algorithm") == algo]
+
+        by_device: Dict[str, Dict[float, List[float]]] = {}
+        for r in algo_rows:
+            device = _rigetti_device_label(r.get("backend_name", ""))
+            q = _to_float(r.get("num_qubits", ""))
+            dsr = _to_float(r.get("dsr_michelson", ""))
+            if device is None or q is None or dsr is None:
+                continue
+            by_device.setdefault(device, {}).setdefault(q, []).append(dsr)
+
+        for device in ("Ankaa-3", "Cepheus-1-108Q"):
+            points = by_device.get(device)
+            if not points:
+                continue
+            qubits_sorted = sorted(points)
+            means = [statistics.mean(points[q]) for q in qubits_sorted]
+            n_jobs = sum(len(v) for v in points.values())
+            ax.plot(
+                qubits_sorted,
+                means,
+                marker=device_markers[device],
+                markersize=8,
+                linewidth=2,
+                color=device_colors[device],
+                label=f"{device} (n={n_jobs})",
+            )
+            any_plotted = True
+
+        ax.set_title(algo, fontsize=LABEL_SIZE, fontweight="bold")
+        ax.set_xlabel("Number of Qubits", fontsize=LABEL_SIZE - 2)
+        ax.set_ylabel("Mean DSR (Michelson)", fontsize=LABEL_SIZE - 2)
+        ax.set_ylim(-0.05, 1.05)
+        apply_axes_defaults(ax)
+        ax.legend(fontsize=LEGEND_SIZE)
+
+    for idx in range(len(algorithms), nrows * ncols):
+        axes[idx // ncols][idx % ncols].axis("off")
+
+    if not any_plotted:
+        plt.close(fig)
+        return
+
+    fig.suptitle(
+        "Rigetti device comparison: Ankaa-3 (retired) vs Cepheus-1-108Q",
+        fontsize=TITLE_SIZE,
+        fontweight="bold",
+    )
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(
+        output_dir / "1_device_comparison_ankaa_vs_cepheus.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+    plt.close(fig)
+
+
 _COMBINED_DEPTH_BIN = 100  # bin width for the depth-based combined boxplot
 _COMBINED_DEPTH_CAP = 800  # drop data above this depth to avoid long empty tail
 
@@ -1751,6 +1848,8 @@ def main() -> int:
     # Combined comparison plots use ALL rows (IBM + Rigetti)
     _plot_combined_comparison(rows, args.out_dir)
     print("Generated combined comparison plot (boxplots)")
+    _plot_device_comparison(rows, args.out_dir)
+    print("Generated Rigetti device comparison plot (Ankaa-3 vs Cepheus-1-108Q)")
     _plot_combined_depth_comparison(rows, args.out_dir)
     print("Generated combined comparison plot (depth)")
     _plot_qft_heatmap_by_optimization(ibm_rows, args.out_dir)

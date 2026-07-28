@@ -852,7 +852,7 @@ class QuantumCircuitExecutor:
         self,
         circuit: QuantumCircuit,
         *,
-        device_id: str = "Ankaa-3",
+        device_id: str = "Cepheus-1-108Q",
         region: str = "us-west-1",
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
@@ -868,7 +868,7 @@ class QuantumCircuitExecutor:
         """Run circuit on AWS Braket hardware via qiskit-braket-provider.
 
         This method executes a quantum circuit on AWS Braket devices (e.g. Rigetti
-        Ankaa-3, IonQ, etc.) using the qiskit-braket-provider package. It handles
+        Cepheus-1-108Q, IonQ, etc.) using the qiskit-braket-provider package. It handles
         barrier removal, endianness conversion, job polling, and integrates with
         QWARD metrics.
 
@@ -884,7 +884,7 @@ class QuantumCircuitExecutor:
 
         Args:
             circuit: The quantum circuit to execute
-            device_id: AWS Braket device name (default: "Ankaa-3" for Rigetti)
+            device_id: AWS Braket device name (default: "Cepheus-1-108Q" for Rigetti)
             region: AWS region where the device is hosted (default: "us-west-1")
             aws_access_key_id: Optional AWS access key ID. If None, uses
                 environment variable or pre-configured credentials
@@ -921,7 +921,7 @@ class QuantumCircuitExecutor:
             >>> executor = QuantumCircuitExecutor(shots=1024)
             >>> result = executor.run_aws(
             ...     circuit,
-            ...     device_id="Ankaa-3",
+            ...     device_id="Cepheus-1-108Q",
             ...     expected_outcomes=["000"],
             ... )
             >>> print(f"Job ID: {result.job_id}")
@@ -1143,7 +1143,7 @@ class QuantumCircuitExecutor:
         self,
         job_id: str,
         *,
-        device_id: str = "Ankaa-3",
+        device_id: str = "Cepheus-1-108Q",
         region: str = "us-west-1",
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
@@ -1160,7 +1160,7 @@ class QuantumCircuitExecutor:
         Args:
             job_id: AWS Braket job ARN
                 (e.g. "arn:aws:braket:us-west-1:ACCOUNT:quantum-task/UUID")
-            device_id: Device name used for the original submission (default: "Ankaa-3")
+            device_id: Device name used for the original submission (default: "Cepheus-1-108Q")
             region: AWS region (default: "us-west-1")
             aws_access_key_id: Optional AWS access key ID
             aws_secret_access_key: Optional AWS secret access key

@@ -40,7 +40,7 @@ class BVAWSExperiment(AWSExperimentBase[BVExperimentConfig]):
     def run(
         self,
         config_id: str,
-        device_id: str = "Ankaa-3",
+        device_id: str = "Cepheus-1-108Q",
         region: str = "us-west-1",
         save_results: bool = True,
         wait_for_results: bool = True,
