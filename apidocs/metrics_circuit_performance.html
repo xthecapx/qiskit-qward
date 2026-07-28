@@ -306,25 +306,50 @@
 <section id="module-qward.metrics.fidelity_metrics">
 <span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-qward.metrics.fidelity_metrics" title="Link to this heading">¶</a></h2>
 <p>Fidelity metrics for quantum circuit output validation.</p>
-<p>Computes DSR (Michelson), Hellinger fidelity, TVD, and success rate
-from Sampler results, or expectation-value-based metrics from Estimator results.
-Automatically detects the primitive type from the provided inputs.</p>
+<p>Computes the DSR evaluation profile (success rate, chance-corrected
+success, coarse TVD similarity, coarse Hellinger fidelity), the optional
+Michelson “peak-contrast” DSR layer, full-histogram Hellinger fidelity/TVD,
+and success rate from Sampler results, or expectation-value-based metrics
+from Estimator results. Automatically detects the primitive type from the
+provided inputs.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="qward.metrics.fidelity_metrics.FidelityMetrics">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_measured_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_dsr_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_michelson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qward.metrics.fidelity_metrics.FidelityMetrics" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
 <p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
 <p>Handles both Qiskit primitive types automatically:
-- <strong>Sampler</strong> (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
-- <strong>Estimator</strong> (expectation values): success probability, observable fidelity,</p>
+- <strong>Sampler</strong> (counts/histograms): the DSR evaluation profile (success</p>
 <blockquote>
-<div><p>SNR, depolarization factor</p>
+<div><p>rate, chance-corrected success, coarse TVD similarity, coarse
+Hellinger fidelity), the optional Michelson “peak-contrast” DSR layer,
+and (when a <code class="docutils literal notranslate"><span class="pre">target_histogram</span></code> is supplied) the full-distribution
+Hellinger fidelity and TVD.</p>
 </div></blockquote>
+<ul class="simple">
+<li><p><strong>Estimator</strong> (expectation values): success probability, observable
+fidelity, SNR, depolarization factor</p></li>
+</ul>
+<p>The DSR profile (<code class="docutils literal notranslate"><span class="pre">chance_corrected_success</span></code>, <code class="docutils literal notranslate"><span class="pre">coarse_tvd_similarity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">coarse_hellinger_fidelity</span></code>, plus <code class="docutils literal notranslate"><span class="pre">success_rate</span></code>) only requires
+<code class="docutils literal notranslate"><span class="pre">expected_outcomes</span></code> – never a simulated ideal histogram. It is
+computed whenever <code class="docutils literal notranslate"><span class="pre">expected_outcomes</span></code> is provided and
+<code class="docutils literal notranslate"><span class="pre">num_measured_qubits</span></code> can be inferred from the observed bitstrings (or
+is supplied explicitly); see <code class="docutils literal notranslate"><span class="pre">num_measured_qubits</span></code> / <code class="docutils literal notranslate"><span class="pre">expected_weights</span></code>
+below.</p>
 <p class="rubric">Example</p>
 <p># Sampler path — from counts
 fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)</p>
 <p># Sampler path — from job
 fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[“00”])</p>
+<p># Multi-marked target with a non-uniform reference distribution over E
+fm = FidelityMetrics(</p>
+<blockquote>
+<div><p>circuit,
+counts=counts,
+expected_outcomes=[“001”, “010”, “100”],
+expected_weights={“001”: 0.5, “010”: 0.25, “100”: 0.25},</p>
+</div></blockquote>
+<p>)</p>
 <p># Estimator path — from values
 fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))</p>
 <p># Estimator path — from job (auto-detected)
@@ -399,20 +424,42 @@ fm = FidelityMetrics(circuit, job=estimator_job)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FidelityMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_outcomes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_histogram</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success_criteria</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_deviations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_expectation_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observable_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_measured_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_dsr_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_michelson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qward/metrics/fidelity_metrics.html#FidelityMetrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="metrics_base.html#id0" title="qward.metrics.base_metric.MetricCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricCalculator</span></code></a></p>
 <p>Post-runtime fidelity metrics for quantum circuit outputs.</p>
 <p>Handles both Qiskit primitive types automatically:
-- <strong>Sampler</strong> (counts/histograms): DSR, Hellinger fidelity, TVD, success rate
-- <strong>Estimator</strong> (expectation values): success probability, observable fidelity,</p>
+- <strong>Sampler</strong> (counts/histograms): the DSR evaluation profile (success</p>
 <blockquote>
-<div><p>SNR, depolarization factor</p>
+<div><p>rate, chance-corrected success, coarse TVD similarity, coarse
+Hellinger fidelity), the optional Michelson “peak-contrast” DSR layer,
+and (when a <code class="docutils literal notranslate"><span class="pre">target_histogram</span></code> is supplied) the full-distribution
+Hellinger fidelity and TVD.</p>
 </div></blockquote>
+<ul class="simple">
+<li><p><strong>Estimator</strong> (expectation values): success probability, observable
+fidelity, SNR, depolarization factor</p></li>
+</ul>
+<p>The DSR profile (<code class="docutils literal notranslate"><span class="pre">chance_corrected_success</span></code>, <code class="docutils literal notranslate"><span class="pre">coarse_tvd_similarity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">coarse_hellinger_fidelity</span></code>, plus <code class="docutils literal notranslate"><span class="pre">success_rate</span></code>) only requires
+<code class="docutils literal notranslate"><span class="pre">expected_outcomes</span></code> – never a simulated ideal histogram. It is
+computed whenever <code class="docutils literal notranslate"><span class="pre">expected_outcomes</span></code> is provided and
+<code class="docutils literal notranslate"><span class="pre">num_measured_qubits</span></code> can be inferred from the observed bitstrings (or
+is supplied explicitly); see <code class="docutils literal notranslate"><span class="pre">num_measured_qubits</span></code> / <code class="docutils literal notranslate"><span class="pre">expected_weights</span></code>
+below.</p>
 <p class="rubric">Example</p>
 <p># Sampler path — from counts
 fm = FidelityMetrics(circuit, counts={“00”: 900, “11”: 100}, target_state=”00”)</p>
 <p># Sampler path — from job
 fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[“00”])</p>
+<p># Multi-marked target with a non-uniform reference distribution over E
+fm = FidelityMetrics(</p>
+<blockquote>
+<div><p>circuit,
+counts=counts,
+expected_outcomes=[“001”, “010”, “100”],
+expected_weights={“001”: 0.5, “010”: 0.25, “100”: 0.25},</p>
+</div></blockquote>
+<p>)</p>
 <p># Estimator path — from values
 fm = FidelityMetrics(circuit, expectation_values=np.array([0.95]))</p>
 <p># Estimator path — from job (auto-detected)
