@@ -95,9 +95,7 @@ class TestChanceCorrectedSuccess(unittest.TestCase):
     def test_k_equals_full_space_returns_one(self):
         # K = 2**m: every outcome is "expected", so success is guaranteed.
         counts = {"00": 50, "01": 50}
-        score = compute_chance_corrected_success(
-            counts, {"00", "01"}, num_measured_qubits=1
-        )
+        score = compute_chance_corrected_success(counts, {"00", "01"}, num_measured_qubits=1)
         self.assertAlmostEqual(score, 1.0)
 
 
@@ -183,16 +181,12 @@ class TestCoarseMetricsMultiTarget(unittest.TestCase):
     def test_invalid_weights_dont_sum_to_one(self):
         counts = {"00": 50, "11": 50}
         with self.assertRaises(ValueError):
-            compute_coarse_tvd(
-                counts, {"00", "11"}, expected_weights={"00": 0.5, "11": 0.6}
-            )
+            compute_coarse_tvd(counts, {"00", "11"}, expected_weights={"00": 0.5, "11": 0.6})
 
     def test_invalid_weights_negative(self):
         counts = {"00": 50, "11": 50}
         with self.assertRaises(ValueError):
-            compute_coarse_tvd(
-                counts, {"00", "11"}, expected_weights={"00": 1.5, "11": -0.5}
-            )
+            compute_coarse_tvd(counts, {"00", "11"}, expected_weights={"00": 1.5, "11": -0.5})
 
 
 class TestCoarseHellingerDistanceMetric(unittest.TestCase):

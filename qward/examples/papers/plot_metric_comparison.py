@@ -359,9 +359,7 @@ def _load_bv_wall_results(directories: List[Path]) -> List[Dict]:
             if success is None and result.get("expected_outcome") and result.get("counts"):
                 shots = sum(result["counts"].values())
                 exp = result["expected_outcome"]
-                success = (
-                    result["counts"].get(exp, 0) / shots if shots else 0.0
-                )
+                success = result["counts"].get(exp, 0) / shots if shots else 0.0
             results.append(
                 {
                     "num_qubits": int(nq),
@@ -424,8 +422,10 @@ def _render_bv_wall_comparison(
 
     # Wall marker only (label described in the paper caption/text).
     wall_x = (
-        xpos[ladder[-1]] + xpos[wall[0]]
-    ) / 2.0 if ladder and wall else float(BV_STATEVECTOR_WALL_N_SECRET)
+        (xpos[ladder[-1]] + xpos[wall[0]]) / 2.0
+        if ladder and wall
+        else float(BV_STATEVECTOR_WALL_N_SECRET)
+    )
     ax.axvline(wall_x, color="#444444", linestyle="--", linewidth=2.0, zorder=3)
 
     for i, (key, _label) in enumerate(WALL_METRICS):

@@ -727,9 +727,7 @@ class QuantumCircuitExecutor:
                         job = sampler.run([isa], shots=self.shots)
                         submitted_jobs.append((opt_level, run_idx, job))
                         if show_progress:
-                            run_label = (
-                                f", run={run_idx + 1}/{num_runs}" if num_runs > 1 else ""
-                            )
+                            run_label = f", run={run_idx + 1}/{num_runs}" if num_runs > 1 else ""
                             print(
                                 f">>> Submitted job for opt_level={opt_level}{run_label}, "
                                 f"transpiled depth={isa.depth()}"
