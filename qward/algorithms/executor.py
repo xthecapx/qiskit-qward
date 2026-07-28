@@ -16,7 +16,7 @@ from typing import Dict, Any, Optional, Union, List, TYPE_CHECKING, Callable
 from dataclasses import dataclass, field
 
 import pandas as pd
-from qiskit import QuantumCircuit
+from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit_aer.noise import NoiseModel
 
@@ -1251,6 +1251,67 @@ class QuantumCircuitExecutor:
             )
 
     @staticmethod
+    def _marginalize_counts_to_length(
+        counts: Dict[str, int],
+        target_len: int,
+        expected_outcomes: Optional[List[str]] = None,
+        show_progress: bool = True,
+    ) -> Dict[str, int]:
+        """Collapse wider bitstrings down to ``target_len`` bits.
+
+        Defensive fallback for AWS Braket results measured with extra
+        qubits beyond what ``expected_outcomes`` was defined over -- e.g. an
+        unmeasured ancilla that historically got swept in by a blind
+        ``measure_all()`` (see Bernstein-Vazirani, whose ancilla is the
+        *highest*-index qubit, vs. QFT period-detection, whose ancilla is
+        the *lowest*-index qubit). Because the extra qubit's position
+        varies by algorithm, both the leading-character and trailing-
+        character truncations are tried, and whichever one yields the
+        higher match rate against ``expected_outcomes`` is kept -- a wrong
+        truncation direction effectively randomizes the outcome and scores
+        near chance level, while the correct one recovers the true signal.
+        """
+        if not counts:
+            return counts
+        count_len = len(next(iter(counts)))
+        if count_len <= target_len:
+            return counts
+
+        def _collapse(key_fn: Callable[[str], str]) -> Dict[str, int]:
+            marginal: Dict[str, int] = {}
+            for bitstr, cnt in counts.items():
+                key = key_fn(bitstr)
+                marginal[key] = marginal.get(key, 0) + cnt
+            return marginal
+
+        prefix = _collapse(lambda k: k[:target_len])
+        if not expected_outcomes:
+            return prefix
+
+        suffix = _collapse(lambda k: k[-target_len:])
+        total = sum(counts.values())
+        expected_set = set(expected_outcomes)
+        prefix_score = sum(v for k, v in prefix.items() if k in expected_set)
+        suffix_score = sum(v for k, v in suffix.items() if k in expected_set)
+
+        if suffix_score > prefix_score:
+            if show_progress:
+                print(
+                    f">>> Warning: counts have {count_len} bits but expected_outcomes "
+                    f"have {target_len}; trailing-qubit truncation matched better "
+                    f"({suffix_score}/{total} vs {prefix_score}/{total}) and was used."
+                )
+            return suffix
+
+        if show_progress and prefix_score > 0:
+            print(
+                f">>> Warning: counts have {count_len} bits but expected_outcomes "
+                f"have {target_len}; leading-qubit truncation was used "
+                f"({prefix_score}/{total} matched)."
+            )
+        return prefix
+
+    @staticmethod
     def _compute_dsr_from_counts(
         counts: Dict[str, int],
         expected_outcomes: Optional[List[str]],
@@ -1296,6 +1357,10 @@ class QuantumCircuitExecutor:
         if not expected_outcomes or not counts:
             return empty
 
+        counts = QuantumCircuitExecutor._marginalize_counts_to_length(
+            counts, len(expected_outcomes[0]), expected_outcomes, show_progress
+        )
+
         try:
             profile = DSRProfiler(counts, expected_outcomes).profile()
             dsr_michelson_val, peak_mismatch_val = compute_dsr_with_flags(counts, expected_outcomes)
@@ -1333,6 +1398,42 @@ class QuantumCircuitExecutor:
         ]
         return out
 
+    @staticmethod
+    def _get_measured_qubit_clbit_pairs(circuit: QuantumCircuit) -> Dict[int, int]:
+        """Map classical-bit index -> qubit index for each ``measure`` in
+        ``circuit`` (before decomposition/re-measurement).
+
+        Algorithms with unmeasured ancilla/work qubits (e.g. Bernstein-
+        Vazirani, which never measures its ancilla) rely on only a subset of
+        qubits being measured. This lets AWS preparation reproduce exactly
+        that subset instead of blindly calling ``measure_all()``, which would
+        pull in the ancilla and corrupt the resulting bitstring.
+        """
+        pairs: Dict[int, int] = {}
+        for instruction in circuit.data:
+            if instruction.operation.name == "measure":
+                qubit_idx = circuit.find_bit(instruction.qubits[0]).index
+                clbit_idx = circuit.find_bit(instruction.clbits[0]).index
+                pairs[clbit_idx] = qubit_idx
+        return pairs
+
+    @staticmethod
+    def _remeasure_only_original_qubits(
+        circuit_decomposed: QuantumCircuit,
+        measured_pairs: Dict[int, int],
+    ) -> None:
+        """Re-add measurements for exactly the qubits ``measured_pairs`` maps,
+        in classical-bit order, or fall back to ``measure_all()`` if the
+        original circuit had no explicit measurements to preserve."""
+        circuit_decomposed.remove_final_measurements()
+        if not measured_pairs:
+            circuit_decomposed.measure_all()
+            return
+        creg = ClassicalRegister(len(measured_pairs), "meas")
+        circuit_decomposed.add_register(creg)
+        for clbit_idx, qubit_idx in sorted(measured_pairs.items()):
+            circuit_decomposed.measure(qubit_idx, creg[clbit_idx])
+
     def _prepare_circuit_for_aws_with_optimization(
         self,
         circuit: QuantumCircuit,
@@ -1346,9 +1447,10 @@ class QuantumCircuitExecutor:
         Use this to mirror IBM behaviour where e.g. optimization_level=3
         improves success on hardware.
         """
+        measured_pairs = self._get_measured_qubit_clbit_pairs(circuit)
+
         circuit_decomposed = circuit.decompose(reps=10)
-        circuit_decomposed.remove_final_measurements()
-        circuit_decomposed.measure_all()
+        self._remeasure_only_original_qubits(circuit_decomposed, measured_pairs)
 
         pm = generate_preset_pass_manager(
             backend=backend,
@@ -1357,8 +1459,8 @@ class QuantumCircuitExecutor:
         circuit_opt = pm.run(circuit_decomposed)
         return self._remove_barriers(circuit_opt)
 
-    @staticmethod
-    def _prepare_circuit_for_aws(circuit: QuantumCircuit) -> QuantumCircuit:
+    @classmethod
+    def _prepare_circuit_for_aws(cls, circuit: QuantumCircuit) -> QuantumCircuit:
         """Prepare a Qiskit circuit for AWS Braket submission.
 
         This method:
@@ -1368,7 +1470,9 @@ class QuantumCircuitExecutor:
            Without this step the adapter converts opaque gates to a unitary
            matrix, which degrades results on real hardware.
         2. Removes barrier instructions (unsupported by AWS Braket).
-        3. Normalises final measurements.
+        3. Normalises final measurements, preserving exactly which qubits
+           the original circuit measured (so unmeasured ancilla/work qubits,
+           e.g. in Bernstein-Vazirani, stay out of the result bitstring).
 
         We intentionally do **not** run a full transpiler pass (no layout,
         routing, or optimisation) so that qubit ordering is preserved and
@@ -1382,14 +1486,17 @@ class QuantumCircuitExecutor:
         """
         from qiskit.circuit import Barrier
 
+        # Step 0: Capture which qubits were originally measured, before
+        # decomposition/re-measurement below can obscure that information.
+        measured_pairs = cls._get_measured_qubit_clbit_pairs(circuit)
+
         # Step 1: Recursively decompose opaque/composite gates until only
         # standard gates remain.  ``reps=10`` is generous enough for deeply
         # nested library gates (e.g. power -> grover_operator -> MCMT -> CCX).
         circuit_decomposed = circuit.decompose(reps=10)
 
         # Step 2: Normalise measurements
-        circuit_decomposed.remove_final_measurements()
-        circuit_decomposed.measure_all()
+        cls._remeasure_only_original_qubits(circuit_decomposed, measured_pairs)
 
         # Step 3: Remove barriers (AWS Braket incompatible)
         circuit_clean = circuit_decomposed.copy()
