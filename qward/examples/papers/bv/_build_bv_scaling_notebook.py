@@ -8,9 +8,13 @@ import shutil
 from pathlib import Path
 from textwrap import dedent
 
-NB_PATH = Path("/Users/cristianmarquezbarrios/Documents/code/Quantum_Benchmark_26/bv_scaling_dsr.ipynb")
+NB_PATH = Path(
+    "/Users/cristianmarquezbarrios/Documents/code/Quantum_Benchmark_26/bv_scaling_dsr.ipynb"
+)
 PLAN_SRC = Path(__file__).resolve().parent / "bv_scaling_dsr_plan.md"
-PLAN_DST = Path("/Users/cristianmarquezbarrios/Documents/code/Quantum_Benchmark_26/bv_scaling_dsr_plan.md")
+PLAN_DST = Path(
+    "/Users/cristianmarquezbarrios/Documents/code/Quantum_Benchmark_26/bv_scaling_dsr_plan.md"
+)
 
 
 def md(text: str) -> dict:
@@ -34,9 +38,7 @@ def code(text: str) -> dict:
 def build_cells() -> list[dict]:
     cells: list[dict] = []
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             # Bernstein–Vazirani Scaling Experiment — DSR-Only Validation Past the Simulation Wall
 
             See [`bv_scaling_dsr_plan.md`](./bv_scaling_dsr_plan.md) for the full written plan and rationale.
@@ -60,13 +62,9 @@ def build_cells() -> list[dict]:
 
             **Convention.** BV uses `n` secret bits + 1 ancilla = `n+1` total qubits; only `n` bits
             are measured. Default target: `TARGET_N = 29` → **30 total qubits**.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             import json
             import math
             import os
@@ -119,25 +117,17 @@ def build_cells() -> list[dict]:
             print(f"psutil available: {HAVE_PSUTIL}")
             print(f"QWARD_CHECKOUT: {QWARD_CHECKOUT} (exists={QWARD_CHECKOUT.exists()})")
             print(f"QWARD_BV_RAW_DIR: {QWARD_BV_RAW_DIR} (exists={QWARD_BV_RAW_DIR.exists()})")
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Circuit builder, analytic expected outcome, and DSR helpers
 
             Prefer `qward.algorithms.BernsteinVazirani` and
             `qward.metrics.differential_success_rate.compute_dsr_profile`. If the installed
             package is too old, fall back to an inline BV builder and Michelson DSR.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             HAVE_QWARD_BV = False
             HAVE_QWARD_DSR = False
 
@@ -261,24 +251,16 @@ def build_cells() -> list[dict]:
             print("expected:", expected_outcome_from_secret(_secret))
             _example = {"1101": 900, "0000": 40, "1111": 40, "1010": 20}
             print("DSR profile smoke:", dsr_profile_from_counts(_example, expected_outcome_from_secret(_secret)))
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Phase 1 — Correctness validation (small `n`)
 
             For each `n = 2..12` and each secret pattern, confirm that the measured-register
             marginal puts ~100% probability on `secret[::-1]`.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             def circuit_without_measurements(circuit: QuantumCircuit) -> QuantumCircuit:
                 return circuit.remove_final_measurements(inplace=False)
 
@@ -322,13 +304,9 @@ def build_cells() -> list[dict]:
             validation_df = pd.DataFrame(validation_rows)
             print(f"All {len(validation_df)} classical-vs-quantum checks passed.")
             validation_df.tail(9)
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Phase 2 — Growth & timing sweep (find the simulation wall)
 
             Record circuit metrics for every `n`, and statevector time where memory allows.
@@ -345,13 +323,9 @@ def build_cells() -> list[dict]:
             `CONFIRMED_WALL_N_SECRET = 25` locks that result. Past the wall,
             full HF/TVD need an ideal histogram we cannot build; DSR / coarse
             profile only need the analytic secret + hardware counts.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             import multiprocessing as mp
 
             MIN_N_SECRET = 2
@@ -569,25 +543,17 @@ def build_cells() -> list[dict]:
                 flush=True,
             )
             sweep_df
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ### Circuit metrics beyond the simulation wall (no simulation needed)
 
             Builds `QuantumCircuit` objects only (no statevector). Each `n` prints a
             heartbeat; the whole cell also has `METRICS_CELL_TIMEOUT_S` so a stuck
             Docker session fails closed instead of hanging forever.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             MAX_N_METRICS_ONLY = 40  # secret bits; total qubits = n+1
             METRICS_CELL_TIMEOUT_S = 60  # fail the cell if metrics enumeration exceeds this
 
@@ -644,13 +610,9 @@ def build_cells() -> list[dict]:
             )
             print(f"Saved to {sweep_csv_path}", flush=True)
             full_sweep_df.tail(12)
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
 
             sim_rows = full_sweep_df[full_sweep_df["simulated"] == True]  # noqa: E712
@@ -709,23 +671,15 @@ def build_cells() -> list[dict]:
             plt.savefig(wall_plot_path, dpi=150)
             print(f"Saved to {wall_plot_path}")
             plt.show()
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Phase 3 — Backend feasibility check (transpile candidates beyond the wall)
 
             Transpile candidates beyond the wall at opt-level 3 on the least-busy IBM backend.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             from dotenv import load_dotenv
             from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
             from qiskit_ibm_runtime import QiskitRuntimeService
@@ -784,23 +738,15 @@ def build_cells() -> list[dict]:
             feasibility_df.to_csv(feasibility_csv_path, index=False)
             print(f"Saved to {feasibility_csv_path}")
             feasibility_df
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ### Pick the target `n_secret`
 
             Default is **29** (30 total qubits) when the backend can host it.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             # EDIT ME after inspecting feasibility_df above.
             # Default: 29 secret bits = 30 total qubits (beyond the 27-qubit wall).
             # Phase 4 still submits ONE job with 3 pattern PUBs at this size.
@@ -813,14 +759,9 @@ def build_cells() -> list[dict]:
                 f"(ONES/ALT/SINGLE) at this size when SUBMIT_JOB=True."
             )
             print(feasibility_df[feasibility_df["n_secret"] == TARGET_N])
-            """
-        )
-    )
+            """))
 
-
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Phase 4 — Submit a new IBM job (optional wait)
 
             Flip `SUBMIT_JOB = True` to submit **one** new IBM `SamplerV2` job
@@ -836,13 +777,9 @@ def build_cells() -> list[dict]:
 
             To submit another run later: set `SUBMIT_JOB = True` again and re-run
             **only this cell** (do not clear the registry).
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             from qiskit_ibm_runtime import SamplerV2
 
             SUBMIT_JOB = False  # True = submit a NEW job this run
@@ -1001,13 +938,9 @@ def build_cells() -> list[dict]:
                 print(
                     f"Registry now has {len(registry['jobs'])} job(s) at {REGISTRY_PATH}"
                 )
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Phase 5 — Wait / retrieve jobs + multi-run DSR
 
             This cell:
@@ -1020,13 +953,9 @@ def build_cells() -> list[dict]:
 
             To add another IBM run: go back to Phase 4, `SUBMIT_JOB=True`, re-run
             that cell, then re-run Phase 5.
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             # =============================================================================
             # EDIT ME:
             #   NEW_JOB_IDS = ["dxxx..."]          # paste ids to force-include
@@ -1401,13 +1330,9 @@ def build_cells() -> list[dict]:
             )
             n_ibm = len({r['job_id'] for r in run_rows if r.get('source') == 'phase4_ibm_job'})
             print(f"Distinct IBM Phase-4 jobs in this analysis: {n_ibm}")
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             analysis_rows = []
             for run in run_rows:
                 counts = run["counts"]
@@ -1461,13 +1386,9 @@ def build_cells() -> list[dict]:
                 print(analysis_df[display_cols].to_string(index=False))
 
             analysis_df
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             def bootstrap_mean_ci(values: np.ndarray, n_boot: int = 5000, seed: int = 42):
                 values = np.asarray(values, dtype=float)
                 if len(values) == 0:
@@ -1510,13 +1431,9 @@ def build_cells() -> list[dict]:
             agg_df = pd.DataFrame(agg_rows)
             print("Per (n_secret, pattern, metric) aggregation:")
             agg_df.head(20) if not agg_df.empty else agg_df
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        code(
-            r"""
+    cells.append(code(r"""
             stamp = ts()
             csv_path = RESULTS_DIR / f"bv_ibm_dsr_multirun_{stamp}.csv"
             json_path = RESULTS_DIR / f"bv_ibm_dsr_multirun_{stamp}.json"
@@ -1568,13 +1485,9 @@ def build_cells() -> list[dict]:
                 plt.savefig(plot_path, dpi=150)
                 print(f"Saved {plot_path}")
                 plt.show()
-            """
-        )
-    )
+            """))
 
-    cells.append(
-        md(
-            """
+    cells.append(md("""
             ## Summary / next steps
 
             1. Phase 1 — analytic secret vs. statevector marginal.
@@ -1585,9 +1498,7 @@ def build_cells() -> list[dict]:
                Re-run this cell anytime to submit another execution.
             5. Phase 5 — waits/retrieves **all** registry + pasted job ids, then DSR
                multi-run analysis (`results/bv_ibm_dsr_multirun_*.csv`).
-            """
-        )
-    )
+            """))
 
     return cells
 

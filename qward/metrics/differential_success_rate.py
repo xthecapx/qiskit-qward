@@ -30,7 +30,13 @@ zero-heavy targets motivates the chance-corrected component above).
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Mapping, Iterable, Optional, Set, Tuple
+from typing import Any, Dict, Mapping, Iterable, Optional, Set, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Only for static type checking; the real import is deferred to
+    # DSRProfiler.profile() / compute_dsr_profile() to avoid importing
+    # qward.schemas (pydantic) at module load time.
+    from qward.schemas.dsr_profile_schema import DSRProfileSchema
 
 # Sentinel key for the aggregated "everything not in E" bin. Chosen to be
 # very unlikely to collide with a real bitstring.
@@ -345,7 +351,7 @@ class DSRProfiler:
         bc = _hellinger_bhattacharyya(observed, ideal)
         return min(1.0, bc**2)
 
-    def profile(self) -> "DSRProfileSchema":  # noqa: F821 (imported lazily below)
+    def profile(self) -> DSRProfileSchema:
         """Compute the full DSR profile and return it as a validated schema."""
         from qward.schemas.dsr_profile_schema import DSRProfileSchema
 
@@ -382,7 +388,7 @@ def compute_dsr_profile(
     num_measured_qubits: Optional[int] = None,
     expected_weights: Optional[Mapping[str, float]] = None,
     include_michelson: bool = True,
-) -> "DSRProfileSchema":  # noqa: F821
+) -> DSRProfileSchema:
     """Convenience wrapper: build a :class:`DSRProfiler` and return its profile."""
     return DSRProfiler(
         counts,

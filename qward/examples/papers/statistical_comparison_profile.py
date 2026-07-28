@@ -38,7 +38,12 @@ CSV_PATH = Path(__file__).parent / "DSR_result.csv"
 OUT_INTERNAL_CSV = Path(__file__).parent / "statistical_comparison_profile_internal.csv"
 OUT_PROVIDER_CSV = Path(__file__).parent / "statistical_comparison_profile_provider.csv"
 
-PROFILE_METRICS = ["success_rate", "chance_corrected_success", "coarse_tvd_similarity", "coarse_hellinger_fidelity"]
+PROFILE_METRICS = [
+    "success_rate",
+    "chance_corrected_success",
+    "coarse_tvd_similarity",
+    "coarse_hellinger_fidelity",
+]
 PROFILE_LABELS = {
     "success_rate": "Success",
     "chance_corrected_success": "Chance-Corrected",
@@ -154,7 +159,12 @@ def run_provider_analysis(df: pd.DataFrame) -> pd.DataFrame:
             if len(ibm) < 3 or len(rig) < 3:
                 continue
 
-            row = {"algorithm": algo, "num_qubits": int(nq), "n_ibm": len(ibm), "n_rigetti": len(rig)}
+            row = {
+                "algorithm": algo,
+                "num_qubits": int(nq),
+                "n_ibm": len(ibm),
+                "n_rigetti": len(rig),
+            }
             for m in PROFILE_METRICS:
                 label = PROFILE_LABELS[m]
                 med_ibm, _, _ = bootstrap_median_ci(ibm[m].values)
@@ -197,7 +207,9 @@ def main():
 
     provider = run_provider_analysis(df)
     provider.to_csv(OUT_PROVIDER_CSV, index=False)
-    print(f"\nProvider (IBM vs Rigetti) comparison saved to {OUT_PROVIDER_CSV} ({len(provider)} groups)\n")
+    print(
+        f"\nProvider (IBM vs Rigetti) comparison saved to {OUT_PROVIDER_CSV} ({len(provider)} groups)\n"
+    )
 
     for _, r in provider.iterrows():
         print(

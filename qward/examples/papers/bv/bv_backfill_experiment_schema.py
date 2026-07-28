@@ -125,7 +125,9 @@ def _rebuild_batch_summary(payload: Dict[str, Any]) -> None:
     results = payload.get("individual_results", [])
     rates = [float(r["success_rate"]) for r in results if r.get("success_rate") is not None]
     shots = [int(r.get("shots") or 0) for r in results]
-    advantages = [float(r["advantage_ratio"]) for r in results if r.get("advantage_ratio") is not None]
+    advantages = [
+        float(r["advantage_ratio"]) for r in results if r.get("advantage_ratio") is not None
+    ]
 
     batch: Dict[str, Any] = dict(payload.get("batch_summary") or {})
     batch.update(

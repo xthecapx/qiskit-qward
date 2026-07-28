@@ -112,12 +112,10 @@ class BVIBMExperiment(IBMExperimentBase[BVExperimentConfig]):
     def get_priority_configs(self) -> List[Dict[str, Any]]:
         """Priority: combined-plot ALT ladder, then beyond-wall ALT sizes."""
         ladder = [
-            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0}
-            for n in range(2, 15)
+            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0} for n in range(2, 15)
         ]
         wall = [
-            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0}
-            for n in (29, 30, 31)
+            {"config_id": f"BV{n}-ALT", "qubits": n, "expected_success": 1.0} for n in (29, 30, 31)
         ]
         return ladder + wall
 

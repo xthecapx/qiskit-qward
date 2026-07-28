@@ -345,7 +345,9 @@ def full_distribution_fidelities(
     return base
 
 
-def synthetic_noisy_counts(expected: str, shots: int, flip_p: float, seed: int = 7) -> Dict[str, int]:
+def synthetic_noisy_counts(
+    expected: str, shots: int, flip_p: float, seed: int = 7
+) -> Dict[str, int]:
     """Mock a noisy hardware run below the wall (per-bit flips of the ideal outcome).
 
     Used only for the *computable* control points in the HF-vs-DSR figure; the

@@ -45,9 +45,7 @@ from qward.examples.papers.ibm_experiment_base import (
 )
 
 
-class BVSignalBackgroundIBMExperiment(
-    IBMExperimentBase[BVSignalBackgroundConfig]
-):
+class BVSignalBackgroundIBMExperiment(IBMExperimentBase[BVSignalBackgroundConfig]):
     """Run and recover the large signal-plus-background configurations."""
 
     def __init__(self, shots: int = 1024, timeout: int = 7200):
@@ -101,8 +99,7 @@ class BVSignalBackgroundIBMExperiment(
         """Compute counts-only metrics and explicit signal diagnostics."""
         del total_shots
         clean_counts = {
-            str(outcome).replace(" ", ""): int(count)
-            for outcome, count in counts.items()
+            str(outcome).replace(" ", ""): int(count) for outcome, count in counts.items()
         }
         profile = dsr_profile(clean_counts, config.spec)
         expected = set(config.expected_outcomes)
@@ -134,8 +131,7 @@ class BVSignalBackgroundIBMExperiment(
             "strongest_competitor_count": strongest_competitor,
             "signal_to_competitor_ratio": ratio,
             "signal_detected": bool(
-                profile["dsr_michelson"] > 0.0
-                and not profile.get("peak_mismatch", True)
+                profile["dsr_michelson"] > 0.0 and not profile.get("peak_mismatch", True)
             ),
             "hellinger_fidelity": None,
             "hellinger_distance": None,
@@ -170,16 +166,12 @@ class BVSignalBackgroundIBMExperiment(
         completed = [run for run in runs if run.get("counts")]
         detected = [run for run in completed if run.get("signal_detected")]
         dsr_values = [
-            float(run["dsr_michelson"])
-            for run in completed
-            if run.get("dsr_michelson") is not None
+            float(run["dsr_michelson"]) for run in completed if run.get("dsr_michelson") is not None
         ]
         summary = result.setdefault("batch_summary", {})
         summary["signal_detected_runs"] = len(detected)
         summary["signal_evaluated_runs"] = len(completed)
-        summary["signal_detection_rate"] = (
-            len(detected) / len(completed) if completed else None
-        )
+        summary["signal_detection_rate"] = len(detected) / len(completed) if completed else None
         if dsr_values:
             summary["mean_dsr_michelson"] = statistics.mean(dsr_values)
             summary["median_dsr_michelson"] = statistics.median(dsr_values)
@@ -220,11 +212,7 @@ class BVSignalBackgroundIBMExperiment(
                 parsed.token,
                 parsed.instance,
             )
-            service_kwargs = {
-                key: value
-                for key, value in credentials.items()
-                if value is not None
-            }
+            service_kwargs = {key: value for key, value in credentials.items() if value is not None}
             service = QiskitRuntimeService(**service_kwargs)
             min_num_qubits = (
                 CONFIGS[parsed.config].num_total_qubits
@@ -246,9 +234,7 @@ class BVSignalBackgroundIBMExperiment(
         if parsed.preflight_only:
             config_id = parsed.config or "BVSB28"
             if config_id not in CONFIGS:
-                parser.error(
-                    f"unknown config {config_id!r}; available: {sorted(CONFIGS)}"
-                )
+                parser.error(f"unknown config {config_id!r}; available: {sorted(CONFIGS)}")
             config = self.get_config(config_id)
             circuit = self.create_circuit(config)
             report = {

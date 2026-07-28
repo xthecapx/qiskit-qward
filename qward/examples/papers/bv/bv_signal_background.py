@@ -28,7 +28,6 @@ from qiskit.quantum_info import Statevector
 from qward.metrics.differential_success_rate import DSRProfiler
 from qward.utils.styles import COLORBREWER_PALETTE
 
-
 PROOF_TOTAL_QUBITS = (6, 8, 10)
 CAMPAIGN_TOTAL_QUBITS = (27, 28, 29)
 SUPPORTED_TOTAL_QUBITS = PROOF_TOTAL_QUBITS + CAMPAIGN_TOTAL_QUBITS
@@ -102,8 +101,7 @@ def make_spec(
     """
     if num_total_qubits not in SUPPORTED_TOTAL_QUBITS:
         raise ValueError(
-            f"num_total_qubits must be one of {SUPPORTED_TOTAL_QUBITS}, "
-            f"got {num_total_qubits}"
+            f"num_total_qubits must be one of {SUPPORTED_TOTAL_QUBITS}, " f"got {num_total_qubits}"
         )
     if not 0.0 < target_mass < 1.0:
         raise ValueError(f"target_mass must be between 0 and 1, got {target_mass}")
@@ -265,10 +263,7 @@ def probabilities_to_counts(
     if not probabilities:
         raise ValueError("probabilities must not be empty")
 
-    scaled = {
-        outcome: float(probability) * shots
-        for outcome, probability in probabilities.items()
-    }
+    scaled = {outcome: float(probability) * shots for outcome, probability in probabilities.items()}
     counts = {outcome: int(math.floor(value)) for outcome, value in scaled.items()}
     remainder = shots - sum(counts.values())
     ranked = sorted(
@@ -321,8 +316,7 @@ def noisy_counts(
         seed_simulator=spec.seed,
     ).result()
     return {
-        str(outcome).replace(" ", ""): int(count)
-        for outcome, count in result.get_counts().items()
+        str(outcome).replace(" ", ""): int(count) for outcome, count in result.get_counts().items()
     }
 
 
@@ -370,9 +364,7 @@ def heavy_hex_transpiled_complexity(
 
     instructions = list(iter_instructions(compiled))
     two_qubit_gates = sum(1 for instruction in instructions if len(instruction.qubits) == 2)
-    three_qubit_gates = sum(
-        1 for instruction in instructions if len(instruction.qubits) == 3
-    )
+    three_qubit_gates = sum(1 for instruction in instructions if len(instruction.qubits) == 3)
     return {
         "coupling_map_qubits": coupling_map.size(),
         "depth": expanded_depth(compiled),
@@ -418,12 +410,10 @@ def distribution_fidelities(
     }
     outcomes = set(observed) | set(ideal)
     coefficient = sum(
-        math.sqrt(observed.get(outcome, 0.0) * ideal.get(outcome, 0.0))
-        for outcome in outcomes
+        math.sqrt(observed.get(outcome, 0.0) * ideal.get(outcome, 0.0)) for outcome in outcomes
     )
     tvd = 0.5 * sum(
-        abs(observed.get(outcome, 0.0) - ideal.get(outcome, 0.0))
-        for outcome in outcomes
+        abs(observed.get(outcome, 0.0) - ideal.get(outcome, 0.0)) for outcome in outcomes
     )
     return {
         "hellinger_fidelity": min(1.0, coefficient**2),
@@ -696,19 +686,11 @@ def generate_scaling_image(
     qubits = [row["spec"]["num_total_qubits"] for row in analyses]
     success = [row["noisy_dsr_profile"]["success_rate"] for row in analyses]
     dsr = [row["noisy_dsr_profile"]["dsr_michelson"] for row in analyses]
-    hf = [
-        row["noisy_full_distribution_fidelities"]["hellinger_fidelity"]
-        for row in analyses
-    ]
-    tvdf = [
-        row["noisy_full_distribution_fidelities"]["tvd_fidelity"]
-        for row in analyses
-    ]
+    hf = [row["noisy_full_distribution_fidelities"]["hellinger_fidelity"] for row in analyses]
+    tvdf = [row["noisy_full_distribution_fidelities"]["tvd_fidelity"] for row in analyses]
     depths = [row["circuit_depth"] for row in analyses]
     transpiled_depths = [row["heavy_hex_transpiled"]["depth"] for row in analyses]
-    two_qubit_gates = [
-        row["heavy_hex_transpiled"]["two_qubit_gates"] for row in analyses
-    ]
+    two_qubit_gates = [row["heavy_hex_transpiled"]["two_qubit_gates"] for row in analyses]
 
     figure, (metric_axis, circuit_axis) = plt.subplots(1, 2, figsize=(16, 7))
     metric_axis.plot(qubits, success, "o-", linewidth=3, label="Success Rate")
@@ -775,9 +757,7 @@ def run_proof(
 
     payload = {
         "experiment": "BV_DERIVED_SIGNAL_BACKGROUND_PROOF",
-        "description": (
-            "Small statevector proof only; no IBM Quantum jobs are submitted."
-        ),
+        "description": ("Small statevector proof only; no IBM Quantum jobs are submitted."),
         "analyses": analyses,
         "images": images,
     }

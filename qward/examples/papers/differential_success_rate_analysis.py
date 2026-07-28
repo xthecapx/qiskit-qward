@@ -840,8 +840,7 @@ def _prepare_combined_data(
             algo_rows = [
                 r
                 for r in algo_rows
-                if "-ALT" in str(r.get("config_id", ""))
-                or "-ALT" in str(r.get("source_file", ""))
+                if "-ALT" in str(r.get("config_id", "")) or "-ALT" in str(r.get("source_file", ""))
             ]
         # Apply depth filter
         max_depth = _COMBINED_MAX_DEPTH.get(algo)
@@ -1143,7 +1142,9 @@ def _plot_combined_depth_comparison(
     ibm_algos, _, ibm_data = _prepare_combined_data(ibm_rows, optimization_levels=None)
     if ibm_data:
         fig, ax = plt.subplots(figsize=(15, 6))
-        _render_combined_depth(ax, ibm_algos, ibm_data, metric_field=metric_field, metric_label=metric_label)
+        _render_combined_depth(
+            ax, ibm_algos, ibm_data, metric_field=metric_field, metric_label=metric_label
+        )
         plt.tight_layout()
         fig.savefig(
             output_dir / f"{filename_prefix}_ibm.png",
@@ -1158,7 +1159,12 @@ def _plot_combined_depth_comparison(
     if aws_data:
         fig, ax = plt.subplots(figsize=(15, 6))
         _render_combined_depth(
-            ax, aws_algos, aws_data, depth_cap=300, metric_field=metric_field, metric_label=metric_label
+            ax,
+            aws_algos,
+            aws_data,
+            depth_cap=300,
+            metric_field=metric_field,
+            metric_label=metric_label,
         )
         plt.tight_layout()
         fig.savefig(
