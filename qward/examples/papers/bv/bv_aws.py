@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Callable, Optional
 
 from qiskit import QuantumCircuit
 
-from qward.algorithms import BernsteinVazirani
+from qward.algorithms import AWSJobResult, BernsteinVazirani
 from qward.examples.papers.aws_experiment_base import AWSExperimentBase
 from qward.examples.papers.bv.bv_configs import (
     get_config,
@@ -91,6 +91,7 @@ class BVAWSExperiment(AWSExperimentBase[BVExperimentConfig]):
         counts: Dict[str, int],
         config: BVExperimentConfig,
         total_shots: int,
+        aws_result: Optional[AWSJobResult] = None,
     ) -> Dict[str, Any]:
         success_criteria = self.create_success_criteria(config)
         s_count = sum(c for k, c in counts.items() if success_criteria(k))
@@ -99,7 +100,7 @@ class BVAWSExperiment(AWSExperimentBase[BVExperimentConfig]):
         random_chance = self.get_random_chance(config)
         advantage_ratio = s_rate / random_chance if random_chance > 0 else 0.0
 
-        return {
+        result: Dict[str, Any] = {
             "success_rate": s_rate,
             "success_count": s_count,
             "secret_string": config.secret_string,
@@ -112,6 +113,19 @@ class BVAWSExperiment(AWSExperimentBase[BVExperimentConfig]):
             "threshold_70": s_rate >= 0.70,
             "threshold_90": s_rate >= 0.90,
         }
+
+        if aws_result is not None:
+            result.update(
+                {
+                    "dsr_michelson": aws_result.dsr_michelson,
+                    "dsr_ratio": aws_result.dsr_ratio,
+                    "dsr_log_ratio": aws_result.dsr_log_ratio,
+                    "dsr_normalized_margin": aws_result.dsr_normalized_margin,
+                    "peak_mismatch": aws_result.peak_mismatch,
+                }
+            )
+
+        return result
 
 
 if __name__ == "__main__":

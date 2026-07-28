@@ -1009,8 +1009,14 @@ def _plot_combined_comparison(
         )
         plt.close(fig)
 
-    # --- Rigetti plot (cap at 4 qubits) ---
-    aws_rows_capped = [r for r in aws_rows if int(r.get("num_qubits", "0")) <= 4]
+    # --- Rigetti plot (per-algorithm cap: BV extended to 8q to show more of its
+    # ladder on Rigetti; Grover/QFT stay at 4q since they collapse to DSR≈0 past it) ---
+    _aws_plot_max_qubits = {"BV": 8}
+    aws_rows_capped = [
+        r
+        for r in aws_rows
+        if int(r.get("num_qubits", "0")) <= _aws_plot_max_qubits.get(r.get("algorithm", ""), 4)
+    ]
     aws_algos, aws_qubits, aws_data = _prepare_combined_data(
         aws_rows_capped, optimization_levels=None
     )
