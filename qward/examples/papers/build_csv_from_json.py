@@ -185,6 +185,7 @@ DATASETS = {
     "qft-ibm": ("QFT", PAPERS / "qft" / "data" / "qpu" / "raw"),
     "qft-aws": ("QFT", PAPERS / "qft" / "data" / "qpu" / "aws"),
     "bv-ibm": ("BV", PAPERS / "bv" / "data" / "qpu" / "raw"),
+    "bv-aws": ("BV", PAPERS / "bv" / "data" / "qpu" / "aws"),
     "bvsb-ibm": (
         "BV-SIGNAL-BACKGROUND",
         PAPERS / "bv" / "data" / "qpu" / "signal_background" / "raw",
