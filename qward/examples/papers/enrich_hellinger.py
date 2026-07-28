@@ -52,6 +52,7 @@ DATASETS = {
     "qft-aws": PAPERS_DIR / "qft" / "data" / "qpu" / "aws",
     "qft-ibm": PAPERS_DIR / "qft" / "data" / "qpu" / "raw",
     "bv-ibm": PAPERS_DIR / "bv" / "data" / "qpu" / "raw",
+    "bv-aws": PAPERS_DIR / "bv" / "data" / "qpu" / "aws",
 }
 
 # ---------------------------------------------------------------------------
@@ -492,7 +493,7 @@ def main():
         "--dataset",
         type=str,
         default="all",
-        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "bv-ibm", "all"],
+        choices=["grover-aws", "grover-ibm", "qft-aws", "qft-ibm", "bv-ibm", "bv-aws", "all"],
         help="Which dataset to process (default: all)",
     )
     parser.add_argument(
@@ -513,6 +514,7 @@ def main():
         "qft-aws": "QFT",
         "qft-ibm": "QFT",
         "bv-ibm": "BERNSTEIN-VAZIRANI",
+        "bv-aws": "BERNSTEIN-VAZIRANI",
     }
 
     targets = list(DATASETS.keys()) if args.dataset == "all" else [args.dataset]

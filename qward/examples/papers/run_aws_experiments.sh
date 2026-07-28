@@ -5,7 +5,7 @@
 # Run this script to execute all missing experiments on AWS Braket hardware.
 #
 # Usage:
-#   ./run_aws_experiments.sh [grover|qft|coin_toss|all]
+#   ./run_aws_experiments.sh [grover|qft|bv|coin_toss|all]
 #
 # Environment Variables (optional):
 #   AWS_BRAKET_DEVICE      - Device name (default: Ankaa-3)
@@ -143,6 +143,20 @@ run_qft() {
 }
 
 # =============================================================================
+# BERNSTEIN-VAZIRANI EXPERIMENTS
+# =============================================================================
+run_bv() {
+    echo "=============================================="
+    echo "BERNSTEIN-VAZIRANI EXPERIMENTS"
+    echo "=============================================="
+
+    # Alternating-secret ladder (paper-lock pattern used for combined plots)
+    for n in 2 3 4 5 6 7 8; do
+        run_experiment "BV" "BV${n}-ALT" "bv/bv_aws.py"
+    done
+}
+
+# =============================================================================
 # COIN TOSS EXPERIMENTS (Ry rotations)
 # =============================================================================
 run_coin_toss() {
@@ -176,12 +190,16 @@ case "${1:-all}" in
     qft)
         run_qft
         ;;
+    bv)
+        run_bv
+        ;;
     coin_toss|coin-toss|cointoss)
         run_coin_toss
         ;;
     all|*)
         run_grover
         run_qft
+        run_bv
         run_coin_toss
         ;;
 esac
@@ -192,5 +210,6 @@ echo "=============================================="
 echo "Results saved in:"
 echo "  - grover/data/qpu/aws/"
 echo "  - qft/data/qpu/aws/"
+echo "  - bv/data/qpu/aws/"
 echo "  - coin_toss/data/qpu/aws/"
 echo "=============================================="
