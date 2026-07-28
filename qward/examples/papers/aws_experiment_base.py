@@ -295,7 +295,17 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
         counts = aws_result.counts or {}
         total_shots = sum(counts.values()) if counts else self.shots
 
-        evaluation = self.evaluate_result(counts, config, total_shots, aws_result)
+        # Marginalize before algorithm-specific evaluation so a mismatched
+        # bit-width (e.g. a historically over-measured ancilla) doesn't
+        # silently zero out success_rate/advantage_ratio. ``counts`` saved
+        # into the JSON below stays the raw, unmarginalized measurement for
+        # audit purposes.
+        eval_counts = counts
+        if counts and expected_outcomes:
+            eval_counts = QuantumCircuitExecutor._marginalize_counts_to_length(
+                counts, len(expected_outcomes[0]), expected_outcomes, show_progress=False
+            )
+        evaluation = self.evaluate_result(eval_counts, config, total_shots, aws_result)
 
         run_result: Dict[str, Any] = {
             "experiment_id": f"{config_desc.get('config_id', 'unknown')}_AWS-QPU_000",
@@ -1021,7 +1031,15 @@ class AWSExperimentBase(ABC, Generic[ConfigT]):
                 result["shots"] = total_shots
 
                 if config is not None:
-                    evaluation = self.evaluate_result(new_counts, config, total_shots, aws_result)
+                    eval_counts = new_counts
+                    if expected_outcomes:
+                        eval_counts = QuantumCircuitExecutor._marginalize_counts_to_length(
+                            new_counts,
+                            len(expected_outcomes[0]),
+                            expected_outcomes,
+                            show_progress=False,
+                        )
+                    evaluation = self.evaluate_result(eval_counts, config, total_shots, aws_result)
                     result.update(evaluation)
 
                 success_rate_value = result.get("success_rate")
