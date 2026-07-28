@@ -190,6 +190,10 @@ DATASETS = {
         "BV-SIGNAL-BACKGROUND",
         PAPERS / "bv" / "data" / "qpu" / "signal_background" / "raw",
     ),
+    "bvsb-aws": (
+        "BV-SIGNAL-BACKGROUND",
+        PAPERS / "bv" / "data" / "qpu" / "signal_background" / "aws",
+    ),
 }
 
 
