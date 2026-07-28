@@ -77,7 +77,9 @@ def _marked_states(n: int, k: int, seed: int) -> List[str]:
     return [format(int(v), f"0{n}b") for v in values]
 
 
-def _run_real_grover(n: int, marked_states: List[str], shots: int) -> Tuple[Dict[str, int], float, int]:
+def _run_real_grover(
+    n: int, marked_states: List[str], shots: int
+) -> Tuple[Dict[str, int], float, int]:
     """Build and simulate a real multi-marked Grover circuit.
 
     Returns (counts, build_and_sim_seconds, num_iterations).
@@ -290,8 +292,20 @@ def plot_results(rows: List[Dict]) -> None:
     profile_times_sim = [r["profile_seconds"] * 1000 for r in sim_rows]
 
     if sim_rows:
-        ax.plot(ns_sim, full_times, "o-", color=COLORBREWER_PALETTE[2], label="Full-distribution HF/TVD (measured)")
-        ax.plot(ns_sim, profile_times_sim, "s-", color=COLORBREWER_PALETTE[1], label="DSR profile (measured)")
+        ax.plot(
+            ns_sim,
+            full_times,
+            "o-",
+            color=COLORBREWER_PALETTE[2],
+            label="Full-distribution HF/TVD (measured)",
+        )
+        ax.plot(
+            ns_sim,
+            profile_times_sim,
+            "s-",
+            color=COLORBREWER_PALETTE[1],
+            label="DSR profile (measured)",
+        )
 
     if beyond_rows:
         ns_beyond = [r["n"] for r in beyond_rows]
@@ -336,7 +350,9 @@ def plot_results(rows: List[Dict]) -> None:
 
 
 def main() -> None:
-    print("Stage 1: real multi-marked Grover circuits, both paths (n small enough to fully simulate)")
+    print(
+        "Stage 1: real multi-marked Grover circuits, both paths (n small enough to fully simulate)"
+    )
     sim_rows = run_simulatable_stage()
 
     print("\nStage 2: representative counts past the classical simulation wall (profile path only)")

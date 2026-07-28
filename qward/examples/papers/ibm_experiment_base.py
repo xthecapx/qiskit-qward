@@ -61,6 +61,7 @@ def resolve_ibm_credentials(
         "instance": instance or os.getenv("IBM_QUANTUM_INSTANCE"),
     }
 
+
 # IBM Quantum imports (optional)
 try:
     from qiskit_ibm_runtime import QiskitRuntimeService

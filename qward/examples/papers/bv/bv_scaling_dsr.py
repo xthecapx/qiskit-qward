@@ -425,17 +425,31 @@ def _plot_simulation_wall(wall_df: pd.DataFrame, wall_n: int) -> None:
     ax = axes[0]
     if not sim.empty:
         ax.plot(
-            sim["num_qubits_total"], sim["elapsed_s"], "o-",
-            color=COLORBREWER_PALETTE["IBM"], label="Statevector time",
+            sim["num_qubits_total"],
+            sim["elapsed_s"],
+            "o-",
+            color=COLORBREWER_PALETTE["IBM"],
+            label="Statevector time",
         )
     if not timeouts.empty:
         y = float(sim["elapsed_s"].max()) * 1.5 if not sim.empty else 200.0
         ax.scatter(
-            timeouts["num_qubits_total"], [y] * len(timeouts), marker="X", s=400,
-            color=COLORBREWER_PALETTE[4], linewidths=3, zorder=5, label="Timeout (wall)",
+            timeouts["num_qubits_total"],
+            [y] * len(timeouts),
+            marker="X",
+            s=400,
+            color=COLORBREWER_PALETTE[4],
+            linewidths=3,
+            zorder=5,
+            label="Timeout (wall)",
         )
     ax.axvline(wall_n + 1, color="gray", linestyle="--", label=f"Wall = {wall_n + 1} qubits")
-    ax.axvline(TARGET_N + 1, color=COLORBREWER_PALETTE[3], linestyle=":", label=f"IBM run = {TARGET_N + 1} qubits")
+    ax.axvline(
+        TARGET_N + 1,
+        color=COLORBREWER_PALETTE[3],
+        linestyle=":",
+        label=f"IBM run = {TARGET_N + 1} qubits",
+    )
     ax.set_yscale("log")
     ax.set_xlabel("Total qubits")
     ax.set_ylabel("Ideal statevector time (s, log)")
@@ -446,12 +460,19 @@ def _plot_simulation_wall(wall_df: pd.DataFrame, wall_n: int) -> None:
     ax = axes[1]
     order = wall_df.sort_values("num_qubits_total")
     ax.plot(
-        order["num_qubits_total"], order["predicted_gib"], "s-",
-        color=COLORBREWER_PALETTE[5], label="Ideal statevector memory",
+        order["num_qubits_total"],
+        order["predicted_gib"],
+        "s-",
+        color=COLORBREWER_PALETTE[5],
+        label="Ideal statevector memory",
     )
     budget_gib = available_memory_bytes() * 0.6 / 1024**3
-    ax.axhline(budget_gib, color=COLORBREWER_PALETTE[4], linestyle="-.",
-               label=f"Laptop budget ~{budget_gib:.0f} GiB")
+    ax.axhline(
+        budget_gib,
+        color=COLORBREWER_PALETTE[4],
+        linestyle="-.",
+        label=f"Laptop budget ~{budget_gib:.0f} GiB",
+    )
     ax.axvline(wall_n + 1, color="gray", linestyle="--")
     ax.axvline(TARGET_N + 1, color=COLORBREWER_PALETTE[3], linestyle=":")
     ax.set_yscale("log")
@@ -477,22 +498,34 @@ def _plot_hf_vs_dsr(cross_df: pd.DataFrame, wall_n: int) -> None:
 
     # Shade the region where HF/TVDF cannot be computed.
     x_max = float(cross_df["num_qubits_total"].max()) + 1
-    ax.axvspan(wall_n + 1.5, x_max, color=COLORBREWER_PALETTE[4], alpha=0.10,
-               label="HF/TVDF infeasible")
+    ax.axvspan(
+        wall_n + 1.5, x_max, color=COLORBREWER_PALETTE[4], alpha=0.10, label="HF/TVDF infeasible"
+    )
 
     if not computed.empty:
         ax.plot(
-            computed["num_qubits_total"], computed["hellinger_fidelity"], "s-",
-            color=COLORBREWER_PALETTE[5], label="Hellinger fidelity (computed)",
+            computed["num_qubits_total"],
+            computed["hellinger_fidelity"],
+            "s-",
+            color=COLORBREWER_PALETTE[5],
+            label="Hellinger fidelity (computed)",
         )
         ax.plot(
-            computed["num_qubits_total"], computed["tvd_fidelity"], "^-",
-            color=COLORBREWER_PALETTE[6], label="TVD fidelity (computed)",
+            computed["num_qubits_total"],
+            computed["tvd_fidelity"],
+            "^-",
+            color=COLORBREWER_PALETTE[6],
+            label="TVD fidelity (computed)",
         )
     if not infeasible.empty:
         ax.scatter(
-            infeasible["num_qubits_total"], [0.5] * len(infeasible), marker="X", s=400,
-            color=COLORBREWER_PALETTE[4], linewidths=3, zorder=5,
+            infeasible["num_qubits_total"],
+            [0.5] * len(infeasible),
+            marker="X",
+            s=400,
+            color=COLORBREWER_PALETTE[4],
+            linewidths=3,
+            zorder=5,
             label="HF/TVDF unobtainable",
         )
 
@@ -501,20 +534,32 @@ def _plot_hf_vs_dsr(cross_df: pd.DataFrame, wall_n: int) -> None:
     controls = cross_df[cross_df["regime"].str.startswith("below")].sort_values("num_qubits_total")
     if not controls.empty:
         ax.plot(
-            controls["num_qubits_total"], controls["dsr_michelson"], "D-",
-            color=COLORBREWER_PALETTE[3], label="DSR Michelson (counts only)",
+            controls["num_qubits_total"],
+            controls["dsr_michelson"],
+            "D-",
+            color=COLORBREWER_PALETTE[3],
+            label="DSR Michelson (counts only)",
         )
     beyond = cross_df[cross_df["regime"].str.startswith("beyond")]
     if not beyond.empty:
         ax.scatter(
-            beyond["num_qubits_total"], beyond["dsr_michelson"], marker="*", s=700,
-            color=COLORBREWER_PALETTE["IBM"], edgecolors="black", linewidths=1.5, zorder=6,
+            beyond["num_qubits_total"],
+            beyond["dsr_michelson"],
+            marker="*",
+            s=700,
+            color=COLORBREWER_PALETTE["IBM"],
+            edgecolors="black",
+            linewidths=1.5,
+            zorder=6,
             label="DSR on real IBM 30-qubit job",
         )
         for _, row in beyond.iterrows():
             ax.annotate(
-                row["pattern_name"], (row["num_qubits_total"], row["dsr_michelson"]),
-                textcoords="offset points", xytext=(12, 0), fontsize=LEGEND_SIZE - 4,
+                row["pattern_name"],
+                (row["num_qubits_total"], row["dsr_michelson"]),
+                textcoords="offset points",
+                xytext=(12, 0),
+                fontsize=LEGEND_SIZE - 4,
             )
 
     ax.axvline(wall_n + 1, color="gray", linestyle="--", label=f"Simulation wall")
@@ -557,8 +602,12 @@ def _plot_ibm_dsr_profile(dsr_df: pd.DataFrame, job_df: Optional[pd.DataFrame] =
         row = target[target["pattern_name"] == pat].iloc[0]
         vals = [row[c] for c, _ in components]
         ax.bar(
-            x + i * width, vals, width, label=pat,
-            color=PATTERN_COLORS.get(pat, COLORBREWER_PALETTE[i + 1]), edgecolor="black",
+            x + i * width,
+            vals,
+            width,
+            label=pat,
+            color=PATTERN_COLORS.get(pat, COLORBREWER_PALETTE[i + 1]),
+            edgecolor="black",
         )
 
     ax.set_xticks(x + width * (len(patterns) - 1) / 2)
@@ -577,29 +626,46 @@ def _plot_ibm_dsr_profile(dsr_df: pd.DataFrame, job_df: Optional[pd.DataFrame] =
         float(target[target["pattern_name"] == p]["success_rate"].iloc[0]) for p in patterns
     ]
     zero_vals = [
-        float(target[target["pattern_name"] == p]["all_zero_rate"].iloc[0])
-        if "all_zero_rate" in target.columns
-        else 0.0
+        (
+            float(target[target["pattern_name"] == p]["all_zero_rate"].iloc[0])
+            if "all_zero_rate" in target.columns
+            else 0.0
+        )
         for p in patterns
     ]
     ax.bar(
-        x2 - 0.2, success_vals, 0.4, label="Per-state success rate",
-        color=COLORBREWER_PALETTE["IBM"], edgecolor="black",
+        x2 - 0.2,
+        success_vals,
+        0.4,
+        label="Per-state success rate",
+        color=COLORBREWER_PALETTE["IBM"],
+        edgecolor="black",
     )
     ax.bar(
-        x2 + 0.2, zero_vals, 0.4, label="All-zero rate (competing)",
-        color=COLORBREWER_PALETTE[4], edgecolor="black",
+        x2 + 0.2,
+        zero_vals,
+        0.4,
+        label="All-zero rate (competing)",
+        color=COLORBREWER_PALETTE[4],
+        edgecolor="black",
     )
     if job_df is not None and not job_df.empty:
         job_or = float(job_df["job_success_rate_or"].iloc[0])
         ax.axhline(
-            job_or, color=COLORBREWER_PALETTE[3], linestyle="--", linewidth=3,
+            job_or,
+            color=COLORBREWER_PALETTE[3],
+            linestyle="--",
+            linewidth=3,
             label=f"Job-level OR success = {job_or:.3f}",
         )
         if bool(job_df["job_success_or"].iloc[0]):
             ax.text(
-                0.02, 0.95, "Job OR: recovered ≥1 pattern",
-                transform=ax.transAxes, fontsize=LEGEND_SIZE, va="top",
+                0.02,
+                0.95,
+                "Job OR: recovered ≥1 pattern",
+                transform=ax.transAxes,
+                fontsize=LEGEND_SIZE,
+                va="top",
                 bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.8},
             )
     ax.set_xticks(x2)
@@ -647,20 +713,27 @@ def phase_plots(args) -> None:
 def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Bernstein-Vazirani DSR scaling study.")
     parser.add_argument(
-        "--phase", choices=["sweep", "analyze", "plots", "all"], default="all",
+        "--phase",
+        choices=["sweep", "analyze", "plots", "all"],
+        default="all",
         help="Which phase to run (default: all).",
     )
     parser.add_argument("--max-n", type=int, default=34, help="Max n_secret for the wall sweep.")
     parser.add_argument(
-        "--metrics-max-n", type=int, default=40,
+        "--metrics-max-n",
+        type=int,
+        default=40,
         help="Max n_secret for metrics-only (beyond-wall) enumeration.",
     )
     parser.add_argument(
-        "--timeout", type=float, default=180.0,
+        "--timeout",
+        type=float,
+        default=180.0,
         help="Hard per-statevector timeout in seconds (Docker-safe).",
     )
     parser.add_argument(
-        "--force-attempt", action="store_true",
+        "--force-attempt",
+        action="store_true",
         help="Actually attempt the 30-qubit statevector (watch it die) instead of the memory pre-check.",
     )
     args = parser.parse_args(argv)

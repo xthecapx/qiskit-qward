@@ -21,7 +21,6 @@ from qward.utils.styles import (
     apply_axes_defaults,
 )
 
-
 PAPERS_DIR = Path(__file__).resolve().parent
 DATA_DIR = PAPERS_DIR / "bv" / "data" / "qpu" / "signal_background" / "raw"
 PLOTS_DIR = PAPERS_DIR / "plots"
@@ -122,11 +121,11 @@ def generate_dsr_histogram_figure(batches: list[dict[str, Any]]) -> Path:
         key=lambda item: item[1],
     )[0]
     colors = [
-        TARGET_COLOR
-        if state in expected
-        else COMPETITOR_COLOR
-        if state == strongest_competitor
-        else BACKGROUND_COLOR
+        (
+            TARGET_COLOR
+            if state in expected
+            else COMPETITOR_COLOR if state == strongest_competitor else BACKGROUND_COLOR
+        )
         for state, _ in top
     ]
 

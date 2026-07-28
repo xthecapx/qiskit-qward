@@ -194,8 +194,10 @@ def plot_multi_answer_divergence(df: pd.DataFrame) -> None:
     _apply_plot_style()
 
     sub = df.copy()
-    sub["num_expected"] = sub["expected_outcomes"].fillna("").apply(
-        lambda s: len([o for o in str(s).split(",") if o])
+    sub["num_expected"] = (
+        sub["expected_outcomes"]
+        .fillna("")
+        .apply(lambda s: len([o for o in str(s).split(",") if o]))
     )
     multi = sub[sub["num_expected"] > 1]
     if multi.empty:
@@ -273,10 +275,17 @@ def plot_full_vs_coarse_comparison(df: pd.DataFrame) -> None:
     _apply_plot_style()
 
     sub = df.dropna(
-        subset=["hellinger_fidelity", "tvd_fidelity", "coarse_hellinger_fidelity", "coarse_tvd_similarity"]
+        subset=[
+            "hellinger_fidelity",
+            "tvd_fidelity",
+            "coarse_hellinger_fidelity",
+            "coarse_tvd_similarity",
+        ]
     ).copy()
-    sub["num_expected"] = sub["expected_outcomes"].fillna("").apply(
-        lambda s: len([o for o in str(s).split(",") if o])
+    sub["num_expected"] = (
+        sub["expected_outcomes"]
+        .fillna("")
+        .apply(lambda s: len([o for o in str(s).split(",") if o]))
     )
     sub = sub[sub["num_expected"] == 1]
     if sub.empty:
@@ -292,7 +301,10 @@ def plot_full_vs_coarse_comparison(df: pd.DataFrame) -> None:
             ("tvd_fidelity", "coarse_tvd_similarity", "TVD Fidelity / Similarity"),
         ],
     ):
-        colors = [COLORBREWER_PALETTE[1] if a == "GROVER" else COLORBREWER_PALETTE[2] for a in sub["algorithm"]]
+        colors = [
+            COLORBREWER_PALETTE[1] if a == "GROVER" else COLORBREWER_PALETTE[2]
+            for a in sub["algorithm"]
+        ]
         ax.scatter(sub[full_col], sub[coarse_col], c=colors, alpha=0.6, s=40, edgecolors="none")
         ax.plot([0, 1], [0, 1], color="black", linestyle="--", linewidth=1.5, label="y = x")
         ax.set_xlabel(f"Full-distribution {label}", fontsize=LABEL_SIZE, fontweight="bold")
@@ -334,13 +346,17 @@ def plot_full_vs_coarse_comparison(df: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _bootstrap_mean_ci(values: np.ndarray, n_boot: int = 5000, seed: int = 42) -> Tuple[float, float, float]:
+def _bootstrap_mean_ci(
+    values: np.ndarray, n_boot: int = 5000, seed: int = 42
+) -> Tuple[float, float, float]:
     values = np.asarray(values, dtype=float)
     mean = float(np.mean(values))
     if len(values) < 3:
         return mean, np.nan, np.nan
     rng = np.random.default_rng(seed)
-    boot = np.array([np.mean(rng.choice(values, size=len(values), replace=True)) for _ in range(n_boot)])
+    boot = np.array(
+        [np.mean(rng.choice(values, size=len(values), replace=True)) for _ in range(n_boot)]
+    )
     lo, hi = np.percentile(boot, [2.5, 97.5])
     return mean, float(lo), float(hi)
 

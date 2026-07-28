@@ -108,9 +108,10 @@ def test_equal_success_can_have_different_full_fidelity():
     observed_a = {first: 400, second: 400, background_a: 200}
     observed_b = {first: 400, second: 400, background_b: 200}
 
-    assert dsr_profile(observed_a, spec)["success_rate"] == dsr_profile(
-        observed_b, spec
-    )["success_rate"]
+    assert (
+        dsr_profile(observed_a, spec)["success_rate"]
+        == dsr_profile(observed_b, spec)["success_rate"]
+    )
     fidelity_a = distribution_fidelities(observed_a, reference)
     fidelity_b = distribution_fidelities(observed_b, reference)
     assert fidelity_a["hellinger_fidelity"] != fidelity_b["hellinger_fidelity"]
