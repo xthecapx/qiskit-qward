@@ -731,10 +731,6 @@ class QuantumCircuitExecutor:
                     for key, value in sampler_options.items():
                         if hasattr(sampler.options, key):
                             setattr(sampler.options, key, value)
-                        elif isinstance(value, dict) and hasattr(
-                            sampler.options, key.split(".")[0] if False else key
-                        ):
-                            pass
                     # Nested options used by IBM Runtime SamplerV2
                     dd = sampler_options.get("dynamical_decoupling")
                     if dd:
