@@ -64,20 +64,44 @@ class ExperimentConfig:
 # QPU m-sweep: N=15, a=7, swap_network (M_7 / M_4)
 QPU_CONFIGS: List[ExperimentConfig] = [
     ExperimentConfig(
-        "SHOR-N15-M3", 15, 7, 3, "swap_network", 4,
-        "N=15 a=7 m=3 shallow safety net (1/2 peak → r=2 nuance)", True,
+        "SHOR-N15-M3",
+        15,
+        7,
+        3,
+        "swap_network",
+        4,
+        "N=15 a=7 m=3 shallow safety net (1/2 peak → r=2 nuance)",
+        True,
     ),
     ExperimentConfig(
-        "SHOR-N15-M4", 15, 7, 4, "swap_network", 4,
-        "N=15 a=7 m=4", True,
+        "SHOR-N15-M4",
+        15,
+        7,
+        4,
+        "swap_network",
+        4,
+        "N=15 a=7 m=4",
+        True,
     ),
     ExperimentConfig(
-        "SHOR-N15-M6", 15, 7, 6, "swap_network", 4,
-        "N=15 a=7 m=6", True,
+        "SHOR-N15-M6",
+        15,
+        7,
+        6,
+        "swap_network",
+        4,
+        "N=15 a=7 m=6",
+        True,
     ),
     ExperimentConfig(
-        "SHOR-N15-M8", 15, 7, 8, "swap_network", 4,
-        "N=15 a=7 m=8 textbook control size", True,
+        "SHOR-N15-M8",
+        15,
+        7,
+        8,
+        "swap_network",
+        4,
+        "N=15 a=7 m=8 textbook control size",
+        True,
     ),
 ]
 
@@ -87,7 +111,12 @@ SIM_CONFIGS: List[ExperimentConfig] = [
     ExperimentConfig("SHOR-N15-A7-SIM", 15, 7, 8, "permutation", 4, "sim N=15 a=7"),
     ExperimentConfig("SHOR-N21-A2-SIM", 21, 2, 10, "permutation", 6, "sim N=21 a=2"),
     ExperimentConfig(
-        "SHOR-N21-A5-SIM", 21, 5, 10, "permutation", 6,
+        "SHOR-N21-A5-SIM",
+        21,
+        5,
+        10,
+        "permutation",
+        6,
         "sim N=21 a=5 — even order but trivial x≡-1 failure case",
     ),
 ]
@@ -98,7 +127,5 @@ CONFIGS_BY_ID = {c.config_id: c for c in ALL_EXPERIMENT_CONFIGS}
 
 def get_config(config_id: str) -> ExperimentConfig:
     if config_id not in CONFIGS_BY_ID:
-        raise ValueError(
-            f"Unknown config ID: {config_id}. Available: {list(CONFIGS_BY_ID)}"
-        )
+        raise ValueError(f"Unknown config ID: {config_id}. Available: {list(CONFIGS_BY_ID)}")
     return CONFIGS_BY_ID[config_id]

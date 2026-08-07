@@ -190,8 +190,10 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
             ),
         }
 
-        print(f"  qubits={baseline['num_qubits']} logical_depth={baseline['logical_depth']} "
-              f"aer_depth={baseline['transpiled_depth']} time={elapsed_ms:.0f}ms")
+        print(
+            f"  qubits={baseline['num_qubits']} logical_depth={baseline['logical_depth']} "
+            f"aer_depth={baseline['transpiled_depth']} time={elapsed_ms:.0f}ms"
+        )
         print(
             f"  success_rate={evaluation['success_rate']:.2%} "
             f"(true order r={config.true_order})  "
@@ -242,9 +244,7 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
                 f"Allowed: {self.get_all_config_ids()}"
             )
         if config.strategy != "swap_network":
-            raise ValueError(
-                f"{config_id} strategy={config.strategy!r} is not QPU-safe."
-            )
+            raise ValueError(f"{config_id} strategy={config.strategy!r} is not QPU-safe.")
 
         self._sim_baseline = None
         if self._run_simulator:
@@ -275,9 +275,7 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
         finally:
             self.executor.run_ibm = original_run_ibm  # type: ignore[method-assign]
 
-    def _save_sim_baseline(
-        self, result: Dict[str, Any], config: ExperimentConfig
-    ) -> Path:
+    def _save_sim_baseline(self, result: Dict[str, Any], config: ExperimentConfig) -> Path:
         output_dir = Path(__file__).parent / "data" / "simulator" / "baseline"
         output_dir.mkdir(parents=True, exist_ok=True)
         from datetime import datetime
@@ -322,9 +320,7 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
         if parsed.config is None:
             priority = self.get_priority_configs()
             parsed.config = (
-                priority[0]["config_id"]
-                if priority
-                else (self.get_all_config_ids() or [None])[0]
+                priority[0]["config_id"] if priority else (self.get_all_config_ids() or [None])[0]
             )
         if parsed.config not in self.get_all_config_ids():
             print(f"Error: Unknown config '{parsed.config}'")

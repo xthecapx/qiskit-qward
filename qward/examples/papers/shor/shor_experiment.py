@@ -79,9 +79,7 @@ class ShorBatchResult(BaseBatchResult[ShorExperimentResult, ConfigAnalysis]):
 
 
 class ShorExperimentRunner(
-    BaseExperimentRunner[
-        ExperimentConfig, ShorExperimentResult, ShorBatchResult, ConfigAnalysis
-    ]
+    BaseExperimentRunner[ExperimentConfig, ShorExperimentResult, ShorBatchResult, ConfigAnalysis]
 ):
     def __init__(
         self,
