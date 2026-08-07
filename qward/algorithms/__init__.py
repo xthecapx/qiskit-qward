@@ -29,6 +29,10 @@ from .phase_estimation import (
     PhaseEstimation,
     PhaseEstimationCircuitGenerator,
 )
+from .shor import (
+    Shor,
+    ShorCircuitGenerator,
+)
 from .noise_generator import (
     NoiseConfig,
     NoiseModelGenerator,
@@ -123,6 +127,9 @@ __all__ = [
     # Phase Estimation
     "PhaseEstimation",
     "PhaseEstimationCircuitGenerator",
+    # Shor
+    "Shor",
+    "ShorCircuitGenerator",
     # Noise Generation
     "NoiseConfig",
     "NoiseModelGenerator",

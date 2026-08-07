@@ -607,6 +607,7 @@ class QuantumCircuitExecutor:
         channel: Optional[str] = None,
         token: Optional[str] = None,
         instance: Optional[str] = None,
+        sampler_options: Optional[dict] = None,
     ) -> IBMBatchResult:
         # pylint: disable=too-many-branches
         """Run circuit on IBM Quantum hardware using Batch mode.
@@ -632,6 +633,10 @@ class QuantumCircuitExecutor:
                 uses saved account
             token: IBM Quantum API token. If None, uses saved account
             instance: IBM Quantum instance (e.g., 'ibm-q/open/main')
+            sampler_options: Optional dict for SamplerV2 options. Default None
+                preserves existing thesis runs bit-for-bit. Example:
+                {'dynamical_decoupling': {'enable': True, 'sequence_type': 'XpXm'},
+                 'twirling': {'enable_gates': True}}
 
         Returns:
             IBMBatchResult containing execution results, metrics, and metadata
@@ -721,6 +726,22 @@ class QuantumCircuitExecutor:
 
             with batch:
                 sampler = Sampler()
+                if sampler_options:
+                    # Additive: apply dict options (e.g. dynamical decoupling / twirling)
+                    for key, value in sampler_options.items():
+                        if hasattr(sampler.options, key):
+                            setattr(sampler.options, key, value)
+                        elif isinstance(value, dict) and hasattr(sampler.options, key.split(".")[0] if False else key):
+                            pass
+                    # Nested options used by IBM Runtime SamplerV2
+                    dd = sampler_options.get("dynamical_decoupling")
+                    if dd:
+                        sampler.options.dynamical_decoupling.enable = dd.get("enable", True)
+                        if "sequence_type" in dd:
+                            sampler.options.dynamical_decoupling.sequence_type = dd["sequence_type"]
+                    tw = sampler_options.get("twirling")
+                    if tw:
+                        sampler.options.twirling.enable_gates = tw.get("enable_gates", True)
                 for opt_level in optimization_levels:
                     isa = isa_circuits[opt_level]
                     for run_idx in range(num_runs):
