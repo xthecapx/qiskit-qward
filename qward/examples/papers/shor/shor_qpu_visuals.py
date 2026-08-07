@@ -15,7 +15,9 @@ def load_latest_json(raw_dir: Optional[Path] = None) -> Dict:
     return json.loads(files[-1].read_text())
 
 
-def plot_counts_histogram(counts: Dict[str, int], title: str = "Shor counts", out: Optional[Path] = None):
+def plot_counts_histogram(
+    counts: Dict[str, int], title: str = "Shor counts", out: Optional[Path] = None
+):
     try:
         import matplotlib.pyplot as plt
     except ImportError as exc:

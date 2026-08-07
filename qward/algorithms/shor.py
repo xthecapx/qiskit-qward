@@ -15,7 +15,6 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import QFTGate, UnitaryGate
 
-
 # ---------------------------------------------------------------------------
 # Classical helpers
 # ---------------------------------------------------------------------------
@@ -70,9 +69,7 @@ def classical_precheck(N: int, a: int) -> PrecheckResult:
     if N < 2:
         return PrecheckResult(False, "invalid_N", details={"N": N})
     if N % 2 == 0:
-        return PrecheckResult(
-            False, "N_even", factor=2, factors=(2, N // 2), details={"N": N}
-        )
+        return PrecheckResult(False, "N_even", factor=2, factors=(2, N // 2), details={"N": N})
     if is_prime(N):
         return PrecheckResult(False, "N_prime", details={"N": N})
     pp = is_prime_power(N)
@@ -282,9 +279,7 @@ def modular_multiply_gate(
     return qc
 
 
-def _swap_network_mb(
-    b: int, N: int, num_qubits: int, *, a: Optional[int] = None
-) -> QuantumCircuit:
+def _swap_network_mb(b: int, N: int, num_qubits: int, *, a: Optional[int] = None) -> QuantumCircuit:
     """
     Shallow circuits for N=15 hardware demo.
 
@@ -358,9 +353,7 @@ class Shor:
         self.strategy = strategy
         self.use_barriers = use_barriers
         self.num_target = math.floor(math.log2(N - 1)) + 1
-        self.num_control = (
-            num_control if num_control is not None else 2 * self.num_target
-        )
+        self.num_control = num_control if num_control is not None else 2 * self.num_target
         self.num_qubits = self.num_control + self.num_target
         self.precheck = classical_precheck(N, a)
         self.step_plan = build_step_plan(N, a, self.num_control)
@@ -480,9 +473,7 @@ class ShorCircuitGenerator:
         use_barriers: bool = True,
     ):
         if test_case not in self.PRESETS:
-            raise ValueError(
-                f"Unknown test_case {test_case!r}. Available: {list(self.PRESETS)}"
-            )
+            raise ValueError(f"Unknown test_case {test_case!r}. Available: {list(self.PRESETS)}")
         params = self.PRESETS[test_case]
         self.test_case = test_case
         self.N = params["N"]
