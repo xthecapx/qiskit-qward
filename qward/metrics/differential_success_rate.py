@@ -1,30 +1,28 @@
 """
-Differential Success Rate (DSR) evaluation framework.
+Differential Success Rate (DSR) and companion evaluation measures.
 
 Histogram-free, task-level evaluation of quantum job outcomes against an
 analytically known expected-outcome set ``E`` (size ``K = |E|``), computed
 only from measurement counts -- never from a full ideal histogram over all
 ``2**m`` outcomes.
 
-The canonical output is the **DSR profile** (:class:`DSRProfileSchema`,
-produced by :class:`DSRProfiler`), a four-component evaluation:
+DSR itself is the clipped Michelson contrast returned by :func:`compute_dsr`
+and :func:`compute_dsr_michelson`. It compares the mean expected peak with
+the strongest competing peak and is a derived ordinal measure of censored
+peak dominance.
 
-- ``success_rate``: raw fraction of shots landing in ``E``.
-- ``chance_corrected_success``: success rescaled so random guessing -> 0
-  and perfect success -> 1 (a chance-corrected / skill-score, in the
-  lineage of Cohen's kappa and randomized-benchmarking "polarization").
+For convenience, :class:`DSRProfiler` and :class:`DSRProfileSchema` report
+DSR alongside companion measures. Those companions are not alternative DSR
+definitions:
+
+- ``success_rate`` and ``chance_corrected_success`` are unary measures.
+- ``coarse_tvd`` and ``coarse_hellinger_distance`` are metrics on the
+  coarse ``K + 1``-bin simplex.
 - ``coarse_tvd_similarity`` / ``coarse_hellinger_fidelity``: agreement, on a
   coarse ``K + 1``-bin distribution (one bin per element of ``E`` plus a
   single "other" bin), between the observed counts and a task-reference
   distribution over ``E`` (uniform ``1/K`` by default, or explicit
   ``expected_weights``).
-
-The original Michelson-contrast DSR (comparing the expected outcomes
-against the strongest *competing* peak rather than the random-chance
-baseline) is retained as an optional fifth "peak-contrast" layer -- it is a
-distinct quantity, not a legacy alias for the profile, and is kept because
-it is still useful (and because its documented T1-bias failure on
-zero-heavy targets motivates the chance-corrected component above).
 """
 
 from __future__ import annotations
@@ -44,7 +42,7 @@ _OTHER_BIN = "__other__"
 
 
 # ---------------------------------------------------------------------------
-# DSR profile: shared validation helpers
+# DSR and companion measures: shared validation helpers
 # ---------------------------------------------------------------------------
 
 
@@ -149,7 +147,7 @@ def _hellinger_bhattacharyya(p: Mapping[str, float], q: Mapping[str, float]) -> 
 
 
 # ---------------------------------------------------------------------------
-# DSR profile: pure compute functions
+# Companion measures: pure compute functions
 # ---------------------------------------------------------------------------
 
 
@@ -262,18 +260,18 @@ def compute_coarse_hellinger_fidelity(
 
 
 # ---------------------------------------------------------------------------
-# DSR profile: facade
+# DSR and companion measures: compatibility facade
 # ---------------------------------------------------------------------------
 
 
 class DSRProfiler:
-    """Compute the DSR evaluation profile from measurement counts.
+    """Report DSR and companion measures from measurement counts.
 
-    The profile is a set of four histogram-free, task-level scores computed
-    only from measurement counts and an analytically known expected-outcome
-    set ``E`` (plus, optionally, a non-uniform reference weight for each
-    element of ``E``). None of them requires simulating the full ideal
-    distribution over all ``2**m`` outcomes.
+    The API calls the result a profile for compatibility. DSR is only the
+    Michelson-contrast field; success rate, chance-corrected success, and the
+    coarse distance/similarity fields are companion measures. All are
+    computed from measurement counts and an analytically known expected-
+    outcome set ``E`` (plus, optionally, non-uniform reference weights).
 
     Example:
         >>> profiler = DSRProfiler({"01": 40, "00": 20, "10": 20, "11": 20}, {"01"})
@@ -352,7 +350,7 @@ class DSRProfiler:
         return min(1.0, bc**2)
 
     def profile(self) -> DSRProfileSchema:
-        """Compute the full DSR profile and return it as a validated schema."""
+        """Return DSR and its companion measures as a validated schema."""
         from qward.schemas.dsr_profile_schema import DSRProfileSchema
 
         coarse_tvd = self.coarse_tvd()
@@ -400,22 +398,17 @@ def compute_dsr_profile(
 
 
 # ---------------------------------------------------------------------------
-# Optional fifth layer: Michelson-contrast DSR ("peak-contrast" DSR)
+# Differential Success Rate: clipped Michelson contrast
 # ---------------------------------------------------------------------------
 #
 # Compares the expected outcomes against the strongest *competing* peak
-# rather than the random-chance baseline used by the profile above. This is
-# a genuinely different quantity (not a legacy alias for the profile): it is
-# more sensitive to a single dominant wrong peak, but it is confounded by
-# structured hardware noise that concentrates near the target (e.g. T1
-# relaxation biasing towards an all-zero target), which is precisely why the
-# chance-corrected component of the profile exists. Kept as an optional,
-# explicitly separate layer.
+# rather than the random-chance baseline used by the companion CCS measure.
+# This Michelson formulation is the definition of DSR; the other measures
+# returned by DSRProfiler are comparisons reported alongside it.
 
 
 def compute_dsr(counts: Mapping[str, int], expected_outcomes: Iterable[str]) -> float:
-    """Peak-contrast DSR (Michelson contrast). See module docstring: this is
-    the optional fifth layer, not the primary DSR profile."""
+    """Compute DSR using its clipped Michelson-contrast definition."""
     return compute_dsr_michelson(counts, expected_outcomes)
 
 
@@ -427,7 +420,9 @@ def compute_dsr_michelson(counts: Mapping[str, int], expected_outcomes: Iterable
 
 def compute_dsr_ratio(counts: Mapping[str, int], expected_outcomes: Iterable[str]) -> float:
     """
-    DSR using ratio a/b, clipped to [0, 1] after normalization:
+    Experimental ratio-based contrast; not the DSR definition used by QWARD.
+
+    The value is clipped to [0, 1] after normalization:
     score = (a/b) / (1 + a/b) = a / (a + b).
     """
     p_exp_bar, p_comp = _extract_peaks(counts, expected_outcomes)
@@ -436,7 +431,9 @@ def compute_dsr_ratio(counts: Mapping[str, int], expected_outcomes: Iterable[str
 
 def compute_dsr_log_ratio(counts: Mapping[str, int], expected_outcomes: Iterable[str]) -> float:
     """
-    DSR using log-ratio log(a/b), mapped to [0, 1] with a sigmoid.
+    Experimental log-ratio contrast; not the DSR definition used by QWARD.
+
+    Maps log(a/b) to [0, 1] with a sigmoid.
     """
     p_exp_bar, p_comp = _extract_peaks(counts, expected_outcomes)
     return _clip_zero_one(_contrast_log_ratio(p_exp_bar, p_comp))
@@ -446,7 +443,9 @@ def compute_dsr_normalized_margin(
     counts: Mapping[str, int], expected_outcomes: Iterable[str]
 ) -> float:
     """
-    DSR using normalized margin: (a-b)/max(a,b).
+    Experimental normalized-margin contrast; not the QWARD DSR definition.
+
+    Computes (a-b)/max(a,b).
     """
     p_exp_bar, p_comp = _extract_peaks(counts, expected_outcomes)
     return _clip_zero_one(_contrast_normalized_margin(p_exp_bar, p_comp))
