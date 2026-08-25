@@ -1,8 +1,8 @@
 # Broad-Ideal, Known-`E` Experiment: Results
 
-Addresses Reviewer 1's request for a case where the full ideal histogram is
-genuinely unavailable, so the paper's "histogram-free" framing is tested
-against a scenario where it is actually needed rather than merely convenient.
+This experiment compares a compact known-answer computation with one dense
+implementation of a full ideal distribution comparison. It supports a claim
+about representation availability, not a universal simulation bound.
 
 Script: `broad_ideal_experiment.py`. Data: `broad_ideal_experiment_results.json`.
 Figure: `plots/3_broad_ideal_scaling.png`.
@@ -13,30 +13,28 @@ Multi-marked Grover search (`K = 3` marked states, analytically known),
 increasing qubit count `n`, `shots = 4096`, optimal iteration count per
 Grover's formula.
 
-**Stage 1 (n = 6, 8, 10, 12, 14, real circuits).** Both the legacy
+**Stage 1 (n = 6, 8, 10, 12, 14, real circuits).** Both the
 full-distribution path (build the exact ideal statevector over all `2**n`
-outcomes via `Statevector.from_instruction`, then compute Hellinger
-fidelity/TVD against the observed counts) and the new histogram-free
-`DSRProfiler` path are run on the **same** real, locally-simulated Grover
+outcomes via `Statevector.from_instruction`, then compute Hellinger distance
+and fidelity against the observed counts) and the compact `DSRProfiler` path
+are run on the **same** locally simulated Grover
 circuit and counts. This is a correctness cross-check as well as a timing
 comparison — the coarse profile should track the full-distribution result
 sensibly at every `n`.
 
 **Stage 2 (n = 26, 28, 30, 32, 36, 40, synthetic counts).** No circuit is
-simulated at all — a real Grover circuit at these sizes is outside the reach
-of any classical machine (a bare `2**32` complex128 statevector is ~64 GB;
-`2**40` is ~17 TB), which is exactly the "no ideal histogram available"
-regime this experiment targets. Counts are generated directly as a
+simulated. Counts are generated directly as a
 multinomial sample over the `K` marked states plus a small set of random
-"other" bitstrings, standing in for what real QPU output would look like at
-that scale. `DSRProfiler` is run on these counts using only the known
+"other" bitstrings. They test only whether `DSRProfiler` accepts compact
+records at these widths; they do not represent hardware accuracy.
+`DSRProfiler` is run on these counts using only the known
 marked-state set `E` — no `2**n`-sized object is ever constructed.
 
 ## Results
 
 ### Timing (Stage 1, measured on both paths)
 
-| n | full-distribution HF/TVD | DSR profile | speedup |
+| n | full-distribution H/HF | DSR profile | speedup |
 |---|---|---|---|
 | 6 | 108 ms | 4.2 ms | 26x |
 | 8 | 556 ms | 0.10 ms | 5,673x |
@@ -44,15 +42,13 @@ marked-state set `E` — no `2**n`-sized object is ever constructed.
 | 12 | 9,636 ms | 2.2 ms | 4,306x |
 | 14 | 62,915 ms (~63 s) | 0.28 ms | 222,054x |
 
-Full-distribution cost grows exponentially with `n` (~4-7x per +2 qubits, as
-expected for `O(2**n)` statevector construction and dict comparison); the
-profile path's cost is dominated by Python/dict overhead on `O(shots + K)`
-inputs and does not exhibit any comparable growth. Extrapolating the
-observed trend, `n = 20` would already take on the order of hours locally,
-and `n = 32` is not just slow but architecturally infeasible (see Stage 2
-`theoretical_full_distribution_bytes` column: 34 GB at `n=32`, 8.8 TB at
-`n=40`, for the probability array alone, before any statevector simulation
-cost).
+The measured dense path grows rapidly with `n`, as expected from the
+statevector construction and distribution comparison used here. The compact
+path does not exhibit comparable growth in these runs. The Stage 2
+`theoretical_full_distribution_bytes` column gives the storage for one dense
+float64 probability array: 34 GB at `n=32` and 8.8 TB at `n=40`. These values
+do not include the statevector or prove that every possible R2 algorithm has
+the same cost; structured ideals may admit sparse or analytic computation.
 
 ### Correctness cross-check (Stage 1)
 
@@ -79,23 +75,19 @@ agreement at `K>1`, which is the case exercised here.
 | 36 | 0.176 | 0.176 | 0.176 | 0.176 | 0.03 ms | 550 GB |
 | 40 | 0.094 | 0.094 | 0.094 | 0.094 | 0.02 ms | 8.8 TB |
 
-Profile computation time stays flat (sub-millisecond) across a 15-qubit
-range where the corresponding full-distribution computation is not merely
-slower but requires more memory than exists on essentially any single
-machine. `success_rate == coarse_tvd_similarity == coarse_hellinger_fidelity`
-here is the expected, exact `K=1`-style behavior generalized to this
-synthetic-counts setup (uniform default weights over `E`, no `other`-side
-structure to distinguish TVD from Hellinger at this level of precision) and
-is a sanity check on the synthetic generator, not a new empirical claim.
+Profile computation time stays below one millisecond in these measurements.
+The displayed values of `success_rate`, `coarse_tvd_similarity`, and
+`coarse_hellinger_fidelity` are equal only to the printed precision. With
+`K = 3`, equality of coarse Hellinger fidelity with success rate requires the
+observed marked mass to follow the uniform task weights. The generator makes
+that approximately true through a multinomial allocation; it is not a
+general identity for multiple accepted answers.
 
 ## Manuscript framing
 
-Use this experiment as the concrete answer to "when would you actually need
-a histogram-free method?" — for algorithms whose target space grows past
-`~20`–`25` qubits (well within reach of near-term devices), computing or
-even representing the full ideal distribution is not a matter of "faster if
-you skip it," it is off the table entirely, while the profile is computed
-from the same three inputs (counts, `E`, `m`) it always uses, with per-job
-cost independent of `n`. Cite the measured Stage 1 exponential trend as
-direct evidence, and the Stage 2 theoretical-byte-count column as the
-argument for why Stage 1's trend cannot be pushed further locally.
+Use this experiment only for the narrower statement supported by its design:
+the known-answer path consumes compact inputs at widths where this dense R2
+implementation was not run. Cite Stage 1 as timing for one implementation and
+Stage 2 as an input availability demonstration. Do not present the synthetic
+records as executed circuits or claim that every full distribution method is
+infeasible at those widths.

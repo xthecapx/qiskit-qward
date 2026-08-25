@@ -1,0 +1,1079 @@
+\documentclass[10pt,conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+% \usepackage{hyperref}
+% \usepackage{svg}
+\usepackage[inline]{enumitem}
+\usepackage{booktabs}
+
+% custom packages
+\usepackage{subfiles}
+\usepackage{physics}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{comment}
+\usepackage{tabularx}
+\usepackage[compatibility=false]{caption}
+\usepackage{capt-of}
+\usepackage{orcidlink}
+
+% Define custom colors for Python syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}       % Green for comments
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}        % Gray for line numbers
+\definecolor{codepurple}{rgb}{0.58,0,0.82}     % Purple for strings and special literals
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}   % Light beige for background
+\definecolor{builtincolor}{rgb}{0.2, 0.2, 0.7}   % Blue for built-ins
+\definecolor{defclasscolor}{rgb}{0.1, 0.5, 0.1} % Dark Green for def/class
+\definecolor{docstringcolor}{rgb}{0.25,0.5,0.35} % Desaturated green for docstrings
+% Standard magenta (LaTeX built-in) is used for general keywords
+
+\lstdefinestyle{pythonStyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    commentstyle=\color{codegreen},
+    stringstyle=\color{codepurple},
+    keywordstyle=\color{magenta},
+    numbers=left,
+    numberstyle=\tiny\color{codegray},
+    numbersep=5pt,
+    xleftmargin=\parindent,
+    tabsize=2,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    keepspaces=true,
+    captionpos=bl
+}
+
+\lstset{style=pythonStyle}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\hyphenation{Hellinger Bhattacharyya Michelson Estimator Sampler}
+
+\newcommand{\TVD}{\mathrm{TVD}}
+\newcommand{\BC}{\mathrm{BC}}
+\newcommand{\CCS}{\mathrm{CCS}}
+\newcommand{\HF}{F_{H}}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\title{Choosing Measures of Quantum Circuit Execution Success through Representational Analysis}
+
+% \author{\IEEEauthorblockN{1\textsuperscript{st} Cristian Marquez}
+% \IEEEauthorblockA{\textit{Department of Systems and Computing Engineering} \\
+% \textit{Universidad de los Andes}\\
+% Bogotá, Colombia \\
+% c.marquezb$@$uniandes.edu.co}
+% \and
+% \IEEEauthorblockN{2\textsuperscript{st} Daniel Sierra}
+% \IEEEauthorblockA{\textit{Electrical Engineering and Computer Science} \\
+% \textit{The Catholic University of America, Washington}\\
+% DC, 20064 \\
+% sierrasosa$@$cua.edu}
+% \and
+% \IEEEauthorblockN{3\textsuperscript{nd} Kelly Garcés}
+% \IEEEauthorblockA{\textit{Department of Systems and Computing Engineering} \\
+% \textit{Universidad de los Andes}\\
+% Bogotá, Colombia \\
+% kj.garces971$@$uniandes.edu.co}
+% }
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Cristian Marquez \orcidlink{0009-0003-2708-0469}}
+\IEEEauthorblockA{\textit{Department of Systems} \\
+\textit{and Computing Engineering}\\
+\textit{Universidad de los Andes}\\
+Bogotá, Colombia \\
+ing.cristian.marquez$@$gmail.com}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Daniel Sierra \orcidlink{0000-0003-1326-0867}}
+\IEEEauthorblockA{\textit{Computer Science} \\
+\textit{The Catholic University of America}\\
+Washington DC, 20064 \\
+sierrasosa$@$cua.edu}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Kelly Garc\'es \orcidlink{0000-0002-1070-439X}}
+\IEEEauthorblockA{\textit{Department of Systems} \\
+\textit{and Computing Engineering}\\
+\textit{Universidad de los Andes}\\
+Bogotá, Colombia \\
+kj.garces971$@$uniandes.edu.co}
+}
+
+
+\maketitle
+
+\begin{abstract}
+
+Quantum circuit executions are evaluated using quantities such as success rate, Hellinger fidelity, total variation distance, probability of successful trials, and estimated success probability. Although these quantities are often grouped under the label ``metric,'' they characterize different attributes, require different reference information, and rely on distinct mathematical operations. We apply representational measurement theory and the Goal--Question--Metric approach to results produced by individual Sampler and Estimator jobs. The analysis distinguishes evaluations based on tasks with known correct or acceptable classical output, such as target bitstrings, optimization solutions, factors, or labels; full ideal distributions; ideal expectation values; and operational protocols for comparing states or processes. Then it classifies common quantities as distances, similarities, derived measures, predictions, or uncertainty diagnostics, and specifies the comparisons supported by each representation.
+
+For a single job, related distances and similarities yield the same decision when their thresholds and inequality directions are converted consistently, but arithmetic aggregation can reverse a ranking when the relation is nonlinear. In a corpus of 1,478 execution jobs, 1,411 paired records reproduce the defining transformations within numerical or rounding error. Across 31 eligible, overlapping IBM and Rigetti groupings for each distance and its corresponding similarity, no ordering inversion was observed. Grover examples and a four-qubit GHZ state-preparation circuit evaluated with Estimator further expose changes of reference and attribute. Finally, we use the differential success rate (DSR) as a case study to distinguish an ordinal score for the dominance of expected peaks from a mathematical metric and demonstrate how to select and report success measures.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+Quantum software measurement, representational measurement theory, Goal--Question--Metric, Hellinger fidelity, total variation distance, Sampler, Estimator
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:intro}
+
+The result of a quantum processing unit (QPU) does not determine by itself what success means. In current quantum execution frameworks, its interpretation depends on the primitive. A Sampler job retains measurement outcomes as samples from output registers, whereas an Estimator job combines outcomes into expectation values for specified observables~\cite{qiskit2024}, as formalized in Section~\ref{sec:primitives}. These outputs preserve different empirical relations. Therefore, using a formula defined for one interpretation to evaluate the other changes the attribute being measured, not merely the notation~\cite{fentonBieman2015}.
+
+Quantum information already provides a distinction between fidelity and distance, along with metrics computed using multiple fidelity functions~\cite{gilchrist2005,luo2004,ma2009,nielsen2010}. The unresolved problem in software measurement is how to select among success rate, Hellinger fidelity (HF), total variation distance (TVD), probability of successful trials (PST), estimated success probability (ESP), and related scores when analyzing the output of a quantum job. These quantities are commonly averaged, thresholded, or compared even when they do not share a domain.
+
+For a single job evaluated against a fixed reference, conditions $\TVD\le0.2$ and $1-\TVD\ge0.8$ always lead to the same conclusion about whether the execution satisfies the selected threshold, as Section~\ref{sec:threshold} formalizes. This equivalence holds because the second quantity is a decreasing transformation of the first, and the threshold is converted consistently. This does not imply that the two quantities can be substituted for each other in every analysis. Four limitations are relevant. First, averaging values related by a nonlinear transformation can produce a different group ranking; by contrast, averaging $1-\TVD$ is exactly one minus the average TVD, so this affine transformation preserves the ranking when its direction is interpreted consistently. Second, when an error bound is propagated through successive transformations, its justification must account for how each transformation changes the selected distance. Third, interpreting one value as a multiple of another requires justification that the numerical representation supports such ratios, and applying the same cutoff across different tasks requires a different justification. Fourth, a quantity can be computed and interpreted as defined only when its required inputs and reference information are available; otherwise, the quantity should be reported as unavailable.
+
+This paper makes three contributions, namely \begin{enumerate*}[label=(\roman*),itemjoin={{; }},itemjoin*={{; and }}]
+\item we classify quantities used to evaluate quantum job executions using representational measurement theory and the Goal--Question--Metric (GQM) approach, distinguishing a known answer set with any required weights or null model, a full ideal distribution $P^{\star}$, ideal observable expectation values $\langle O_i\rangle$, and an operational comparison protocol
+\item we determine when transformations preserve an individual decision, when subsequent operations require additional justification, and how these findings inform quantity selection through GQM
+\item we characterize Differential Success Rate (DSR) as an ordinal score of peak dominance and evaluate the framework using QPU measurements
+\end{enumerate*}. These contributions motivate three research questions, stated as \begin{enumerate*}[label=\textbf{RQ\arabic*},ref=\arabic*,itemjoin={{ }},itemjoin*={{ }}]
+\item\label{rq:attributes} Which execution attribute and reference information does each quantity represent?
+\item\label{rq:operations} Which transformations and operations preserve a conclusion, and which can change it?
+\item\label{rq:evidence} Do these distinctions appear in QPU execution data, and how do they inform the interpretation of DSR?
+\end{enumerate*}
+
+The analysis separates two questions that are easily conflated. The mathematical question is whether a function satisfies Axioms M1--M4 on a named space. The representational question asks whether a numerical value preserves the intended relations for an attribute of a specified entity~\cite{fentonBieman2015,fenton1994}. Passing one test does not guarantee passing the other. Hellinger distance is a metric on distributions, for example, but histogram closeness may be the wrong attribute when the decision concerns only the probability mass assigned to an answer set $E$.
+
+The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Sections~\ref{sec:model} and~\ref{sec:classification} define the execution model, reference classes, and classification of execution quantities. Sections~\ref{sec:analysis} and~\ref{sec:evaluation} present the analytical results and empirical evaluation. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, threats to validity, and conclusions.
+
+\section{Background}
+\label{sec:background}
+
+The quantities compared in this study can share a numerical range while following different mathematical rules. In this section, we first establish their domains and properties and then connect those properties to the execution attributes they represent.
+
+\subsection{Distance Metrics and Related Quantities}
+\label{sec:vocab}
+
+Sampler outcomes and ideal references for the same fixed measurement and outcome alphabet can be represented as probability distributions over a finite set of outcomes. For $n$ possible outcomes, their common domain is the probability simplex
+
+\begin{equation}
+\Delta_n=
+\left\{P\in\mathbb{R}^{n}\mid
+P(x)\ge0,\ \sum_{x=1}^{n}P(x)=1\right\}.
+\label{eq:probability-simplex}
+\end{equation}
+
+The value $P(x)$ is the probability assigned to the outcome $x$. The Bhattacharyya coefficient~\cite{bhattacharyya1943} measures the overlap between two distributions in this simplex:
+
+\begin{equation}
+\BC(P,Q)=\sum_{x=1}^{n}\sqrt{P(x)Q(x)}.
+\label{eq:bhattacharyya-coefficient}
+\end{equation}
+
+The classical Hellinger distance and the total variation distance are
+
+\begin{equation}
+H(P,Q)=\sqrt{1-\sum_{x=1}^{n}\sqrt{P(x)Q(x)}}
+=\sqrt{1-\BC(P,Q)},
+\label{eq:hellinger-distance}
+\end{equation}
+\begin{equation}
+\TVD(P,Q)=\tfrac12\sum_{x=1}^{n}\lvert P(x)-Q(x)\rvert.
+\label{eq:tvd}
+\end{equation}
+
+The Hellinger fidelity used in this paper is the squared overlap
+
+\begin{equation}
+\HF(P,Q)=\BC(P,Q)^{2}=(1-H(P,Q)^{2})^{2},
+\label{eq:hellinger-fidelity}
+\end{equation}
+
+Equation~\ref{eq:hellinger-fidelity} shows that HF is a function of $H^2$, not the complement $1-H$~\cite{cha2007}, whereas TVD similarity is the complement of TVD.
+
+\begin{equation}
+\sigma_{\TVD}(P,Q)=1-\TVD(P,Q)
+\label{eq:tvd-similarity-definition}
+\end{equation}
+
+Their norm representations are
+
+\begin{align}
+H(P,Q)&=\tfrac{1}{\sqrt{2}}\lVert\sqrt{P}-\sqrt{Q}\rVert_{2},
+\label{eq:hellinger-l2}\\
+\TVD(P,Q)&=\tfrac{1}{2}\lVert P-Q\rVert_{1}.
+\label{eq:tvd-l1}
+\end{align}
+
+These norm representations establish that both $H$ and TVD are metrics on $\Delta_n$~\cite{gilchrist2005,nielsen2010}. More generally, on a set $X$, a distance metric is a function
+\begin{equation}
+ d\colon X\times X\rightarrow\mathbb{R}
+ \label{eq:metric-map}
+\end{equation}
+that satisfies the following four axioms:
+
+\begin{align}
+ d(x,y) &\ge 0. &\tag{M1}\label{eq:metric-nonnegativity}\\
+ d(x,y) &= 0\iff x=y. &\tag{M2}\label{eq:metric-identity}\\
+ d(x,y) &= d(y,x). &\tag{M3}\label{eq:metric-symmetry}\\
+ d(x,z) &\le d(x,y)+d(y,z). &\tag{M4}\label{eq:metric-triangle}
+\end{align}
+
+With Axioms~M1--M4 in place, the quantities commonly reported as quantum metrics can be compared with the formal definition of a distance metric. Among the quantities considered in this paper, Hellinger distance and TVD satisfy M1--M4 on $\Delta_n$ through their norm representations. Other notions appearing in the literature have different mathematical properties. A \emph{pseudometric} relaxes the identity of indiscernibles (M2) by allowing distinct points to have zero separation, while a \emph{quasimetric} relaxes symmetry (M3). A divergence such as Kullback--Leibler is typically asymmetric and may violate the triangle inequality (M4).
+
+By contrast, Hellinger fidelity and TVD similarity---the similarity quantities used in our examples---are maximized when their two arguments coincide. Other commonly reported quantities still have different forms: the success rate and the PST are proportions, the ESP is a prediction, and DSR is evaluated in this paper as an ordinal score. These quantities evaluate a job relative to a goal, reference, or calibration model and are therefore not candidates for Axioms~M1--M4 in their original form. This distinction has two practical consequences. First, taking the complement of a distance does not automatically produce another metric. Second, any claim that invokes the triangle inequality should be stated for a verified distance metric or for a dissimilarity explicitly induced from one. For example, the Hellinger construction in Equation~\ref{eq:hellinger-distance} converts the Bhattacharyya overlap of Equation~\ref{eq:bhattacharyya-coefficient} into a metric. Another standard conversion is the angular distance
+\begin{equation}
+\theta(P,Q)=\arccos\BC(P,Q).
+\label{eq:bhattacharyya-angle}
+\end{equation}
+Both constructions are discussed in~\cite{luo2004,ma2009}. Accordingly, we use \emph{distance metric} only for a function satisfying Axioms~M1--M4 on a named space, and use \emph{measure}, \emph{score}, or \emph{similarity} only after naming the attribute.
+
+The preceding definitions are for classical outcome distributions. For comparisons at the state level, we use the squared Uhlmann fidelity convention
+\begin{equation}
+F(\rho,\sigma)=
+\left(\mathrm{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}}\right)^2.
+\label{eq:uhlmann-fidelity}
+\end{equation}
+In what follows, we explicitly distinguish similarities from distances and name the underlying space whenever invoking metric properties such as the triangle inequality. This convention makes the mathematical meaning of \emph{closeness} explicit before its suitability as a representation of an execution attribute is assessed.
+
+\subsection{Representational Measurement Theory}
+\label{sec:fenton}
+
+The preceding subsection establishes whether a quantity is a mathematical metric in a named space. In this section, we establish whether a numerical value preserves the intended relations for a specified execution attribute. Fenton and Bieman~\cite{fentonBieman2015} define measurement as a mapping from an empirical relational system to a numerical one that preserves those relations, a requirement known as the representation condition~\cite{polancic2017complexity}. Applied to a quantum job, this view requires naming the attribute being measured, such as proximity to a reference distribution, probability mass on $E$, dominance of expected peaks, or deviation from an ideal expectation.
+
+Table~\ref{tab:scale-types} summarizes the five types of scale used in this paper and the comparisons supported by each.
+
+\begin{table}[t]
+\centering
+\caption{Measurement scale types and their interpretations.}
+\label{tab:scale-types}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\columnwidth}{@{}p{0.16\columnwidth}X@{}}
+\toprule
+\textbf{Scale} & \textbf{Interpretation} \\
+\midrule
+Nominal & Labels only. A provider name is not a success quantity. \\
+Ordinal & Order is preserved; differences are not. Against the same reference and on a common outcome space, a ranking of jobs by $\HF$ supports "\textit{closer than,}" not "\textit{twice as close.}" \\
+Interval & Differences are meaningful, whereas the zero point is conventional. Treating an expectation value as measured on an interval scale requires an explicit empirical interpretation. \\
+Ratio & A meaningful, nonarbitrary zero and admissible transformations restricted to positive scaling are required to support statements such as "\textit{twice as far.}" Satisfaction of Axioms M1--M4 alone does not establish a ratio scale, and $1-d$ does not inherit one automatically. \\
+Absolute & Shot counts correspond most closely to this type. Derived proportions inherit meaning only after the derivation is stated~\cite{fentonBieman2015}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A scale type belongs to a stated attribute and measurement procedure, not to the numerical value alone. Table~\ref{tab:audit} therefore assigns a conservative measurement status rather than inferring a scale from a familiar formula. Section~\ref{sec:scale} applies this principle to $p_E$, aggregation between jobs, ratio statements, and uncertainty due to finite sampling. Mathematical kind, scale interpretation, and sampling uncertainty remain separate properties.
+
+This framework prevents every numerical quantity from being treated as a mathematical metric, a concern raised by Fenton~\cite{fenton1994,fenton1992}. A unary score can represent the probability mass on an answer set, even though Axioms M1--M4 do not apply to it. On the other hand, a mathematical distance can be unsuitable for a decision concerning a different attribute. Clipping a score corrected for chance at zero provides another limitation because it removes the ordering among jobs below the chance baseline.
+
+Representational measurement theory determines the interpretations and comparisons that a quantity supports. The Goal--Question--Metric paradigm complements this analysis by guiding the selection of a quantity from the execution goal and available information~\cite{basili1994,fentonBieman2015}. It also distinguishes measurements from prediction; for example, ESP predicts execution success from calibration data rather than measuring an observed histogram. Section~\ref{sec:related} contrasts this question with the evaluation of predictive validity. Section~\ref{sec:selection} applies GQM by naming the object, purpose, quality focus, viewpoint, and execution context before deriving questions and quantities.
+
+\section{Related Work}
+\label{sec:related}
+
+The literature on quantum information establishes the distinctions of fidelity and distance~\cite{gilchrist2005,luo2004,ma2009,mendonca2008,uhlmann1976,nielsen2010}, and we summarize them in Section~\ref{sec:vocab}. Since these results already distinguish similarities from the distances they induce, this research therefore does not claim the metric axioms or the fidelity distinction as new results.
+
+The most closely related study to ours is by Mohapatra \emph{et al.}~\cite{mohapatra2025}, who link HF, TVD, ESP, and PST to the fidelity of density matrices. Their strongest reported proxies---ESP and PST---answer how well an inexpensive quantity tracks a reference obtained through tomography. However, Mohapatra claims are complementary to, but distinct from, deciding which attribute should define success for a quantum job.
+
+Within quantum software engineering, multiple surveys describe distribution distances, statistical tests, assertions, and other criteria used to decide whether a quantum execution succeeded~\cite{paltenghi2024,andrews2026,ramalho2025}. Ye \emph{et al.}~\cite{ye2025} differentiate the validation of measured output values from the validation of complete distributions and show how finite sampling constrains both. The work of Ye establishes the testing context in which a success quantity is consumed, but does not provide the integrated classification framework developed in this study.
+
+Hacaloglu \emph{et al.}~\cite{hacaloglu2026} apply the broader questions of what, how, and why to the measurement of quantum software size. That study targets an internal product attribute rather than execution success, but it demonstrates the relevance of classical software measurement theory to quantum computing.
+
+In contrast, this paper focuses on quantities derived from quantum job outcomes and provides both a classification framework and a GQM-based procedure for selecting a success quantity. Our literature review did not identify prior work that integrates these elements, so our contribution is primarily based on scope and integration rather than novelty claims for the underlying distance measures or axioms.
+
+\section{Execution Model}
+\label{sec:model}
+
+In current QC, executing a quantum job on a QPU ultimately produces classical measurement outcomes (shots), but most users consume those outcomes through \emph{primitives} at a higher level that expose summaries organized around computational tasks rather than a raw shot log. In Qiskit Runtime, \emph{SamplerV2} returns samples from the circuit's classical output registers, whereas \emph{EstimatorV2} returns estimated expectation values and standard errors for observables evaluated on specified circuits~\cite{qiskit2024,ibmEstimator2026}.
+
+These two result views need not be derived from the same physical shot record: expectation estimation can involve basis rotations, observable grouping, and mitigation, and in practice Sampler and Estimator are typically invoked via separate primitive requests. Table~\ref{tab:primitives} summarizes the information available for evaluating each result.
+
+\begin{table}[t]
+\centering
+\caption{Questions for evaluating Sampler and Estimator results.}
+\label{tab:primitives}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.22\columnwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Question} & \textbf{Sampler} & \textbf{Estimator} \\
+\midrule
+What result is available? & Samples in classical registers, summarized by $\hat{P}$
+& Estimates $\widehat{\langle O_{i}\rangle}$ for specified observables \\
+What reference is needed? & A goal set $E$ or a full ideal distribution $P^{\star}$
+& Ideal expectation values $\langle O_i\rangle$ \\
+What can be evaluated? & Did the measured outcomes agree with $E$ or $P^{\star}$?
+& Did the estimated expectation values agree with $\langle O_i\rangle$? \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+These results support different comparisons. Sampler results can be compared with a target outcome set or distribution, whereas Estimator results can be compared with ideal expectation values. A quantity that requires information not provided by the selected primitive should be reported as unavailable.
+
+\subsection{Interpreting Sampler and Estimator Results}
+\label{sec:primitives}
+
+A Sampler result preserves counts $\mathcal C(x)$ from $S$ shots. Normalizing the counts gives an empirical distribution $\widehat P$. If the task defines a valid answer set $E$, the result can be interpreted through the probability mass assigned to that set. A justified null distribution $Q_0$ also permits correction for chance.
+\begin{align}
+\widehat P(x)&=\frac{\mathcal C(x)}{S},\qquad K=|E|, \notag\\
+p_E&=\sum_{x\in E}\widehat P(x)
+=\frac{1}{S}\sum_{x\in E}\mathcal C(x),
+\label{eq:success-mass}\\
+b&=\Pr_{X\sim Q_0}(X\in E),
+\label{eq:chance-baseline}\\
+\CCS&=\mathrm{clip}\left(\frac{p_E-b}{1-b},0,1\right).
+\label{eq:chance-corrected-success}
+\end{align}
+For uniform guessing, $b=K/2^m$. When a full ideal distribution $P^{\star}$ is available, the same Sampler result can instead support a distribution comparison. A comparison that preserves a separate bin for every accepted answer also requires weights $w_i\geq 0$ with $\sum_{i=1}^{K}w_i=1$. Uniform weights are justified only when the task treats the accepted answers as equally likely.
+
+An Estimator result preserves expectation estimates and their reported uncertainties for specified observables. Given an ideal expectation, the interpretation concerns agreement in the value of that observable rather than agreement between output histograms. For observables whose physical expectations lie in $[-1,1]$, absolute deviation and observable fidelity are related by
+\begin{equation}
+d_i=\left|\widehat{\langle O_i\rangle}-\langle O_i\rangle^{\mathrm{ideal}}\right|,
+\qquad
+F_{\mathrm{obs},i}=1-\frac{d_i}{2}.
+\label{eq:observable-fidelity}
+\end{equation}
+For an unmitigated estimate of an observable with eigenvalues in $\{\pm1\}$, $p_+(O)=(1+\widehat{\langle O\rangle})/2$ gives the mass in its positive eigenspace. It represents task success only when that eigenspace defines success. Mitigation can move an estimate outside the physical interval, in which case this transformation is not guaranteed to be a probability. Hellinger fidelity and DSR cannot be obtained from an Estimator result that provides only \texttt{evs} and \texttt{stds} because those quantities require a histogram or counts.
+
+The required reference determines both the interpretation and whether a quantity can be computed. R1 denotes a task answer set, with weights or a null model when required. R2 denotes a full ideal distribution. R3 denotes ideal expectation values or a Hamiltonian. R4 denotes an operational comparison, with R4F for a fidelity protocol and R4I for an inverse circuit. Positive eigenspace mass needs an observable but no ideal expectation, while ESP and $z_0$ require a calibration model and an uncertainty estimate, respectively. If the required information is absent, the quantity should be reported as unavailable. Substituting a different reference would change the attribute being evaluated.
+
+\section{Classification of Execution Quantities}
+\label{sec:classification}
+
+Table~\ref{tab:audit} classifies common quantities for individual jobs by attribute, reference class, mathematical kind, and principal limitation.
+
+Equations~\ref{eq:hellinger-l2} and~\ref{eq:tvd-l1} show that Hellinger distance and TVD satisfy Axioms M1--M4 through the $L^{2}$ embedding of square roots and the scaled $L^{1}$ distance, respectively~\cite{gilchrist2005,nielsen2010}. Coarse TVD and coarse Hellinger distance satisfy the same axioms on the mapped probability simplex $\Delta_{K+1}$ defined by Equation~\ref{eq:probability-simplex}; the map keeps each $x\in E$ and combines the complement into one bin. When regarded as functions of full histograms on $\Delta_{2^{m}}$, the coarse quantities are only pseudometrics because distinct histograms can have the same mapped representation.
+
+\begin{proposition}[Coarse quantities at $K=1$]
+\label{prop:k1}
+Assume
+\begin{equation}
+K=|E|=1.
+\label{eq:k1-condition}
+\end{equation}
+Write $p_E$ for the observed mass on the single expected string. On the coarse simplex, the observed histogram is
+\begin{equation}
+P^{\mathrm{coarse}}=(p_E,1-p_E),
+\label{eq:k1-coarse-observed}
+\end{equation}
+and the ideal is
+\begin{equation}
+P^{\mathrm{coarse},\star}=(1,0).
+\label{eq:k1-coarse-ideal}
+\end{equation}
+The coarse total variation distance is
+\begin{equation}
+\TVD^{\mathrm{coarse}}=1-p_E,
+\label{eq:k1-coarse-tvd}
+\end{equation}
+and the coarse Hellinger fidelity is
+\begin{equation}
+\HF^{\mathrm{coarse}}=p_E.
+\label{eq:k1-coarse-hf}
+\end{equation}
+\end{proposition}
+
+\begin{IEEEproof}
+The TVD calculation is
+\begin{equation}
+\TVD^{\mathrm{coarse}}
+=\frac12\left(\lvert p_E-1\rvert+\lvert(1-p_E)-0\rvert\right)
+=1-p_E.
+\label{eq:k1-coarse-tvd-proof}
+\end{equation}
+The Bhattacharyya coefficient is
+\begin{equation}
+\BC^{\mathrm{coarse}}
+=\sqrt{p_E\cdot 1}+\sqrt{(1-p_E)\cdot 0}
+=\sqrt{p_E}.
+\label{eq:k1-coarse-bc-proof}
+\end{equation}
+Squaring Equation~\ref{eq:k1-coarse-bc-proof} gives Equation~\ref{eq:k1-coarse-hf}.
+\end{IEEEproof}
+
+The identities are exact for the coarse construction. When the full ideal is the delta distribution on the expected string, they also hold for full HF and TVD. Grover with a finite number of iterations generally retains amplitude outside $E$, so its R1 and R2 quantities answer different questions and need not coincide. Data processing ensures that TVD and Hellinger distance between two distributions cannot increase when both distributions pass through the same coarse mapping~\cite{csiszar1967}. The R1 targets used here are not generally the result of applying this map to $P^{\star}$, so this inequality does not compare the R1 and R2 quantities reported in Section~\ref{sec:grover-reference}.
+
+\begin{proposition}[Coarse quantities for multiple answers]
+\label{prop:kmulti}
+Let the answer set be
+\begin{equation}
+E=\{e_1,\ldots,e_K\}.
+\label{eq:multi-answer-set}
+\end{equation}
+Assume
+\begin{equation}
+K>1.
+\label{eq:multi-answer-count}
+\end{equation}
+Define each marked probability by
+\begin{equation}
+p_i=\widehat P(e_i).
+\label{eq:multi-marked-probability}
+\end{equation}
+Let $w_i\geq0$ and $\sum_{i=1}^{K}w_i=1$. Compare the coarse profile
+\begin{equation}
+P^{\mathrm{coarse}}=(p_1,\ldots,p_K,1-p_E)
+\label{eq:multi-coarse-profile}
+\end{equation}
+with the task target
+\begin{equation}
+W_E=\left(w_1,\ldots,w_K,0\right).
+\label{eq:multi-coarse-target}
+\end{equation}
+Then
+\begin{equation}
+F_H^{\mathrm{coarse}}=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2\le p_E,
+\label{eq:multi-coarse-hf}
+\end{equation}
+Equality holds if and only if
+\begin{equation}
+p_i=p_Ew_i
+\quad\text{for every marked outcome}.
+\label{eq:multi-hf-equality}
+\end{equation}
+Moreover, coarse TVD similarity equals $p_E$ whenever
+\begin{equation}
+p_i\le w_i
+\quad\text{for every }i.
+\label{eq:multi-tvd-condition}
+\end{equation}
+\end{proposition}
+
+\begin{IEEEproof}
+The Hellinger expression follows by substituting $W_E$ into the Bhattacharyya coefficient in Equation~\ref{eq:bhattacharyya-coefficient}. Cauchy--Schwarz gives
+\begin{equation}
+\left(\sum_i\sqrt{p_iw_i}\right)^2
+\le \left(\sum_i p_i\right)\left(\sum_iw_i\right)=p_E,
+\end{equation}
+with equality exactly when $p_i=p_Ew_i$. Under the stated TVD condition,
+\begin{equation}
+\sum_i\left|p_i-w_i\right|=1-p_E.
+\label{eq:multi-marked-deviation}
+\end{equation}
+Including the bin that combines all other outcomes gives
+\begin{equation}
+\TVD^{\mathrm{coarse}}
+=\frac12\left[(1-p_E)+(1-p_E)\right]
+=1-p_E.
+\label{eq:multi-coarse-tvd}
+\end{equation}
+Its similarity is therefore $p_E$.
+\end{IEEEproof}
+
+Proposition~\ref{prop:kmulti} explains why the identities of Proposition~\ref{prop:k1} fail in different ways for coarse HF and coarse TVD. Section~\ref{sec:dsr} introduces the separate attribute of dominance among peaks used by DSR.
+
+\begin{table*}[t]
+\centering
+\caption{Representational classification of common quantities reported for each job. A metric satisfies Axioms M1--M4 on the named space. Other quantities are assessed by the relation they preserve.}
+\label{tab:audit}
+\scriptsize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.15\textwidth}
+>{\raggedright\arraybackslash}p{0.13\textwidth} c
+>{\raggedright\arraybackslash}p{0.10\textwidth}
+>{\raggedright\arraybackslash}p{0.22\textwidth}
+>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Quantity} & \textbf{Attribute} & \textbf{Ref.} & \textbf{Kind}
+& \textbf{Status and permitted use} & \textbf{Principal limitation} \\
+\midrule
+Success rate $p_{E}$ & mass on $E$ & R1($E$) & proportion
+& derived proportion; order and thresholds; state how jobs or shots are averaged
+& ignores competitors and variation within $E$ \\
+Success corrected for chance & mass beyond a null baseline & R1($E,Q_0$) & censored score
+& order only above $b$; thresholds require the same null model
+& clipping removes all order below $b$ \\
+Hellinger distance $H$ & histogram distance & R2 & \textbf{metric}
+& order; descriptive means require a stated estimand and weighting; triangle bounds after valid maps
+& needs $P^{\star}$; worst case $O(2^{m})$ representation \\
+Hellinger fidelity $\HF$ & histogram overlap & R2 & similarity
+& ordinal within a fixed reference; converted thresholds and rank summaries
+& arithmetic means need not preserve distance rankings \\
+TVD & $L^{1}$ histogram distance & R2 & \textbf{metric}
+& order; descriptive means require a stated estimand and weighting; triangle bounds
+& needs $P^{\star}$; ignores phase \\
+TVD similarity, Eq.~\ref{eq:tvd-similarity} & histogram similarity & R2 & similarity
+& exact complement; converted thresholds and ranks
+& metric chaining uses the underlying TVD \\
+Uhlmann / DM fidelity & state overlap & R4F & similarity
+& overlap order under a fixed protocol
+& not a bitstring score; protocol assumptions matter \\
+Bures / sine distances & state distance & R4F & \textbf{metrics}
+& distance order and triangle bounds on states
+& inherit the fidelity protocol requirements \\
+ESP & predicted hardware success & calibration & prediction
+& evaluate calibration and predictive validity
+& not an observed execution attribute \\
+PST & return mass after $U^{\dagger}U$ & R4I & proportion
+& order and thresholds for the inverse construction
+& evaluates a different circuit; relaxation can favor zero \\
+Coarse TVD & distance on $\Delta_{K+1}$ & R1($E,w$) & \textbf{metric}
+& distance operations on the coarse space
+& a pseudometric on full histograms; $w$ must be justified \\
+Coarse HF & coarse overlap & R1($E,w$) & similarity
+& ordinal; convert to coarse $H$ for distance operations
+& reduces to $p_E$ at $K=1$ \\
+DSR (Michelson) & peak dominance & R1($E$) & ordinal representation
+& order for a fixed task and sampling design
+& clipping; mean versus maximum; depends on $K$ \\
+Absolute expectation distance & expectation difference & R3 & \textbf{metric on $\mathbb{R}$}
+& absolute differences and triangle bounds for a fixed observable
+& Hamiltonian aggregation uses coefficients and signed deviations \\
+Observable fidelity & expectation similarity & R3 & similarity
+& affine threshold conversion per observable
+& aggregation requires stated observable weights \\
+Positive eigenspace mass & mass for eigenvalue $+1$ & observable $O$ & proportion
+& physical proportion for an unmitigated estimate of involutory $O$
+& task success only when the positive eigenspace defines the goal \\
+Relative error & relative expectation deviation & R3 & derived ratio
+& compare only for nonzero ideals on a shared interpretation
+& undefined and unstable at zero \\
+Standardized magnitude $z_0$ & magnitude relative to zero & uncertainty & diagnostic
+& standardized by the reported uncertainty, not task success
+& does not alone establish significance or agreement \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The word \emph{metric} is therefore reserved for the bold entries in Table~\ref{tab:audit} on their named domains. For every other entry, the table names the empirical relation that the number can preserve and avoids a stronger scale claim. These are representation conditions: if the reference, null model, observable, task weights, or sampling design changes, the permitted comparison must be reassessed. Section~\ref{sec:dsr} applies this rule explicitly to DSR.
+
+\section{Analytical Results}
+\label{sec:analysis}
+
+\subsection{Threshold Invariance}
+\label{sec:threshold}
+
+\begin{lemma}[Threshold invariance]
+\label{lem:threshold}
+Let $d(\cdot,Q)$ be a real quantity on histograms with fixed reference $Q$, and let $\phi$ be strictly monotone. Define the transformed threshold by
+\begin{equation}
+\tau'=\phi(\tau).
+\label{eq:transformed-threshold}
+\end{equation}
+If $\phi$ is increasing, then
+\begin{equation}
+d(P,Q)\le\tau
+\iff
+\phi\bigl(d(P,Q)\bigr)\le\tau'.
+\label{eq:threshold-increasing}
+\end{equation}
+If $\phi$ is decreasing, then
+\begin{equation}
+d(P,Q)\le\tau
+\iff
+\phi\bigl(d(P,Q)\bigr)\ge\tau'.
+\label{eq:threshold-decreasing}
+\end{equation}
+\end{lemma}
+
+\begin{IEEEproof}
+Strictly increasing functions preserve order, which establishes Equation~\ref{eq:threshold-increasing}. Strictly decreasing functions reverse order, which establishes Equation~\ref{eq:threshold-decreasing}. In either case, Equation~\ref{eq:transformed-threshold} yields the same partition of jobs.
+\end{IEEEproof}
+
+The decision to pass or fail one job is therefore invariant inside a strictly monotone class after threshold conversion. The relevant classes are listed below.
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item \textbf{Hellinger class.} Hellinger distance, Bhattacharyya coefficient, Hellinger fidelity, and the Bhattacharyya angle are related by Equations~\ref{eq:bhattacharyya-coefficient}, \ref{eq:hellinger-distance}, \ref{eq:hellinger-fidelity}, and~\ref{eq:bhattacharyya-angle}.
+\item \textbf{TVD class.} TVD and its similarity are exact complements.
+\begin{equation}
+\sigma_{\TVD}=1-\TVD.
+\label{eq:tvd-similarity}
+\end{equation}
+\item \textbf{Class with a known answer, $K=1$.} $p_{E}$, coarse TVD similarity, and coarse HF are identical. Success corrected for chance is an affine transform only above the chance baseline; clipping removes it from the strictly monotone class.
+\item \textbf{Expectation class.} Absolute expectation deviation and observable fidelity satisfy Equation~\ref{eq:observable-fidelity}.
+\end{itemize}
+
+DSR is not a member of the class of monotone quantities for a known answer set (Section~\ref{sec:dsr}).
+
+\subsection{Aggregation}
+\label{sec:aggregation}
+
+Define the nonlinear transformation
+\begin{equation}
+\phi(H)=(1-H^{2})^{2}.
+\label{eq:aggregation-transform}
+\end{equation}
+Averaging transformed values is not equivalent to transforming an average. Consider
+\begin{align}
+A&=\{0.10,0.10,0.90\},
+\label{eq:aggregation-set-a}\\
+B&=\{0.40,0.40,0.40\}.
+\label{eq:aggregation-set-b}
+\end{align}
+Their mean distances satisfy
+\begin{equation}
+\mathrm{mean}(H_A)=0.367<0.400=\mathrm{mean}(H_B).
+\label{eq:aggregation-distance-ranking}
+\end{equation}
+The criterion based on mean distance therefore ranks $A$ above $B$. The transformed values include
+\begin{align}
+\phi(0.10)&=0.980,
+\label{eq:aggregation-transform-low}\\
+\phi(0.90)&=0.036.
+\label{eq:aggregation-transform-high}
+\end{align}
+Their mean fidelities satisfy
+\begin{equation}
+\mathrm{mean}(F_H(A))=0.665<0.706=\mathrm{mean}(F_H(B)).
+\label{eq:aggregation-fidelity-ranking}
+\end{equation}
+Equation~\ref{eq:aggregation-fidelity-ranking} gives the opposite ranking and establishes the possibility of a reversal induced by aggregation.
+
+A quantile defined as an order statistic preserves ordering under a strictly monotone transformation. The common median for an even sample instead averages two central observations and does not generally preserve this property under a nonlinear transformation.
+
+\subsection{Composition}
+\label{sec:composition}
+
+The triangle inequality permits a chain of comparisons among distributions in the same space, but it does not by itself establish how errors accumulate through successive circuit stages. When a distance is used to construct such a bound, the analysis must state how each stage transforms that distance and provide an error bound for each stage. For example, TVD and Hellinger distance satisfy a data processing inequality under classical stochastic maps: applying the same map to both distributions cannot increase their separation~\cite{csiszar1967}. This nonexpansiveness supports a chaining argument, but it is not guaranteed for an arbitrary metric. Other arguments may instead use known expansion factors or bounds specific to the transformations.
+
+A similarity has no corresponding metric axiom unless an induced dissimilarity is defined and validated. For the TVD similarity in Equation~\ref{eq:tvd-similarity}, the triangle inequality becomes
+\begin{equation}
+\sigma_{\TVD}(P,R)
+\ge
+\sigma_{\TVD}(P,Q)+\sigma_{\TVD}(Q,R)-1.
+\label{eq:tvd-similarity-triangle}
+\end{equation}
+This inequality becomes vacuous when the right side is negative. The compositional justification therefore comes from the known properties of TVD, not from the similarity representation itself~\cite{csiszar1967,gilchrist2005}.
+
+A different caution applies to observable fidelity. Equation~\ref{eq:observable-fidelity} is affine in the absolute deviation, so its arithmetic mean is exactly the corresponding transform of the mean absolute deviation. However, an unweighted mean ignores the coefficients in the Hamiltonian
+\begin{equation}
+H=\sum_i c_iO_i.
+\label{eq:hamiltonian-decomposition}
+\end{equation}
+The energy error obeys
+\begin{equation}
+\left|\Delta\langle H\rangle\right|
+\le
+\sum_i|c_i|\left|\Delta\langle O_i\rangle\right|.
+\label{eq:hamiltonian-error-bound}
+\end{equation}
+It is not generally equal to the unweighted mean of deviations for individual observables.
+
+\subsection{Scale Type}
+\label{sec:scale}
+
+A number in $[0,1]$ does not automatically lie on a ratio scale. The censoring caused by chance correction is discussed in Section~\ref{sec:fenton}. A cutoff such as $0.8$ is meaningful only after the attribute, the chance baseline, and the scale type are named~\cite{fentonBieman2015,fenton1994}. The following statements are therefore different kinds of claim.
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item ``Job $A$ has higher $p_{E}$ than job $B$'' is an ordinal statement on a shared $E$.
+\item ``The mean $p_{E}$ over a batch is $0.41$'' must specify whether jobs are weighted equally or pooled by shot count; the two estimands differ when shot budgets are unequal.
+\item ``$\HF=0.80$ is twice as good as $\HF=0.40$'' is a ratio statement that the similarity scale does not support.
+\item ``Pass if $\HF\ge 0.8$ on every algorithm'' reuses a cutoff across tasks that need not share a reference or a chance baseline.
+\end{itemize}
+
+The conservative rule used in Table~\ref{tab:audit} is to report only the operations needed by the decision. Order and converted thresholds need an ordinal representation. Arithmetic aggregation additionally fixes an estimand and weighting rule. A ratio statement requires an empirically meaningful zero, not merely a numerical zero. A threshold applied to an estimate also requires a sampling rule, uncertainty interval, or error probability. These requirements prevent a scale claim from being inferred solely from a familiar formula.
+
+\section{Evaluation}
+\label{sec:evaluation}
+
+The evaluation combines algebraic consistency checks, a corpus analysis, one example calculated by hand, one hardware Estimator job, and a reference representation experiment. Its purpose is to test the consequences identified by the framework rather than to benchmark a new device or claim a general provider ordering.
+
+\subsection{Evaluation Questions and Procedure}
+\label{sec:evaluation-procedure}
+
+Three evaluation questions correspond to Research Questions~\ref{rq:operations} and~\ref{rq:evidence}. E1 asks whether stored members of the Hellinger and TVD monotone classes satisfy their defining transformations and reverse rank as expected. E2 asks whether arithmetic aggregation changes an IBM versus Rigetti ordering in the available corpus. E3 asks whether records exist for which a known answer score remains available while a complete reference comparison does not.
+
+The reproducible analysis is implemented in \texttt{reproduce\_analysis.py}. E1 keeps rows with both members of a pair, checks $F_H=(1-H^2)^2$ and $\sigma_{\TVD}=1-\TVD$, and reports Spearman rank correlation. E2 maps \texttt{IBM\_QPU} and \texttt{AWS\_BRAKET} records to IBM and Rigetti, respectively. It compares means and medians globally, by algorithm, by algorithm and qubit count when both groups contain at least five records, and for matched Grover configuration and qubit groups. E3 counts rows with a defined success rate and missing full Hellinger fidelity. These are deterministic consistency, ranking, and availability checks; they do not estimate a provider population effect and therefore use no significance test.
+
+\subsection{Empirical Basis and Filtering}
+\label{sec:setup}
+
+The empirical checks use the accompanying QWARD dataset of 1,478 previously executed Sampler records~\cite{qwardGroverData2026}. It contains Grover, quantum Fourier transform, Bernstein--Vazirani, and teleportation records. Each row retains the backend, circuit and transpiled depths, gate count, shot count, expected outcomes, measured histogram, and derived quantities. For the Grover specific examples, we apply the explicit filter \texttt{algorithm = GROVER}, yielding 248 records. Of these records, 246 contain both quantities based on a complete reference and coarse quantities. The subset includes configurations with one or several marked states on \texttt{ibm\_fez}, \texttt{ibm\_torino}, \texttt{ibm\_kingston}, Ankaa-3, and Forte-1. All but one record use 1,024 shots. The remaining Forte-1 record uses two qubits and 128 shots, and it falls outside the decision subset with records that use three or four qubits. Records span backends, execution dates, and transpilation choices, so the study does not rank devices. Hellinger and TVD values that compare complete histograms are used only where the stored ideal distribution $P^{\star}$ is available. R1 quantities are computed from the same counts and the declared marked set $E$.
+
+\subsection{Transformation, Aggregation, and Availability}
+\label{sec:corpus-checks}
+
+Table~\ref{tab:corpus-checks} reports E1--E3 on all corpus rows. E1 confirms the defining transformations to stored precision. E2 finds no inversion under the specified groupings, which limits the corpus result without changing the constructed possibility in Section~\ref{sec:aggregation}. E3 demonstrates unequal population of the R1 and R2 fields; missingness alone does not establish its cause.
+
+\begin{table*}[t]
+\centering
+\caption{Reproducible corpus checks for transformation, aggregation, and reference availability.}
+\label{tab:corpus-checks}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{0.25\textwidth}
+>{\raggedright\arraybackslash}p{0.32\textwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Check} & \textbf{Rows or comparisons} & \textbf{Result} & \textbf{Interpretation} \\
+\midrule
+E1 Hellinger & 1,411 paired rows & maximum transform error $1.21\times10^{-6}$; $\rho=-0.999999999$ & stored values agree up to rounding \\
+E1 TVD & 1,411 paired rows & maximum transform error $1.11\times10^{-16}$; $\rho=-1$ & exact complement to numerical precision \\
+E2 aggregation & 31 provider comparisons for each class & zero mean inversions; zero median inversions & no empirical inversion in the specified groupings \\
+E3 availability & all 1,478 rows & 67 with success rate present and full HF absent & an R1 score can remain when the R2 field is unavailable \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Sampler Example}
+\label{sec:worked-sampler}
+
+Consider the count record under a uniform guessing null model
+\begin{align}
+\mathcal{C}(01)&=40,
+\label{eq:sampler-count-expected}\\
+\mathcal{C}(00)=\mathcal{C}(10)=\mathcal{C}(11)&=20.
+\label{eq:sampler-count-others}
+\end{align}
+Its remaining parameters are
+\begin{align}
+E&=\{01\},
+\label{eq:sampler-answer-set}\\
+S&=100,
+\label{eq:sampler-shot-count}\\
+m&=2,
+\label{eq:sampler-qubit-count}\\
+K&=1,
+\label{eq:sampler-answer-count}\\
+b&=\frac14.
+\label{eq:sampler-chance-baseline}
+\end{align}
+Table~\ref{tab:worked-sampler} reports the resulting quantities.
+
+\begin{table}[t]
+\centering
+\caption{Sampler example ($K=1$).}
+\label{tab:worked-sampler}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}X l@{}}
+\toprule
+\textbf{Quantity} & \textbf{Value} & \textbf{Kind} \\
+\midrule
+$p_{E}$ & $0.40$ & score \\
+$\CCS$ & $0.20$; Eq.~\ref{eq:chance-corrected-success} & clipped score \\
+Coarse observed / ideal & $(0.40,0.60)$ vs.\ $(1,0)$ & mapped distributions \\
+Coarse TVD & $0.60$ & metric on $\Delta_{2}$ \\
+Coarse TVD similarity & $0.40$ & $K=1$ identity \\
+Coarse HF & $0.40$ & $K=1$ identity \\
+Coarse Hellinger distance & $0.606$ & metric on $\Delta_{2}$ \\
+DSR & $1/3$ & ordinal representation \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The equivalent decision rules are
+\begin{equation}
+\TVD^{\mathrm{coarse}}\le 0.30
+\iff
+\sigma_{\TVD}^{\mathrm{coarse}}\ge 0.70.
+\label{eq:sampler-threshold-equivalence}
+\end{equation}
+Equation~\ref{eq:sampler-threshold-equivalence} instantiates Lemma~\ref{lem:threshold}. By Proposition~\ref{prop:k1}, every reported coarse quantity is $p_E$, its complement, or a strictly monotone transform; they are not independent evidence.
+
+\subsection{Estimator Hardware Example}
+\label{sec:worked-estimator}
+
+The Estimator branch is illustrated with a completed IBM Runtime EstimatorV2 execution of a GHZ circuit that uses four qubits on \texttt{ibm\_fez}~\cite{qwardEstimatorData2026}. The circuit was transpiled at optimization level 2 to ISA depth 12 and evaluated against six Pauli observables with analytically known R3 references. Table~\ref{tab:worked-estimator} selects three observables that expose the distinction among expectation agreement, an affine expectation transform, relative error, and reported uncertainty. For $XZXZ$, the estimate is
+\begin{equation}
+\widehat{\mathrm{ev}}_{XZXZ}=0.0005\pm0.0175.
+\label{eq:estimator-xzxz-estimate}
+\end{equation}
+Its ideal value is
+\begin{equation}
+\mathrm{ev}_{XZXZ}^{\mathrm{ideal}}=0.
+\label{eq:estimator-xzxz-ideal}
+\end{equation}
+The resulting observable fidelity is
+\begin{equation}
+F_{\mathrm{obs},XZXZ}=0.9997,
+\label{eq:estimator-xzxz-fidelity}
+\end{equation}
+while its affine transform is
+\begin{equation}
+\frac{1+\widehat{\mathrm{ev}}_{XZXZ}}{2}=0.5003.
+\label{eq:estimator-xzxz-affine-transform}
+\end{equation}
+The submission left Runtime options at server defaults, and the stored record does not retain the resulting mitigation metadata; we therefore do not interpret this transform as observed eigenspace mass. It also does not measure agreement with the ideal. Relative error is undefined at an exact zero reference, and replacing the denominator by a numerical epsilon does not repair that interpretation.
+
+\begin{table*}[t]
+\centering
+\caption{Selected observables from the GHZ-4 EstimatorV2 execution on \texttt{ibm\_fez}~\cite{qwardEstimatorData2026}.}
+\label{tab:worked-estimator}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Observable} & \textbf{Ideal} & $\widehat{\mathrm{ev}}\pm\mathrm{std}$ & \textbf{Obs.\ fidelity} & \textbf{Affine transform} \\
+\midrule
+$ZZZZ$ & $1$ & $0.9320\pm0.0086$ & $0.9660$ & $0.9660$ \\
+$XZXZ$ & $0$ & $0.0005\pm0.0175$ & $0.9997$ & $0.5003$ \\
+$YYYY$ & $1$ & $0.9175\pm0.0101$ & $0.9588$ & $0.9588$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Cost of the Reference Representation}
+\label{sec:eval-ref}
+
+The study of scaling for broad ideals uses Grover instances with three marked states, 4,096 shots, and random seed 42. For $m=6,8,\ldots,14$, the R2 path explicitly constructs the ideal statevector before computing Hellinger distance and fidelity; one measured run per size grows from $108$~ms to approximately $63$~s on the study machine. These wall times describe this implementation rather than a general performance benchmark. For $m\in\{26,28,30,32,36,40\}$, the study uses synthetic count records and the analytically known marked set $E$ solely to verify that the R1 computation accepts wide bitstrings without constructing a complete reference. A dense float64 probability array would require approximately $537$~MB at $m=26$ and $8.8$~TB at $m=40$.
+
+This result concerns the explicit representation used by the study, not a universal lower bound for Hellinger or TVD computation and not the execution of a large Grover circuit on hardware. Structured ideals can support analytic or sparse calculations without materializing all $2^m$ entries. The experiment nevertheless demonstrates the narrower availability claim: a compact answer set can remain representable after a dense R2 implementation has become impractical. The same distinction applies to R4F and R4I. State fidelity or inverse return probability remains mathematically defined even when the experiment supplies no protocol or circuit construction that can estimate it.
+
+\subsection{Divergence Between Reference Classes in Grover}
+\label{sec:grover-reference}
+
+Grover with a finite number of iterations provides a useful test of sensitivity to the reference class because its ideal distribution generally retains probability outside the marked set. Across the 246 Grover records for which both quantities are stored, the absolute difference between coarse and full Hellinger fidelity reaches $0.231$. When the analysis of decisions is restricted to the 173 QPU records that use three or four qubits, the same numerical cutoff applied to the two reference classes produces 13 disagreements at $\tau=0.7$ and 29 disagreements at $\tau=0.8$. In every disagreement, the R1 quantity fails while the R2 quantity passes. These counts illustrate sensitivity to thresholds and do not recommend either cutoff for general use. They show that an R1 profile defined by the answer set and an R2 full ideal distribution can classify the same execution differently.
+
+\subsection{Grover with Multiple Marked States and DSR}
+\label{sec:grover-multimarked}
+
+Table~\ref{tab:grover-multi} reports two configurations with four qubits and multiple marked states from the filtered dataset. Each row gives the median for one backend over transpiler optimization levels 0--3 and compares DSR with companion measures rather than devices. Because each sample has an even size, these medians average the two central observations. We treat them only as descriptive summaries, not as quantities that commute with nonlinear transformations. For $K=2$, full HF is substantially larger than coarse HF because the full ideal after a finite number of iterations and the coarse target defined by the answer set preserve different information. For $K=4$, one Grover iteration reaches unit ideal success probability, so the full ideal equals the uniform task target $W_E$ and coarse and full HF coincide. DSR nevertheless collapses to $0$ on \texttt{ibm\_fez} while the median success rate remains $0.403$. This difference follows from comparing the average expected peak, $p_E/K$, with the largest competitor. It is therefore a change of attribute that depends on $K$ rather than evidence that one measure estimates another more accurately.
+
+\begin{table*}[t]
+\centering
+\caption{DSR and companion Grover measures after filtering the accompanying dataset to \texttt{algorithm = GROVER}. Values are medians over transpiler optimization levels 0--3 for each configuration and backend~\cite{qwardGroverData2026}.}
+\label{tab:grover-multi}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Config.} & $K$ & $p_E$ & $\CCS$ & DSR & coarse HF & full HF \\
+\midrule
+\texttt{M4-2}, Torino & 2 & $0.517$ & $0.448$ & $0.675$ & $0.511$ & $0.734$ \\
+\texttt{M4-4}, Fez & 4 & $0.403$ & $0.204$ & $0.000$ & $0.378$ & $0.378$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Discussion}
+\label{sec:discussion}
+
+An execution quantity cannot be interpreted independently of its primitive, attribute, and required reference information. This dependency is the focus of Research Question~\ref{rq:attributes}. Sections~\ref{sec:primitives} and~\ref{sec:classification} make it explicit, while Table~\ref{tab:audit} records the attribute, reference, mathematical kind, and permitted use of each quantity. The represented attribute is determined jointly by the formula, its domain, and the supplied reference information. Selecting the primitive and attribute first therefore helps prevent the measurement procedure from silently changing the question.
+
+This classification also helps determine which subsequent operations are justified, the issue posed by Research Question~\ref{rq:operations}. Sections~\ref{sec:threshold}--\ref{sec:scale} show that converted thresholds preserve individual decisions within a strictly monotone class, whereas aggregation, composition, ratio statements, and decisions under sampling uncertainty require additional assumptions. A transformation therefore preserves a conclusion only for the stated decision and scale; operations beyond that setting can change its meaning or outcome.
+
+The provider comparisons in Section~\ref{sec:corpus-checks} and the QPU measurements in Sections~\ref{sec:worked-estimator}, \ref{sec:grover-reference}, and~\ref{sec:grover-multimarked} show that these distinctions occur in QPU execution data, addressing Research Question~\ref{rq:evidence}. They exhibit reference-dependent decisions and differences of attribute, while Section~\ref{sec:dsr} establishes that DSR is an ordinal score of peak dominance. Together, these empirical and formal results delimit the conclusions that the available corpus supports.
+
+\subsection{Selection of a Quantity}
+\label{sec:selection}
+
+The GQM goal is stated in its conventional form: \emph{analyze the result of an individual quantum execution for the purpose of evaluating its suitability for a stated task, with respect to the selected execution attribute, from the viewpoint of the developer, in the context of a fixed primitive, reference or null model, shot budget, mitigation procedure, and intended downstream operation}. Four questions operationalize this goal. (Q1) Is the result interpreted through a Sampler or an Estimator? (Q2) Which attribute is relevant---agreement with a full distribution, mass on a known answer set, dominance among peaks, overlap at the state or process level, expectation deviation, prediction, or uncertainty? (Q3) Which reference class and task assumptions are available? (Q4) Will the quantity be thresholded, aggregated, or propagated through a staged bound? Table~\ref{tab:gqm} maps these questions to admissible quantities.
+
+\begin{table}[t]
+\centering
+\caption{GQM questions and admissible quantities.}
+\label{tab:gqm}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}X
+>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Question} & \textbf{Quantity} \\
+\midrule
+How far is $\hat{P}$ from $P^{\star}$? & TVD or $H$ on $\Delta_{2^{m}}$ (R2) \\
+How far is the coarse histogram from $E$? & coarse TVD or coarse $H$ (R1) \\
+Did enough shots land in $E$? & $p_{E}$; $\CCS$ only with a justified null $Q_0$ \\
+Do expected peaks dominate competitors? & DSR, an ordinal score of peak dominance (fixed $K$, $m$, and shot budget) \\
+Is $P^{\star}$ available for the selected attribute? & If not, report R2 agreement as unavailable; use R1 only for a separately chosen answer attribute \\
+How far is $\widehat{\mathrm{ev}}$ from the ideal? & $\lvert\Delta\mathrm{ev}\rvert$ or observable fidelity (R3) \\
+Does the positive eigenspace define success? & if yes and the estimate is unmitigated, $p_+(O)$; otherwise do not label it success \\
+Is uncertainty small enough to decide? & reported uncertainty and a decision interval; $z_0$ is only a standardized magnitude \\
+Are several observables aggregated? & use Hamiltonian weights; report energy deviation and uncertainty \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+After the primitive and reference are identified in Section~\ref{sec:primitives}, Table~\ref{tab:gqm} and Sections~\ref{sec:threshold}--\ref{sec:scale} inform quantity selection through GQM. An unavailable reference yields ``not computable under the selected attribute'' rather than an implicit change of attribute.
+
+\subsection{Typing Differential Success Rate}
+\label{sec:dsr}
+
+Differential Success Rate is defined here solely by the clipped Michelson contrast~\cite{michelson1927}; success rate, success corrected for chance, and the coarse distances are companion measures. Using $K$ and $p_E$ from Equation~\ref{eq:success-mass}, define
+\begin{align}
+\bar p_E&=\frac{p_E}{K},
+\label{eq:dsr-mean-expected-peak}\\
+p_{\mathrm{comp}}&=\max_{x\notin E}\widehat P(x).
+\label{eq:dsr-competitor}
+\end{align}
+For a valid nonempty count record, DSR is
+\begin{align}
+\mathrm{DSR}
+&=\mathrm{clip}\left(\frac{\bar p_E-p_{\mathrm{comp}}}{\bar p_E+p_{\mathrm{comp}}},0,1\right)
+\label{eq:dsr-michelson}\\
+&=\max\left(0,\frac{p_E-Kp_{\mathrm{comp}}}{p_E+Kp_{\mathrm{comp}}}\right).
+\label{eq:dsr-closed}
+\end{align}
+
+The classification below follows Fenton and Bieman's distinction between direct and derived measurement (Sec.~2.2.2) and their definition of a mathematical metric as a function on pairs of objects (Sec.~3.4.3)~\cite{fentonBieman2015}.
+
+\begin{proposition}[Measurement and metric status of DSR]
+\label{prop:dsr-type}
+For fixed $E$, assume
+\begin{equation}
+0<K<2^m.
+\label{eq:dsr-valid-answer-count}
+\end{equation}
+Define the ratio that measures dominance among peaks by
+\begin{equation}
+\rho_E(P)=\frac{p_E/K}{p_{\mathrm{comp}}},
+\label{eq:dsr-dominance-ratio}
+\end{equation}
+with the convention
+\begin{equation}
+\rho_E(P)=\infty
+\quad\text{when}\quad
+p_{\mathrm{comp}}=0<\frac{p_E}{K}.
+\label{eq:dsr-infinite-ratio}
+\end{equation}
+The censored ratio is
+\begin{equation}
+\widetilde\rho_E(P)=\max\left(1,\rho_E(P)\right).
+\label{eq:dsr-censored-ratio}
+\end{equation}
+Define the empirical ordering of censored dominance by
+\begin{equation}
+P\preceq_E Q
+\iff
+\widetilde\rho_E(P)\le\widetilde\rho_E(Q).
+\label{eq:dsr-empirical-order}
+\end{equation}
+DSR is an ordinal representation of this relation because
+\begin{equation}
+\mathrm{DSR}(P)=\frac{\widetilde\rho_E(P)-1}{\widetilde\rho_E(P)+1},
+\label{eq:dsr-ratio-representation}
+\end{equation}
+where the value at infinity is defined by
+\begin{equation}
+\lim_{\widetilde\rho_E\to\infty}
+\frac{\widetilde\rho_E-1}{\widetilde\rho_E+1}=1.
+\label{eq:dsr-ratio-limit}
+\end{equation}
+The mapping is strictly increasing in $\widetilde\rho_E$. DSR has the unary type
+\begin{equation}
+\mathrm{DSR}\colon\Delta_{2^m}\rightarrow[0,1],
+\label{eq:dsr-unary-map}
+\end{equation}
+so Axioms M1--M4 do not classify it. Nonnegativity is a range property introduced by clipping, while identity of indiscernibles, symmetry, and the triangle inequality apply to the two-argument form in Equation~\ref{eq:metric-map}, not to a measure with one argument. The induced difference is
+\begin{equation}
+\delta_E(P,Q)
+=\left|\mathrm{DSR}(P)-\mathrm{DSR}(Q)\right|.
+\label{eq:dsr-induced-difference}
+\end{equation}
+It is a pseudometric on $\Delta_{2^m}$, but it is not DSR itself and is not a metric.
+\end{proposition}
+
+\begin{IEEEproof}
+The derivative of the ratio representation is
+\begin{equation}
+\frac{\mathrm{d}}{\mathrm{d}r}
+\left(\frac{r-1}{r+1}\right)
+=\frac{2}{(r+1)^2}>0
+\quad\text{for}\quad r\ge1.
+\label{eq:dsr-ratio-derivative}
+\end{equation}
+Clipping identifies every ratio in the region
+\begin{equation}
+\rho_E\le1
+\label{eq:dsr-clipped-region}
+\end{equation}
+with the same censored value. DSR therefore preserves exactly the order and equivalence classes of $\widetilde\rho_E$, establishing an ordinal representation. It evaluates one distribution relative to the fixed answer set $E$, whereas Axioms M2--M4 require a function on pairs of elements from one common space. The induced $\delta_E$ is the pullback of the metric defined by absolute difference on $\mathbb{R}$, so it satisfies nonnegativity, symmetry, and the triangle inequality. It fails identity of indiscernibles because DSR is not injective.
+
+For the witness, choose
+\begin{align}
+m&=10,
+\label{eq:dsr-witness-qubits}\\
+K&=1,
+\label{eq:dsr-witness-answer-count}\\
+\left(p_E,p_{\mathrm{comp}}\right)_P&=(0.80,0.10),
+\label{eq:dsr-witness-p}\\
+\left(p_E,p_{\mathrm{comp}}\right)_Q&=(0.08,0.01).
+\label{eq:dsr-witness-q}
+\end{align}
+The distributions are distinct, but both give
+\begin{equation}
+\mathrm{DSR}(P)=\mathrm{DSR}(Q)=\frac79.
+\label{eq:dsr-witness-value}
+\end{equation}
+Their remaining mass can be distributed among the other outcomes without creating a larger competitor. Consequently,
+\begin{equation}
+\delta_E(P,Q)=0
+\quad\text{while}\quad
+P\ne Q.
+\label{eq:dsr-identity-failure}
+\end{equation}
+\end{IEEEproof}
+
+\begin{table*}[t]
+\centering
+\caption{Axiom results for objects related to DSR. ``N/A'' denotes an arity mismatch rather than an axiom failure.}
+\label{tab:dsr-axioms}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Object} & \textbf{M1} & \textbf{M2} & \textbf{M3} & \textbf{M4} & \textbf{Kind} \\
+\midrule
+Coarse TVD on $\Delta_{K+1}$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & metric \\
+Coarse $H$ on $\Delta_{K+1}$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & metric \\
+Their pullbacks to $\Delta_{2^m}$ & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ & pseudometric \\
+$\mathrm{DSR}$ & range & N/A & N/A & N/A & ordinal representation \\
+Induced difference, Eq.~\ref{eq:dsr-induced-difference} & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ & pseudometric \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Proposition~\ref{prop:dsr-type} and Table~\ref{tab:dsr-axioms} establish the ordinal representation and nonmetric status of DSR, together with the pseudometric status of its induced difference. Its invariance under joint positive rescaling shows that DSR is insensitive to absolute mass and cannot alone represent $p_E$; Propositions~\ref{prop:k1} and~\ref{prop:kmulti} classify the companion measures.
+
+The remaining limitations follow from this classification.
+\begin{enumerate}[leftmargin=*,itemsep=3pt,topsep=2pt]
+\item \textbf{Clipping.} Equation~\ref{eq:dsr-clipped-region} shows that DSR treats all cases without dominance as equivalent. Equation~\ref{eq:chance-corrected-success} similarly censors jobs at or below the baseline in Equation~\ref{eq:chance-baseline}.
+\item \textbf{Mean versus maximum.} DSR compares the mean expected peak to the strongest competitor and then clips below zero. Changing $K$ changes this mapping even when $p_{E}$ is unchanged, so comparisons across $K$ require separate justification.
+\item \textbf{Extreme order statistic.} The empirical maximum $p_{\mathrm{comp}}$ is sensitive to the shot budget and the number of competing bins. Comparisons across instances with different $S$ or $m$ can therefore mix dominance among peaks with effects from finite sampling.
+\item \textbf{Known $E$.} DSR can be computed from sparse counts and $E$ without constructing a $2^{m}$-element ideal distribution. This is its reference-information advantage, while requiring $E$ restricts its applicability.
+\item \textbf{Phase.} Bitstring mass does not represent relative phase.
+\item \textbf{Variational workloads.} Without a discrete $E$, DSR is undefined. Estimator jobs that expose only \texttt{evs} and \texttt{stds} are out of scope unless a separate measurement supplies counts and an $E$.
+\end{enumerate}
+
+Table~\ref{tab:gqm} states the admissible scope of DSR. Combining it with companion measures would define a new composite whose attribute and weighting require separate validation~\cite{fentonBieman2015}.
+
+\section{Threats to Validity}
+\label{sec:threats}
+
+\paragraph{Internal validity.}
+Quantities derived from finite-shot frequencies estimate underlying execution probabilities, and Section~\ref{sec:dsr} states the additional sampling dependencies of DSR. The uniform null and task weights used by the examples are assumptions rather than universal defaults. Backend, configuration, topology, compiler, date, and queue conditions are not controlled; the hardware examples and fixed cutoffs are therefore descriptive.
+
+\paragraph{Construct validity.}
+The synthetic records in Section~\ref{sec:eval-ref} test compact input processing, not hardware execution, accuracy, or the superiority of R1. The aggregation example establishes possibility rather than prevalence, as the negative E2 result confirms. Sections~\ref{sec:grover-reference} and~\ref{sec:grover-multimarked} distinguish changes of reference from changes of attribute.
+
+\paragraph{Conclusion validity.}
+The transformation checks are algebraic consistency checks, and the aggregation analysis uses author selected groupings on reused records. The selected rows with multiple marked states contain one execution at each transpiler optimization level from 0 through 3 for every backend and configuration. The analysis of reference classes uses descriptive disagreement counts. These results characterize the filtered corpus and should not be interpreted as effects that are independent of the device.
+
+\paragraph{External validity.}
+The transformation and availability checks use the full accompanying corpus, but the detailed Sampler analysis deliberately filters it to Grover executions and the Estimator illustration contains one GHZ-4 hardware job. Results may not extend to variational workloads, analog systems, regimes with fault tolerance, or jobs for which no suitable task reference can be defined. The taxonomy is broader than the empirical cases and therefore requires validation in those settings.
+
+\paragraph{Literature coverage.}
+The related work review was targeted rather than systematic. It covered quantum fidelity and distance, quantum program testing and validation, predictive execution measures, and software measurement theory. The scoped novelty statement can therefore be weakened by an unindexed, unpublished, or differently framed study. A future systematic review should evaluate the taxonomy against a protocol with explicit databases, search strings, and inclusion criteria.
+
+\paragraph{Bias.}
+We maintain the QWARD implementation that motivated the DSR case study, creating a risk of confirmation bias. To make that risk visible, the analysis exposes the formulas for DSR and its companion measures, separates analytical identities from empirical observations, and reports failure modes alongside the applicable scope.
+
+\paragraph{Scope.}
+The classification concerns execution success for each job. Internal product measures such as circuit depth and the count of gates involving two qubits, and claims of quantum advantage, fall outside that scope.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The broad label ``execution metric'' conceals distances, similarities, unary scores, prediction systems, and Estimator quantities. The taxonomy of reference classes makes those differences operational by identifying what information a quantity requires and which comparisons it can support.
+
+The analytical and empirical results support a qualified conclusion. Strictly monotone transformations agree for individual jobs with a fixed reference under converted thresholds, and the stored corpus values satisfy their defining relations without an observed aggregation inversion. Reference availability and the Grover examples nevertheless show that R1 and R2 are not interchangeable. The GHZ-4 result similarly separates expectation agreement from an affine transform of the estimate, while DSR is an ordinal score of peak dominance rather than a mathematical metric.
+
+The GQM analysis yields a compact reporting convention. Authors should state \begin{enumerate*}[label=(\roman*),itemjoin={{, }},itemjoin*={{, and }}]
+\item the primitive interpretation
+\item the execution attribute
+\item the reference class and any task weights or null model
+\item the scale and direction of improvement
+\item the shot budget, mitigation procedure, and uncertainty
+\item any transformation or aggregation applied before drawing a conclusion
+\end{enumerate*}. This convention retains the useful result that strictly monotone pairs agree for a single job with a fixed reference under converted thresholds, while preventing that equivalence from being carried uncritically into aggregation, composition, or comparisons across tasks.
+
+Future work should test the taxonomy with controlled Sampler and Estimator workloads, validate its use by independent practitioners, and study covariance, Hamiltonian weighting, and optimizer dynamics when several observable estimates feed one decision. Until then, measure selection should follow the decision, attribute, available reference, and intended operation identified in Section~\ref{sec:selection}.
+
+\section{Data and Code Availability}
+
+The execution records and analysis programs are supplied with the article. The corpus checks use \texttt{DSR\_result.csv} and \texttt{reproduce\_analysis.py}~\cite{qwardGroverData2026}. The Grover examples apply the filter \texttt{algorithm = GROVER}; Table~\ref{tab:grover-multi} states the additional configuration, backend, and optimization level selections used for its two rows. The reference representation experiment uses \texttt{broad\_ideal\_experiment.py}, random seed 42, and the supplied JSON results. The Estimator example uses the completed IBM Runtime job record in \texttt{estimator\_ibm\_result.json}~\cite{qwardEstimatorData2026}. These artifacts permit reproduction of the reported calculations without submitting a new QPU job.
+
+\section{AI Tools and Services Acknowledgment}
+
+The authors acknowledge the use of AI tools and services for manuscript preparation, coding, and research assistance. Writefull.com supported language, grammar, and writing improvements; Elicit.com assisted in the literature discovery; and Cursor and Claude Code (Anthropic) assisted with code development, plotting scripts, quantum circuit understanding, statistical analysis, data processing scripts, and manuscript revision. These tools supported and expanded the authors’ abilities, but the essential research, study design, data analysis, and resulting conclusions remain the authors’ own intellectual contribution.
+
+\bibliographystyle{IEEEtran}
+\bibliography{Bibliography}
+
+\end{document}
