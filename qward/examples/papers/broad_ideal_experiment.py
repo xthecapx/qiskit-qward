@@ -1,35 +1,17 @@
 """
-Broad-ideal, known-E experiment: demonstrates the histogram-free advantage
-of the DSR profile against full-distribution HF/TVD, addressing Reviewer 1's
-concern that the paper's circuits never needed the "no ideal histogram
-available" motivation to hold.
+Broad ideal experiment with a known answer set: compare a compact DSR
+profile with a dense full distribution Hellinger calculation.
 
-Setup: multi-marked Grover search with a fixed, small, analytically known
-expected-outcome set ``E`` (the marked states), at increasing qubit count
-``n``. Two computations are timed at each ``n``:
+Stage 1 runs both computations on the same locally simulated Grover counts
+for ``n = 6, 8, 10, 12, 14``. The dense path constructs an exact statevector
+and ideal probability distribution before computing Hellinger distance and
+fidelity. The compact path uses only counts, the marked set, and the measured
+width; it never constructs an object with ``2**n`` entries.
 
-  1. **Full-distribution path** (the old approach): simulate the exact ideal
-     statevector/probabilities over all ``2**n`` outcomes (``ideal_probs``,
-     same code path as ``enrich_hellinger.py``), then compute Hellinger
-     fidelity / TVD against it. Cost is ``O(2**n)`` in both time and memory.
-  2. **DSR-profile path** (histogram-free): compute the four-component
-     profile directly from measurement counts and ``E`` via
-     ``DSRProfiler``. Cost is ``O(shots + K)``, independent of ``n``.
-
-For ``n`` up to the point where local statevector simulation is still
-feasible (here, up to ``n = 22``), both paths run on the SAME real Grover
-circuit and counts, so the comparison is apples-to-apples and doubles as a
-correctness check (the coarse profile should track success sensibly against
-the true statevector ideal). Beyond that point, no classical machine
-(including this one) can produce the ideal ``2**n``-outcome histogram, so we
-demonstrate the profile path alone on synthetic counts of matching
-bitstring width -- explicitly NOT simulating any circuit at that size, since
-that is exactly the capability gap this experiment is illustrating. The
-qubit counts chosen for this stage (28-40) are representative of the
-Grover-past-classical-simulation-wall regime discussed in the manuscript;
-running the corresponding REAL circuit on QPU hardware is out of scope for
-this script (it requires IBM/AWS credentials) but the profile computation
-demonstrated here is exactly what would run against those real counts.
+Stage 2 supplies synthetic count records with wider bitstrings to the compact
+path. It tests input representation only. It does not simulate a circuit,
+model hardware accuracy, or establish a universal classical simulation
+limit. Structured ideals may support sparse or analytic R2 calculations.
 
 Usage:
   PYTHONPATH=. uv run python qward/examples/papers/broad_ideal_experiment.py
@@ -98,7 +80,7 @@ def _run_real_grover(
 def _time_full_distribution_path(
     n: int, marked_states: List[str], counts: Dict[str, int]
 ) -> Tuple[float, int, float, float]:
-    """Time the full-distribution HF/TVD path: simulate the ideal statevector
+    """Time the full-distribution Hellinger path: simulate the ideal statevector
     over all 2**n outcomes, then compare against observed counts.
 
     Returns (elapsed_seconds, theoretical_peak_bytes, hellinger_fidelity, tvd).
@@ -129,12 +111,11 @@ def _time_full_distribution_path(
 def _time_profile_path(
     n: int, marked_states: List[str], counts: Dict[str, int]
 ) -> Tuple[float, int, "object"]:
-    """Time the histogram-free DSR-profile path.
+    """Time the compact DSR profile path.
 
     Returns (elapsed_seconds, theoretical_peak_bytes, profile). Memory is
-    reported analytically as ``O(shots + K)`` (the size of the counts dict
-    plus the expected-outcome set), independent of ``n``, for the same
-    profiling-overhead reason described in ``_time_full_distribution_path``.
+    reported analytically from the counts dictionary and expected outcome
+    set. It omits Python object and bitstring storage overhead.
     """
     t0 = time.perf_counter()
 
@@ -233,14 +214,12 @@ def run_simulatable_stage() -> List[Dict]:
 
 
 def run_beyond_wall_stage() -> List[Dict]:
-    """Stage 2: qubit counts where the full-distribution path is not just
-    slow but architecturally impossible (can't enumerate 2**n outcomes)."""
+    """Stage 2: synthetic wide records, with no circuit simulation."""
     rows = []
     for n in BEYOND_WALL_QUBITS:
         marked_states = _marked_states(n, K_MARKED, SEED)
-        # Success probability decays with n to mimic realistic degradation
-        # at problem sizes requiring many more Grover iterations than any
-        # near-term device can execute coherently.
+        # The decreasing input probability produces varied synthetic records;
+        # it is not a hardware model.
         success_prob = max(0.05, 0.9 - 0.02 * n)
         counts = _synthetic_counts_beyond_wall(n, marked_states, SHOTS, success_prob, SEED)
 
@@ -297,7 +276,7 @@ def plot_results(rows: List[Dict]) -> None:
             full_times,
             "o-",
             color=COLORBREWER_PALETTE[2],
-            label="Full-distribution HF/TVD (measured)",
+            label="Full-distribution H/HF (measured)",
         )
         ax.plot(
             ns_sim,
@@ -316,7 +295,7 @@ def plot_results(rows: List[Dict]) -> None:
             "s--",
             color=COLORBREWER_PALETTE[1],
             alpha=0.6,
-            label="DSR profile (n past the simulation wall)",
+            label="DSR profile (synthetic wide records)",
         )
         if sim_rows:
             wall = max(ns_sim)
@@ -324,7 +303,7 @@ def plot_results(rows: List[Dict]) -> None:
             ax.text(
                 wall + 0.5,
                 2e-1,
-                "classical\nsimulation\nwall",
+                "dense path\nnot measured\nbeyond here",
                 fontsize=LABEL_SIZE - 8,
                 color="#666666",
                 ha="left",
@@ -335,7 +314,7 @@ def plot_results(rows: List[Dict]) -> None:
     ax.set_xlabel("Number of qubits (n)", fontsize=LABEL_SIZE, fontweight="bold")
     ax.set_ylabel("Wall-clock time (ms, log scale)", fontsize=LABEL_SIZE, fontweight="bold")
     ax.set_title(
-        "Histogram-Free Advantage: DSR Profile vs. Full-Distribution HF/TVD",
+        "Compact DSR Profile vs. Dense Full-Distribution Hellinger Calculation",
         fontweight="bold",
     )
     apply_axes_defaults(ax)
@@ -355,7 +334,7 @@ def main() -> None:
     )
     sim_rows = run_simulatable_stage()
 
-    print("\nStage 2: representative counts past the classical simulation wall (profile path only)")
+    print("\nStage 2: synthetic wide records (profile path only)")
     beyond_rows = run_beyond_wall_stage()
 
     all_rows = sim_rows + beyond_rows

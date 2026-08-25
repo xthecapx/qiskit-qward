@@ -39,8 +39,8 @@ def main():
     obs_list = [SparsePauliOp.from_list([(lbl, 1.0)]) for lbl in observable_labels]
 
     # GHZ-4 ideal expectation values:
-    # ZZZZ=+1, XXXX=+1, ZZII=+1, IIZZ=+1, XZXZ=0, YYYY=-1
-    ideal_values = np.array([1.0, 1.0, 1.0, 1.0, 0.0, -1.0])
+    # ZZZZ=+1, XXXX=+1, ZZII=+1, IIZZ=+1, XZXZ=0, YYYY=+1
+    ideal_values = np.array([1.0, 1.0, 1.0, 1.0, 0.0, 1.0])
 
     load_dotenv()
     kwargs = {}

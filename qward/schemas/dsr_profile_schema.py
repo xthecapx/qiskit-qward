@@ -1,4 +1,4 @@
-"""Pydantic schema for the DSR evaluation profile."""
+"""Pydantic schema reporting DSR and companion measures."""
 
 from typing import Any, Dict, List, Optional
 
@@ -6,13 +6,13 @@ from pydantic import BaseModel, Field
 
 
 class DSRProfileSchema(BaseModel):
-    """Schema for the DSR evaluation profile.
+    """Schema reporting DSR and companion evaluation measures.
 
-    The DSR evaluation *framework* produces a per-job *profile* of four
-    histogram-free, task-level components, computed only from measurement
-    counts and an analytically known expected-outcome set ``E`` (size
-    ``K = |E|``). None of the four components requires simulating the full
-    ideal distribution over all ``2**m`` outcomes.
+    ``Profile`` is retained in the API name for compatibility. DSR itself is
+    the clipped Michelson contrast stored in ``dsr_michelson``. The remaining
+    fields are companion measures or metadata; they are not components or
+    alternative definitions of DSR. All fields are computed from measurement
+    counts and an analytically known expected-outcome set ``E``.
 
     Components:
         - ``success_rate``: raw fraction of shots landing in ``E``.
@@ -33,18 +33,15 @@ class DSRProfileSchema(BaseModel):
           "higher is better" complements of those metrics and are therefore
           scores, not metrics, in the strict sense.
 
-    The four headline components are reported separately. They are
+    The companion measures are reported separately. They are
     intentionally NOT averaged into one number: each answers a different
     question, and (for ``K = 1``) the two coarse-similarity components
     collapse exactly to ``success_rate``, so treating all four as
     independent evidence would double-count that redundancy.
 
-    An optional fifth "peak-contrast" layer (the original Michelson-contrast
-    DSR) may also be attached via ``dsr_michelson`` / ``peak_mismatch``. It
-    compares the expected outcomes against the strongest *competing* peak
-    rather than the random-chance baseline, and is kept separate because it
-    is a distinct quantity with a documented bias on zero-heavy targets
-    under T1 relaxation.
+    DSR may be included via ``dsr_michelson`` together with the diagnostic
+    ``peak_mismatch`` flag. It compares the mean expected peak with the
+    strongest competing peak.
     """
 
     shots: Optional[int] = Field(None, ge=0)
