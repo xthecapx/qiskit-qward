@@ -254,7 +254,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.complexity_metrics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Complexity metrics implementation for QWARD.</span>
 
 <span class="sd">This module provides the ComplexityMetrics class for analyzing quantum circuits</span>
@@ -263,9 +263,9 @@
 <span class="sd">advanced metrics, and derived metrics.</span>
 
 <span class="sd">Reference:</span>
-<span class="sd">    [1] D. Shami, &quot;Character Complexity: A Novel Measure for Quantum Circuit Analysis,&quot;</span>
+<span class="sd">    [1] D. Shami, "Character Complexity: A Novel Measure for Quantum Circuit Analysis,"</span>
 <span class="sd">        Sep. 18, 2024, arXiv: arXiv:2408.09641. doi: 10.48550/arXiv.2408.09641.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 
@@ -295,75 +295,75 @@
 
 <span class="c1"># Single-qubit gates</span>
 <span class="n">SINGLE_QUBIT_GATES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;x&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;y&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;z&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;h&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;t&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;tdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;p&quot;</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="p">,</span>
+    <span class="s2">"x"</span><span class="p">,</span>
+    <span class="s2">"y"</span><span class="p">,</span>
+    <span class="s2">"z"</span><span class="p">,</span>
+    <span class="s2">"h"</span><span class="p">,</span>
+    <span class="s2">"s"</span><span class="p">,</span>
+    <span class="s2">"sdg"</span><span class="p">,</span>
+    <span class="s2">"t"</span><span class="p">,</span>
+    <span class="s2">"tdg"</span><span class="p">,</span>
+    <span class="s2">"rx"</span><span class="p">,</span>
+    <span class="s2">"ry"</span><span class="p">,</span>
+    <span class="s2">"rz"</span><span class="p">,</span>
+    <span class="s2">"u1"</span><span class="p">,</span>
+    <span class="s2">"u2"</span><span class="p">,</span>
+    <span class="s2">"u3"</span><span class="p">,</span>
+    <span class="s2">"p"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Two-qubit gates</span>
 <span class="n">TWO_QUBIT_GATES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;cx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;swap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;iswap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cp&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rxx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ryy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crz&quot;</span><span class="p">,</span>
+    <span class="s2">"cx"</span><span class="p">,</span>
+    <span class="s2">"cz"</span><span class="p">,</span>
+    <span class="s2">"swap"</span><span class="p">,</span>
+    <span class="s2">"iswap"</span><span class="p">,</span>
+    <span class="s2">"cp"</span><span class="p">,</span>
+    <span class="s2">"cu"</span><span class="p">,</span>
+    <span class="s2">"rxx"</span><span class="p">,</span>
+    <span class="s2">"ryy"</span><span class="p">,</span>
+    <span class="s2">"rzz"</span><span class="p">,</span>
+    <span class="s2">"crx"</span><span class="p">,</span>
+    <span class="s2">"cry"</span><span class="p">,</span>
+    <span class="s2">"crz"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Clifford gates (can be efficiently simulated classically)</span>
-<span class="n">CLIFFORD_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;sdg&quot;</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">,</span> <span class="s2">&quot;cz&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]</span>
+<span class="n">CLIFFORD_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"h"</span><span class="p">,</span> <span class="s2">"s"</span><span class="p">,</span> <span class="s2">"sdg"</span><span class="p">,</span> <span class="s2">"cx"</span><span class="p">,</span> <span class="s2">"cz"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">]</span>
 
-<span class="c1"># Non-computational gates (don&#39;t affect quantum state)</span>
-<span class="n">NON_COMPUTATIONAL_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;barrier&quot;</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">]</span>
+<span class="c1"># Non-computational gates (don't affect quantum state)</span>
+<span class="n">NON_COMPUTATIONAL_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"barrier"</span><span class="p">,</span> <span class="s2">"measure"</span><span class="p">]</span>
 
 <span class="c1"># Gate complexity weights for weighted complexity calculation</span>
 <span class="n">GATE_WEIGHTS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1"># Single-qubit gates (basic)</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;sdg&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"x"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"y"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"z"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"h"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"s"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"sdg"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
     <span class="c1"># Single-qubit gates (parameterized)</span>
-    <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;tdg&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;rx&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;ry&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;rz&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;u1&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;u2&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="s2">&quot;u3&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">"t"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"tdg"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"rx"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"ry"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"rz"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"p"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"u1"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"u2"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">"u3"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
     <span class="c1"># Two-qubit gates</span>
-    <span class="s2">&quot;cx&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="s2">&quot;cz&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="s2">&quot;swap&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
-    <span class="s2">&quot;cp&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">"cx"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">"cz"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">"swap"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">"cp"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
     <span class="c1"># Multi-qubit gates</span>
-    <span class="s2">&quot;ccx&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-    <span class="s2">&quot;cswap&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
-    <span class="s2">&quot;mcx&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="s2">"ccx"</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="s2">"cswap"</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="s2">"mcx"</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
     <span class="c1"># Default weight for unknown gates</span>
 <span class="p">}</span>
 <span class="n">DEFAULT_GATE_WEIGHT</span> <span class="o">=</span> <span class="mi">5</span>
@@ -372,7 +372,7 @@
 <div class="viewcode-block" id="ComplexityMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ComplexityMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate complexity metrics from QuantumCircuit objects.</span>
 
 <span class="sd">    This class provides methods for analyzing quantum circuits and extracting</span>
@@ -381,28 +381,28 @@
 
 <span class="sd">    The complexity metrics help characterize the computational difficulty and</span>
 <span class="sd">    resource requirements of quantum circuits.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the type of this metric.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get the type of this metric."""</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the ID of this metric.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get the ID of this metric."""</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">COMPLEXITY</span>
 
 <div class="viewcode-block" id="ComplexityMetrics.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the metric is ready to be calculated.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Check if the metric is ready to be calculated."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure Pydantic schemas are available, raise ImportError if not.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Ensure Pydantic schemas are available, raise ImportError if not."""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;Pydantic schemas are not available. Install pydantic to use structured metrics.&quot;</span>
+                <span class="s2">"Pydantic schemas are not available. Install pydantic to use structured metrics."</span>
             <span class="p">)</span>
 
     <span class="c1"># =============================================================================</span>
@@ -411,8 +411,8 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ComplexityMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ComplexityMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get all complexity metrics as a structured, validated schema object.</span>
 
 <span class="sd">        Returns:</span>
@@ -420,8 +420,8 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If Pydantic schemas are not available</span>
-<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            ValidationError: If metrics data doesn't match schema constraints</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">ComplexityMetricsSchema</span><span class="p">(</span>
@@ -439,13 +439,13 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_gate_based_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_gate_based_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_gate_based_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GateBasedMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gate_based_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"GateBasedMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get gate-based complexity metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            GateBasedMetricsSchema: Validated gate-based metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">op_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span>
@@ -453,10 +453,10 @@
         <span class="n">circuit_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
 
         <span class="c1"># T-count (number of T gates) - important for fault-tolerant quantum computing</span>
-        <span class="n">t_count</span> <span class="o">=</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tdg&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">t_count</span> <span class="o">=</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"t"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tdg"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># CNOT count - most common two-qubit gate</span>
-        <span class="n">cnot_count</span> <span class="o">=</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cx&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cnot_count</span> <span class="o">=</span> <span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"cx"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># Two-qubit gate count</span>
         <span class="n">two_qubit_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_gates_by_type</span><span class="p">(</span><span class="n">op_counts</span><span class="p">,</span> <span class="n">TWO_QUBIT_GATES</span><span class="p">)</span>
@@ -481,12 +481,12 @@
 <div class="viewcode-block" id="ComplexityMetrics.get_gate_based_metrics_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_gate_based_metrics_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gate_based_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get gate-based complexity metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing gate counts and ratios</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_gate_based_metrics</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
@@ -496,13 +496,13 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_entanglement_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_entanglement_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_entanglement_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EntanglementMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_entanglement_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"EntanglementMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get entanglement-based complexity metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            EntanglementMetricsSchema: Validated entanglement metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">op_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span>
@@ -527,12 +527,12 @@
 <div class="viewcode-block" id="ComplexityMetrics.get_entanglement_metrics_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_entanglement_metrics_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_entanglement_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get entanglement-based complexity metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing entanglement-related metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entanglement_metrics</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
@@ -542,13 +542,13 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_standardized_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_standardized_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_standardized_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StandardizedMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_standardized_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"StandardizedMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get standardized complexity metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            StandardizedMetricsSchema: Validated standardized metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
@@ -589,12 +589,12 @@
 <div class="viewcode-block" id="ComplexityMetrics.get_standardized_metrics_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_standardized_metrics_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_standardized_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get standardized complexity metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing standardized circuit metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_standardized_metrics</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
@@ -604,13 +604,13 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_advanced_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_advanced_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_advanced_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;AdvancedMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_advanced_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"AdvancedMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get advanced complexity metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            AdvancedMetricsSchema: Validated advanced metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
@@ -630,7 +630,7 @@
             <span class="n">gate_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span> <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">gate_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">depth</span> <span class="o">*</span> <span class="n">depth</span><span class="p">)</span> <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
 
-        <span class="c1"># Ensure quantum_resource_utilization doesn&#39;t exceed 1.0 (schema constraint)</span>
+        <span class="c1"># Ensure quantum_resource_utilization doesn't exceed 1.0 (schema constraint)</span>
         <span class="n">quantum_resource_utilization</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">quantum_resource_utilization</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">AdvancedMetricsSchema</span><span class="p">(</span>
@@ -644,12 +644,12 @@
 <div class="viewcode-block" id="ComplexityMetrics.get_advanced_metrics_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_advanced_metrics_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_advanced_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get advanced complexity metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing advanced circuit analysis metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_advanced_metrics</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
@@ -659,13 +659,13 @@
 
 <div class="viewcode-block" id="ComplexityMetrics.get_derived_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_derived_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_derived_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DerivedMetricsSchema&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_derived_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"DerivedMetricsSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get derived complexity metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            DerivedMetricsSchema: Validated derived metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
@@ -693,12 +693,12 @@
 <div class="viewcode-block" id="ComplexityMetrics.get_derived_metrics_dict">
 <a class="viewcode-back" href="../../../apidocs/metrics_complexity.html#qward.metrics.complexity_metrics.ComplexityMetrics.get_derived_metrics_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_derived_metrics_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get derived complexity metrics as a dictionary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary containing derived circuit metrics</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_derived_metrics</span><span class="p">()</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span></div>
 
 
@@ -707,13 +707,13 @@
     <span class="c1"># =============================================================================</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_gates_by_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">gate_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Count gates of specific types from operation counts.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Count gates of specific types from operation counts."""</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">op_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">gate_list</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_multi_qubit_count</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">gate_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">single_qubit_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">op_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the number of multi-qubit gates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Calculate the number of multi-qubit gates."""</span>
         <span class="n">non_computational_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_gates_by_type</span><span class="p">(</span><span class="n">op_counts</span><span class="p">,</span> <span class="n">NON_COMPUTATIONAL_GATES</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gate_count</span> <span class="o">-</span> <span class="n">single_qubit_count</span> <span class="o">-</span> <span class="n">non_computational_count</span></div>
 

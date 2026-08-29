@@ -254,12 +254,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.qiskit_metrics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Qiskit metrics implementation for QWARD.</span>
 
 <span class="sd">This module provides the QiskitMetrics class for extracting various metrics</span>
 <span class="sd">from QuantumCircuit objects using structured schema-based output with validation.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
 
@@ -283,7 +283,7 @@
 <div class="viewcode-block" id="QiskitMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">QiskitMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extract metrics from QuantumCircuit objects.</span>
 
 <span class="sd">    This class analyzes quantum circuits and extracts various metrics that are</span>
@@ -292,28 +292,28 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        circuit: The quantum circuit to analyze (inherited from MetricCalculator)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the type of this metric.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get the type of this metric."""</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the ID of this metric.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Get the ID of this metric."""</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">QISKIT</span>
 
 <div class="viewcode-block" id="QiskitMetrics.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the metric is ready to be calculated.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Check if the metric is ready to be calculated."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure Pydantic schemas are available, raise ImportError if not.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Ensure Pydantic schemas are available, raise ImportError if not."""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;Pydantic schemas are not available. Install pydantic to use structured metrics.&quot;</span>
+                <span class="s2">"Pydantic schemas are not available. Install pydantic to use structured metrics."</span>
             <span class="p">)</span>
 
     <span class="c1"># =============================================================================</span>
@@ -323,7 +323,7 @@
 <div class="viewcode-block" id="QiskitMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QiskitMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get metrics as a structured, validated schema object.</span>
 
 <span class="sd">        Returns:</span>
@@ -331,8 +331,8 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If Pydantic schemas are not available</span>
-<span class="sd">            ValidationError: If metrics data doesn&#39;t match schema constraints</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            ValidationError: If metrics data doesn't match schema constraints</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">QiskitMetricsSchema</span><span class="p">(</span>
@@ -349,37 +349,37 @@
 <div class="viewcode-block" id="QiskitMetrics.get_basic_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_basic_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_basic_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasicMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get basic circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            BasicMetricsSchema: Validated basic metrics including depth, width, size, counts, etc.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
 
         <span class="c1"># Check if calibrations attribute exists (removed in Qiskit 2.0)</span>
         <span class="n">has_calibrations</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;calibrations&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">calibrations</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;calibrations&quot;</span><span class="p">)</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">"calibrations"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">calibrations</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">"calibrations"</span><span class="p">)</span>
             <span class="k">else</span> <span class="kc">False</span>
         <span class="p">)</span>
 
         <span class="c1"># Check if layout attribute exists</span>
-        <span class="n">has_layout</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="n">has_layout</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
 
         <span class="n">basic_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">(),</span>
-            <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span>
-            <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
-            <span class="s2">&quot;count_ops&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(),</span>
-            <span class="s2">&quot;num_qubits&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
-            <span class="s2">&quot;num_clbits&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_clbits</span><span class="p">,</span>
-            <span class="s2">&quot;num_ancillas&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">,</span>
-            <span class="s2">&quot;num_parameters&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">,</span>
-            <span class="s2">&quot;has_calibrations&quot;</span><span class="p">:</span> <span class="n">has_calibrations</span><span class="p">,</span>
-            <span class="s2">&quot;has_layout&quot;</span><span class="p">:</span> <span class="n">has_layout</span><span class="p">,</span>
+            <span class="s2">"depth"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">(),</span>
+            <span class="s2">"width"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">width</span><span class="p">(),</span>
+            <span class="s2">"size"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+            <span class="s2">"count_ops"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(),</span>
+            <span class="s2">"num_qubits"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">,</span>
+            <span class="s2">"num_clbits"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_clbits</span><span class="p">,</span>
+            <span class="s2">"num_ancillas"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_ancillas</span><span class="p">,</span>
+            <span class="s2">"num_parameters"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_parameters</span><span class="p">,</span>
+            <span class="s2">"has_calibrations"</span><span class="p">:</span> <span class="n">has_calibrations</span><span class="p">,</span>
+            <span class="s2">"has_layout"</span><span class="p">:</span> <span class="n">has_layout</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">BasicMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">basic_data</span><span class="p">)</span></div>
@@ -388,12 +388,12 @@
 <div class="viewcode-block" id="QiskitMetrics.get_instruction_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_instruction_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_instruction_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstructionMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get instruction-related circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            InstructionMetricsSchema: Validated instruction metrics including connectivity and factors</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
@@ -404,11 +404,11 @@
             <span class="n">instructions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">get_instructions</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
         <span class="n">instruction_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="n">instructions</span><span class="p">,</span>
-            <span class="s2">&quot;num_connected_components&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_connected_components</span><span class="p">(),</span>
-            <span class="s2">&quot;num_nonlocal_gates&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_nonlocal_gates</span><span class="p">(),</span>
-            <span class="s2">&quot;num_tensor_factors&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_tensor_factors</span><span class="p">(),</span>
-            <span class="s2">&quot;num_unitary_factors&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_unitary_factors</span><span class="p">(),</span>
+            <span class="s2">"instructions"</span><span class="p">:</span> <span class="n">instructions</span><span class="p">,</span>
+            <span class="s2">"num_connected_components"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_connected_components</span><span class="p">(),</span>
+            <span class="s2">"num_nonlocal_gates"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_nonlocal_gates</span><span class="p">(),</span>
+            <span class="s2">"num_tensor_factors"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_tensor_factors</span><span class="p">(),</span>
+            <span class="s2">"num_unitary_factors"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">num_unitary_factors</span><span class="p">(),</span>
         <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">InstructionMetricsSchema</span><span class="p">(</span><span class="o">**</span><span class="n">instruction_data</span><span class="p">)</span></div>
@@ -417,42 +417,42 @@
 <div class="viewcode-block" id="QiskitMetrics.get_scheduling_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_qiskit.html#qward.metrics.qiskit_metrics.QiskitMetrics.get_scheduling_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_scheduling_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchedulingMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get scheduling-related circuit metrics as a validated schema object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            SchedulingMetricsSchema: Validated scheduling metrics (empty if circuit not scheduled)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
 
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span>
-        <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"is_scheduled"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
 
         <span class="c1"># Check if circuit has scheduling information</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">&quot;op_start_times&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="s2">"op_start_times"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Use the new estimate_duration() method instead of deprecated properties</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">duration</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">estimate_duration</span><span class="p">()</span>
                 <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                     <span class="p">{</span>
-                        <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                        <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
-                        <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
-                        <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
-                        <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Start time is typically 0 for scheduled circuits</span>
-                        <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>  <span class="c1"># Stop time equals duration</span>
+                        <span class="s2">"is_scheduled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">"layout"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+                        <span class="s2">"op_start_times"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
+                        <span class="s2">"qubit_duration"</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                        <span class="s2">"qubit_start_time"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Start time is typically 0 for scheduled circuits</span>
+                        <span class="s2">"qubit_stop_time"</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>  <span class="c1"># Stop time equals duration</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># Fallback if estimate_duration() is not available or fails</span>
                 <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                     <span class="p">{</span>
-                        <span class="s2">&quot;is_scheduled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                        <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
-                        <span class="s2">&quot;op_start_times&quot;</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
-                        <span class="s2">&quot;qubit_duration&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                        <span class="s2">&quot;qubit_start_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                        <span class="s2">&quot;qubit_stop_time&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">"is_scheduled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">"layout"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+                        <span class="s2">"op_start_times"</span><span class="p">:</span> <span class="n">circuit</span><span class="o">.</span><span class="n">op_start_times</span><span class="p">,</span>
+                        <span class="s2">"qubit_duration"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">"qubit_start_time"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">"qubit_stop_time"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="p">}</span>
                 <span class="p">)</span>
 

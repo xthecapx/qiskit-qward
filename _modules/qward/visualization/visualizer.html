@@ -254,12 +254,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.visualization.visualizer</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Main Visualizer class for QWARD metrics using strategy pattern.</span>
 
 <span class="sd">This module provides the unified Visualizer class that acts as the main entry point</span>
 <span class="sd">for visualizing metrics from Scanner or custom data sources using pluggable strategies.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
@@ -274,22 +274,22 @@
 <div class="viewcode-block" id="Visualizer">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Visualizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Unified visualizer for QWARD metrics using strategy pattern.</span>
 
 <span class="sd">    This class provides a single entry point for visualizing metrics from Scanner</span>
 <span class="sd">    or custom data sources. It automatically detects available metrics and provides</span>
 <span class="sd">    appropriate visualizations using pluggable strategies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">scanner</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Scanner&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">scanner</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Scanner"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">metrics_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PlotConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;qward/examples/img&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"qward/examples/img"</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the Visualizer.</span>
 
 <span class="sd">        Args:</span>
@@ -300,9 +300,9 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If neither scanner nor metrics_data is provided</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">scanner</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">metrics_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either scanner or metrics_data must be provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Either scanner or metrics_data must be provided"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">scanner</span> <span class="o">=</span> <span class="n">scanner</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">PlotConfig</span><span class="p">()</span>
@@ -319,76 +319,76 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_auto_register_default_strategies</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_auto_register_default_strategies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Auto-register default visualization strategies based on available metrics.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Auto-register default visualization strategies based on available metrics."""</span>
         <span class="c1"># Register CircuitPerformance strategy if data is available</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
-            <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;FidelityMetrics&quot;</span>
+            <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"CircuitPerformance"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">"FidelityMetrics"</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="p">):</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.fidelity_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">,</span> <span class="n">FidelityVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"CircuitPerformance"</span><span class="p">,</span> <span class="n">FidelityVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register Qiskit strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;QiskitMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"QiskitMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.qiskit_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QiskitVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;QiskitMetrics&quot;</span><span class="p">,</span> <span class="n">QiskitVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"QiskitMetrics"</span><span class="p">,</span> <span class="n">QiskitVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register Complexity strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;ComplexityMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"ComplexityMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.complexity_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexityVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;ComplexityMetrics&quot;</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"ComplexityMetrics"</span><span class="p">,</span> <span class="n">ComplexityVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register ElementMetrics strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;ElementMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"ElementMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.element_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementMetricsVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;ElementMetrics&quot;</span><span class="p">,</span> <span class="n">ElementMetricsVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"ElementMetrics"</span><span class="p">,</span> <span class="n">ElementMetricsVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register StructuralMetrics strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;StructuralMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"StructuralMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.structural_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralMetricsVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;StructuralMetrics&quot;</span><span class="p">,</span> <span class="n">StructuralMetricsVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"StructuralMetrics"</span><span class="p">,</span> <span class="n">StructuralMetricsVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register BehavioralMetrics strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;BehavioralMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"BehavioralMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.behavioral_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">BehavioralMetricsVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;BehavioralMetrics&quot;</span><span class="p">,</span> <span class="n">BehavioralMetricsVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"BehavioralMetrics"</span><span class="p">,</span> <span class="n">BehavioralMetricsVisualizer</span><span class="p">)</span>
 
         <span class="c1"># Register QuantumSpecificMetrics strategy if data is available</span>
-        <span class="k">if</span> <span class="s2">&quot;QuantumSpecificMetrics&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"QuantumSpecificMetrics"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.quantum_specific_metrics_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumSpecificMetricsVisualizer</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">&quot;QuantumSpecificMetrics&quot;</span><span class="p">,</span> <span class="n">QuantumSpecificMetricsVisualizer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_strategy</span><span class="p">(</span><span class="s2">"QuantumSpecificMetrics"</span><span class="p">,</span> <span class="n">QuantumSpecificMetricsVisualizer</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Visualizer.register_strategy">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.register_strategy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">register_strategy</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">strategy_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">VisualizationStrategy</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Register a visualization strategy for a specific metric.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            metric_name: Name of the metric (e.g., &quot;QiskitMetrics&quot;, &quot;ComplexityMetrics&quot;)</span>
+<span class="sd">            metric_name: Name of the metric (e.g., "QiskitMetrics", "ComplexityMetrics")</span>
 <span class="sd">            strategy_class: Strategy class that inherits from VisualizationStrategy</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">strategy_class</span></div>
 
 
 <div class="viewcode-block" id="Visualizer.get_available_metrics">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.get_available_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_available_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get list of available metrics that can be visualized.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List[str]: List of metric names available for visualization</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">available</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">):</span>
@@ -399,7 +399,7 @@
 <div class="viewcode-block" id="Visualizer.get_available_plots">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.get_available_plots">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_available_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get available plots for each metric or specific metric.</span>
 
 <span class="sd">        Args:</span>
@@ -407,12 +407,12 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dictionary mapping metric names to lists of available plot names</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">metric_name</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">metric_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39; not registered&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Metric '</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">' not registered"</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data available for metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No data available for metric '</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
             <span class="n">strategy_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">metric_name</span><span class="p">:</span> <span class="n">strategy_class</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">()}</span>
 
@@ -427,7 +427,7 @@
 <div class="viewcode-block" id="Visualizer.get_plot_metadata">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.get_plot_metadata">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_plot_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlotMetadata</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get metadata for a specific plot.</span>
 
 <span class="sd">        Args:</span>
@@ -436,9 +436,9 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            PlotMetadata object with plot information</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">metric_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39; not registered&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Metric '</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">' not registered"</span><span class="p">)</span>
 
         <span class="n">strategy_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">strategy_class</span><span class="o">.</span><span class="n">get_plot_metadata</span><span class="p">(</span><span class="n">plot_name</span><span class="p">)</span></div>
@@ -449,11 +449,11 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_plot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generate a single specific plot.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            metric_name: Name of the metric (e.g., &quot;CircuitPerformance&quot;, &quot;QiskitMetrics&quot;)</span>
+<span class="sd">            metric_name: Name of the metric (e.g., "CircuitPerformance", "QiskitMetrics")</span>
 <span class="sd">            plot_name: Name of the plot to generate</span>
 <span class="sd">            save: Whether to save the plot to file</span>
 <span class="sd">            show: Whether to display the plot</span>
@@ -464,14 +464,14 @@
 
 <span class="sd">        Example:</span>
 <span class="sd">            fig = visualizer.generate_plot(</span>
-<span class="sd">                metric_name=&quot;CircuitPerformance&quot;,</span>
-<span class="sd">                plot_name=&quot;success_error_comparison&quot;,</span>
+<span class="sd">                metric_name="CircuitPerformance",</span>
+<span class="sd">                plot_name="success_error_comparison",</span>
 <span class="sd">                save=True,</span>
 <span class="sd">                show=True</span>
 <span class="sd">            )</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data available for metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No data available for metric '</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
         <span class="n">strategy_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
         <span class="n">metric_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">)</span>
@@ -488,7 +488,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_plots</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">selections</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PlotResult</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generate selected plots for each metric.</span>
 
 <span class="sd">        Args:</span>
@@ -504,18 +504,18 @@
 <span class="sd">        Example:</span>
 <span class="sd">            results = visualizer.generate_plots(</span>
 <span class="sd">                selections={</span>
-<span class="sd">                    &quot;CircuitPerformance&quot;: [&quot;success_error_comparison&quot;, &quot;shot_distribution&quot;],</span>
-<span class="sd">                    &quot;QiskitMetrics&quot;: [&quot;basic_metrics_bar&quot;]</span>
+<span class="sd">                    "CircuitPerformance": ["success_error_comparison", "shot_distribution"],</span>
+<span class="sd">                    "QiskitMetrics": ["basic_metrics_bar"]</span>
 <span class="sd">                },</span>
 <span class="sd">                save=True,</span>
 <span class="sd">                show=False</span>
 <span class="sd">            )</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">plot_names</span> <span class="ow">in</span> <span class="n">selections</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: No data available for metric &#39;</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warning: No data available for metric '</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="k">try</span><span class="p">:</span>
@@ -531,26 +531,26 @@
                 <span class="p">)</span>
 
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Failed to generate plots for </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warning: Failed to generate plots for </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">continue</span>
 
         <span class="k">return</span> <span class="n">results</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_has_metric_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if data is available for a specific metric.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="w">        </span><span class="sd">"""Check if data is available for a specific metric."""</span>
+        <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">"CircuitPerformance"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"CircuitPerformance"</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get data for a specific metric.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Get data for a specific metric."""</span>
+        <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">"CircuitPerformance"</span><span class="p">:</span>
             <span class="c1"># Return all CircuitPerformance-related data</span>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="n">key</span><span class="p">:</span> <span class="n">df</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"CircuitPerformance"</span><span class="p">)</span>
             <span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Return single metric data</span>
@@ -561,7 +561,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">create_dashboard</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a comprehensive dashboard with all available metrics.</span>
 
 <span class="sd">        Args:</span>
@@ -574,15 +574,15 @@
 
 <span class="sd">        Example:</span>
 <span class="sd">            dashboards = visualizer.create_dashboard(save=True, show=True)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">dashboards</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">available_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_metrics</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">available_metrics</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No metrics available for visualization&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"No metrics available for visualization"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">dashboards</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating dashboard for metrics: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available_metrics</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Creating dashboard for metrics: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available_metrics</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="n">available_metrics</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -600,7 +600,7 @@
                 <span class="n">dashboards</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dashboard_fig</span>
 
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Failed to create dashboard for </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Warning: Failed to create dashboard for </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">continue</span>
 
         <span class="k">return</span> <span class="n">dashboards</span></div>
@@ -609,20 +609,20 @@
 <div class="viewcode-block" id="Visualizer.get_metric_summary">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.get_metric_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metric_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get a summary of available metrics and their key statistics.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Dict[str, Any]]: Summary information for each metric</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">summary</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-                <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span>
-                <span class="s2">&quot;has_data&quot;</span><span class="p">:</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span>
-                <span class="s2">&quot;sample_values&quot;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="p">{},</span>
+                <span class="s2">"shape"</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                <span class="s2">"columns"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span>
+                <span class="s2">"has_data"</span><span class="p">:</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span>
+                <span class="s2">"sample_values"</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span> <span class="k">else</span> <span class="p">{},</span>
             <span class="p">}</span>
 
         <span class="k">return</span> <span class="n">summary</span></div>
@@ -631,35 +631,35 @@
 <div class="viewcode-block" id="Visualizer.print_available_metrics">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.print_available_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">print_available_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print information about available metrics and visualizations.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== QWARD Visualizer Summary ===&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total metrics datasets: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Print information about available metrics and visualizations."""</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=== QWARD Visualizer Summary ==="</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Output directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Total metrics datasets: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics_data</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">available_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_metrics</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available visualizations: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_metrics</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Available visualizations: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_metrics</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="n">available_metrics</span><span class="p">:</span>
             <span class="n">metric_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metric_data</span><span class="p">(</span><span class="n">metric_name</span><span class="p">)</span>
             <span class="n">total_rows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">metric_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
             <span class="n">available_plots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_plots</span><span class="p">(</span><span class="n">metric_name</span><span class="p">)[</span><span class="n">metric_name</span><span class="p">]</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">metric_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> dataset(s), </span><span class="si">{</span><span class="n">total_rows</span><span class="si">}</span><span class="s2"> total rows, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> plots&quot;</span>
+                <span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">metric_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> dataset(s), </span><span class="si">{</span><span class="n">total_rows</span><span class="si">}</span><span class="s2"> total rows, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_plots</span><span class="p">)</span><span class="si">}</span><span class="s2"> plots"</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">available_metrics</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  No visualizations available. Register strategies or check data.&quot;</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"  No visualizations available. Register strategies or check data."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Visualizer.list_registered_strategies">
 <a class="viewcode-back" href="../../../apidocs/visualization_unified.html#qward.visualization.visualizer.Visualizer.list_registered_strategies">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_registered_strategies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List all registered visualization strategies.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, str]: Dictionary mapping metric names to strategy class names</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">metric_name</span><span class="p">:</span> <span class="n">strategy_class</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">strategy_class</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_strategies</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
