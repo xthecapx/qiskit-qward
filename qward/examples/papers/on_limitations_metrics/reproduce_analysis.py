@@ -17,7 +17,6 @@ import pandas as pd
 import scipy
 from scipy.stats import spearmanr
 
-
 DATA_PATH = Path(__file__).resolve().parents[1] / "DSR_result.csv"
 PROVIDER_BY_EXECUTION_TYPE = {"IBM_QPU": "IBM", "AWS_BRAKET": "Rigetti"}
 
@@ -76,15 +75,11 @@ def _provider_inversions(
             rigetti = groups.loc[groups["provider"].eq("Rigetti")].iloc[0]
 
             mean_distance_order = np.sign(ibm["distance_mean"] - rigetti["distance_mean"])
-            mean_similarity_order = np.sign(
-                ibm["similarity_mean"] - rigetti["similarity_mean"]
-            )
+            mean_similarity_order = np.sign(ibm["similarity_mean"] - rigetti["similarity_mean"])
             if mean_distance_order == mean_similarity_order and mean_distance_order != 0:
                 mean_inversions += 1
 
-            median_distance_order = np.sign(
-                ibm["distance_median"] - rigetti["distance_median"]
-            )
+            median_distance_order = np.sign(ibm["distance_median"] - rigetti["distance_median"])
             median_similarity_order = np.sign(
                 ibm["similarity_median"] - rigetti["similarity_median"]
             )
@@ -117,9 +112,7 @@ def analyze() -> dict[str, object]:
     }
 
     provider_rows = data.loc[data["execution_type"].isin(PROVIDER_BY_EXECUTION_TYPE)].copy()
-    provider_rows["provider"] = provider_rows["execution_type"].map(
-        PROVIDER_BY_EXECUTION_TYPE
-    )
+    provider_rows["provider"] = provider_rows["execution_type"].map(PROVIDER_BY_EXECUTION_TYPE)
     aggregation = {
         "provider": _provider_inversions(provider_rows, [], minimum_group_size=5),
         "provider_algorithm": _provider_inversions(
@@ -135,20 +128,16 @@ def analyze() -> dict[str, object]:
         ),
     }
 
-    missing_reference = data.loc[
-        data["hellinger_fidelity"].isna() & data["success_rate"].notna()
-    ]
+    missing_reference = data.loc[data["hellinger_fidelity"].isna() & data["success_rate"].notna()]
     missing_by_algorithm_and_qubits = {
         f"{algorithm}:{int(num_qubits)}": int(count)
-        for (algorithm, num_qubits), count in missing_reference.groupby(
-            ["algorithm", "num_qubits"]
-        ).size().items()
+        for (algorithm, num_qubits), count in missing_reference.groupby(["algorithm", "num_qubits"])
+        .size()
+        .items()
     }
 
     grover = data.loc[data["algorithm"].eq("GROVER")]
-    paired_grover = grover.dropna(
-        subset=["coarse_hellinger_fidelity", "hellinger_fidelity"]
-    )
+    paired_grover = grover.dropna(subset=["coarse_hellinger_fidelity", "hellinger_fidelity"])
     decision_subset = paired_grover.loc[paired_grover["num_qubits"].isin([3, 4])]
     disagreements = {}
     for threshold in (0.7, 0.8):
@@ -183,8 +172,7 @@ def analyze() -> dict[str, object]:
             "paired_coarse_and_full_hellinger": int(len(paired_grover)),
             "maximum_absolute_fidelity_difference": float(
                 np.abs(
-                    paired_grover["coarse_hellinger_fidelity"]
-                    - paired_grover["hellinger_fidelity"]
+                    paired_grover["coarse_hellinger_fidelity"] - paired_grover["hellinger_fidelity"]
                 ).max()
             ),
             "three_or_four_qubit_decision_rows": int(len(decision_subset)),
