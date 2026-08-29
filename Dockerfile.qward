@@ -6,6 +6,14 @@ WORKDIR /home/jovyan/work
 COPY requirements.qward.txt /home/jovyan/work/
 RUN pip install --no-cache-dir -r /home/jovyan/work/requirements.qward.txt
 
+# Pin a mutually compatible direct-AWS stack. Provider 0.23.2 contains the
+# physical-qubit label fixes required by Rigetti Cepheus-1-108Q.
+ARG QISKIT_BRAKET_PROVIDER_VERSION=0.23.2
+ARG AMAZON_BRAKET_SDK_VERSION=1.126.1
+RUN pip install --no-cache-dir \
+    "qiskit-braket-provider==${QISKIT_BRAKET_PROVIDER_VERSION}" \
+    "amazon-braket-sdk==${AMAZON_BRAKET_SDK_VERSION}"
+
 # Copy only necessary package files, excluding docs and tests
 COPY setup.py pyproject.toml README.md /home/jovyan/work/
 COPY qward /home/jovyan/work/qward/
