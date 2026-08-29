@@ -479,7 +479,14 @@ def test_base_class_structure():
     # Test 6: Classical verification with wrong product
     tests_total += 1
     try:
-        result = MatrixProductVerification.classical_verify(A, B, C_wrong)
+        # Freivalds' algorithm is probabilistic, so use a deterministic random
+        # stream for this assertion and restore the caller's global RNG state.
+        random_state = np.random.get_state()
+        try:
+            np.random.seed(0)
+            result = MatrixProductVerification.classical_verify(A, B, C_wrong)
+        finally:
+            np.random.set_state(random_state)
         assert result is False
         print("✓ Classical verification (wrong product) = False")
         tests_passed += 1
