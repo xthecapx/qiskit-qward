@@ -254,9 +254,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.scanner</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Scanner class for QWARD.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
@@ -271,11 +271,11 @@
 <div class="viewcode-block" id="Scanner">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Scanner</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class for analyzing quantum circuits using the Strategy pattern.</span>
 
 <span class="sd">    This class provides methods for analyzing quantum circuits using various metric strategies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -284,7 +284,7 @@
         <span class="n">job</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">strategies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize a Scanner object.</span>
 
 <span class="sd">        Args:</span>
@@ -292,8 +292,8 @@
 <span class="sd">            job: The job that executed the circuit</span>
 <span class="sd">            strategies: Optional list of metric strategy classes or instances.</span>
 <span class="sd">                       If a class is provided, it will be instantiated with the circuit.</span>
-<span class="sd">                       If an instance is provided, its circuit must match the Scanner&#39;s circuit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">                       If an instance is provided, its circuit must match the Scanner's circuit.</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -303,68 +303,68 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_add_strategy_to_list</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_strategy_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper method to add a strategy to the list with validation.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Helper method to add a strategy to the list with validation."""</span>
         <span class="c1"># If strategy is a class (not instance), instantiate with circuit</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span><span class="p">))</span>
             <span class="k">return</span>
 
         <span class="c1"># Strategy is an instance - validate circuit compatibility</span>
-        <span class="n">strategy_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_circuit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">strategy_circuit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"circuit"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"_circuit"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">strategy_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">strategy_circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Strategy instance </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> was initialized with a different circuit than the Scanner.&quot;</span>
+                <span class="sa">f</span><span class="s2">"Strategy instance </span><span class="si">{</span><span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> was initialized with a different circuit than the Scanner."</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the quantum circuit.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Optional[QuantumCircuit]: The quantum circuit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the job that executed the circuit.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Optional[Union[AerJob, QiskitJob]]: The job that executed the circuit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">strategies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MetricCalculator</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the metric strategies.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List[MetricCalculator]: The metric strategies</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span>
 
 <div class="viewcode-block" id="Scanner.add_strategy">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.add_strategy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a metric strategy to the scanner.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            strategy: The metric strategy to add</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_strategy_to_list</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Scanner.add">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.add">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Scanner&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Scanner"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a metric strategy and return self for fluent chaining.</span>
 
 <span class="sd">        Args:</span>
@@ -373,13 +373,13 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Scanner: This scanner instance</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword arguments are only supported when strategy is a class.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"Keyword arguments are only supported when strategy is a class."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_strategy_to_list</span><span class="p">(</span><span class="n">strategy</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
@@ -388,32 +388,32 @@
 <div class="viewcode-block" id="Scanner.calculate_metrics">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.calculate_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate metrics using all registered strategies.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, pd.DataFrame]: Dictionary containing DataFrames for each metric type.</span>
 <span class="sd">            For CircuitPerformance metrics, returns two DataFrames:</span>
-<span class="sd">            - &quot;CircuitPerformance.individual_jobs&quot;: DataFrame containing metrics for each job</span>
-<span class="sd">            - &quot;CircuitPerformance.aggregate&quot;: DataFrame containing aggregate metrics across all jobs</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            - "CircuitPerformance.individual_jobs": DataFrame containing metrics for each job</span>
+<span class="sd">            - "CircuitPerformance.aggregate": DataFrame containing aggregate metrics across all jobs</span>
+<span class="sd">        """</span>
         <span class="n">metric_dataframes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">strategy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategies</span><span class="p">:</span>
             <span class="n">metric_results</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
             <span class="n">metric_name</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
-            <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;CircuitPerformanceMetrics&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">"CircuitPerformanceMetrics"</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_process_circuit_performance_metrics</span><span class="p">(</span>
                     <span class="n">strategy</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span>
                 <span class="p">)</span>
-            <span class="k">elif</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">&quot;FidelityMetrics&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">metric_name</span> <span class="o">==</span> <span class="s2">"FidelityMetrics"</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"_jobs"</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.fidelity_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">FidelityMetrics</span>
 
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">FidelityMetrics</span><span class="p">)</span>
                 <span class="n">schemas</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_metrics_all</span><span class="p">()</span>
                 <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">schemas</span><span class="p">]</span>
-                <span class="n">metric_dataframes</span><span class="p">[</span><span class="s2">&quot;FidelityMetrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+                <span class="n">metric_dataframes</span><span class="p">[</span><span class="s2">"FidelityMetrics"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_process_standard_metrics</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">)</span>
 
@@ -422,8 +422,8 @@
 
 <div class="viewcode-block" id="Scanner.scan">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.scan">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_all_pre_runtime</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ScanResult&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_all_pre_runtime</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ScanResult"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate metrics and return a ScanResult wrapper.</span>
 
 <span class="sd">        Args:</span>
@@ -432,7 +432,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ScanResult: Wrapper with fluent helper methods.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strategies</span> <span class="ow">and</span> <span class="n">include_all_pre_runtime</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.defaults</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_all_pre_runtime_strategies</span>
 
@@ -444,30 +444,30 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_circuit_performance_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process CircuitPerformanceMetrics using schema-based API with proper column separation.&quot;&quot;&quot;</span>
-        <span class="n">display_name</span> <span class="o">=</span> <span class="s2">&quot;CircuitPerformance&quot;</span>
+<span class="w">        </span><span class="sd">"""Process CircuitPerformanceMetrics using schema-based API with proper column separation."""</span>
+        <span class="n">display_name</span> <span class="o">=</span> <span class="s2">"CircuitPerformance"</span>
 
         <span class="c1"># Check if we have multiple jobs</span>
-        <span class="n">jobs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+        <span class="n">jobs_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"_jobs"</span><span class="p">,</span> <span class="p">[]))</span>
 
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">"to_flat_dict"</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">jobs_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="c1"># For multiple jobs, create separate DataFrames with only relevant columns</span>
 
                 <span class="c1"># Create aggregate DataFrame with only aggregate-relevant fields</span>
                 <span class="n">aggregate_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_aggregate_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
                 <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">aggregate_data</span><span class="p">])</span>
-                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
+                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.aggregate"</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate_df</span>
 
                 <span class="c1"># Create individual jobs DataFrame with only individual-relevant fields</span>
                 <span class="n">individual_jobs_data</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_jobs&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"_jobs"</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="c1"># Create a temporary single-job strategy to get individual metrics</span>
                     <span class="n">temp_strategy</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
                         <span class="n">strategy</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span>
                         <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
                         <span class="n">success_criteria</span><span class="o">=</span><span class="n">strategy</span><span class="o">.</span><span class="n">success_criteria</span><span class="p">,</span>
-                        <span class="n">expected_outcomes</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">&quot;_expected_outcomes&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                        <span class="n">expected_outcomes</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="s2">"_expected_outcomes"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
                     <span class="p">)</span>
                     <span class="n">job_metrics</span> <span class="o">=</span> <span class="n">temp_strategy</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
                     <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">job_metrics</span><span class="p">)</span>
@@ -475,27 +475,27 @@
 
                 <span class="k">if</span> <span class="n">individual_jobs_data</span><span class="p">:</span>
                     <span class="n">individual_jobs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">individual_jobs_data</span><span class="p">)</span>
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_jobs_df</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Fallback: create empty DataFrame with individual columns</span>
                     <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
-                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                    <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                         <span class="p">[</span><span class="n">individual_data</span><span class="p">]</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Single job case - only create individual_jobs DataFrame with individual fields</span>
                 <span class="n">individual_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_individual_fields</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
                 <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">individual_data</span><span class="p">])</span>
-                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
+                <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Fallback for any remaining edge cases</span>
             <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
             <span class="n">single_job_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">flattened_metrics</span><span class="p">])</span>
-            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
+            <span class="n">metric_dataframes</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">display_name</span><span class="si">}</span><span class="s2">.individual_jobs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_job_df</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_individual_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract only fields relevant for individual job metrics.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Extract only fields relevant for individual job metrics."""</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">"to_flat_dict"</span><span class="p">):</span>
             <span class="n">all_fields</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">all_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
@@ -507,13 +507,13 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
                 <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="n">key</span>
                 <span class="k">for</span> <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="p">[</span>
-                    <span class="s2">&quot;mean_&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;std_&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;min_&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;max_&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;total_trials&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;peak_mismatch_rate&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;total_jobs&quot;</span><span class="p">,</span>
+                    <span class="s2">"mean_"</span><span class="p">,</span>
+                    <span class="s2">"std_"</span><span class="p">,</span>
+                    <span class="s2">"min_"</span><span class="p">,</span>
+                    <span class="s2">"max_"</span><span class="p">,</span>
+                    <span class="s2">"total_trials"</span><span class="p">,</span>
+                    <span class="s2">"peak_mismatch_rate"</span><span class="p">,</span>
+                    <span class="s2">"total_jobs"</span><span class="p">,</span>
                 <span class="p">]</span>
             <span class="p">):</span>
                 <span class="n">individual_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -521,8 +521,8 @@
         <span class="k">return</span> <span class="n">individual_fields</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_aggregate_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract only fields relevant for aggregate metrics.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Extract only fields relevant for aggregate metrics."""</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">"to_flat_dict"</span><span class="p">):</span>
             <span class="n">all_fields</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">all_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_metrics</span><span class="p">(</span><span class="n">metric_results</span><span class="p">)</span>
@@ -535,25 +535,25 @@
                 <span class="nb">any</span><span class="p">(</span>
                     <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="n">key</span>
                     <span class="k">for</span> <span class="n">aggregate_prefix</span> <span class="ow">in</span> <span class="p">[</span>
-                        <span class="s2">&quot;mean_&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;std_&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;min_&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;max_&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;total_trials&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;peak_mismatch_rate&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;total_jobs&quot;</span><span class="p">,</span>
+                        <span class="s2">"mean_"</span><span class="p">,</span>
+                        <span class="s2">"std_"</span><span class="p">,</span>
+                        <span class="s2">"min_"</span><span class="p">,</span>
+                        <span class="s2">"max_"</span><span class="p">,</span>
+                        <span class="s2">"total_trials"</span><span class="p">,</span>
+                        <span class="s2">"peak_mismatch_rate"</span><span class="p">,</span>
+                        <span class="s2">"total_jobs"</span><span class="p">,</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
-                <span class="ow">or</span> <span class="s2">&quot;error_rate&quot;</span> <span class="ow">in</span> <span class="n">key</span>
+                <span class="ow">or</span> <span class="s2">"error_rate"</span> <span class="ow">in</span> <span class="n">key</span>
             <span class="p">):</span>
                 <span class="n">aggregate_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="k">return</span> <span class="n">aggregate_fields</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_standard_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">,</span> <span class="n">metric_dataframes</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process standard metrics using schema-based API.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Process standard metrics using schema-based API."""</span>
         <span class="c1"># All metrics should return schema objects with to_flat_dict()</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;to_flat_dict&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">"to_flat_dict"</span><span class="p">):</span>
             <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">to_flat_dict</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Fallback for any remaining edge cases</span>
@@ -563,162 +563,162 @@
         <span class="n">metric_dataframes</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_flatten_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_results</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten metric results into a single-level dictionary.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Flatten metric results into a single-level dictionary."""</span>
         <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">subkey</span><span class="p">,</span> <span class="n">subvalue</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="n">flattened_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">subkey</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subvalue</span>
+                        <span class="n">flattened_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">subkey</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">subvalue</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">flattened_metrics</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">&quot;model_dump&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metric_results</span><span class="p">,</span> <span class="s2">"model_dump"</span><span class="p">):</span>
             <span class="c1"># Schema object without to_flat_dict - try model_dump</span>
             <span class="n">metric_dict</span> <span class="o">=</span> <span class="n">metric_results</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metric_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">subkey</span><span class="p">,</span> <span class="n">subvalue</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="n">flattened_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">subkey</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subvalue</span>
+                        <span class="n">flattened_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">subkey</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">subvalue</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">flattened_metrics</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Fallback - treat as single value</span>
-            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">metric_results</span><span class="p">}</span>
+            <span class="n">flattened_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">metric_results</span><span class="p">}</span>
 
         <span class="k">return</span> <span class="n">flattened_metrics</span>
 
 <div class="viewcode-block" id="Scanner.set_circuit">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.set_circuit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the quantum circuit.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit</span> <span class="o">=</span> <span class="n">circuit</span></div>
 
 
 <div class="viewcode-block" id="Scanner.set_job">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.set_job">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">AerJob</span><span class="p">,</span> <span class="n">QiskitJob</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the job that executed the circuit.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            job: The job that executed the circuit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="o">=</span> <span class="n">job</span></div>
 
 
 <div class="viewcode-block" id="Scanner.display_summary">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.Scanner.display_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">display_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Display a summary of the calculated metrics.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            metrics_dict: Optional metrics dictionary. If None, will calculate metrics first.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">metrics_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">metrics_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🎯 QWARD ANALYSIS SUMMARY&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"🎯 QWARD ANALYSIS SUMMARY"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_display_circuit_performance_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_display_aggregate_performance_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_display_other_metrics_summary</span><span class="p">(</span><span class="n">metrics_dict</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_display_circuit_performance_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display circuit performance analysis summary.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;CircuitPerformance.individual_jobs&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Display circuit performance analysis summary."""</span>
+        <span class="k">if</span> <span class="s2">"CircuitPerformance.individual_jobs"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">individual_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;CircuitPerformance.individual_jobs&quot;</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📋 Circuit Performance Analysis:&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Jobs analyzed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">individual_df</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">individual_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">"CircuitPerformance.individual_jobs"</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">📋 Circuit Performance Analysis:"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   Jobs analyzed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">individual_df</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Show individual job results</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">individual_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="n">success_rate</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">total_shots</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.total_shots&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Job </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> success (</span><span class="si">{</span><span class="n">total_shots</span><span class="si">}</span><span class="s2"> shots)&quot;</span><span class="p">)</span>
+            <span class="n">success_rate</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success_metrics.success_rate"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">total_shots</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success_metrics.total_shots"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   Job </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> success (</span><span class="si">{</span><span class="n">total_shots</span><span class="si">}</span><span class="s2"> shots)"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_display_aggregate_performance_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display aggregate performance summary.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;CircuitPerformance.aggregate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Display aggregate performance summary."""</span>
+        <span class="k">if</span> <span class="s2">"CircuitPerformance.aggregate"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">&quot;CircuitPerformance.aggregate&quot;</span><span class="p">]</span>
+        <span class="n">aggregate_df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="s2">"CircuitPerformance.aggregate"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">aggregate_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">return</span>
 
         <span class="n">row</span> <span class="o">=</span> <span class="n">aggregate_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">mean_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.mean_success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">std_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.std_success_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">total_trials</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success_metrics.total_trials&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">mean_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success_metrics.mean_success_rate"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">std_success</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success_metrics.std_success_rate"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">total_trials</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success_metrics.total_trials"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 Overall Performance:&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Average success rate: </span><span class="si">{</span><span class="n">mean_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Total measurements: </span><span class="si">{</span><span class="n">total_trials</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">📊 Overall Performance:"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   Average success rate: </span><span class="si">{</span><span class="n">mean_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_success</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   Total measurements: </span><span class="si">{</span><span class="n">total_trials</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Performance analysis</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_display_performance_analysis</span><span class="p">(</span><span class="n">mean_success</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_display_performance_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean_success</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display performance analysis based on success rate.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Display performance analysis based on success rate."""</span>
         <span class="k">if</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ✅ Excellent performance&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"   ✅ Excellent performance"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.80</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ⚠️  Good performance with some noise impact&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"   ⚠️  Good performance with some noise impact"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mean_success</span> <span class="o">&gt;=</span> <span class="mf">0.50</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ⚠️  Moderate performance - significant noise detected&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"   ⚠️  Moderate performance - significant noise detected"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ❌ Poor performance - high noise or errors&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"   ❌ Poor performance - high noise or errors"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_display_other_metrics_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display summary of other metrics.&quot;&quot;&quot;</span>
-        <span class="n">other_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CircuitPerformance&quot;</span><span class="p">)]</span>
+<span class="w">        </span><span class="sd">"""Display summary of other metrics."""</span>
+        <span class="n">other_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metrics_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"CircuitPerformance"</span><span class="p">)]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">other_metrics</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📈 Additional Metrics:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">📈 Additional Metrics:"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">metric_name</span> <span class="ow">in</span> <span class="n">other_metrics</span><span class="p">:</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">metrics_dict</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> metrics calculated&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   </span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> metrics calculated"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_display_metric_preview</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_display_metric_preview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display a preview of the first 5 metrics.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Display a preview of the first 5 metrics."""</span>
         <span class="n">first_row</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">columns_to_show</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>  <span class="c1"># First 5 columns</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     Preview (first 5):&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"     Preview (first 5):"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_to_show</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">first_row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
             <span class="n">formatted_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_metric_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;       </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">formatted_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"       </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">formatted_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="c1"># Show &quot;...&quot; if there are more columns</span>
+        <span class="c1"># Show "..." if there are more columns</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
             <span class="n">remaining</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">5</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;       ... and </span><span class="si">{</span><span class="n">remaining</span><span class="si">}</span><span class="s2"> more metrics&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"       ... and </span><span class="si">{</span><span class="n">remaining</span><span class="si">}</span><span class="s2"> more metrics"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_format_metric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format a metric value for display.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Format a metric value for display."""</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
@@ -727,7 +727,7 @@
 <div class="viewcode-block" id="ScanResult">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.ScanResult">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ScanResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Thin wrapper around scanner metrics with fluent post-processing helpers.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Thin wrapper around scanner metrics with fluent post-processing helpers."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">scanner</span><span class="p">:</span> <span class="n">Scanner</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span> <span class="o">=</span> <span class="n">metrics</span>
@@ -772,14 +772,14 @@
 <div class="viewcode-block" id="ScanResult.to_dict">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.ScanResult.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a shallow copy of the wrapped metrics dictionary.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return a shallow copy of the wrapped metrics dictionary."""</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ScanResult.summary">
 <a class="viewcode-back" href="../../apidocs/scanner.html#qward.scanner.ScanResult.summary">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ScanResult&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Display scanner summary and return self for chaining.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ScanResult"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Display scanner summary and return self for chaining."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scanner</span><span class="o">.</span><span class="n">display_summary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -791,15 +791,15 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;qward/examples/img&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"qward/examples/img"</span><span class="p">,</span>
         <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">selections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ScanResult&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ScanResult"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Visualize wrapped metrics and return self for chaining.</span>
 
 <span class="sd">        If selections are provided, generate selected plots. Otherwise, generate dashboards.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">qward.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlotConfig</span><span class="p">,</span> <span class="n">Visualizer</span>
 
         <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span>

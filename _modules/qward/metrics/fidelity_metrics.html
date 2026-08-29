@@ -254,15 +254,15 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.fidelity_metrics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Fidelity metrics for quantum circuit output validation.</span>
+<span></span><span class="sd">"""Fidelity metrics for quantum circuit output validation.</span>
 
 <span class="sd">Computes the DSR evaluation profile (success rate, chance-corrected</span>
 <span class="sd">success, coarse TVD similarity, coarse Hellinger fidelity), the optional</span>
-<span class="sd">Michelson &quot;peak-contrast&quot; DSR layer, full-histogram Hellinger fidelity/TVD,</span>
+<span class="sd">Michelson "peak-contrast" DSR layer, full-histogram Hellinger fidelity/TVD,</span>
 <span class="sd">and success rate from Sampler results, or expectation-value-based metrics</span>
 <span class="sd">from Estimator results. Automatically detects the primitive type from the</span>
 <span class="sd">provided inputs.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
@@ -282,12 +282,12 @@
 <div class="viewcode-block" id="FidelityMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FidelityMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Post-runtime fidelity metrics for quantum circuit outputs.</span>
+<span class="w">    </span><span class="sd">"""Post-runtime fidelity metrics for quantum circuit outputs.</span>
 
 <span class="sd">    Handles both Qiskit primitive types automatically:</span>
 <span class="sd">    - **Sampler** (counts/histograms): the DSR evaluation profile (success</span>
 <span class="sd">      rate, chance-corrected success, coarse TVD similarity, coarse</span>
-<span class="sd">      Hellinger fidelity), the optional Michelson &quot;peak-contrast&quot; DSR layer,</span>
+<span class="sd">      Hellinger fidelity), the optional Michelson "peak-contrast" DSR layer,</span>
 <span class="sd">      and (when a ``target_histogram`` is supplied) the full-distribution</span>
 <span class="sd">      Hellinger fidelity and TVD.</span>
 <span class="sd">    - **Estimator** (expectation values): success probability, observable</span>
@@ -303,17 +303,17 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        # Sampler path — from counts</span>
-<span class="sd">        fm = FidelityMetrics(circuit, counts={&quot;00&quot;: 900, &quot;11&quot;: 100}, target_state=&quot;00&quot;)</span>
+<span class="sd">        fm = FidelityMetrics(circuit, counts={"00": 900, "11": 100}, target_state="00")</span>
 
 <span class="sd">        # Sampler path — from job</span>
-<span class="sd">        fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=[&quot;00&quot;])</span>
+<span class="sd">        fm = FidelityMetrics(circuit, job=sampler_job, expected_outcomes=["00"])</span>
 
 <span class="sd">        # Multi-marked target with a non-uniform reference distribution over E</span>
 <span class="sd">        fm = FidelityMetrics(</span>
 <span class="sd">            circuit,</span>
 <span class="sd">            counts=counts,</span>
-<span class="sd">            expected_outcomes=[&quot;001&quot;, &quot;010&quot;, &quot;100&quot;],</span>
-<span class="sd">            expected_weights={&quot;001&quot;: 0.5, &quot;010&quot;: 0.25, &quot;100&quot;: 0.25},</span>
+<span class="sd">            expected_outcomes=["001", "010", "100"],</span>
+<span class="sd">            expected_weights={"001": 0.5, "010": 0.25, "100": 0.25},</span>
 <span class="sd">        )</span>
 
 <span class="sd">        # Estimator path — from values</span>
@@ -321,7 +321,7 @@
 
 <span class="sd">        # Estimator path — from job (auto-detected)</span>
 <span class="sd">        fm = FidelityMetrics(circuit, job=estimator_job)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -345,12 +345,12 @@
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Provide either &#39;counts&#39; (Sampler) or &#39;expectation_values&#39; (Estimator), not both.&quot;</span>
+                <span class="s2">"Provide either 'counts' (Sampler) or 'expectation_values' (Estimator), not both."</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide either &#39;job&#39;/&#39;jobs&#39; or &#39;counts&#39;, not both.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Provide either 'job'/'jobs' or 'counts', not both."</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provide either &#39;job&#39; or &#39;expectation_values&#39;, not both.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Provide either 'job' or 'expectation_values', not both."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_success_criteria</span> <span class="o">=</span> <span class="n">success_criteria</span>
@@ -381,14 +381,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">primitive_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detected primitive type: &#39;sampler&#39;, &#39;estimator&#39;, or &#39;unknown&#39;.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Detected primitive type: 'sampler', 'estimator', or 'unknown'."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;estimator&quot;</span>
+            <span class="k">return</span> <span class="s2">"estimator"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
+            <span class="k">return</span> <span class="s2">"sampler"</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_job_primitive_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+        <span class="k">return</span> <span class="s2">"unknown"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">POST_RUNTIME</span>
@@ -407,12 +407,12 @@
 <div class="viewcode-block" id="FidelityMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity metrics based on detected primitive type.</span>
+<span class="w">        </span><span class="sd">"""Compute fidelity metrics based on detected primitive type.</span>
 
 <span class="sd">        Returns FidelitySchema for Sampler results, EstimatorSchema for Estimator results.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive_type</span>
-        <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">&quot;estimator&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">"estimator"</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_estimator_metrics</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_sampler_metrics</span><span class="p">()</span></div>
 
@@ -420,17 +420,17 @@
 <div class="viewcode-block" id="FidelityMetrics.get_metrics_all">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.get_metrics_all">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity metrics for each job. Returns one schema per job.</span>
+<span class="w">        </span><span class="sd">"""Compute fidelity metrics for each job. Returns one schema per job.</span>
 
 <span class="sd">        When using counts (no jobs), returns a single-element list.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()]</span>
 
         <span class="n">schemas</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
             <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_job_primitive_type</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">&quot;estimator&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ptype</span> <span class="o">==</span> <span class="s2">"estimator"</span><span class="p">:</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.estimator_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimatorMetrics</span>
 
                 <span class="n">em</span> <span class="o">=</span> <span class="n">EstimatorMetrics</span><span class="p">(</span>
@@ -452,7 +452,7 @@
 <div class="viewcode-block" id="FidelityMetrics.add_job">
 <a class="viewcode-back" href="../../../apidocs/metrics_circuit_performance.html#qward.metrics.fidelity_metrics.FidelityMetrics.add_job">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">JobType</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">JobType</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add one or more jobs for multi-job analysis.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Add one or more jobs for multi-job analysis."""</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">job</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
@@ -464,14 +464,14 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_sampler_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FidelitySchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sampler path: compute from measurement counts.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Sampler path: compute from measurement counts."""</span>
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_counts</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">counts</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">FidelitySchema</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_schema</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_estimator_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimator path: delegate to EstimatorMetrics.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Estimator path: delegate to EstimatorMetrics."""</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">qward.metrics.estimator_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimatorMetrics</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expectation_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -493,42 +493,42 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_detect_job_primitive_type</span><span class="p">(</span><span class="n">job</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect if a job produced Sampler or Estimator results.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Detect if a job produced Sampler or Estimator results."""</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">job</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;__getitem__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">"result"</span><span class="p">)</span> <span class="k">else</span> <span class="n">job</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">"__getitem__"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">):</span>
                 <span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
+                <span class="k">return</span> <span class="s2">"sampler"</span>
 
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;evs&quot;</span><span class="p">):</span>
-                <span class="k">return</span> <span class="s2">&quot;estimator&quot;</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">"evs"</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s2">"estimator"</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">pass</span>
-        <span class="k">return</span> <span class="s2">&quot;sampler&quot;</span>
+        <span class="k">return</span> <span class="s2">"sampler"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">FidelitySchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fidelity schema from already-normalized counts.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Compute fidelity schema from already-normalized counts."""</span>
         <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="n">unique</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
 
         <span class="n">result</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;shots&quot;</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
-            <span class="s2">&quot;unique_outcomes&quot;</span><span class="p">:</span> <span class="n">unique</span><span class="p">,</span>
+            <span class="s2">"shots"</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
+            <span class="s2">"unique_outcomes"</span><span class="p">:</span> <span class="n">unique</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">:</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;expected_outcomes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"expected_outcomes"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_include_michelson</span><span class="p">:</span>
                 <span class="n">dsr</span><span class="p">,</span> <span class="n">peak_mismatch</span> <span class="o">=</span> <span class="n">compute_dsr_with_flags</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
-                <span class="n">result</span><span class="p">[</span><span class="s2">&quot;dsr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dsr</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-                <span class="n">result</span><span class="p">[</span><span class="s2">&quot;peak_mismatch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_mismatch</span>
+                <span class="n">result</span><span class="p">[</span><span class="s2">"dsr"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dsr</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="s2">"peak_mismatch"</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_mismatch</span>
 
             <span class="n">success_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">)</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">success_count</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"success_rate"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">success_count</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_include_dsr_profile</span><span class="p">:</span>
                 <span class="n">profile_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_dsr_profile_fields</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
@@ -536,25 +536,25 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_criteria</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_outcomes</span><span class="p">:</span>
             <span class="n">success_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_criteria</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">success_count</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"success_rate"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">success_count</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_histogram</span><span class="p">:</span>
             <span class="n">observed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
             <span class="n">hf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hellinger_fidelity</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_histogram</span><span class="p">)</span>
             <span class="n">tvd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_variation_distance</span><span class="p">(</span><span class="n">observed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_histogram</span><span class="p">)</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;hellinger_fidelity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">hf</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;tvd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">tvd</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;tvd_fidelity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">tvd</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"hellinger_fidelity"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">hf</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"tvd"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">tvd</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"tvd_fidelity"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">tvd</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">FidelitySchema</span><span class="p">(</span><span class="o">**</span><span class="n">result</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_dsr_profile_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the chance-corrected/coarse-metric components of the DSR</span>
+<span class="w">        </span><span class="sd">"""Compute the chance-corrected/coarse-metric components of the DSR</span>
 <span class="sd">        profile. Never raises: returns {} if the profile cannot be computed</span>
 <span class="sd">        (e.g. inconsistent bitstring lengths and no explicit</span>
 <span class="sd">        ``num_measured_qubits``), since these fields are additive and must</span>
 <span class="sd">        not break existing ``FidelityMetrics`` usage.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">profiler</span> <span class="o">=</span> <span class="n">DSRProfiler</span><span class="p">(</span>
                 <span class="n">counts</span><span class="p">,</span>
@@ -568,20 +568,20 @@
             <span class="k">return</span> <span class="p">{}</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;chance_baseline&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">chance_baseline</span><span class="p">,</span>
-            <span class="s2">&quot;chance_corrected_success&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">chance_corrected_success</span><span class="p">,</span>
-            <span class="s2">&quot;coarse_tvd&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_tvd</span><span class="p">,</span>
-            <span class="s2">&quot;coarse_tvd_similarity&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_tvd_similarity</span><span class="p">,</span>
-            <span class="s2">&quot;coarse_hellinger_distance&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_hellinger_distance</span><span class="p">,</span>
-            <span class="s2">&quot;coarse_hellinger_fidelity&quot;</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_hellinger_fidelity</span><span class="p">,</span>
+            <span class="s2">"chance_baseline"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">chance_baseline</span><span class="p">,</span>
+            <span class="s2">"chance_corrected_success"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">chance_corrected_success</span><span class="p">,</span>
+            <span class="s2">"coarse_tvd"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_tvd</span><span class="p">,</span>
+            <span class="s2">"coarse_tvd_similarity"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_tvd_similarity</span><span class="p">,</span>
+            <span class="s2">"coarse_hellinger_distance"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_hellinger_distance</span><span class="p">,</span>
+            <span class="s2">"coarse_hellinger_fidelity"</span><span class="p">:</span> <span class="n">profile</span><span class="o">.</span><span class="n">coarse_hellinger_fidelity</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get counts from either direct input or job extraction.</span>
+<span class="w">        </span><span class="sd">"""Get counts from either direct input or job extraction.</span>
 
-<span class="sd">        Normalizes bitstring keys by stripping spaces (Aer uses &quot;11 00&quot; format</span>
+<span class="sd">        Normalizes bitstring keys by stripping spaces (Aer uses "11 00" format</span>
 <span class="sd">        when measure_all() adds a second classical register).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -593,29 +593,29 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_keys</span><span class="p">(</span><span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Strip spaces from bitstring keys and merge duplicates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Strip spaces from bitstring keys and merge duplicates."""</span>
         <span class="n">normalized</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">clean</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">clean</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
             <span class="n">normalized</span><span class="p">[</span><span class="n">clean</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalized</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">clean</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">val</span>
         <span class="k">return</span> <span class="n">normalized</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">JobType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract counts from job, handling different job types.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Extract counts from job, handling different job types."""</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;get_counts&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">"get_counts"</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">job</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="s2">"result"</span><span class="p">):</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;get_counts&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">"data"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s2">"get_counts"</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">RuntimeJobV2</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_runtime_v2_counts</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
 
             <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;get_counts&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">"get_counts"</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 
             <span class="k">return</span> <span class="p">{}</span>
@@ -623,24 +623,24 @@
             <span class="k">return</span> <span class="p">{}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_runtime_v2_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="p">:</span> <span class="n">RuntimeJobV2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract counts from RuntimeJobV2.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Extract counts from RuntimeJobV2."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{}</span>
 
         <span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;meas&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;cr&quot;</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"meas"</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">,</span> <span class="s2">"cr"</span><span class="p">,</span> <span class="s2">"classical"</span><span class="p">]:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
                 <span class="n">register_data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">register_data</span><span class="p">,</span> <span class="s2">&quot;get_counts&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">register_data</span><span class="p">,</span> <span class="s2">"get_counts"</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">register_data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"_"</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">register_data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">register_data</span><span class="p">,</span> <span class="s2">&quot;get_counts&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">register_data</span><span class="p">,</span> <span class="s2">"get_counts"</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">register_data</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
                 <span class="k">continue</span>
@@ -648,7 +648,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert raw counts to probability distribution.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Convert raw counts to probability distribution."""</span>
         <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{}</span>
@@ -656,14 +656,14 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_hellinger_fidelity</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">q</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;HF = (sum_i sqrt(p_i * q_i))^2.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""HF = (sum_i sqrt(p_i * q_i))^2."""</span>
         <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">bc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bc</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_total_variation_distance</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">q</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;TVD = 0.5 * sum_i |p_i - q_i|.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""TVD = 0.5 * sum_i |p_i - q_i|."""</span>
         <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">))</span></div>
 

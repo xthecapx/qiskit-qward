@@ -254,7 +254,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.element_metrics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Quantum Software Quality Metrics implementation for QWARD.</span>
 
 <span class="sd">This module provides the ElementMetrics class for analyzing quantum circuits</span>
@@ -266,8 +266,8 @@
 <span class="sd">This module provides the ElementMetrics class for analyzing quantum circuits</span>
 <span class="sd">and extracting comprehensive quality metrics as defined in the paper:</span>
 
-<span class="sd">[ ] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, &quot;Towards a set of metrics for</span>
-<span class="sd">quantum circuits understandability,&quot; in *Quality of Information and Communications</span>
+<span class="sd">[ ] J. A. Cruz-Lemus, L. A. Marcelo, and M. Piattini, "Towards a set of metrics for</span>
+<span class="sd">quantum circuits understandability," in *Quality of Information and Communications</span>
 <span class="sd">Technology. QUATIC 2021 (Communications in Computer and Information Science, vol. 1439)</span>
 <span class="sd">*, A. C. R. Paiva, A. R. Cavalli, P. Ventura Martins, and R. Pérez-Castillo, Eds. Cham:</span>
 <span class="sd"> Springer, 2021, pp. 238–253. doi: 10.1007/978-3-030-85347-1_18.</span>
@@ -275,7 +275,7 @@
 
 <span class="sd">These metrics provide detailed analysis of quantum circuit structure, gate distribution,</span>
 <span class="sd">and oracle usage patterns for quality assessment and comparison.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
@@ -301,111 +301,111 @@
 
 <span class="c1"># Single-qubit gates</span>
 <span class="n">SINGLE_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;x&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;y&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;z&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;h&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;t&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;tdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;p&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;u&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sxdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;phase&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;reset&quot;</span><span class="p">,</span>
+    <span class="s2">"x"</span><span class="p">,</span>
+    <span class="s2">"y"</span><span class="p">,</span>
+    <span class="s2">"z"</span><span class="p">,</span>
+    <span class="s2">"h"</span><span class="p">,</span>
+    <span class="s2">"s"</span><span class="p">,</span>
+    <span class="s2">"sdg"</span><span class="p">,</span>
+    <span class="s2">"t"</span><span class="p">,</span>
+    <span class="s2">"tdg"</span><span class="p">,</span>
+    <span class="s2">"rx"</span><span class="p">,</span>
+    <span class="s2">"ry"</span><span class="p">,</span>
+    <span class="s2">"rz"</span><span class="p">,</span>
+    <span class="s2">"u1"</span><span class="p">,</span>
+    <span class="s2">"u2"</span><span class="p">,</span>
+    <span class="s2">"u3"</span><span class="p">,</span>
+    <span class="s2">"p"</span><span class="p">,</span>
+    <span class="s2">"u"</span><span class="p">,</span>
+    <span class="s2">"sx"</span><span class="p">,</span>
+    <span class="s2">"sxdg"</span><span class="p">,</span>
+    <span class="s2">"rzx"</span><span class="p">,</span>
+    <span class="s2">"phase"</span><span class="p">,</span>
+    <span class="s2">"reset"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Pauli gates</span>
-<span class="n">PAULI_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">}</span>
+<span class="n">PAULI_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">}</span>
 
 <span class="c1"># Controlled gates (any controlled gate)</span>
-<span class="n">CONTROLLED_GATE_PREFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;mc&quot;</span><span class="p">}</span>
+<span class="n">CONTROLLED_GATE_PREFIXES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"c"</span><span class="p">,</span> <span class="s2">"mc"</span><span class="p">}</span>
 
 <span class="c1"># Specific controlled gates</span>
 <span class="n">CONTROLLED_SINGLE_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;cy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ch&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cs&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;csdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ct&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ctdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cp&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;csx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;csxdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crzx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cphase&quot;</span><span class="p">,</span>
+    <span class="s2">"cy"</span><span class="p">,</span>
+    <span class="s2">"cz"</span><span class="p">,</span>
+    <span class="s2">"ch"</span><span class="p">,</span>
+    <span class="s2">"cs"</span><span class="p">,</span>
+    <span class="s2">"csdg"</span><span class="p">,</span>
+    <span class="s2">"ct"</span><span class="p">,</span>
+    <span class="s2">"ctdg"</span><span class="p">,</span>
+    <span class="s2">"crx"</span><span class="p">,</span>
+    <span class="s2">"cry"</span><span class="p">,</span>
+    <span class="s2">"crz"</span><span class="p">,</span>
+    <span class="s2">"cp"</span><span class="p">,</span>
+    <span class="s2">"cu1"</span><span class="p">,</span>
+    <span class="s2">"cu2"</span><span class="p">,</span>
+    <span class="s2">"cu3"</span><span class="p">,</span>
+    <span class="s2">"cu"</span><span class="p">,</span>
+    <span class="s2">"csx"</span><span class="p">,</span>
+    <span class="s2">"csxdg"</span><span class="p">,</span>
+    <span class="s2">"crzx"</span><span class="p">,</span>
+    <span class="s2">"cphase"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Two-qubit gates</span>
 <span class="n">TWO_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;cx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;swap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;iswap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;dcx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ecr&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rxx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ryy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;xx_minus_yy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;xx_plus_yy&quot;</span><span class="p">,</span>
+    <span class="s2">"cx"</span><span class="p">,</span>
+    <span class="s2">"cy"</span><span class="p">,</span>
+    <span class="s2">"cz"</span><span class="p">,</span>
+    <span class="s2">"swap"</span><span class="p">,</span>
+    <span class="s2">"iswap"</span><span class="p">,</span>
+    <span class="s2">"dcx"</span><span class="p">,</span>
+    <span class="s2">"ecr"</span><span class="p">,</span>
+    <span class="s2">"rxx"</span><span class="p">,</span>
+    <span class="s2">"ryy"</span><span class="p">,</span>
+    <span class="s2">"rzz"</span><span class="p">,</span>
+    <span class="s2">"rzx"</span><span class="p">,</span>
+    <span class="s2">"xx_minus_yy"</span><span class="p">,</span>
+    <span class="s2">"xx_plus_yy"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Multi-qubit gates (3+ qubits)</span>
 <span class="n">MULTI_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;ccx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cswap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcphase&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcu1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcu2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcu3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcrx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcrz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcp&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcu&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mcswap&quot;</span><span class="p">,</span>
+    <span class="s2">"ccx"</span><span class="p">,</span>
+    <span class="s2">"cswap"</span><span class="p">,</span>
+    <span class="s2">"mcx"</span><span class="p">,</span>
+    <span class="s2">"mcphase"</span><span class="p">,</span>
+    <span class="s2">"mcu1"</span><span class="p">,</span>
+    <span class="s2">"mcu2"</span><span class="p">,</span>
+    <span class="s2">"mcu3"</span><span class="p">,</span>
+    <span class="s2">"mcrx"</span><span class="p">,</span>
+    <span class="s2">"mcry"</span><span class="p">,</span>
+    <span class="s2">"mcrz"</span><span class="p">,</span>
+    <span class="s2">"mcp"</span><span class="p">,</span>
+    <span class="s2">"mcu"</span><span class="p">,</span>
+    <span class="s2">"mcswap"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Oracle gates (custom gates that represent oracles)</span>
-<span class="n">ORACLE_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;oracle&quot;</span><span class="p">,</span> <span class="s2">&quot;black_box&quot;</span><span class="p">,</span> <span class="s2">&quot;unitary&quot;</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="s2">&quot;phase_oracle&quot;</span><span class="p">,</span> <span class="s2">&quot;grover_oracle&quot;</span><span class="p">,</span> <span class="s2">&quot;u&quot;</span><span class="p">}</span>
+<span class="n">ORACLE_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"oracle"</span><span class="p">,</span> <span class="s2">"black_box"</span><span class="p">,</span> <span class="s2">"unitary"</span><span class="p">,</span> <span class="s2">"custom"</span><span class="p">,</span> <span class="s2">"phase_oracle"</span><span class="p">,</span> <span class="s2">"grover_oracle"</span><span class="p">,</span> <span class="s2">"u"</span><span class="p">}</span>
 
 <span class="c1"># Measurement gates</span>
-<span class="n">MEASUREMENT_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;reset&quot;</span><span class="p">}</span>
+<span class="n">MEASUREMENT_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"measure"</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">}</span>
 
 <span class="c1"># Ignored gates (not considered in quality metrics)</span>
-<span class="n">IGNORED_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;barrier&quot;</span><span class="p">,</span> <span class="s2">&quot;delay&quot;</span><span class="p">,</span> <span class="s2">&quot;snapshot&quot;</span><span class="p">,</span> <span class="s2">&quot;save&quot;</span><span class="p">,</span> <span class="s2">&quot;initialize&quot;</span><span class="p">,</span> <span class="s2">&quot;finalize&quot;</span><span class="p">}</span>
+<span class="n">IGNORED_GATES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"barrier"</span><span class="p">,</span> <span class="s2">"delay"</span><span class="p">,</span> <span class="s2">"snapshot"</span><span class="p">,</span> <span class="s2">"save"</span><span class="p">,</span> <span class="s2">"initialize"</span><span class="p">,</span> <span class="s2">"finalize"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="ElementMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_element.html#qward.metrics.element_metrics.ElementMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ElementMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Quantum Element Metrics calculator for QWARD.</span>
 
 <span class="sd">    This class implements element-based metrics for quantum circuits</span>
 <span class="sd">    focusing on gate distribution, oracle usage patterns, and measurement analysis.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -414,51 +414,51 @@
 <div class="viewcode-block" id="ElementMetrics.__init__">
 <a class="viewcode-back" href="../../../apidocs/generated/qward.metrics.element_metrics.ElementMetrics.html#qward.metrics.element_metrics.ElementMetrics.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the ElementMetrics calculator.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit to analyze</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_dag</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span> <span class="k">if</span> <span class="n">circuit</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the type of this metric.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            MetricsType: PRE_RUNTIME (can be calculated without execution)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the ID of this metric.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            MetricsId: ELEMENT</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">ELEMENT</span>
 
 <div class="viewcode-block" id="ElementMetrics.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_element.html#qward.metrics.element_metrics.ElementMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Check if the metric is ready to be calculated.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: True if the circuit is available, False otherwise</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="ElementMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_element.html#qward.metrics.element_metrics.ElementMetrics.get_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ElementMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate and return quantum element metrics.</span>
 
 <span class="sd">        Returns:</span>
@@ -466,9 +466,9 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If schemas are not available</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;ElementMetricsSchema is not available&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"ElementMetricsSchema is not available"</span><span class="p">)</span>
 
         <span class="c1"># Analyze the circuit to extract all metrics</span>
         <span class="n">gate_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_gates</span><span class="p">()</span>
@@ -477,13 +477,13 @@
         <span class="n">measurement_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_measurements</span><span class="p">()</span>
 
         <span class="c1"># Calculate Pauli gate metrics</span>
-        <span class="n">no_p_x</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">no_p_y</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">no_p_z</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_p_x</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_p_y</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_p_z</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">t_no_p</span> <span class="o">=</span> <span class="n">no_p_x</span> <span class="o">+</span> <span class="n">no_p_y</span> <span class="o">+</span> <span class="n">no_p_z</span>
 
         <span class="c1"># Calculate single-qubit gate metrics</span>
-        <span class="n">no_h</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_h</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"h"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">percent_sppos_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_superposition_ratio</span><span class="p">()</span>
         <span class="n">no_other_sg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_other_single_qubit_gates</span><span class="p">(</span><span class="n">gate_counts</span><span class="p">)</span>
         <span class="n">t_no_csqg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_controlled_single_qubit_gates</span><span class="p">(</span><span class="n">gate_counts</span><span class="p">)</span>
@@ -491,32 +491,32 @@
 
         <span class="c1"># Calculate controlled gate metrics</span>
         <span class="n">no_c_any_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_all_controlled_gates</span><span class="p">(</span><span class="n">gate_counts</span><span class="p">)</span>
-        <span class="n">no_swap</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;swap&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">no_cnot</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cx&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_swap</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"swap"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_cnot</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"cx"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">percent_q_in_cnot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_cnot_qubit_ratio</span><span class="p">()</span>
         <span class="n">avg_cnot</span><span class="p">,</span> <span class="n">max_cnot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_cnot_stats</span><span class="p">()</span>
 
         <span class="c1"># Calculate Toffoli gate metrics</span>
-        <span class="n">no_toff</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ccx&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">no_toff</span> <span class="o">=</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ccx"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">percent_q_in_toff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_toffoli_qubit_ratio</span><span class="p">()</span>
         <span class="n">avg_toff</span><span class="p">,</span> <span class="n">max_toff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_toffoli_stats</span><span class="p">()</span>
 
         <span class="c1"># Calculate general gate metrics</span>
         <span class="n">no_gates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_total_gates</span><span class="p">(</span><span class="n">gate_counts</span><span class="p">)</span>
-        <span class="n">no_c_gates</span> <span class="o">=</span> <span class="n">t_no_csqg</span> <span class="o">+</span> <span class="n">no_toff</span> <span class="o">+</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;controlled_oracles&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">no_cnot</span>
+        <span class="n">no_c_gates</span> <span class="o">=</span> <span class="n">t_no_csqg</span> <span class="o">+</span> <span class="n">no_toff</span> <span class="o">+</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"controlled_oracles"</span><span class="p">]</span> <span class="o">+</span> <span class="n">no_cnot</span>
         <span class="n">percent_single_gates</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_no_sqg</span><span class="p">)</span> <span class="o">/</span> <span class="n">no_gates</span> <span class="k">if</span> <span class="n">no_gates</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
 
         <span class="c1"># Oracle metrics</span>
-        <span class="n">no_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;oracles&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;controlled_oracles&quot;</span><span class="p">]</span>
-        <span class="n">no_c_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;controlled_oracles&quot;</span><span class="p">]</span>
-        <span class="n">percent_q_in_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;qubit_ratio&quot;</span><span class="p">]</span>
-        <span class="n">percent_q_in_c_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;controlled_qubit_ratio&quot;</span><span class="p">]</span>
-        <span class="n">avg_or_d</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;avg_depth&quot;</span><span class="p">]</span>
-        <span class="n">max_or_d</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">&quot;max_depth&quot;</span><span class="p">]</span>
+        <span class="n">no_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"oracles"</span><span class="p">]</span> <span class="o">+</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"controlled_oracles"</span><span class="p">]</span>
+        <span class="n">no_c_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"controlled_oracles"</span><span class="p">]</span>
+        <span class="n">percent_q_in_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"qubit_ratio"</span><span class="p">]</span>
+        <span class="n">percent_q_in_c_or</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"controlled_qubit_ratio"</span><span class="p">]</span>
+        <span class="n">avg_or_d</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"avg_depth"</span><span class="p">]</span>
+        <span class="n">max_or_d</span> <span class="o">=</span> <span class="n">oracle_analysis</span><span class="p">[</span><span class="s2">"max_depth"</span><span class="p">]</span>
 
         <span class="c1"># Measurement and ancilla metrics</span>
-        <span class="n">no_qm</span> <span class="o">=</span> <span class="n">measurement_analysis</span><span class="p">[</span><span class="s2">&quot;measured_qubits&quot;</span><span class="p">]</span>
-        <span class="n">percent_qm</span> <span class="o">=</span> <span class="n">measurement_analysis</span><span class="p">[</span><span class="s2">&quot;measured_ratio&quot;</span><span class="p">]</span>
+        <span class="n">no_qm</span> <span class="o">=</span> <span class="n">measurement_analysis</span><span class="p">[</span><span class="s2">"measured_qubits"</span><span class="p">]</span>
+        <span class="n">percent_qm</span> <span class="o">=</span> <span class="n">measurement_analysis</span><span class="p">[</span><span class="s2">"measured_ratio"</span><span class="p">]</span>
         <span class="n">percent_anc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">ancillas</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
 
         <span class="k">return</span> <span class="n">ElementMetricsSchema</span><span class="p">(</span>
@@ -555,14 +555,14 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Count the occurrences of each gate type in the circuit.</span>
 <span class="sd">        Excludes measurement and reset operations as they are not considered gates</span>
 <span class="sd">        for quantum software quality metrics.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, int]: Dictionary mapping gate names to counts</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">gate_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
@@ -573,12 +573,12 @@
         <span class="k">return</span> <span class="n">gate_counts</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Analyze qubit usage patterns in the circuit.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary with qubit analysis results</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">qubit_operations</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)}</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
@@ -587,21 +587,21 @@
                 <span class="n">qubit_operations</span><span class="p">[</span><span class="n">qubit_index</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;qubit_operations&quot;</span><span class="p">:</span> <span class="n">qubit_operations</span><span class="p">,</span>
-            <span class="s2">&quot;total_operations&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)</span> <span class="k">for</span> <span class="n">ops</span> <span class="ow">in</span> <span class="n">qubit_operations</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="s2">"qubit_operations"</span><span class="p">:</span> <span class="n">qubit_operations</span><span class="p">,</span>
+            <span class="s2">"total_operations"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)</span> <span class="k">for</span> <span class="n">ops</span> <span class="ow">in</span> <span class="n">qubit_operations</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
         <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_oracles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Analiza el uso de oráculos en el circuito.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: métricas de análisis de oráculos.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_is_oracle_gate</span><span class="p">(</span><span class="n">instr</span><span class="p">:</span> <span class="n">Instruction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Verifica si una instrucción o su definición interna representa un oráculo.&quot;&quot;&quot;</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<span class="w">            </span><span class="sd">"""Verifica si una instrucción o su definición interna representa un oráculo."""</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ORACLE_GATES</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">True</span>
 
@@ -625,7 +625,7 @@
             <span class="n">gate_name</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
             <span class="c1"># Ignorar operaciones no unitarias</span>
-            <span class="k">if</span> <span class="n">gate_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;barrier&quot;</span><span class="p">,</span> <span class="s2">&quot;reset&quot;</span><span class="p">,</span> <span class="s2">&quot;delay&quot;</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="n">gate_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"measure"</span><span class="p">,</span> <span class="s2">"barrier"</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">,</span> <span class="s2">"delay"</span><span class="p">}:</span>
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="n">_is_oracle_gate</span><span class="p">(</span><span class="n">instr</span><span class="p">):</span>
@@ -633,7 +633,7 @@
 
                 <span class="c1"># Distinguir entre oráculos controlados y simples</span>
                 <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;mc&quot;</span><span class="p">))</span>
+                    <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"c"</span><span class="p">,</span> <span class="s2">"mc"</span><span class="p">))</span>
                     <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">qargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span>
                     <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">ControlledGate</span><span class="p">)</span>
                 <span class="p">):</span>
@@ -668,40 +668,40 @@
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;oracles&quot;</span><span class="p">:</span> <span class="n">oracles</span><span class="p">,</span>
-            <span class="s2">&quot;controlled_oracles&quot;</span><span class="p">:</span> <span class="n">controlled_oracles</span><span class="p">,</span>
-            <span class="s2">&quot;qubit_ratio&quot;</span><span class="p">:</span> <span class="n">qubit_ratio</span><span class="p">,</span>
-            <span class="s2">&quot;controlled_qubit_ratio&quot;</span><span class="p">:</span> <span class="n">controlled_qubit_ratio</span><span class="p">,</span>
-            <span class="s2">&quot;avg_depth&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="k">if</span> <span class="n">oracle_depths</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="s2">&quot;max_depth&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="k">if</span> <span class="n">oracle_depths</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">"oracles"</span><span class="p">:</span> <span class="n">oracles</span><span class="p">,</span>
+            <span class="s2">"controlled_oracles"</span><span class="p">:</span> <span class="n">controlled_oracles</span><span class="p">,</span>
+            <span class="s2">"qubit_ratio"</span><span class="p">:</span> <span class="n">qubit_ratio</span><span class="p">,</span>
+            <span class="s2">"controlled_qubit_ratio"</span><span class="p">:</span> <span class="n">controlled_qubit_ratio</span><span class="p">,</span>
+            <span class="s2">"avg_depth"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="k">if</span> <span class="n">oracle_depths</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"max_depth"</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">oracle_depths</span><span class="p">)</span> <span class="k">if</span> <span class="n">oracle_depths</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Analyze measurement patterns in the circuit.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict[str, Any]: Dictionary with measurement analysis results</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">measured_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"measure"</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
                     <span class="n">measured_qubits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
         <span class="n">total_qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
         <span class="n">measured_ratio</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">measured_qubits</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_qubits</span> <span class="k">if</span> <span class="n">total_qubits</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
 
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;measured_qubits&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">measured_qubits</span><span class="p">),</span> <span class="s2">&quot;measured_ratio&quot;</span><span class="p">:</span> <span class="n">measured_ratio</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"measured_qubits"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">measured_qubits</span><span class="p">),</span> <span class="s2">"measured_ratio"</span><span class="p">:</span> <span class="n">measured_ratio</span><span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_superposition_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the ratio of qubits with a Hadamard gate as an initial gate.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Ratio of qubits in superposition state</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
 
@@ -718,13 +718,13 @@
 
         <span class="c1"># Count qubits that start with Hadamard</span>
         <span class="k">for</span> <span class="n">qubit_index</span><span class="p">,</span> <span class="n">first_gate</span> <span class="ow">in</span> <span class="n">first_gates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">first_gate</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">first_gate</span> <span class="o">==</span> <span class="s2">"h"</span><span class="p">:</span>
                 <span class="n">qubits_with_initial_h</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">qubits_with_initial_h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_other_single_qubit_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Count other single-qubit gates (excluding Pauli and Hadamard).</span>
 
 <span class="sd">        Args:</span>
@@ -732,21 +732,21 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of other single-qubit gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">other_single_qubit</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">gate_name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">gate_name</span> <span class="ow">in</span> <span class="n">SINGLE_QUBIT_GATES</span>
                 <span class="ow">and</span> <span class="n">gate_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PAULI_GATES</span>
-                <span class="ow">and</span> <span class="n">gate_name</span> <span class="o">!=</span> <span class="s2">&quot;h&quot;</span>
+                <span class="ow">and</span> <span class="n">gate_name</span> <span class="o">!=</span> <span class="s2">"h"</span>
             <span class="p">):</span>
                 <span class="n">other_single_qubit</span> <span class="o">+=</span> <span class="n">count</span>
 
         <span class="k">return</span> <span class="n">other_single_qubit</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_controlled_single_qubit_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Count controlled single-qubit gates.</span>
 
 <span class="sd">        Args:</span>
@@ -754,7 +754,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of controlled single-qubit gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">controlled_single_qubit</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">gate_name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -764,7 +764,7 @@
         <span class="k">return</span> <span class="n">controlled_single_qubit</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_all_controlled_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Count all controlled gates.</span>
 
 <span class="sd">        Args:</span>
@@ -772,13 +772,13 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of controlled gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">controlled_gates</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">gate_name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">gate_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mc&quot;</span><span class="p">)</span>
+                <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"c"</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="n">gate_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"mc"</span><span class="p">)</span>
                 <span class="ow">or</span> <span class="n">gate_name</span> <span class="ow">in</span> <span class="n">MULTI_QUBIT_GATES</span>
             <span class="p">):</span>
                 <span class="n">controlled_gates</span> <span class="o">+=</span> <span class="n">count</span>
@@ -786,36 +786,36 @@
         <span class="k">return</span> <span class="n">controlled_gates</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_cnot_qubit_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the ratio of qubits affected by CNOT gates.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Ratio of qubits affected by CNOT gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
 
         <span class="n">cnot_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"cx"</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
                     <span class="n">cnot_qubits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">cnot_qubits</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_cnot_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate average and maximum number of times each qubit</span>
 <span class="sd">        is affected (as target) by a CNOT gate.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple[float, int]: (average_cnot, max_cnot)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">qubit_cnot_counts</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)}</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;cx&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"cx"</span><span class="p">:</span>
                 <span class="n">target_qubit</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">target_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">target_qubit</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
                 <span class="n">qubit_cnot_counts</span><span class="p">[</span><span class="n">target_index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -828,36 +828,36 @@
         <span class="k">return</span> <span class="n">avg_cnot</span><span class="p">,</span> <span class="n">max_cnot</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_toffoli_qubit_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the ratio of qubits affected by Toffoli gates.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Ratio of qubits affected by Toffoli gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
 
         <span class="n">toffoli_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ccx&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"ccx"</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">qubit</span> <span class="ow">in</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">:</span>
                     <span class="n">toffoli_qubits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">qubit</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">toffoli_qubits</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_toffoli_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate average and maximum Toffoli gates per qubit.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple[float, int]: (average_toffoli, max_toffoli)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">num_qubits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
         <span class="n">toffoli_counts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_qubits</span>
 
         <span class="k">for</span> <span class="n">instruction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;ccx&quot;</span><span class="p">,</span> <span class="s2">&quot;toffoli&quot;</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="n">instruction</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"ccx"</span><span class="p">,</span> <span class="s2">"toffoli"</span><span class="p">}:</span>
                 <span class="n">target_qubit</span> <span class="o">=</span> <span class="n">instruction</span><span class="o">.</span><span class="n">qubits</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">target_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">target_qubit</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
                 <span class="n">toffoli_counts</span><span class="p">[</span><span class="n">target_index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -868,7 +868,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">avg_toff</span><span class="p">,</span> <span class="n">max_toff</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_count_total_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gate_counts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Count total number of gates in the circuit.</span>
 
 <span class="sd">        Args:</span>
@@ -876,20 +876,20 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Total number of gates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gate_counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Ensure that the required schemas are available.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If schemas are not available</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;ElementMetricsSchema is not available. &quot;</span>
-                <span class="s2">&quot;Please ensure that the schemas module is properly imported.&quot;</span>
+                <span class="s2">"ElementMetricsSchema is not available. "</span>
+                <span class="s2">"Please ensure that the schemas module is properly imported."</span>
             <span class="p">)</span></div>
 
 </pre></div>

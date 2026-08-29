@@ -254,7 +254,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for qward.metrics.behavioral_metrics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Behavioral Metrics implementation for QWARD.</span>
 
 <span class="sd">This module provides the BehavioralMetrics class for analyzing quantum circuit</span>
@@ -269,8 +269,8 @@
 <span class="sd">- Parallelism: Cross-talk susceptibility metric [2]</span>
 
 
-<span class="sd">[1] T. Lubinski et al., &quot;Application-Oriented Performance Benchmarks for</span>
-<span class="sd">Quantum Computing,&quot; in IEEE Transactions on Quantum Engineering, vol. 4,</span>
+<span class="sd">[1] T. Lubinski et al., "Application-Oriented Performance Benchmarks for</span>
+<span class="sd">Quantum Computing," in IEEE Transactions on Quantum Engineering, vol. 4,</span>
 <span class="sd">pp. 1-32, 2023, Art no. 3100332, doi: 10.1109/TQE.2023.3253761.</span>
 
 <span class="sd">[2] T. Tomesh, P. Gokhale, V. Omole, G. S. Ravi, K. N. Smith, J. Viszlai,</span>
@@ -279,7 +279,7 @@
 <span class="sd">High-Performance Computer Architecture (HPCA), 2022, doi:</span>
 <span class="sd">10.1109/HPCA53966.2022.00050.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
 
@@ -307,44 +307,44 @@
 
 <span class="c1"># Two-qubit gates for critical path analysis</span>
 <span class="n">TWO_QUBIT_GATES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;cx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;swap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;iswap&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;dcx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ecr&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rxx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ryy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;rzx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;xx_minus_yy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;xx_plus_yy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cry&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cp&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cu&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;csx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;csxdg&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;crzx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cphase&quot;</span><span class="p">,</span>
+    <span class="s2">"cx"</span><span class="p">,</span>
+    <span class="s2">"cy"</span><span class="p">,</span>
+    <span class="s2">"cz"</span><span class="p">,</span>
+    <span class="s2">"swap"</span><span class="p">,</span>
+    <span class="s2">"iswap"</span><span class="p">,</span>
+    <span class="s2">"dcx"</span><span class="p">,</span>
+    <span class="s2">"ecr"</span><span class="p">,</span>
+    <span class="s2">"rxx"</span><span class="p">,</span>
+    <span class="s2">"ryy"</span><span class="p">,</span>
+    <span class="s2">"rzz"</span><span class="p">,</span>
+    <span class="s2">"rzx"</span><span class="p">,</span>
+    <span class="s2">"xx_minus_yy"</span><span class="p">,</span>
+    <span class="s2">"xx_plus_yy"</span><span class="p">,</span>
+    <span class="s2">"crx"</span><span class="p">,</span>
+    <span class="s2">"cry"</span><span class="p">,</span>
+    <span class="s2">"crz"</span><span class="p">,</span>
+    <span class="s2">"cp"</span><span class="p">,</span>
+    <span class="s2">"cu1"</span><span class="p">,</span>
+    <span class="s2">"cu2"</span><span class="p">,</span>
+    <span class="s2">"cu3"</span><span class="p">,</span>
+    <span class="s2">"cu"</span><span class="p">,</span>
+    <span class="s2">"csx"</span><span class="p">,</span>
+    <span class="s2">"csxdg"</span><span class="p">,</span>
+    <span class="s2">"crzx"</span><span class="p">,</span>
+    <span class="s2">"cphase"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Measurement and reset operations</span>
-<span class="n">MEASUREMENT_OPERATIONS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;reset&quot;</span><span class="p">}</span>
+<span class="n">MEASUREMENT_OPERATIONS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"measure"</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">}</span>
 
 <span class="c1"># Canonical basis gates for normalized depth calculation</span>
-<span class="n">CANONICAL_BASIS_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rx&quot;</span><span class="p">,</span> <span class="s2">&quot;ry&quot;</span><span class="p">,</span> <span class="s2">&quot;rz&quot;</span><span class="p">,</span> <span class="s2">&quot;cx&quot;</span><span class="p">]</span>
+<span class="n">CANONICAL_BASIS_GATES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"rx"</span><span class="p">,</span> <span class="s2">"ry"</span><span class="p">,</span> <span class="s2">"rz"</span><span class="p">,</span> <span class="s2">"cx"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="BehavioralMetrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_behavioral.html#qward.metrics.behavioral_metrics.BehavioralMetrics">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BehavioralMetrics</span><span class="p">(</span><span class="n">MetricCalculator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extract behavioral metrics from QuantumCircuit objects.</span>
 
 <span class="sd">    This class analyzes quantum circuits to compute behavioral metrics that</span>
@@ -361,56 +361,56 @@
 <span class="sd">        _dag_circuit (DAGCircuit):</span>
 <span class="sd">            DAG representation of the circuit, used to extract execution</span>
 <span class="sd">            behavior, dependency structure, and parallelism characteristics.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="BehavioralMetrics.__init__">
 <a class="viewcode-back" href="../../../apidocs/generated/qward.metrics.behavioral_metrics.BehavioralMetrics.html#qward.metrics.behavioral_metrics.BehavioralMetrics.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the BehavioralMetrics calculator.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            circuit: The quantum circuit to analyze</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_schemas_available</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dag_circuit</span> <span class="o">=</span> <span class="n">circuit_to_dag</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsType</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the type of this metric.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            MetricsType: PRE_RUNTIME (can be calculated without execution)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">MetricsType</span><span class="o">.</span><span class="n">PRE_RUNTIME</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metric_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricsId</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the ID of this metric.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            MetricsId: BEHAVIORAL_METRICS</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">MetricsId</span><span class="o">.</span><span class="n">BEHAVIORAL</span>
 
 <div class="viewcode-block" id="BehavioralMetrics.is_ready">
 <a class="viewcode-back" href="../../../apidocs/metrics_behavioral.html#qward.metrics.behavioral_metrics.BehavioralMetrics.is_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Check if the metric is ready to be calculated.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: True if the circuit is available, False otherwise</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="BehavioralMetrics.get_metrics">
 <a class="viewcode-back" href="../../../apidocs/metrics_behavioral.html#qward.metrics.behavioral_metrics.BehavioralMetrics.get_metrics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BehavioralMetricsSchema</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate and return behavioral metrics.</span>
 
 <span class="sd">        Returns:</span>
@@ -418,9 +418,9 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If schemas are not available</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;BehavioralMetricsSchema is not available&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"BehavioralMetricsSchema is not available"</span><span class="p">)</span>
 
         <span class="c1"># Calculate all behavioral metrics</span>
         <span class="n">normalized_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_normalized_depth</span><span class="p">()</span>
@@ -441,19 +441,19 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_make_all_to_all_coupling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Genera una coupling_map totalmente conectada (all-to-all).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Genera una coupling_map totalmente conectada (all-to-all)."""</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_normalized_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the normalized depth by transpiling to canonical gate set.</span>
 
-<span class="sd">        The circuit is transpiled to the basis gates [&#39;rx&#39;, &#39;ry&#39;, &#39;rz&#39;, &#39;cx&#39;]</span>
+<span class="sd">        The circuit is transpiled to the basis gates ['rx', 'ry', 'rz', 'cx']</span>
 <span class="sd">        and the depth of the transpiled circuit is returned.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Depth of the transpiled circuit</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">cm</span> <span class="o">=</span> <span class="n">CouplingMap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_all_to_all_coupling</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">))</span>
             <span class="c1"># Transpile to canonical basis gates</span>
@@ -468,11 +468,11 @@
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">transpiled_circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># If transpilation fails, return original depth</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transpilation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, returning original depth.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transpilation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">, returning original depth."</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_program_communication</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the program communication metric.</span>
 
 <span class="sd">        This metric quantifies communication requirements by analyzing the</span>
@@ -484,7 +484,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Normalized communication requirements (0-1)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
         <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
@@ -507,7 +507,7 @@
         <span class="k">return</span> <span class="n">communication</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_critical_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the critical depth metric.</span>
 
 <span class="sd">        This metric analyzes the critical path of the circuit and computes</span>
@@ -520,7 +520,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Critical depth ratio (0-1)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Count total two-qubit operations</span>
         <span class="n">two_qubit_nodes</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">node</span>
@@ -541,7 +541,7 @@
         <span class="k">return</span> <span class="n">critical_depth</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the measurement metric.</span>
 
 <span class="sd">        This metric focuses on mid-circuit measurement and reset operations.</span>
@@ -554,7 +554,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Measurement ratio (0-1)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dag_circuit</span><span class="o">.</span><span class="n">layers</span><span class="p">())</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
 
@@ -566,15 +566,15 @@
         <span class="c1"># Recorremos las capas del DAG</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
             <span class="c1"># Cada capa contiene nodos (operaciones)</span>
-            <span class="n">ops</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">&quot;graph&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">op_nodes</span><span class="p">())</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;reset&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">):</span>
+            <span class="n">ops</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">layer</span><span class="p">[</span><span class="s2">"graph"</span><span class="p">]</span><span class="o">.</span><span class="n">op_nodes</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"measure"</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">):</span>
                 <span class="n">l_mcm</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">measurement_ratio</span> <span class="o">=</span> <span class="n">l_mcm</span> <span class="o">/</span> <span class="n">d</span>
         <span class="k">return</span> <span class="n">measurement_ratio</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_liveness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the liveness metric.</span>
 
 <span class="sd">        This metric captures qubit activity patterns during circuit execution.</span>
@@ -586,7 +586,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Liveness ratio (0-1)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
 
@@ -603,8 +603,8 @@
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
             <span class="c1"># qubits activos en este paso</span>
             <span class="n">active_qubits</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">[</span><span class="s2">&quot;graph&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">op_nodes</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;barrier&quot;</span><span class="p">}:</span>
+            <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">[</span><span class="s2">"graph"</span><span class="p">]</span><span class="o">.</span><span class="n">op_nodes</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"barrier"</span><span class="p">}:</span>
                     <span class="k">continue</span>  <span class="c1"># no cuentan como actividad útil</span>
                 <span class="k">for</span> <span class="n">qarg</span> <span class="ow">in</span> <span class="n">op</span><span class="o">.</span><span class="n">qargs</span><span class="p">:</span>
                     <span class="n">active_qubits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">find_bit</span><span class="p">(</span><span class="n">qarg</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
@@ -615,7 +615,7 @@
         <span class="k">return</span> <span class="n">liveness</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_parallelism</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the parallelism metric.</span>
 
 <span class="sd">        This metric represents cross-talk susceptibility by comparing the ratios</span>
@@ -627,14 +627,14 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Parallelism factor (0-1)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">num_qubits</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">depth</span><span class="p">()</span>
         <span class="n">ng</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">inst</span>
                 <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">data</span>
-                <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;barrier&quot;</span><span class="p">,</span> <span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;reset&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"barrier"</span><span class="p">,</span> <span class="s2">"measure"</span><span class="p">,</span> <span class="s2">"reset"</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="p">)</span>
 
@@ -649,16 +649,16 @@
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">parallelism</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_schemas_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Ensure that the required schemas are available.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ImportError: If schemas are not available</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">SCHEMAS_AVAILABLE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;BehavioralMetricsSchema is not available. &quot;</span>
-                <span class="s2">&quot;Please ensure that the schemas module is properly imported.&quot;</span>
+                <span class="s2">"BehavioralMetricsSchema is not available. "</span>
+                <span class="s2">"Please ensure that the schemas module is properly imported."</span>
             <span class="p">)</span></div>
 
 </pre></div>
