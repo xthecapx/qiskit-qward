@@ -151,7 +151,7 @@ This paper makes three contributions, namely \begin{enumerate*}[label=(\roman*),
 
 The analysis separates two questions that are easily conflated. The mathematical question is whether a function satisfies Axioms M1--M4 on a named space. The representational question asks whether a numerical value preserves the intended relations for an attribute of a specified entity~\cite{fentonBieman2015,fenton1994}. Passing one test does not guarantee passing the other. Hellinger distance is a metric on distributions, for example, but histogram closeness may be the wrong attribute when the decision concerns only the probability mass assigned to an answer set $E$.
 
-The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Sections~\ref{sec:model} and~\ref{sec:classification} define the execution model, reference classes, and classification of execution quantities. Sections~\ref{sec:analysis} and~\ref{sec:evaluation} present the analytical results and empirical evaluation. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, threats to validity, and conclusions.
+The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Section~\ref{sec:model} defines the execution model, reference classes, and classification of execution quantities. Sections~\ref{sec:analysis} and~\ref{sec:evaluation} present the analytical results and empirical evaluation. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, threats to validity, and conclusions.
 
 \section{Background}
 \label{sec:background}
@@ -250,7 +250,7 @@ The preceding subsection establishes whether a quantity is a mathematical metric
 
 Table~\ref{tab:scale-types} summarizes the five types of scale used in this paper and the comparisons supported by each.
 
-\begin{table}[t]
+\begin{table}[ht]
 \centering
 \caption{Measurement scale types and their interpretations.}
 \label{tab:scale-types}
@@ -292,9 +292,9 @@ In contrast, this paper focuses on quantities derived from quantum job outcomes 
 
 In current QC, executing a quantum job on a QPU ultimately produces classical measurement outcomes (shots), but most users consume those outcomes through \emph{primitives} at a higher level that expose summaries organized around computational tasks rather than a raw shot log. In Qiskit Runtime, \emph{SamplerV2} returns samples from the circuit's classical output registers, whereas \emph{EstimatorV2} returns estimated expectation values and standard errors for observables evaluated on specified circuits~\cite{qiskit2024,ibmEstimator2026}.
 
-These two result views need not be derived from the same physical shot record: expectation estimation can involve basis rotations, observable grouping, and mitigation, and in practice Sampler and Estimator are typically invoked via separate primitive requests. Table~\ref{tab:primitives} summarizes the information available for evaluating each result.
+These two result views need not be derived from the same physical shot record, and the additional processing used to estimate expectation values (e.g., basis rotations, observable grouping, or mitigation) can further separate what is reported from a raw shot log. Table~\ref{tab:primitives} summarizes the information available for evaluating each type of result.
 
-\begin{table}[t]
+\begin{table}[ht]
 \centering
 \caption{Questions for evaluating Sampler and Estimator results.}
 \label{tab:primitives}
@@ -313,12 +313,12 @@ What can be evaluated? & Did the measured outcomes agree with $E$ or $P^{\star}$
 \end{tabularx}
 \end{table}
 
-These results support different comparisons. Sampler results can be compared with a target outcome set or distribution, whereas Estimator results can be compared with ideal expectation values. A quantity that requires information not provided by the selected primitive should be reported as unavailable.
-
 \subsection{Interpreting Sampler and Estimator Results}
 \label{sec:primitives}
 
-A Sampler result preserves counts $\mathcal C(x)$ from $S$ shots. Normalizing the counts gives an empirical distribution $\widehat P$. If the task defines a valid answer set $E$, the result can be interpreted through the probability mass assigned to that set. A justified null distribution $Q_0$ also permits correction for chance.
+Interpreting a primitive result requires two choices that must be made in order. The primitive determines the empirical object available from execution, and the reference determines the question that can be asked about that object. Table~\ref{tab:primitives} summarizes this distinction. A quantity can be selected only after both choices are fixed, and it should be reported as unavailable when either the required result or reference is absent.
+
+For a Sampler result, interpretation begins with the counts $\mathcal C(x)$ from $S$ shots. Normalizing these counts gives the empirical distribution $\widehat P$. If the task identifies a set of accepted answers $E$, the relevant question is how much observed probability lies in that set. If a justified null distribution $Q_0$ is also available, success can be evaluated relative to its baseline. These steps give
 \begin{align}
 \widehat P(x)&=\frac{\mathcal C(x)}{S},\qquad K=|E|, \notag\\
 p_E&=\sum_{x\in E}\widehat P(x)
@@ -329,145 +329,52 @@ b&=\Pr_{X\sim Q_0}(X\in E),
 \CCS&=\mathrm{clip}\left(\frac{p_E-b}{1-b},0,1\right).
 \label{eq:chance-corrected-success}
 \end{align}
-For uniform guessing, $b=K/2^m$. When a full ideal distribution $P^{\star}$ is available, the same Sampler result can instead support a distribution comparison. A comparison that preserves a separate bin for every accepted answer also requires weights $w_i\geq 0$ with $\sum_{i=1}^{K}w_i=1$. Uniform weights are justified only when the task treats the accepted answers as equally likely.
 
-An Estimator result preserves expectation estimates and their reported uncertainties for specified observables. Given an ideal expectation, the interpretation concerns agreement in the value of that observable rather than agreement between output histograms. For observables whose physical expectations lie in $[-1,1]$, absolute deviation and observable fidelity are related by
+The quantities in this equation answer related but different questions. The value $p_E$ measures observed task success, whereas $\CCS$ asks whether that success exceeds the baseline defined by $Q_0$. Uniform guessing gives $b=K/2^m$. When a complete ideal distribution $P^{\star}$ is available, the same counts can instead support a comparison of the full histograms. If each accepted answer remains a separate bin, the comparison also requires weights $w_i\geq 0$ with $\sum_{i=1}^{K}w_i=1$. Uniform weights are justified only when the task treats the accepted answers as equally likely. The counts alone therefore do not determine whether the study evaluates task success or distribution agreement. That interpretation comes from the selected reference.
+
+An Estimator result follows a different path because it reports expectation estimates and their uncertainties rather than an output histogram. Once an ideal expectation is available, the relevant question becomes whether the estimated value agrees with that ideal for the specified observable. For observables whose physical expectations lie in $[-1,1]$, this agreement can be expressed through absolute deviation and observable fidelity
+
 \begin{equation}
 d_i=\left|\widehat{\langle O_i\rangle}-\langle O_i\rangle^{\mathrm{ideal}}\right|,
 \qquad
 F_{\mathrm{obs},i}=1-\frac{d_i}{2}.
 \label{eq:observable-fidelity}
 \end{equation}
-For an unmitigated estimate of an observable with eigenvalues in $\{\pm1\}$, $p_+(O)=(1+\widehat{\langle O\rangle})/2$ gives the mass in its positive eigenspace. It represents task success only when that eigenspace defines success. Mitigation can move an estimate outside the physical interval, in which case this transformation is not guaranteed to be a probability. Hellinger fidelity and DSR cannot be obtained from an Estimator result that provides only \texttt{evs} and \texttt{stds} because those quantities require a histogram or counts.
 
-The required reference determines both the interpretation and whether a quantity can be computed. R1 denotes a task answer set, with weights or a null model when required. R2 denotes a full ideal distribution. R3 denotes ideal expectation values or a Hamiltonian. R4 denotes an operational comparison, with R4F for a fidelity protocol and R4I for an inverse circuit. Positive eigenspace mass needs an observable but no ideal expectation, while ESP and $z_0$ require a calibration model and an uncertainty estimate, respectively. If the required information is absent, the quantity should be reported as unavailable. Substituting a different reference would change the attribute being evaluated.
+An estimate can also describe the mass in the positive eigenspace. For an observable with eigenvalues in $\{\pm1\}$ and an estimate obtained without mitigation, $p_+(O)=(1+\widehat{\langle O\rangle})/2$ gives that mass. It represents task success only when the positive eigenspace defines the goal. Mitigation can move an estimate outside the physical interval, in which case the transformation is not guaranteed to be a probability. Hellinger fidelity and DSR cannot be obtained from an Estimator result that provides only \texttt{evs} and \texttt{stds} because both require a histogram or counts from a separate measurement.
 
-\section{Classification of Execution Quantities}
+These two interpretation paths lead to the reference classes defined in Table~\ref{tab:references}. Each class identifies the information required and the comparison that it supports. The class labels are used throughout the remainder of the paper.
+
+\begin{table}[ht]
+\centering
+\caption{Reference classes used to interpret execution quantities.}
+\label{tab:references}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}p{0.37\columnwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Class} & \textbf{What information is needed?} & \textbf{What does it support?} \\
+\midrule
+R1 task & Answer set $E$, with weights $w$ or null model $Q_0$ when required
+& Task success, correction for chance, or a coarse distribution comparison \\
+R2 distribution & Complete ideal distribution $P^{\star}$
+& Comparison of complete histograms \\
+R3 observable & Ideal expectation values or a Hamiltonian
+& Agreement for observable values or energy \\
+R4 operational & Fidelity protocol (R4F) or inverse circuit (R4I)
+& State, process, or inverse return comparison \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Not every quantity uses one of these reference classes. The positive eigenspace mass needs an observable but no ideal expectation, the ESP needs a calibration model, and $z_0$ needs an uncertainty estimate. Replacing missing information with a different reference would change both the attribute and the question being evaluated. The following subsection uses these requirements to classify the quantities considered in this study.
+
+% This subsection operationalizes RQ1, and the permitted use column informs RQ2.
+\subsection{Classification of Execution Quantities}
 \label{sec:classification}
 
-Table~\ref{tab:audit} classifies common quantities for individual jobs by attribute, reference class, mathematical kind, and principal limitation.
+Once the primitive and required reference are identified, quantities with similar numerical ranges can still represent different execution attributes. Table~\ref{tab:audit} classifies every quantity considered in this study by its attribute, required reference, mathematical kind, permitted use, and principal limitation. Its R1 through R4 entries use the reference classes defined in Table~\ref{tab:references}. These classes distinguish quantities that evaluate task success, complete distributions, expectation values, and operational comparisons. Table~\ref{tab:audit} lists ESP, positive eigenspace mass, and $z_0$ separately because they require calibration, an observable, or an uncertainty estimate rather than an ideal reference from R1 through R4.
 
-Equations~\ref{eq:hellinger-l2} and~\ref{eq:tvd-l1} show that Hellinger distance and TVD satisfy Axioms M1--M4 through the $L^{2}$ embedding of square roots and the scaled $L^{1}$ distance, respectively~\cite{gilchrist2005,nielsen2010}. Coarse TVD and coarse Hellinger distance satisfy the same axioms on the mapped probability simplex $\Delta_{K+1}$ defined by Equation~\ref{eq:probability-simplex}; the map keeps each $x\in E$ and combines the complement into one bin. When regarded as functions of full histograms on $\Delta_{2^{m}}$, the coarse quantities are only pseudometrics because distinct histograms can have the same mapped representation.
-
-\begin{proposition}[Coarse quantities at $K=1$]
-\label{prop:k1}
-Assume
-\begin{equation}
-K=|E|=1.
-\label{eq:k1-condition}
-\end{equation}
-Write $p_E$ for the observed mass on the single expected string. On the coarse simplex, the observed histogram is
-\begin{equation}
-P^{\mathrm{coarse}}=(p_E,1-p_E),
-\label{eq:k1-coarse-observed}
-\end{equation}
-and the ideal is
-\begin{equation}
-P^{\mathrm{coarse},\star}=(1,0).
-\label{eq:k1-coarse-ideal}
-\end{equation}
-The coarse total variation distance is
-\begin{equation}
-\TVD^{\mathrm{coarse}}=1-p_E,
-\label{eq:k1-coarse-tvd}
-\end{equation}
-and the coarse Hellinger fidelity is
-\begin{equation}
-\HF^{\mathrm{coarse}}=p_E.
-\label{eq:k1-coarse-hf}
-\end{equation}
-\end{proposition}
-
-\begin{IEEEproof}
-The TVD calculation is
-\begin{equation}
-\TVD^{\mathrm{coarse}}
-=\frac12\left(\lvert p_E-1\rvert+\lvert(1-p_E)-0\rvert\right)
-=1-p_E.
-\label{eq:k1-coarse-tvd-proof}
-\end{equation}
-The Bhattacharyya coefficient is
-\begin{equation}
-\BC^{\mathrm{coarse}}
-=\sqrt{p_E\cdot 1}+\sqrt{(1-p_E)\cdot 0}
-=\sqrt{p_E}.
-\label{eq:k1-coarse-bc-proof}
-\end{equation}
-Squaring Equation~\ref{eq:k1-coarse-bc-proof} gives Equation~\ref{eq:k1-coarse-hf}.
-\end{IEEEproof}
-
-The identities are exact for the coarse construction. When the full ideal is the delta distribution on the expected string, they also hold for full HF and TVD. Grover with a finite number of iterations generally retains amplitude outside $E$, so its R1 and R2 quantities answer different questions and need not coincide. Data processing ensures that TVD and Hellinger distance between two distributions cannot increase when both distributions pass through the same coarse mapping~\cite{csiszar1967}. The R1 targets used here are not generally the result of applying this map to $P^{\star}$, so this inequality does not compare the R1 and R2 quantities reported in Section~\ref{sec:grover-reference}.
-
-\begin{proposition}[Coarse quantities for multiple answers]
-\label{prop:kmulti}
-Let the answer set be
-\begin{equation}
-E=\{e_1,\ldots,e_K\}.
-\label{eq:multi-answer-set}
-\end{equation}
-Assume
-\begin{equation}
-K>1.
-\label{eq:multi-answer-count}
-\end{equation}
-Define each marked probability by
-\begin{equation}
-p_i=\widehat P(e_i).
-\label{eq:multi-marked-probability}
-\end{equation}
-Let $w_i\geq0$ and $\sum_{i=1}^{K}w_i=1$. Compare the coarse profile
-\begin{equation}
-P^{\mathrm{coarse}}=(p_1,\ldots,p_K,1-p_E)
-\label{eq:multi-coarse-profile}
-\end{equation}
-with the task target
-\begin{equation}
-W_E=\left(w_1,\ldots,w_K,0\right).
-\label{eq:multi-coarse-target}
-\end{equation}
-Then
-\begin{equation}
-F_H^{\mathrm{coarse}}=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2\le p_E,
-\label{eq:multi-coarse-hf}
-\end{equation}
-Equality holds if and only if
-\begin{equation}
-p_i=p_Ew_i
-\quad\text{for every marked outcome}.
-\label{eq:multi-hf-equality}
-\end{equation}
-Moreover, coarse TVD similarity equals $p_E$ whenever
-\begin{equation}
-p_i\le w_i
-\quad\text{for every }i.
-\label{eq:multi-tvd-condition}
-\end{equation}
-\end{proposition}
-
-\begin{IEEEproof}
-The Hellinger expression follows by substituting $W_E$ into the Bhattacharyya coefficient in Equation~\ref{eq:bhattacharyya-coefficient}. Cauchy--Schwarz gives
-\begin{equation}
-\left(\sum_i\sqrt{p_iw_i}\right)^2
-\le \left(\sum_i p_i\right)\left(\sum_iw_i\right)=p_E,
-\end{equation}
-with equality exactly when $p_i=p_Ew_i$. Under the stated TVD condition,
-\begin{equation}
-\sum_i\left|p_i-w_i\right|=1-p_E.
-\label{eq:multi-marked-deviation}
-\end{equation}
-Including the bin that combines all other outcomes gives
-\begin{equation}
-\TVD^{\mathrm{coarse}}
-=\frac12\left[(1-p_E)+(1-p_E)\right]
-=1-p_E.
-\label{eq:multi-coarse-tvd}
-\end{equation}
-Its similarity is therefore $p_E$.
-\end{IEEEproof}
-
-Proposition~\ref{prop:kmulti} explains why the identities of Proposition~\ref{prop:k1} fail in different ways for coarse HF and coarse TVD. Section~\ref{sec:dsr} introduces the separate attribute of dominance among peaks used by DSR.
-
-\begin{table*}[t]
+\begin{table*}[ht]
 \centering
 \caption{Representational classification of common quantities reported for each job. A metric satisfies Axioms M1--M4 on the named space. Other quantities are assessed by the relation they preserve.}
 \label{tab:audit}
@@ -497,7 +404,7 @@ Hellinger fidelity $\HF$ & histogram overlap & R2 & similarity
 TVD & $L^{1}$ histogram distance & R2 & \textbf{metric}
 & order; descriptive means require a stated estimand and weighting; triangle bounds
 & needs $P^{\star}$; ignores phase \\
-TVD similarity, Eq.~\ref{eq:tvd-similarity} & histogram similarity & R2 & similarity
+TVD similarity & histogram similarity & R2 & similarity
 & exact complement; converted thresholds and ranks
 & metric chaining uses the underlying TVD \\
 Uhlmann / DM fidelity & state overlap & R4F & similarity
@@ -540,10 +447,52 @@ Standardized magnitude $z_0$ & magnitude relative to zero & uncertainty & diagno
 \end{tabularx}
 \end{table*}
 
-The word \emph{metric} is therefore reserved for the bold entries in Table~\ref{tab:audit} on their named domains. For every other entry, the table names the empirical relation that the number can preserve and avoids a stronger scale claim. These are representation conditions: if the reference, null model, observable, task weights, or sampling design changes, the permitted comparison must be reassessed. Section~\ref{sec:dsr} applies this rule explicitly to DSR.
+The entries for Hellinger fidelity and TVD similarity in Table~\ref{tab:audit} identify the distribution similarities used in the empirical analysis, while its Hellinger distance and TVD entries identify the operations supported by the underlying metrics. The classifications of task scores, Estimator quantities, predictions, and operational comparisons in Table~\ref{tab:audit} show that these quantities answer different questions and cannot be interpreted as substitutes for the distribution quantities. Bold entries in Table~\ref{tab:audit} identify metrics on their named domains, while every other entry is described by the relation it can preserve. A change in the reference, null model, observable, task weights, or sampling design requires the permitted comparison to be reassessed. Table~\ref{tab:audit} thus establishes which quantities can support the same research question before the analytical results examine whether transformations and subsequent operations preserve a conclusion.
 
 \section{Analytical Results}
 \label{sec:analysis}
+
+\subsection{Relations for Known Answer Sets}
+\label{sec:known-answer-relations}
+
+% The propositions in this subsection support RQ2.
+Known answer sets create a coarse representation that retains each accepted outcome and combines the remaining outcomes into one bin. Hellinger distance and TVD are metrics on the resulting simplex $\Delta_{K+1}$ through the norm representations in Equations~\ref{eq:hellinger-l2} and~\ref{eq:tvd-l1}~\cite{gilchrist2005,nielsen2010}. The pullbacks of these distances to the space of full histograms are pseudometrics because different histograms can produce the same coarse representation. The following propositions identify when task mass and coarse similarities preserve the same conclusion and when they can diverge.
+
+\begin{proposition}[One accepted answer]
+\label{prop:k1}
+Let $E$ contain one accepted answer and let $p_E$ be its observed probability mass. Comparing the coarse distribution $(p_E,1-p_E)$ with the target $(1,0)$ gives
+\begin{equation}
+\TVD^{\mathrm{coarse}}=1-p_E,
+\qquad
+1-\TVD^{\mathrm{coarse}}=\HF^{\mathrm{coarse}}=p_E.
+\label{eq:k1-coarse-relations}
+\end{equation}
+Thus success rate, coarse TVD similarity, and coarse Hellinger fidelity produce the same ordering and the same decisions after threshold direction is converted.
+\end{proposition}
+
+\begin{IEEEproof}
+Substitution into the definition of TVD gives $1-p_E$. Substitution into the Bhattacharyya coefficient gives $\sqrt{p_E}$, whose square is the coarse Hellinger fidelity $p_E$.
+\end{IEEEproof}
+
+These identities are exact for the coarse construction. They also hold for a complete distribution comparison only when $P^{\star}$ is concentrated on the accepted answer. Grover with a finite number of iterations can retain ideal probability outside $E$, so its R1 and R2 quantities, defined in Table~\ref{tab:references}, answer different questions and need not coincide. TVD and Hellinger distance cannot increase when the same coarse mapping is applied to both distributions~\cite{csiszar1967}. The R1 targets used here are not generally obtained by applying that mapping to $P^{\star}$, so this property does not equate the R1 and R2 quantities reported in Section~\ref{sec:grover-reference}.
+
+\begin{proposition}[Several accepted answers]
+\label{prop:kmulti}
+Let $E=\{e_1,\ldots,e_K\}$ with $K>1$, let $p_i=\widehat P(e_i)$, and let $p_E=\sum_i p_i$. For weights $w_i\geq0$ with $\sum_iw_i=1$, compare
+\begin{align}
+P^{\mathrm{coarse}}&=(p_1,\ldots,p_K,1-p_E), \notag\\
+W_E&=(w_1,\ldots,w_K,0), \notag\\
+\HF^{\mathrm{coarse}}&=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2\leq p_E.
+\label{eq:multi-coarse-relations}
+\end{align}
+Equality holds exactly when $p_i=p_Ew_i$ for every accepted answer. Coarse TVD similarity also equals $p_E$ whenever $p_i\leq w_i$ for every $i$.
+\end{proposition}
+
+\begin{IEEEproof}
+The standard inequality for inner products bounds the coarse Hellinger fidelity by $(\sum_i p_i)(\sum_iw_i)=p_E$ and gives the stated equality condition. When $p_i\leq w_i$, the marked bins contribute $1-p_E$ to the absolute difference. The bin containing all other outcomes contributes the same amount, so coarse TVD equals $1-p_E$ and its similarity equals $p_E$.
+\end{IEEEproof}
+
+The propositions show when several R1 quantities are equivalent and when they are not. With one accepted answer, they are alternative representations of the same mass. With several accepted answers, the weights and the distribution of mass within $E$ can change coarse Hellinger fidelity even when $p_E$ is unchanged. These quantities should therefore not be reported as independent evidence. Section~\ref{sec:dsr} introduces dominance among peaks as a separate attribute and compares DSR with these companion quantities.
 
 \subsection{Threshold Invariance}
 \label{sec:threshold}
@@ -686,9 +635,9 @@ The empirical checks use the accompanying QWARD dataset of 1,478 previously exec
 \subsection{Transformation, Aggregation, and Availability}
 \label{sec:corpus-checks}
 
-Table~\ref{tab:corpus-checks} reports E1--E3 on all corpus rows. E1 confirms the defining transformations to stored precision. E2 finds no inversion under the specified groupings, which limits the corpus result without changing the constructed possibility in Section~\ref{sec:aggregation}. E3 demonstrates unequal population of the R1 and R2 fields; missingness alone does not establish its cause.
+Table~\ref{tab:corpus-checks} reports E1--E3 on all corpus rows. E1 confirms the defining transformations to stored precision. E2 finds no inversion under the specified groupings, which limits the corpus result without changing the constructed possibility in Section~\ref{sec:aggregation}. E3 demonstrates unequal population of the R1 and R2 fields defined in Table~\ref{tab:references}; missingness alone does not establish its cause.
 
-\begin{table*}[t]
+\begin{table*}[ht]
 \centering
 \caption{Reproducible corpus checks for transformation, aggregation, and reference availability.}
 \label{tab:corpus-checks}
@@ -731,7 +680,7 @@ b&=\frac14.
 \end{align}
 Table~\ref{tab:worked-sampler} reports the resulting quantities.
 
-\begin{table}[t]
+\begin{table}[ht]
 \centering
 \caption{Sampler example ($K=1$).}
 \label{tab:worked-sampler}
@@ -786,7 +735,7 @@ while its affine transform is
 \end{equation}
 The submission left Runtime options at server defaults, and the stored record does not retain the resulting mitigation metadata; we therefore do not interpret this transform as observed eigenspace mass. It also does not measure agreement with the ideal. Relative error is undefined at an exact zero reference, and replacing the denominator by a numerical epsilon does not repair that interpretation.
 
-\begin{table*}[t]
+\begin{table*}[ht]
 \centering
 \caption{Selected observables from the GHZ-4 EstimatorV2 execution on \texttt{ibm\_fez}~\cite{qwardEstimatorData2026}.}
 \label{tab:worked-estimator}
@@ -819,7 +768,7 @@ Grover with a finite number of iterations provides a useful test of sensitivity 
 
 Table~\ref{tab:grover-multi} reports two configurations with four qubits and multiple marked states from the filtered dataset. Each row gives the median for one backend over transpiler optimization levels 0--3 and compares DSR with companion measures rather than devices. Because each sample has an even size, these medians average the two central observations. We treat them only as descriptive summaries, not as quantities that commute with nonlinear transformations. For $K=2$, full HF is substantially larger than coarse HF because the full ideal after a finite number of iterations and the coarse target defined by the answer set preserve different information. For $K=4$, one Grover iteration reaches unit ideal success probability, so the full ideal equals the uniform task target $W_E$ and coarse and full HF coincide. DSR nevertheless collapses to $0$ on \texttt{ibm\_fez} while the median success rate remains $0.403$. This difference follows from comparing the average expected peak, $p_E/K$, with the largest competitor. It is therefore a change of attribute that depends on $K$ rather than evidence that one measure estimates another more accurately.
 
-\begin{table*}[t]
+\begin{table*}[ht]
 \centering
 \caption{DSR and companion Grover measures after filtering the accompanying dataset to \texttt{algorithm = GROVER}. Values are medians over transpiler optimization levels 0--3 for each configuration and backend~\cite{qwardGroverData2026}.}
 \label{tab:grover-multi}
@@ -837,7 +786,7 @@ Table~\ref{tab:grover-multi} reports two configurations with four qubits and mul
 \section{Discussion}
 \label{sec:discussion}
 
-An execution quantity cannot be interpreted independently of its primitive, attribute, and required reference information. This dependency is the focus of Research Question~\ref{rq:attributes}. Sections~\ref{sec:primitives} and~\ref{sec:classification} make it explicit, while Table~\ref{tab:audit} records the attribute, reference, mathematical kind, and permitted use of each quantity. The represented attribute is determined jointly by the formula, its domain, and the supplied reference information. Selecting the primitive and attribute first therefore helps prevent the measurement procedure from silently changing the question.
+An execution quantity cannot be interpreted independently of its primitive, attribute, and required reference information. This dependency is the focus of Research Question~\ref{rq:attributes}. Subsections~\ref{sec:primitives} and~\ref{sec:classification} make it explicit, while Table~\ref{tab:audit} records the attribute, reference, mathematical kind, and permitted use of each quantity. The represented attribute is determined jointly by the formula, its domain, and the supplied reference information. Selecting the primitive and attribute first therefore helps prevent the measurement procedure from silently changing the question.
 
 This classification also helps determine which subsequent operations are justified, the issue posed by Research Question~\ref{rq:operations}. Sections~\ref{sec:threshold}--\ref{sec:scale} show that converted thresholds preserve individual decisions within a strictly monotone class, whereas aggregation, composition, ratio statements, and decisions under sampling uncertainty require additional assumptions. A transformation therefore preserves a conclusion only for the stated decision and scale; operations beyond that setting can change its meaning or outcome.
 
@@ -848,7 +797,7 @@ The provider comparisons in Section~\ref{sec:corpus-checks} and the QPU measurem
 
 The GQM goal is stated in its conventional form: \emph{analyze the result of an individual quantum execution for the purpose of evaluating its suitability for a stated task, with respect to the selected execution attribute, from the viewpoint of the developer, in the context of a fixed primitive, reference or null model, shot budget, mitigation procedure, and intended downstream operation}. Four questions operationalize this goal. (Q1) Is the result interpreted through a Sampler or an Estimator? (Q2) Which attribute is relevant---agreement with a full distribution, mass on a known answer set, dominance among peaks, overlap at the state or process level, expectation deviation, prediction, or uncertainty? (Q3) Which reference class and task assumptions are available? (Q4) Will the quantity be thresholded, aggregated, or propagated through a staged bound? Table~\ref{tab:gqm} maps these questions to admissible quantities.
 
-\begin{table}[t]
+\begin{table}[ht]
 \centering
 \caption{GQM questions and admissible quantities.}
 \label{tab:gqm}
@@ -871,7 +820,7 @@ Are several observables aggregated? & use Hamiltonian weights; report energy dev
 \end{tabularx}
 \end{table}
 
-After the primitive and reference are identified in Section~\ref{sec:primitives}, Table~\ref{tab:gqm} and Sections~\ref{sec:threshold}--\ref{sec:scale} inform quantity selection through GQM. An unavailable reference yields ``not computable under the selected attribute'' rather than an implicit change of attribute.
+After the primitive and reference are identified in Section~\ref{sec:primitives} and Table~\ref{tab:references}, Table~\ref{tab:gqm} and Sections~\ref{sec:threshold}--\ref{sec:scale} inform quantity selection through GQM. An unavailable reference yields ``not computable under the selected attribute'' rather than an implicit change of attribute.
 
 \subsection{Typing Differential Success Rate}
 \label{sec:dsr}
@@ -991,7 +940,7 @@ P\ne Q.
 \end{equation}
 \end{IEEEproof}
 
-\begin{table*}[t]
+\begin{table*}[ht]
 \centering
 \caption{Axiom results for objects related to DSR. ``N/A'' denotes an arity mismatch rather than an axiom failure.}
 \label{tab:dsr-axioms}
