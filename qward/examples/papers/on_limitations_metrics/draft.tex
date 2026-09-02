@@ -268,7 +268,7 @@ Absolute & Shot counts correspond most closely to this type. Derived proportions
 \end{tabularx}
 \end{table}
 
-A scale type belongs to a stated attribute and measurement procedure, not to the numerical value alone. Table~\ref{tab:audit} therefore assigns a conservative measurement status rather than inferring a scale from a familiar formula. Section~\ref{sec:scale} applies this principle to $p_E$, aggregation between jobs, ratio statements, and uncertainty due to finite sampling. Mathematical kind, scale interpretation, and sampling uncertainty remain separate properties.
+A scale type belongs to a stated attribute and measurement procedure, not to the numerical value alone. Table~\ref{tab:audit} therefore assigns a conservative measurement status rather than inferring a scale from a familiar formula. Subsection~\ref{sec:operations} applies this principle to $p_E$, aggregation between jobs, ratio statements, and uncertainty due to finite sampling. Mathematical kind, scale interpretation, and sampling uncertainty remain separate properties.
 
 This framework prevents every numerical quantity from being treated as a mathematical metric, a concern raised by Fenton~\cite{fenton1994,fenton1992}. A unary score can represent the probability mass on an answer set, even though Axioms M1--M4 do not apply to it. On the other hand, a mathematical distance can be unsuitable for a decision concerning a different attribute. Clipping a score corrected for chance at zero provides another limitation because it removes the ordering among jobs below the chance baseline.
 
@@ -449,171 +449,98 @@ Standardized magnitude $z_0$ & magnitude relative to zero & uncertainty & diagno
 
 The entries for Hellinger fidelity and TVD similarity in Table~\ref{tab:audit} identify the distribution similarities used in the empirical analysis, while its Hellinger distance and TVD entries identify the operations supported by the underlying metrics. The classifications of task scores, Estimator quantities, predictions, and operational comparisons in Table~\ref{tab:audit} show that these quantities answer different questions and cannot be interpreted as substitutes for the distribution quantities. Bold entries in Table~\ref{tab:audit} identify metrics on their named domains, while every other entry is described by the relation it can preserve. A change in the reference, null model, observable, task weights, or sampling design requires the permitted comparison to be reassessed. Table~\ref{tab:audit} thus establishes which quantities can support the same research question before the analytical results examine whether transformations and subsequent operations preserve a conclusion.
 
-\section{Analytical Results}
+\section{Preservation of Execution Conclusions}
 \label{sec:analysis}
 
-\subsection{Relations for Known Answer Sets}
-\label{sec:known-answer-relations}
+% Internal review guide. This section supplies the analytical answer to RQ2 by distinguishing transformations that preserve a conclusion from operations that require additional assumptions. The Evaluation tests selected consequences with execution data.
+Whether a conclusion survives later use of a quantity depends on the operation applied to its numerical representation. We first establish conditions under which transformations retain the ordering and decision for a fixed attribute and reference. We then examine aggregation, composition, and scale interpretations that can change the conclusion or require additional assumptions. The Evaluation tests selected consequences with execution data.
 
-% The propositions in this subsection support RQ2.
-Known answer sets create a coarse representation that retains each accepted outcome and combines the remaining outcomes into one bin. Hellinger distance and TVD are metrics on the resulting simplex $\Delta_{K+1}$ through the norm representations in Equations~\ref{eq:hellinger-l2} and~\ref{eq:tvd-l1}~\cite{gilchrist2005,nielsen2010}. The pullbacks of these distances to the space of full histograms are pseudometrics because different histograms can produce the same coarse representation. The following propositions identify when task mass and coarse similarities preserve the same conclusion and when they can diverge.
+\subsection{Equivalent Decisions for a Fixed Interpretation}
+\label{sec:threshold}
+
+A transformed quantity can preserve the decision for one job even when its numerical value and direction differ. The necessary conditions are a fixed attribute, a fixed reference, a strictly monotone transformation, and a consistently converted threshold.
+
+\begin{lemma}[Threshold invariance]
+\label{lem:threshold}
+Let $d(\cdot,Q)$ be a real quantity with fixed reference $Q$, and let $\phi$ be strictly monotone. Then
+\begin{equation}
+d(P,Q)\leq\tau
+\iff
+\begin{cases}
+\phi(d(P,Q))\leq\phi(\tau), & \phi\text{ increasing},\\
+\phi(d(P,Q))\geq\phi(\tau), & \phi\text{ decreasing}.
+\end{cases}
+\label{eq:threshold-equivalence}
+\end{equation}
+\end{lemma}
+
+Strict monotonicity preserves or reverses order, so the converted threshold partitions the jobs in the same way. The lemma applies to the Hellinger distance and its similarity forms, TVD and its complement, and absolute expectation deviation and observable fidelity. Success corrected for chance belongs to a monotone class only above the chance baseline because clipping removes the order among lower values. DSR represents dominance among peaks and is not a transformation of task success, as Section~\ref{sec:dsr} establishes.
+
+Known answer sets provide a direct application of the lemma. The coarse representation retains each accepted outcome and combines the outcomes outside $E$ into one bin. Hellinger distance and TVD remain metrics on $\Delta_{K+1}$~\cite{gilchrist2005,nielsen2010}. Their pullbacks to full histograms fail identity of indiscernibles when the coarse mapping combines at least two outcomes outside $E$. They are therefore generally pseudometrics on the full histogram space, although the pullback remains a metric when the mapping is injective.
 
 \begin{proposition}[One accepted answer]
 \label{prop:k1}
-Let $E$ contain one accepted answer and let $p_E$ be its observed probability mass. Comparing the coarse distribution $(p_E,1-p_E)$ with the target $(1,0)$ gives
+If $E$ contains one accepted answer with observed mass $p_E$, comparison of $(p_E,1-p_E)$ with $(1,0)$ gives
 \begin{equation}
 \TVD^{\mathrm{coarse}}=1-p_E,
 \qquad
 1-\TVD^{\mathrm{coarse}}=\HF^{\mathrm{coarse}}=p_E.
 \label{eq:k1-coarse-relations}
 \end{equation}
-Thus success rate, coarse TVD similarity, and coarse Hellinger fidelity produce the same ordering and the same decisions after threshold direction is converted.
 \end{proposition}
 
-\begin{IEEEproof}
-Substitution into the definition of TVD gives $1-p_E$. Substitution into the Bhattacharyya coefficient gives $\sqrt{p_E}$, whose square is the coarse Hellinger fidelity $p_E$.
-\end{IEEEproof}
-
-These identities are exact for the coarse construction. They also hold for a complete distribution comparison only when $P^{\star}$ is concentrated on the accepted answer. Grover with a finite number of iterations can retain ideal probability outside $E$, so its R1 and R2 quantities, defined in Table~\ref{tab:references}, answer different questions and need not coincide. TVD and Hellinger distance cannot increase when the same coarse mapping is applied to both distributions~\cite{csiszar1967}. The R1 targets used here are not generally obtained by applying that mapping to $P^{\star}$, so this property does not equate the R1 and R2 quantities reported in Section~\ref{sec:grover-reference}.
+Substitution into the definitions of TVD and the Bhattacharyya coefficient establishes these identities. Success rate, coarse TVD similarity, and coarse Hellinger fidelity therefore provide alternative representations of the same task mass and should not be reported as independent evidence.
 
 \begin{proposition}[Several accepted answers]
 \label{prop:kmulti}
-Let $E=\{e_1,\ldots,e_K\}$ with $K>1$, let $p_i=\widehat P(e_i)$, and let $p_E=\sum_i p_i$. For weights $w_i\geq0$ with $\sum_iw_i=1$, compare
-\begin{align}
-P^{\mathrm{coarse}}&=(p_1,\ldots,p_K,1-p_E), \notag\\
-W_E&=(w_1,\ldots,w_K,0), \notag\\
-\HF^{\mathrm{coarse}}&=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2\leq p_E.
+Let $E=\{e_1,\ldots,e_K\}$ with $K>1$, let $p_i=\widehat P(e_i)$, and let $p_E=\sum_i p_i$. For weights $w_i\geq0$ with $\sum_iw_i=1$, coarse Hellinger fidelity satisfies
+\begin{equation}
+\HF^{\mathrm{coarse}}
+=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2
+\leq p_E.
 \label{eq:multi-coarse-relations}
-\end{align}
-Equality holds exactly when $p_i=p_Ew_i$ for every accepted answer. Coarse TVD similarity also equals $p_E$ whenever $p_i\leq w_i$ for every $i$.
+\end{equation}
+Equality holds exactly when $p_i=p_Ew_i$ for every accepted answer. Coarse TVD similarity also equals $p_E$ when $p_i\leq w_i$ for every $i$.
 \end{proposition}
 
-\begin{IEEEproof}
-The standard inequality for inner products bounds the coarse Hellinger fidelity by $(\sum_i p_i)(\sum_iw_i)=p_E$ and gives the stated equality condition. When $p_i\leq w_i$, the marked bins contribute $1-p_E$ to the absolute difference. The bin containing all other outcomes contributes the same amount, so coarse TVD equals $1-p_E$ and its similarity equals $p_E$.
-\end{IEEEproof}
+The inner product inequality gives the Hellinger bound and its equality condition. The TVD result follows because the accepted bins and the combined bin each contribute $1-p_E$ to the absolute difference. With several accepted answers, the task weights and the distribution of mass within $E$ can therefore change a coarse similarity even when $p_E$ is unchanged.
 
-The propositions show when several R1 quantities are equivalent and when they are not. With one accepted answer, they are alternative representations of the same mass. With several accepted answers, the weights and the distribution of mass within $E$ can change coarse Hellinger fidelity even when $p_E$ is unchanged. These quantities should therefore not be reported as independent evidence. Section~\ref{sec:dsr} introduces dominance among peaks as a separate attribute and compares DSR with these companion quantities.
+These conclusions apply within the R1 task interpretation defined in Table~\ref{tab:references}. They do not make an R1 quantity equivalent to an R2 comparison with a complete ideal distribution. The two interpretations coincide as a general identity for one accepted answer only when $P^{\star}$ is concentrated on that answer. Grover with a finite number of iterations can retain ideal probability outside $E$, so the R1 and R2 quantities evaluated in Section~\ref{sec:grover-reference} can support different conclusions.
 
-\subsection{Threshold Invariance}
-\label{sec:threshold}
+\subsection{Operations That Require Additional Assumptions}
+\label{sec:operations}
 
-\begin{lemma}[Threshold invariance]
-\label{lem:threshold}
-Let $d(\cdot,Q)$ be a real quantity on histograms with fixed reference $Q$, and let $\phi$ be strictly monotone. Define the transformed threshold by
+Equivalent decisions for individual jobs do not guarantee equivalent summaries over several jobs. Hellinger fidelity is the nonlinear transformation $\phi(H)=(1-H^2)^2$. Consider the constructed sets $A=\{0.10,0.10,0.90\}$ and $B=\{0.40,0.40,0.40\}$. Their summaries satisfy
 \begin{equation}
-\tau'=\phi(\tau).
-\label{eq:transformed-threshold}
+\begin{aligned}
+\operatorname{mean}(H_A)&=0.367<0.400=\operatorname{mean}(H_B),\\
+\operatorname{mean}(\HF(A))&=0.665<0.706=\operatorname{mean}(\HF(B)).
+\end{aligned}
+\label{eq:aggregation-reversal}
 \end{equation}
-If $\phi$ is increasing, then
-\begin{equation}
-d(P,Q)\le\tau
-\iff
-\phi\bigl(d(P,Q)\bigr)\le\tau'.
-\label{eq:threshold-increasing}
-\end{equation}
-If $\phi$ is decreasing, then
-\begin{equation}
-d(P,Q)\le\tau
-\iff
-\phi\bigl(d(P,Q)\bigr)\ge\tau'.
-\label{eq:threshold-decreasing}
-\end{equation}
-\end{lemma}
+Smaller distance favors $A$, whereas larger fidelity favors $B$, so aggregation reverses the ordering. This is a mathematical counterexample rather than an observation from the execution corpus. By contrast, TVD similarity is an affine complement, so its arithmetic mean is exactly one minus the mean TVD and preserves the reversed direction. For an odd sample, the median is the central observation and transforms directly. The common median for an even sample averages two central observations and need not commute with a nonlinear transformation.
 
-\begin{IEEEproof}
-Strictly increasing functions preserve order, which establishes Equation~\ref{eq:threshold-increasing}. Strictly decreasing functions reverse order, which establishes Equation~\ref{eq:threshold-decreasing}. In either case, Equation~\ref{eq:transformed-threshold} yields the same partition of jobs.
-\end{IEEEproof}
-
-The decision to pass or fail one job is therefore invariant inside a strictly monotone class after threshold conversion. The relevant classes are listed below.
-\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item \textbf{Hellinger class.} Hellinger distance, Bhattacharyya coefficient, Hellinger fidelity, and the Bhattacharyya angle are related by Equations~\ref{eq:bhattacharyya-coefficient}, \ref{eq:hellinger-distance}, \ref{eq:hellinger-fidelity}, and~\ref{eq:bhattacharyya-angle}.
-\item \textbf{TVD class.} TVD and its similarity are exact complements.
-\begin{equation}
-\sigma_{\TVD}=1-\TVD.
-\label{eq:tvd-similarity}
-\end{equation}
-\item \textbf{Class with a known answer, $K=1$.} $p_{E}$, coarse TVD similarity, and coarse HF are identical. Success corrected for chance is an affine transform only above the chance baseline; clipping removes it from the strictly monotone class.
-\item \textbf{Expectation class.} Absolute expectation deviation and observable fidelity satisfy Equation~\ref{eq:observable-fidelity}.
-\end{itemize}
-
-DSR is not a member of the class of monotone quantities for a known answer set (Section~\ref{sec:dsr}).
-
-\subsection{Aggregation}
-\label{sec:aggregation}
-
-Define the nonlinear transformation
-\begin{equation}
-\phi(H)=(1-H^{2})^{2}.
-\label{eq:aggregation-transform}
-\end{equation}
-Averaging transformed values is not equivalent to transforming an average. Consider
-\begin{align}
-A&=\{0.10,0.10,0.90\},
-\label{eq:aggregation-set-a}\\
-B&=\{0.40,0.40,0.40\}.
-\label{eq:aggregation-set-b}
-\end{align}
-Their mean distances satisfy
-\begin{equation}
-\mathrm{mean}(H_A)=0.367<0.400=\mathrm{mean}(H_B).
-\label{eq:aggregation-distance-ranking}
-\end{equation}
-The criterion based on mean distance therefore ranks $A$ above $B$. The transformed values include
-\begin{align}
-\phi(0.10)&=0.980,
-\label{eq:aggregation-transform-low}\\
-\phi(0.90)&=0.036.
-\label{eq:aggregation-transform-high}
-\end{align}
-Their mean fidelities satisfy
-\begin{equation}
-\mathrm{mean}(F_H(A))=0.665<0.706=\mathrm{mean}(F_H(B)).
-\label{eq:aggregation-fidelity-ranking}
-\end{equation}
-Equation~\ref{eq:aggregation-fidelity-ranking} gives the opposite ranking and establishes the possibility of a reversal induced by aggregation.
-
-A quantile defined as an order statistic preserves ordering under a strictly monotone transformation. The common median for an even sample instead averages two central observations and does not generally preserve this property under a nonlinear transformation.
-
-\subsection{Composition}
-\label{sec:composition}
-
-The triangle inequality permits a chain of comparisons among distributions in the same space, but it does not by itself establish how errors accumulate through successive circuit stages. When a distance is used to construct such a bound, the analysis must state how each stage transforms that distance and provide an error bound for each stage. For example, TVD and Hellinger distance satisfy a data processing inequality under classical stochastic maps: applying the same map to both distributions cannot increase their separation~\cite{csiszar1967}. This nonexpansiveness supports a chaining argument, but it is not guaranteed for an arbitrary metric. Other arguments may instead use known expansion factors or bounds specific to the transformations.
-
-A similarity has no corresponding metric axiom unless an induced dissimilarity is defined and validated. For the TVD similarity in Equation~\ref{eq:tvd-similarity}, the triangle inequality becomes
+Composition introduces a different requirement. The triangle inequality permits comparisons to be chained only when the quantities belong to the same metric space. TVD and Hellinger distance cannot increase when the same classical stochastic map is applied to both distributions~\cite{csiszar1967}. This property can support an error argument when each circuit stage and its bound are stated. It does not follow from an arbitrary similarity. For TVD similarity, the valid consequence of the TVD triangle inequality is
 \begin{equation}
 \sigma_{\TVD}(P,R)
-\ge
+\geq
 \sigma_{\TVD}(P,Q)+\sigma_{\TVD}(Q,R)-1.
 \label{eq:tvd-similarity-triangle}
 \end{equation}
-This inequality becomes vacuous when the right side is negative. The compositional justification therefore comes from the known properties of TVD, not from the similarity representation itself~\cite{csiszar1967,gilchrist2005}.
+The bound can become uninformative when its right side is negative, so the justification comes from TVD rather than from the similarity alone~\cite{csiszar1967,gilchrist2005}.
 
-A different caution applies to observable fidelity. Equation~\ref{eq:observable-fidelity} is affine in the absolute deviation, so its arithmetic mean is exactly the corresponding transform of the mean absolute deviation. However, an unweighted mean ignores the coefficients in the Hamiltonian
-\begin{equation}
-H=\sum_i c_iO_i.
-\label{eq:hamiltonian-decomposition}
-\end{equation}
-The energy error obeys
+Estimator quantities require the same attention to the intended operation. Observable fidelity is affine in absolute expectation deviation, but an unweighted average over observables does not represent Hamiltonian error. For $H=\sum_i c_iO_i$, the relevant bound is
 \begin{equation}
 \left|\Delta\langle H\rangle\right|
-\le
+\leq
 \sum_i|c_i|\left|\Delta\langle O_i\rangle\right|.
 \label{eq:hamiltonian-error-bound}
 \end{equation}
-It is not generally equal to the unweighted mean of deviations for individual observables.
+The coefficients and signed deviations therefore belong to the interpretation of the result.
 
-\subsection{Scale Type}
-\label{sec:scale}
+Scale claims impose a final restriction. A value in $[0,1]$ does not by itself support ratios, a common threshold across tasks, or an arithmetic summary without a defined estimand and weighting rule~\cite{fentonBieman2015,fenton1994}. A decision based on finite samples also requires an uncertainty rule. Table~\ref{tab:audit} consequently reports only the comparisons supported for each quantity instead of inferring them from its numerical range.
 
-A number in $[0,1]$ does not automatically lie on a ratio scale. The censoring caused by chance correction is discussed in Section~\ref{sec:fenton}. A cutoff such as $0.8$ is meaningful only after the attribute, the chance baseline, and the scale type are named~\cite{fentonBieman2015,fenton1994}. The following statements are therefore different kinds of claim.
-\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item ``Job $A$ has higher $p_{E}$ than job $B$'' is an ordinal statement on a shared $E$.
-\item ``The mean $p_{E}$ over a batch is $0.41$'' must specify whether jobs are weighted equally or pooled by shot count; the two estimands differ when shot budgets are unequal.
-\item ``$\HF=0.80$ is twice as good as $\HF=0.40$'' is a ratio statement that the similarity scale does not support.
-\item ``Pass if $\HF\ge 0.8$ on every algorithm'' reuses a cutoff across tasks that need not share a reference or a chance baseline.
-\end{itemize}
-
-The conservative rule used in Table~\ref{tab:audit} is to report only the operations needed by the decision. Order and converted thresholds need an ordinal representation. Arithmetic aggregation additionally fixes an estimand and weighting rule. A ratio statement requires an empirically meaningful zero, not merely a numerical zero. A threshold applied to an estimate also requires a sampling rule, uncertainty interval, or error probability. These requirements prevent a scale claim from being inferred solely from a familiar formula.
+The section answers Research Question~\ref{rq:operations} by separating preserved conclusions from operations that require further justification. A strictly monotone transformation preserves an individual decision when the attribute, reference, threshold, and inequality direction remain consistent. Nonlinear aggregation can reverse a group ordering, while composition, ratio statements, shared cutoffs, and decisions under sampling uncertainty require assumptions beyond the formula. The evaluation next examines transformation, aggregation, and reference availability in the execution corpus.
 
 \section{Evaluation}
 \label{sec:evaluation}
@@ -635,7 +562,7 @@ The empirical checks use the accompanying QWARD dataset of 1,478 previously exec
 \subsection{Transformation, Aggregation, and Availability}
 \label{sec:corpus-checks}
 
-Table~\ref{tab:corpus-checks} reports E1--E3 on all corpus rows. E1 confirms the defining transformations to stored precision. E2 finds no inversion under the specified groupings, which limits the corpus result without changing the constructed possibility in Section~\ref{sec:aggregation}. E3 demonstrates unequal population of the R1 and R2 fields defined in Table~\ref{tab:references}; missingness alone does not establish its cause.
+Table~\ref{tab:corpus-checks} reports E1--E3 on all corpus rows. E1 confirms the defining transformations to stored precision. E2 finds no inversion under the specified groupings, which limits the corpus result without changing the constructed possibility in Subsection~\ref{sec:operations}. E3 demonstrates unequal population of the R1 and R2 fields defined in Table~\ref{tab:references}; missingness alone does not establish its cause.
 
 \begin{table*}[ht]
 \centering
@@ -788,7 +715,7 @@ Table~\ref{tab:grover-multi} reports two configurations with four qubits and mul
 
 An execution quantity cannot be interpreted independently of its primitive, attribute, and required reference information. This dependency is the focus of Research Question~\ref{rq:attributes}. Subsections~\ref{sec:primitives} and~\ref{sec:classification} make it explicit, while Table~\ref{tab:audit} records the attribute, reference, mathematical kind, and permitted use of each quantity. The represented attribute is determined jointly by the formula, its domain, and the supplied reference information. Selecting the primitive and attribute first therefore helps prevent the measurement procedure from silently changing the question.
 
-This classification also helps determine which subsequent operations are justified, the issue posed by Research Question~\ref{rq:operations}. Sections~\ref{sec:threshold}--\ref{sec:scale} show that converted thresholds preserve individual decisions within a strictly monotone class, whereas aggregation, composition, ratio statements, and decisions under sampling uncertainty require additional assumptions. A transformation therefore preserves a conclusion only for the stated decision and scale; operations beyond that setting can change its meaning or outcome.
+This classification also helps determine which subsequent operations are justified, the issue posed by Research Question~\ref{rq:operations}. Subsections~\ref{sec:threshold} and~\ref{sec:operations} show that converted thresholds preserve individual decisions within a strictly monotone class, whereas aggregation, composition, ratio statements, and decisions under sampling uncertainty require additional assumptions. A transformation therefore preserves a conclusion only for the stated decision and scale; operations beyond that setting can change its meaning or outcome.
 
 The provider comparisons in Section~\ref{sec:corpus-checks} and the QPU measurements in Sections~\ref{sec:worked-estimator}, \ref{sec:grover-reference}, and~\ref{sec:grover-multimarked} show that these distinctions occur in QPU execution data, addressing Research Question~\ref{rq:evidence}. They exhibit reference-dependent decisions and differences of attribute, while Section~\ref{sec:dsr} establishes that DSR is an ordinal score of peak dominance. Together, these empirical and formal results delimit the conclusions that the available corpus supports.
 
@@ -820,7 +747,7 @@ Are several observables aggregated? & use Hamiltonian weights; report energy dev
 \end{tabularx}
 \end{table}
 
-After the primitive and reference are identified in Section~\ref{sec:primitives} and Table~\ref{tab:references}, Table~\ref{tab:gqm} and Sections~\ref{sec:threshold}--\ref{sec:scale} inform quantity selection through GQM. An unavailable reference yields ``not computable under the selected attribute'' rather than an implicit change of attribute.
+After the primitive and reference are identified in Section~\ref{sec:primitives} and Table~\ref{tab:references}, Table~\ref{tab:gqm} and Subsections~\ref{sec:threshold} and~\ref{sec:operations} inform quantity selection through GQM. An unavailable reference yields ``not computable under the selected attribute'' rather than an implicit change of attribute.
 
 \subsection{Typing Differential Success Rate}
 \label{sec:dsr}
