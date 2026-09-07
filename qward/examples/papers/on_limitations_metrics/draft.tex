@@ -73,7 +73,7 @@
 
 \begin{document}
 
-\title{Choosing Measures of Quantum Circuit Execution Success through Representational Analysis}
+\title{A Representational Analysis of Quantum Execution Success Measures}
 
 % \author{\IEEEauthorblockN{1\textsuperscript{st} Cristian Marquez}
 % \IEEEauthorblockA{\textit{Department of Systems and Computing Engineering} \\
@@ -120,9 +120,11 @@ kj.garces971$@$uniandes.edu.co}
 
 \begin{abstract}
 
-Quantum circuit executions are evaluated using quantities such as success rate, Hellinger fidelity, total variation distance, probability of successful trials, and estimated success probability. Although these quantities are often grouped under the label ``metric,'' they characterize different attributes, require different reference information, and rely on distinct mathematical operations. We apply representational measurement theory and the Goal--Question--Metric approach to results produced by individual Sampler and Estimator jobs. The analysis distinguishes evaluations based on tasks with known correct or acceptable classical output, such as target bitstrings, optimization solutions, factors, or labels; full ideal distributions; ideal expectation values; and operational protocols for comparing states or processes. Then it classifies common quantities as distances, similarities, derived measures, predictions, or uncertainty diagnostics, and specifies the comparisons supported by each representation.
+Evaluating quantum execution success requires identifying the behavior expected from the program. Quantities such as success rate, Hellinger fidelity, and total variation distance can share a numerical range while representing different attributes and supporting different comparisons. We apply representational measurement theory and the Goal--Question--Metric approach to classify quantities associated with Sampler and Estimator results by their attributes, reference requirements, and permitted operations.
 
-For a single job, related distances and similarities yield the same decision when their thresholds and inequality directions are converted consistently, but arithmetic aggregation can reverse a ranking when the relation is nonlinear. In a corpus of 1,478 execution jobs, 1,411 paired records reproduce the defining transformations within numerical or rounding error. Across 31 eligible, overlapping IBM and Rigetti groupings for each distance and its corresponding similarity, no ordering inversion was observed. Grover examples and a four-qubit GHZ state-preparation circuit evaluated with Estimator further expose changes of reference and attribute. Finally, we use the differential success rate (DSR) as a case study to distinguish an ordinal score for the dominance of expected peaks from a mathematical metric and demonstrate how to select and report success measures.
+For a fixed attribute and reference, strictly monotone transformations preserve individual threshold decisions when thresholds and inequality directions are converted consistently. Nonlinear aggregation can nevertheless reverse a group ranking. We further show that coarse Hellinger fidelity combines accepted answer probability with agreement about the relative frequencies of accepted answers, while differential success rate represents a censored ordering of peak dominance. These quantities therefore need not support the same conclusion about task success.
+
+We examine these distinctions using a corpus of 1,478 execution records, including hardware and simulation results, and a hardware Estimator execution. Stored distance and similarity pairs reproduce their defining transformations, and no aggregation reversal occurs in 31 selected provider comparisons. Grover cases produce different decisions under task and complete ideal references, while the Estimator record exposes numerical reports whose labels do not represent the intended agreement. These findings support a procedure for selecting and reporting execution quantities according to the program requirement, available reference, and intended operation.
 
 \end{abstract}
 
@@ -151,7 +153,7 @@ This paper makes three contributions, namely \begin{enumerate*}[label=(\roman*),
 
 The analysis separates two questions that are easily conflated. The mathematical question is whether a function satisfies Axioms M1--M4 on a named space. The representational question asks whether a numerical value preserves the intended relations for an attribute of a specified entity~\cite{fentonBieman2015,fenton1994}. Passing one test does not guarantee passing the other. Hellinger distance is a metric on distributions, for example, but histogram closeness may be the wrong attribute when the decision concerns only the probability mass assigned to an answer set $E$.
 
-The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Section~\ref{sec:model} defines the execution model, reference classes, and classification of execution quantities. Sections~\ref{sec:analysis} and~\ref{sec:evaluation} present the analytical results and empirical evaluation. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, limitations, and conclusions.
+The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Section~\ref{sec:model} classifies execution quantities by their attributes and reference requirements. Section~\ref{sec:analysis} establishes the effects of transformations and operations on their interpretation, and Section~\ref{sec:evaluation} examines these distinctions in execution data. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, limitations, and conclusions.
 
 \section{Background}
 \label{sec:background}
@@ -290,9 +292,9 @@ In contrast, this paper focuses on quantities derived from quantum job outcomes 
 \section{Classification of Quantum Execution Quantities}
 \label{sec:model}
 
-In current QC, executing a quantum job on a QPU ultimately produces classical measurement outcomes (shots), but most users consume those outcomes through \emph{primitives} at a higher level that expose summaries organized around computational tasks rather than a raw shot log. In Qiskit Runtime, \emph{SamplerV2} returns samples from the circuit's classical output registers, whereas \emph{EstimatorV2} returns estimated expectation values and standard errors for observables evaluated on specified circuits~\cite{qiskit2024,ibmEstimator2026}.
+Evaluating execution success requires identifying the behavior expected from the quantum program. A task may require an accepted classical answer, agreement with an ideal distribution, or an expectation value within a specified tolerance. These requirements concern different execution attributes, and the available primitive result determines which of them can be evaluated directly.
 
-These two result views need not be derived from the same physical shot record, and the additional processing used to estimate expectation values (e.g., basis rotations, observable grouping, or mitigation) can further separate what is reported from a raw shot log. Table~\ref{tab:primitives} summarizes the information available for evaluating each type of result.
+In Qiskit Runtime, \emph{SamplerV2} returns samples from classical output registers, whereas \emph{EstimatorV2} returns expectation estimates and their uncertainties for specified observables~\cite{qiskit2024,ibmEstimator2026}. These views can involve different measurements and processing, including basis rotations and mitigation. Table~\ref{tab:primitives} connects each result to the reference needed to assess agreement.
 
 \begin{table}[ht]
 \centering
@@ -316,9 +318,9 @@ What can be evaluated? & Did the measured outcomes agree with $E$ or $P^{\star}$
 \subsection{Interpreting Sampler and Estimator Results}
 \label{sec:primitives}
 
-Interpreting a primitive result requires two choices that must be made in order. The primitive determines the empirical object available from execution, and the reference determines the question that can be asked about that object. Table~\ref{tab:primitives} summarizes this distinction. A quantity can be selected only after both choices are fixed, and it should be reported as unavailable when either the required result or reference is absent.
+When designing an execution, the evaluation goal guides the choice of measurements and primitive. For a completed job, the available result constrains which attributes can still be assessed. In either case, a quantity requires both a compatible result and the reference information appropriate to the goal, as summarized in Table~\ref{tab:primitives}.
 
-For a Sampler result, interpretation begins with the counts $\mathcal C(x)$ from $S$ shots. Normalizing these counts gives the empirical distribution $\widehat P$. If the task identifies a set of accepted answers $E$, the relevant question is how much observed probability lies in that set. If a justified null distribution $Q_0$ is also available, success can be evaluated relative to its baseline. These steps give
+For a Sampler result with $S>0$ shots, normalizing the counts $\mathcal C(x)$ gives the empirical distribution $\widehat P$. A set of accepted answers $E$ defines the observed task success $p_E$. A justified null distribution $Q_0$ additionally supports correction for chance, provided its baseline $b<1$.
 \begin{align}
 \widehat P(x)&=\frac{\mathcal C(x)}{S},\qquad K=|E|, \notag\\
 p_E&=\sum_{x\in E}\widehat P(x)
@@ -330,9 +332,11 @@ b&=\Pr_{X\sim Q_0}(X\in E),
 \label{eq:chance-corrected-success}
 \end{align}
 
-The quantities in this equation answer related but different questions. The value $p_E$ measures observed task success, whereas $\CCS$ asks whether that success exceeds the baseline defined by $Q_0$. Uniform guessing gives $b=K/2^m$. When a complete ideal distribution $P^{\star}$ is available, the same counts can instead support a comparison of the full histograms. If each accepted answer remains a separate bin, the comparison also requires weights $w_i\geq 0$ with $\sum_{i=1}^{K}w_i=1$. Uniform weights are justified only when the task treats the accepted answers as equally likely. The counts alone therefore do not determine whether the study evaluates task success or distribution agreement. That interpretation comes from the selected reference.
+Equation~\ref{eq:chance-corrected-success} measures success beyond the selected baseline and assigns zero to values at or below it. Uniform guessing over $m$ measured bits gives $b=K/2^m$. A complete ideal distribution $P^{\star}$ supports a different question about agreement across the full outcome space. Its probabilities are supplied by the ideal execution, rather than chosen from the observed counts.
 
-An Estimator result follows a different path because it reports expectation estimates and their uncertainties rather than an output histogram. Once an ideal expectation is available, the relevant question becomes whether the estimated value agrees with that ideal for the specified observable. For observables whose physical expectations lie in $[-1,1]$, this agreement can be expressed through absolute deviation and observable fidelity
+A task can instead prescribe weights $w_i\geq0$ with $\sum_iw_i=1$ for its accepted answers $E=\{e_1,\ldots,e_K\}$. The task target $W_E$ assigns $w_i$ to $e_i$ and zero outside $E$. A coarse comparison retains each accepted answer and combines all other outcomes into one bin, comparing $(\widehat P(e_1),\ldots,\widehat P(e_K),1-p_E)$ with $(w_1,\ldots,w_K,0)$. Uniform weights express a requirement for balanced accepted outcomes, which is stronger than accepting any answer in $E$. Section~\ref{sec:threshold} establishes the consequence for task success.
+
+An Estimator result evaluates agreement for specified observables. Given an ideal expectation, absolute deviation and the observable fidelity used here express this agreement as
 
 \begin{equation}
 d_i=\left|\widehat{\langle O_i\rangle}-\langle O_i\rangle^{\mathrm{ideal}}\right|,
@@ -341,9 +345,9 @@ F_{\mathrm{obs},i}=1-\frac{d_i}{2}.
 \label{eq:observable-fidelity}
 \end{equation}
 
-An estimate can also describe the mass in the positive eigenspace. For an observable with eigenvalues in $\{\pm1\}$ and an estimate obtained without mitigation, $p_+(O)=(1+\widehat{\langle O\rangle})/2$ gives that mass. It represents task success only when the positive eigenspace defines the goal. Mitigation can move an estimate outside the physical interval, in which case the transformation is not guaranteed to be a probability. Hellinger fidelity and DSR cannot be obtained from an Estimator result that provides only \texttt{evs} and \texttt{stds} because both require a histogram or counts from a separate measurement.
+For ideal and estimated expectations in $[-1,1]$, $F_{\mathrm{obs},i}$ lies in $[0,1]$. Mitigation can move an estimate outside this interval, so the score is not always bounded. For an observable with eigenvalues in $\{\pm1\}$, an unmitigated estimate also gives the positive eigenspace mass through $p_+(O)=(1+\widehat{\langle O\rangle})/2$. This mass represents task success only when that eigenspace defines the goal. A result containing only \texttt{evs} and \texttt{stds} supplies neither the histogram needed for Hellinger fidelity nor the competing peaks needed for DSR.
 
-These two interpretation paths lead to the reference classes defined in Table~\ref{tab:references}. Each class identifies the information required and the comparison that it supports. The class labels are used throughout the remainder of the paper.
+Table~\ref{tab:references} names the reference classes used throughout the analysis. They include operational protocols for comparisons that require additional executions or measurements.
 
 \begin{table}[ht]
 \centering
@@ -358,7 +362,7 @@ R1 task & Answer set $E$, with weights $w$ or null model $Q_0$ when required
 & Task success, correction for chance, or a coarse distribution comparison \\
 R2 distribution & Complete ideal distribution $P^{\star}$
 & Comparison of complete histograms \\
-R3 observable & Ideal expectation values or a Hamiltonian
+R3 observable & Ideal expectations, or a Hamiltonian and reference energy
 & Agreement for observable values or energy \\
 R4 operational & Fidelity protocol (R4F) or inverse circuit (R4I)
 & State, process, or inverse return comparison \\
@@ -366,17 +370,17 @@ R4 operational & Fidelity protocol (R4F) or inverse circuit (R4I)
 \end{tabularx}
 \end{table}
 
-Not every quantity uses one of these reference classes. The positive eigenspace mass needs an observable but no ideal expectation, the ESP needs a calibration model, and $z_0$ needs an uncertainty estimate. Replacing missing information with a different reference would change both the attribute and the question being evaluated. The following subsection uses these requirements to classify the quantities considered in this study.
+Some quantities use other information. ESP needs a calibration model, while the standardized magnitude $z_0=|\widehat{\langle O\rangle}|/s_O$ needs a positive reported uncertainty $s_O$. Neither establishes agreement with an ideal expectation. Relative error instead compares absolute deviation with the magnitude of a nonzero ideal. These requirements distinguish predictions and diagnostics from evaluations against R1 through R4.
 
 % This subsection operationalizes RQ1, and the permitted use column informs RQ2.
-\subsection{Classification of Execution Quantities}
+\subsection{Attributes and Permitted Comparisons}
 \label{sec:classification}
 
-Once the primitive and required reference are identified, quantities with similar numerical ranges can still represent different execution attributes. Table~\ref{tab:audit} classifies every quantity considered in this study by its attribute, required reference, mathematical kind, permitted use, and principal limitation. Its R1 through R4 entries use the reference classes defined in Table~\ref{tab:references}. These classes distinguish quantities that evaluate task success, complete distributions, expectation values, and operational comparisons. Table~\ref{tab:audit} lists ESP, positive eigenspace mass, and $z_0$ separately because they require calibration, an observable, or an uncertainty estimate rather than an ideal reference from R1 through R4.
+For each quantity, we identify its attribute and inputs, assess its mathematical kind on the named domain, and state the comparisons supported by that interpretation. Table~\ref{tab:audit} applies these criteria using the reference classes in Table~\ref{tab:references}. Its permitted uses follow the distinction between metric properties and measurement scales established in Section~\ref{sec:fenton}.
 
 \begin{table*}[ht]
 \centering
-\caption{Representational classification of common quantities reported for each job. A metric satisfies Axioms M1--M4 on the named space. Other quantities are assessed by the relation they preserve.}
+\caption{Representational classification of execution quantities. Bold entries satisfy Axioms M1--M4 on the named space. Other entries are assessed by the relation they preserve.}
 \label{tab:audit}
 \scriptsize
 \renewcommand{\arraystretch}{1.12}
@@ -421,7 +425,7 @@ PST & return mass after $U^{\dagger}U$ & R4I & proportion
 & evaluates a different circuit; relaxation can favor zero \\
 Coarse TVD & distance on $\Delta_{K+1}$ & R1($E,w$) & \textbf{metric}
 & distance operations on the coarse space
-& a pseudometric on full histograms; $w$ must be justified \\
+& generally a pseudometric on full histograms; $w$ must be justified \\
 Coarse HF & coarse overlap & R1($E,w$) & similarity
 & ordinal; convert to coarse $H$ for distance operations
 & reduces to $p_E$ at $K=1$ \\
@@ -447,22 +451,22 @@ Standardized magnitude $z_0$ & magnitude relative to zero & uncertainty & diagno
 \end{tabularx}
 \end{table*}
 
-The entries for Hellinger fidelity and TVD similarity in Table~\ref{tab:audit} identify the distribution similarities used in the empirical analysis, while its Hellinger distance and TVD entries identify the operations supported by the underlying metrics. The classifications of task scores, Estimator quantities, predictions, and operational comparisons in Table~\ref{tab:audit} show that these quantities answer different questions and cannot be interpreted as substitutes for the distribution quantities. Bold entries in Table~\ref{tab:audit} identify metrics on their named domains, while every other entry is described by the relation it can preserve. A change in the reference, null model, observable, task weights, or sampling design requires the permitted comparison to be reassessed. Table~\ref{tab:audit} thus establishes which quantities can support the same research question before the analytical results examine whether transformations and subsequent operations preserve a conclusion.
+The success rate and Hellinger fidelity entries in Table~\ref{tab:audit} illustrate the consequence for program evaluation. Success rate concerns accepted answers, while fidelity concerns agreement with a distribution whose probabilities may encode additional requirements. A developer must therefore fix the intended attribute before comparing values. Even when two quantities represent the same attribute, the operations applied to them can affect the resulting conclusion.
 
 \section{Effects of Transformations and Operations on Execution Conclusions}
 \label{sec:analysis}
 
 % Internal review guide. This section supplies the analytical answer to RQ2 by distinguishing transformations that preserve a conclusion from operations that require additional assumptions. The Evaluation tests selected consequences with execution data.
-Whether a conclusion survives later use of a quantity depends on the operation applied to its numerical representation. We first establish conditions under which transformations retain the ordering and decision for a fixed attribute and reference. We then examine aggregation, composition, and scale interpretations that can change the conclusion or require additional assumptions. The Evaluation tests selected consequences with execution data.
+An execution accepted under a distance threshold should receive the same decision when that distance is expressed as an equivalent similarity and the threshold is converted consistently. This equivalence concerns a fixed attribute and reference. The following results establish its scope, distinguish task success from peak dominance, and examine what changes when values are aggregated or used to bound other comparisons.
 
 \subsection{Equivalent Decisions for a Fixed Interpretation}
 \label{sec:threshold}
 
-A transformed quantity can preserve the decision for one job even when its numerical value and direction differ. The necessary conditions are a fixed attribute, a fixed reference, a strictly monotone transformation, and a consistently converted threshold.
+A fixed attribute and reference, a strictly monotone transformation, and a consistently converted threshold are sufficient to preserve a decision for an individual job.
 
 \begin{lemma}[Threshold invariance]
 \label{lem:threshold}
-Let $d(\cdot,Q)$ be a real quantity with fixed reference $Q$, and let $\phi$ be strictly monotone. Then
+Let $d(\cdot,Q)$ be a real quantity with fixed reference $Q$, and let $\phi$ be strictly monotone on an interval containing its values and the threshold $\tau$. Then
 \begin{equation}
 d(P,Q)\leq\tau
 \iff
@@ -476,7 +480,7 @@ d(P,Q)\leq\tau
 
 Strict monotonicity preserves or reverses order, so the converted threshold partitions the jobs in the same way. The lemma applies to the Hellinger distance and its similarity forms, TVD and its complement, and absolute expectation deviation and observable fidelity. Success corrected for chance belongs to a monotone class only above the chance baseline because clipping removes the order among lower values. DSR represents dominance among peaks and is not a transformation of task success, as Section~\ref{sec:dsr} establishes.
 
-Known answer sets provide a direct application of the lemma. The coarse representation retains each accepted outcome and combines the outcomes outside $E$ into one bin. Hellinger distance and TVD remain metrics on $\Delta_{K+1}$~\cite{gilchrist2005,nielsen2010}. Their pullbacks to full histograms fail identity of indiscernibles when the coarse mapping combines at least two outcomes outside $E$. They are therefore generally pseudometrics on the full histogram space, although the pullback remains a metric when the mapping is injective.
+The coarse representation in Section~\ref{sec:primitives} provides an application to known answers. Hellinger distance and TVD are metrics on its $K+1$ bins~\cite{gilchrist2005,nielsen2010}. Applied to full histograms through this mapping, they are only pseudometrics whenever at least two outcomes outside $E$ are combined, because distinct histograms can then have zero separation.
 
 \begin{proposition}[One accepted answer]
 \label{prop:k1}
@@ -493,19 +497,30 @@ Substitution into the definitions of TVD and the Bhattacharyya coefficient estab
 
 \begin{proposition}[Several accepted answers]
 \label{prop:kmulti}
-Let $E=\{e_1,\ldots,e_K\}$ with $K>1$, let $p_i=\widehat P(e_i)$, and let $p_E=\sum_i p_i$. For weights $w_i\geq0$ with $\sum_iw_i=1$, coarse Hellinger fidelity satisfies
+Let $K>1$, $p_i=\widehat P(e_i)$, and $w$ be the task weights. When $p_E>0$, let $r_i=p_i/p_E$ denote the conditional distribution of accepted answers. Then
 \begin{equation}
-\HF^{\mathrm{coarse}}
-=\left(\sum_{i=1}^{K}\sqrt{p_iw_i}\right)^2
-\leq p_E.
+\HF^{\mathrm{coarse}}=p_E\,\HF(r,w)\leq p_E.
 \label{eq:multi-coarse-relations}
 \end{equation}
-Equality holds exactly when $p_i=p_Ew_i$ for every accepted answer. Coarse TVD similarity also equals $p_E$ when $p_i\leq w_i$ for every $i$.
+Equality holds exactly when $r=w$. When $p_E=0$, coarse fidelity is zero. Coarse TVD similarity equals $p_E$ if and only if $p_i\leq w_i$ for every $i$.
 \end{proposition}
 
-The inner product inequality gives the Hellinger bound and its equality condition. The TVD result follows because the accepted bins and the combined bin each contribute $1-p_E$ to the absolute difference. With several accepted answers, the task weights and the distribution of mass within $E$ can therefore change a coarse similarity even when $p_E$ is unchanged.
+Factoring $\sqrt{p_E}$ out of $\sum_i\sqrt{p_iw_i}$ gives Equation~\ref{eq:multi-coarse-relations}; the inner product inequality bounds $\HF(r,w)$ by one, with equality exactly at $r=w$. The TVD result follows from $1-\TVD^{\mathrm{coarse}}=\sum_i\min(p_i,w_i)$. Thus coarse fidelity combines accepted answer probability with agreement among accepted answers. A program change can improve this agreement without increasing task success.
 
-These conclusions apply within the R1 task interpretation defined in Table~\ref{tab:references}. They do not make an R1 quantity equivalent to an R2 comparison with a complete ideal distribution. The two interpretations coincide as a general identity for one accepted answer only when $P^{\star}$ is concentrated on that answer. Grover with a finite number of iterations can retain ideal probability outside $E$, so the R1 and R2 quantities evaluated in Subsection~\ref{sec:reference-evidence} can support different conclusions.
+The R1 task comparison coincides with the full R2 comparison when $P^{\star}=W_E$, because the ideal assigns zero mass outside $E$ and the same weights within it. An ideal Grover execution can retain probability outside $E$, so this condition need not hold. Subsection~\ref{sec:reference-evidence} examines the resulting differences in recorded executions.
+
+\subsection{Task Success and Peak Dominance}
+\label{sec:dsr}
+
+DSR introduces another distinction within R1. It compares the average accepted peak $p_E/K$ with the largest competitor $p_{\mathrm{comp}}=\max_{x\notin E}\widehat P(x)$. For a valid count record with $0<K<2^m$, the clipped Michelson contrast~\cite{michelson1927} gives
+\begin{equation}
+\mathrm{DSR}=\max\left(0,\frac{p_E-Kp_{\mathrm{comp}}}{p_E+Kp_{\mathrm{comp}}}\right).
+\label{eq:dsr-closed}
+\end{equation}
+
+For $p_{\mathrm{comp}}>0$, Equation~\ref{eq:dsr-closed} increases with the ratio of the average accepted peak to its strongest competitor above the clipping boundary. At or below that boundary it is zero; when $p_{\mathrm{comp}}=0$, it is one. DSR therefore represents a censored dominance ordering. This supports ordinal comparisons under a fixed answer set, outcome space, and sampling design~\cite{fentonBieman2015}, without identifying dominance with task success.
+
+For example, with $m=10$ and $K=1$, distributions having $(p_E,p_{\mathrm{comp}})=(0.80,0.10)$ and $(0.08,0.01)$ both produce $7/9$. Equal DSR can therefore accompany task masses differing by a factor of ten. The score is unary for a fixed $E$, and taking the absolute difference of two scores yields only a pseudometric on distributions because distinct distributions can share a score. Changing $K$ alters the average accepted peak, while shot count and the number of competitors affect the observed maximum. These dependencies require justification before extending comparisons across tasks or sampling designs.
 
 \subsection{Operations That Require Additional Assumptions}
 \label{sec:operations}
@@ -520,40 +535,40 @@ Equivalent decisions for individual jobs do not guarantee equivalent summaries o
 \end{equation}
 Smaller distance favors $A$, whereas larger fidelity favors $B$, so aggregation reverses the ordering. This is a mathematical counterexample rather than an observation from the execution corpus. By contrast, TVD similarity is an affine complement, so its arithmetic mean is exactly one minus the mean TVD and preserves the reversed direction. For an odd sample, the median is the central observation and transforms directly. The common median for an even sample averages two central observations and need not commute with a nonlinear transformation.
 
-Composition introduces a different requirement. The triangle inequality permits comparisons to be chained only when the quantities belong to the same metric space. TVD and Hellinger distance cannot increase when the same classical stochastic map is applied to both distributions~\cite{csiszar1967}. This property can support an error argument when each circuit stage and its bound are stated. It does not follow from an arbitrary similarity. For TVD similarity, the valid consequence of the TVD triangle inequality is
+Processing measured outputs introduces a different requirement. TVD and Hellinger distance cannot increase when the same classical stochastic map, such as combining outcome bins, is applied to both distributions~\cite{csiszar1967}. The triangle inequality also bounds comparisons among three distributions on the same space. For TVD similarity it gives
 \begin{equation}
 \sigma_{\TVD}(P,R)
 \geq
 \sigma_{\TVD}(P,Q)+\sigma_{\TVD}(Q,R)-1.
 \label{eq:tvd-similarity-triangle}
 \end{equation}
-The bound can become uninformative when its right side is negative, so the justification comes from TVD rather than from the similarity alone~\cite{csiszar1967,gilchrist2005}.
+Equation~\ref{eq:tvd-similarity-triangle} follows from TVD and becomes uninformative when its right side is negative. These properties concern classical distributions. Propagating error through quantum circuit stages requires suitable state or process measures and additional assumptions about their composition~\cite{gilchrist2005}.
 
-Estimator quantities require the same attention to the intended operation. Observable fidelity is affine in absolute expectation deviation, but an unweighted average over observables does not represent Hamiltonian error. For $H=\sum_i c_iO_i$, the relevant bound is
+For Estimator results, aggregation must follow the program's objective. If that objective is energy estimation for $H=\sum_i c_iO_i$, the signed error is $\Delta\langle H\rangle=\sum_i c_i\Delta\langle O_i\rangle$, and
 \begin{equation}
 \left|\Delta\langle H\rangle\right|
 \leq
 \sum_i|c_i|\left|\Delta\langle O_i\rangle\right|.
 \label{eq:hamiltonian-error-bound}
 \end{equation}
-The coefficients and signed deviations therefore belong to the interpretation of the result.
+Equation~\ref{eq:hamiltonian-error-bound} explains why an unweighted average of observable fidelities does not generally represent energy error. Other objectives require their own observable weights or separate comparisons.
 
 Scale claims impose a final restriction. A value in $[0,1]$ does not by itself support ratios, a common threshold across tasks, or an arithmetic summary without a defined estimand and weighting rule~\cite{fentonBieman2015,fenton1994}. A decision based on finite samples also requires an uncertainty rule. Table~\ref{tab:audit} consequently reports only the comparisons supported for each quantity instead of inferring them from its numerical range.
 
-The section answers Research Question~\ref{rq:operations} by separating preserved conclusions from operations that require further justification. A strictly monotone transformation preserves an individual decision when the attribute, reference, threshold, and inequality direction remain consistent. Nonlinear aggregation can reverse a group ordering, while composition, ratio statements, shared cutoffs, and decisions under sampling uncertainty require assumptions beyond the formula. The evaluation next examines transformation, aggregation, and reference availability in the execution corpus.
+These results distinguish equivalent representations from changes in the evaluation itself. Converted thresholds preserve individual decisions, whereas nonlinear aggregation can change a group ordering and a different reference or attribute changes the question. The execution data next show which of these consequences appear in the recorded results.
 
 \section{Evaluation Using QPU Execution Data}
 \label{sec:evaluation}
 
 % Internal review guide. This section supplies the empirical evidence for RQ3 by testing whether the distinctions established earlier appear in recorded executions and by showing how they affect the interpretation of DSR. The evidence is descriptive and does not benchmark providers.
-The evidence combines reproducible checks over a corpus of Sampler records with a completed hardware Estimator job and focused Grover cases. The corpus tests whether transformations behave as expected, whether aggregation changes an observed ordering, and whether different reference requirements affect availability. The individual executions then show how a change of primitive, reference, or represented attribute changes the conclusion. These checks evaluate consequences of the framework rather than device performance.
+The evaluation examines how the analytical distinctions affect recorded execution results. Corpus checks establish numerical consistency and identify whether aggregation changes a ranking. Grover cases then compare references and distinguish task success from DSR, before an Estimator execution shows how the same issue arises when reporting expectation estimates. The evidence concerns the interpretation of execution quantities, with no claim about relative device performance.
 
 \subsection{Corpus Checks}
 \label{sec:corpus-checks}
 
-Three checks connect the analytical results to stored executions. E1 tests whether paired Hellinger and TVD quantities satisfy the transformations in Equations~\ref{eq:hellinger-fidelity} and~\ref{eq:tvd-similarity-definition} and reverse rank as expected. E2 searches for a change in the IBM and Rigetti ordering after arithmetic aggregation. E3 determines whether a task score can remain available when comparison with a complete ideal distribution is unavailable.
+E1 checks whether stored Hellinger and TVD quantities satisfy Equations~\ref{eq:hellinger-fidelity} and~\ref{eq:tvd-similarity-definition}, including the reversal of rank. E2 searches for aggregation reversals between selected IBM and Rigetti groups. E3 counts records with task success available and full Hellinger fidelity absent.
 
-The checks use the accompanying QWARD dataset of 1,478 previously executed Sampler records~\cite{qwardGroverData2026}. It contains Grover, quantum Fourier transform, Bernstein--Vazirani, and teleportation records with execution context, measured histograms, and derived quantities. The reproducible analysis in \texttt{reproduce\_analysis.py} retains complete pairs for E1 and reports their maximum transformation error and Spearman correlation. E2 compares means and medians globally, by algorithm, by algorithm and qubit count, and for matched Grover configurations. General group comparisons require at least five records from each provider. E3 counts records with a defined success rate and missing full Hellinger fidelity. These checks evaluate consistency, ranking, and availability in the corpus. They do not estimate a provider population effect and therefore use no significance test.
+The QWARD corpus contains 1,478 records of sampled outcomes from Grover, quantum Fourier transform, Bernstein--Vazirani, and teleportation executions, including four labeled as simulations~\cite{qwardGroverData2026}. The supplied \texttt{reproduce\_analysis.py} uses complete pairs for E1. E2 retains 559 IBM QPU records and 122 Rigetti Ankaa records from the designated execution groups, excluding the IonQ Forte record. It compares means and medians globally, by algorithm, by algorithm and qubit count, and within matched Grover configurations. General comparisons require five records per provider; matched configurations require one. These descriptive checks use overlapping groups and no significance test.
 
 \begin{table*}[ht]
 \centering
@@ -573,12 +588,41 @@ E3 availability & all 1,478 rows & 67 with success rate present and full HF abse
 \end{tabularx}
 \end{table*}
 
-Table~\ref{tab:corpus-checks} shows that the stored transformations agree to numerical or rounding precision. No mean or median inversion occurs in the 31 eligible groupings for either quantity class, so the corpus does not exhibit the reversal demonstrated by Equation~\ref{eq:aggregation-reversal}. The 67 records with success rate present and full Hellinger fidelity absent demonstrate different availability for R1 and R2 quantities, although missingness alone does not identify its cause.
+Table~\ref{tab:corpus-checks} establishes consistency of the stored representations. No aggregation reversal occurs in the 31 eligible groupings, so the mathematical counterexample in Equation~\ref{eq:aggregation-reversal} is not observed here. The 67 records with success rate present and full fidelity absent show different field availability; missingness alone does not establish why the R2 comparison was omitted.
+
+\subsection{Reference Availability and Interpretation}
+\label{sec:reference-evidence}
+
+Availability limits which comparison can be reported, but even when both references are available they can encode different requirements. The supplied representation experiment illustrates the cost of one dense reference implementation; structured ideals may permit analytic or sparse computation. The Grover records provide the direct comparison of reference meaning.
+
+Filtering to \texttt{algorithm = GROVER} yields 248 QPU records from IBM devices, Rigetti Ankaa, and IonQ Forte, with 246 complete pairs of coarse and full Hellinger fidelity~\cite{qwardGroverData2026}. Their absolute difference reaches $0.231$. Among the 173 paired records with three or four qubits and 1,024 shots, applying the same numerical cutoff gives 13 disagreements at $\tau=0.7$ and 29 at $\tau=0.8$. In every disagreement, coarse fidelity fails while full fidelity passes. These illustrative cutoffs expose the effect of substituting a task target for the complete ideal. They are not equivalent acceptance criteria under Lemma~\ref{lem:threshold}, since the reference changes. For several accepted answers, coarse fidelity also includes agreement with the task weights by Proposition~\ref{prop:kmulti}; it cannot generally be identified with $p_E$.
+
+\subsection{Grover with Multiple Marked States and DSR}
+\label{sec:grover-multimarked}
+
+The same Grover records show how a change of attribute affects interpretation. Table~\ref{tab:grover-multi} compares DSR with companion quantities for two four qubit configurations. Each entry is the median over optimization levels 0--3 on one backend. These summaries average the two central values and are not assumed to commute with nonlinear transformations, as discussed in Subsection~\ref{sec:operations}.
+
+\begin{table*}[ht]
+\centering
+\caption{DSR and companion Grover measures after filtering the accompanying dataset to \texttt{algorithm = GROVER}. Values are medians over transpiler optimization levels 0--3 for each configuration and backend~\cite{qwardGroverData2026}.}
+\label{tab:grover-multi}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Config.} & $K$ & $p_E$ & $\CCS$ & DSR & coarse HF & full HF \\
+\midrule
+\texttt{M4-2}, Torino & 2 & $0.517$ & $0.448$ & $0.675$ & $0.511$ & $0.734$ \\
+\texttt{M4-4}, Fez & 4 & $0.403$ & $0.204$ & $0.000$ & $0.378$ & $0.378$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+For $K=2$, the complete ideal retains probability outside $E$, and the median full fidelity exceeds the median coarse fidelity. For $K=4$, one Grover iteration gives unit ideal task success, so $P^{\star}=W_E$ with uniform weights and the fidelities coincide. The median DSR is nevertheless zero while median task success is $0.403$. These are separate summaries of four executions. Three of those executions have zero DSR despite nonzero task success, illustrating the clipping and attribute distinction established by Equation~\ref{eq:dsr-closed}.
 
 \subsection{Estimator Execution}
 \label{sec:worked-estimator}
 
-The Estimator evidence comes from a completed IBM Runtime EstimatorV2 execution of a four qubit GHZ circuit on \texttt{ibm\_fez}~\cite{qwardEstimatorData2026}. The circuit was transpiled at optimization level 2 to ISA depth 12 and evaluated against six Pauli observables with analytically known R3 references. Table~\ref{tab:worked-estimator} selects three observables that expose the distinction among expectation agreement, an affine expectation transform, relative error, and reported uncertainty.
+The distinction between agreement and task mass also arises for expectation estimates. A completed IBM Runtime EstimatorV2 execution evaluated a four qubit GHZ circuit on \texttt{ibm\_fez} against six Pauli observables with analytical R3 references~\cite{qwardEstimatorData2026}. Transpilation used optimization level 2 and produced ISA depth 12. Table~\ref{tab:worked-estimator} selects three observables to compare expectation agreement with the affine transform of the estimated value.
 
 \begin{table*}[ht]
 \centering
@@ -596,51 +640,20 @@ $YYYY$ & $1$ & $0.9175\pm0.0101$ & $0.9588$ & $0.9588$ \\
 \end{tabular}
 \end{table*}
 
-The $XZXZ$ result makes the interpretive difference visible. Its ideal expectation is $0$, while the execution reports $0.0005\pm0.0175$. Equation~\ref{eq:observable-fidelity} gives an observable fidelity of $0.9997$, indicating close agreement with the ideal, whereas the affine transform $(1+\widehat{\mathrm{ev}})/2$ is $0.5003$. The latter value does not measure agreement. It can represent positive eigenspace mass only under the required measurement and mitigation conditions. The submission used server defaults, and the stored record does not retain mitigation metadata, so that interpretation is not made here. Relative error is also undefined at the exact zero reference. Replacing the denominator with a numerical epsilon would produce a value but would not restore the intended interpretation.
+For $XZXZ$, Equation~\ref{eq:observable-fidelity} gives $0.9997$, indicating a small absolute deviation from the zero ideal. The stored record instead labels the affine value $(1+\widehat{\mathrm{ev}})/2=0.5003$ as \texttt{success\_prob\_4}. That label does not make it an agreement measure. Its interpretation as positive eigenspace mass requires the measurement assumptions in Section~\ref{sec:primitives}; the record omits mitigation metadata, so that interpretation cannot be verified here. The record also replaces the zero denominator in relative error with epsilon and reports approximately $5.37\times10^6$. The resulting number does not restore the undefined relative comparison.
 
-\subsection{Reference Availability and Interpretation}
-\label{sec:reference-evidence}
-
-A supplementary representation check illustrates why a complete reference can become difficult to use. Grover instances with three marked states, 4,096 shots, and random seed 42 explicitly construct the ideal statevector for $m=6,8,\ldots,14$. One timed computation per size grows from $108$~ms to approximately $63$~s on the study machine. Synthetic count records for $m\in\{26,28,30,32,36,40\}$ verify only that the R1 computation accepts wide bitstrings without constructing the complete reference. A dense float64 probability array would require approximately $537$~MB at $m=26$ and $8.8$~TB at $m=40$. These values describe this implementation rather than a hardware benchmark or a universal lower bound. Structured ideals may permit analytic or sparse calculations.
-
-The execution corpus provides the more direct reference comparison. Filtering to \texttt{algorithm = GROVER} yields 248 records, of which 246 contain both coarse and full Hellinger fidelity. These records include one or several marked states executed on \texttt{ibm\_fez}, \texttt{ibm\_torino}, \texttt{ibm\_kingston}, Ankaa-3, and Forte-1~\cite{qwardGroverData2026}. All but one use 1,024 shots, and the remaining two qubit record with 128 shots is outside the decision subset. Across the 246 paired records, the absolute difference between coarse and full Hellinger fidelity reaches $0.231$. Among the 173 QPU records with three or four qubits, applying the same numerical cutoff to both reference classes produces 13 disagreements at $\tau=0.7$ and 29 at $\tau=0.8$. In every disagreement, the R1 quantity fails while the R2 quantity passes. The cutoffs are illustrative rather than recommendations. The disagreements demonstrate that task mass and agreement with a complete ideal distribution can classify the same execution differently.
-
-\subsection{Grover with Multiple Marked States and DSR}
-\label{sec:grover-multimarked}
-
-Table~\ref{tab:grover-multi} reports two four qubit configurations with multiple marked states from the filtered dataset. Each entry is the median for one backend over transpiler optimization levels 0--3 and is used to compare DSR with companion quantities rather than devices. Each sample has an even size, so the median averages the two central observations. The values are therefore descriptive summaries and are not assumed to commute with nonlinear transformations.
-
-\begin{table*}[ht]
-\centering
-\caption{DSR and companion Grover measures after filtering the accompanying dataset to \texttt{algorithm = GROVER}. Values are medians over transpiler optimization levels 0--3 for each configuration and backend~\cite{qwardGroverData2026}.}
-\label{tab:grover-multi}
-\renewcommand{\arraystretch}{1.1}
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
-\textbf{Config.} & $K$ & $p_E$ & $\CCS$ & DSR & coarse HF & full HF \\
-\midrule
-\texttt{M4-2}, Torino & 2 & $0.517$ & $0.448$ & $0.675$ & $0.511$ & $0.734$ \\
-\texttt{M4-4}, Fez & 4 & $0.403$ & $0.204$ & $0.000$ & $0.378$ & $0.378$ \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-For $K=2$, full Hellinger fidelity is larger than coarse Hellinger fidelity because the finite Grover execution and the answer set preserve different reference information. For $K=4$, one Grover iteration gives unit ideal task success, so the full ideal equals the uniform task target $W_E$ and the two fidelities coincide. DSR nevertheless becomes $0$ on \texttt{ibm\_fez} while the median success rate remains $0.403$. Equation~\ref{eq:dsr-closed} defines DSR by comparing the average expected peak $p_E/K$ with the largest competitor, so this difference represents dominance among peaks rather than task mass. Its dependence on $K$ confirms that DSR and success rate should not be interpreted as estimates of the same attribute.
-
-Together, the corpus and execution cases show that the distinctions developed earlier are visible in recorded results. Related transformations agree for individual jobs, but the absence of an aggregation reversal in this corpus does not remove its mathematical possibility. Reference requirements affect availability, and R1 and R2 comparisons can disagree on the same execution. The Estimator case shows that a simple transformation can change the interpreted attribute, while the Grover cases show why DSR must be interpreted as peak dominance rather than task success. These findings provide the empirical basis for the reporting guidance that follows.
+These reporting choices expose a practical consequence of the classification. A developer consuming a field named success or error can draw a different conclusion from one based on the stated attribute and reference. Together with the Grover cases, this motivates making those choices explicit when selecting and reporting execution quantities.
 
 \section{Discussion}
 \label{sec:discussion}
 
 % Internal review guide. This section synthesizes the answers to RQ1 through RQ3 as practical guidance. It should interpret the preceding analytical and execution evidence rather than introduce a new experiment or repeat the results.
-The results support a sequence for interpreting execution quantities. The primitive determines the available output, the evaluation goal identifies the relevant attribute, and the reference determines which comparison can be computed. Only then can a transformation, threshold, or aggregate be interpreted. The execution evidence shows why this order matters. Quantities with similar ranges can agree under one operation and diverge when the reference, attribute, or aggregation rule changes.
-
-The discussion turns these findings into a selection procedure, applies the procedure to DSR, and closes by defining the limits of the evidence. The objective is not to identify one quantity as universally preferable. It is to make the conclusion traceable to the execution output, the available reference, and the operation used to reach it.
+The findings connect the mathematical properties of execution quantities to the requirements used to assess quantum software. Task success, distribution agreement, and peak dominance can each be useful, but they support different claims about the program. Selecting a quantity therefore requires stating the behavior to be evaluated and preserving that interpretation through the operations used to reach a decision.
 
 \subsection{Selection of a Quantity}
 \label{sec:selection}
 
-The GQM goal is to evaluate whether an individual execution is suitable for a stated task from the developer's viewpoint. The context fixes the primitive, reference or null model, shot budget, mitigation procedure, and intended operation. Selection then proceeds through four decisions. The developer identifies the primitive, chooses the relevant execution attribute, determines which reference and task assumptions are available, and states how the resulting value will be used. Table~\ref{tab:gqm} maps these decisions to admissible quantities.
+Following GQM~\cite{basili1994}, the object is an individual execution, the purpose is evaluation, the quality focus is success for a stated task, and the viewpoint is the developer's. The context fixes the primitive, available reference, shot budget, and mitigation procedure. Table~\ref{tab:gqm} derives questions and quantities from this goal using the classification in Table~\ref{tab:audit} and the operational conditions in Section~\ref{sec:analysis}.
 
 \begin{table}[ht]
 \centering
@@ -653,70 +666,45 @@ The GQM goal is to evaluate whether an individual execution is suitable for a st
 \textbf{Question} & \textbf{Quantity} \\
 \midrule
 How far is $\hat{P}$ from $P^{\star}$? & TVD or $H$ on $\Delta_{2^{m}}$ (R2) \\
-How far is the coarse histogram from $E$? & coarse TVD or coarse $H$ (R1) \\
+How far is the coarse histogram from the weighted task target? & coarse TVD or coarse $H$ with justified $w$ (R1) \\
 Did enough shots land in $E$? & $p_{E}$; $\CCS$ only with a justified null $Q_0$ \\
 Do expected peaks dominate competitors? & DSR, an ordinal score of peak dominance (fixed $K$, $m$, and shot budget) \\
 Is $P^{\star}$ available for the selected attribute? & If not, report R2 agreement as unavailable; use R1 only for a separately chosen answer attribute \\
 How far is $\widehat{\mathrm{ev}}$ from the ideal? & $\lvert\Delta\mathrm{ev}\rvert$ or observable fidelity (R3) \\
 Does the positive eigenspace define success? & if yes and the estimate is unmitigated, $p_+(O)$; otherwise do not label it success \\
 Is uncertainty small enough to decide? & reported uncertainty and a decision interval; $z_0$ is only a standardized magnitude \\
-Are several observables aggregated? & use Hamiltonian weights; report energy deviation and uncertainty \\
+Is the objective a Hamiltonian energy? & use its coefficients; report energy deviation and uncertainty \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The outcome of this procedure is a justified quantity, not simply the largest available score. If the required reference is unavailable, the corresponding comparison should be reported as unavailable. Choosing a quantity from another reference class is valid only when the evaluation goal is also changed explicitly. The intended threshold, aggregation, or composition must then remain within the operations supported by that quantity.
+If a program must return any accepted answer, $p_E$ directly represents the observed frequency of that behavior. Requiring the accepted answers to follow specified weights adds a distribution requirement, as Proposition~\ref{prop:kmulti} establishes. DSR adds a different question about dominance over competitors. The Grover cases in Table~\ref{tab:grover-multi} demonstrate why these quantities can use the same counts without serving as interchangeable assessments of success. Their availability from sparse counts does not justify substituting them for an unavailable R2 comparison.
 
-\subsection{Interpretation of Differential Success Rate}
-\label{sec:dsr}
+When assessing a program revision, the developer must also state how executions will be compared. A change from distance to its corresponding similarity requires the threshold conversion in Lemma~\ref{lem:threshold}. Aggregating several runs requires a defined summary and weighting because the nonlinear transformation in Equation~\ref{eq:aggregation-reversal} can change a ranking. For energy estimation, Equation~\ref{eq:hamiltonian-error-bound} connects the component deviations to the Hamiltonian objective. A decision under finite sampling additionally requires an uncertainty rule and may remain inconclusive when the available evidence cannot resolve the threshold.
 
-DSR illustrates why quantity selection begins with the attribute rather than the numerical range. It uses a known answer set $E$, its size $K$, the observed task mass $p_E$, and the largest observed probability outside the answer set, denoted by $p_{\mathrm{comp}}=\max_{x\notin E}\widehat P(x)$. For a valid count record with $0<K<2^m$, the clipped Michelson contrast~\cite{michelson1927} is
-\begin{equation}
-\begin{aligned}
-\mathrm{DSR}
-&=\mathrm{clip}\left(
-\frac{p_E/K-p_{\mathrm{comp}}}{p_E/K+p_{\mathrm{comp}}},0,1
-\right)\\
-&=\max\left(0,\frac{p_E-Kp_{\mathrm{comp}}}{p_E+Kp_{\mathrm{comp}}}\right).
-\end{aligned}
-\label{eq:dsr-closed}
-\end{equation}
-
-Equation~\ref{eq:dsr-closed} shows that DSR represents dominance among peaks. Above the clipping boundary, it increases with the ratio between the average accepted peak and the strongest competitor. At or below that boundary, every case receives the value zero. DSR therefore preserves the ordering of a censored dominance relation, which supports ordinal comparisons when $E$, $K$, the outcome space, and the sampling design remain fixed~\cite{fentonBieman2015}.
-
-DSR is not a mathematical metric because it maps one distribution and a fixed answer set to one score, whereas the metric axioms apply to a function on pairs of elements from a common space. Converting two DSR values to an absolute difference would produce only a pseudometric because distinct distributions can have the same DSR. For example, when $m=10$ and $K=1$, the pairs $(p_E,p_{\mathrm{comp}})=(0.80,0.10)$ and $(0.08,0.01)$ both produce $7/9$ even though their task masses differ by a factor of ten. The execution result in Table~\ref{tab:grover-multi}, where DSR is zero while $p_E$ remains $0.403$, is another consequence of measuring peak dominance rather than task mass.
-
-This interpretation also defines the comparison limits. Clipping treats all cases without peak dominance as equivalent, and changing $K$ changes the average accepted peak even when $p_E$ is unchanged. The empirical maximum $p_{\mathrm{comp}}$ also depends on the shot budget and the number of competing outcomes. DSR comparisons across different values of $K$, $m$, or the shot count therefore require separate justification.
-
-The known answer set gives DSR a practical advantage because it can be computed from sparse counts without constructing a complete ideal distribution. The same requirement limits its scope. DSR is undefined when no discrete answer set exists, does not represent phase information, and cannot be obtained from an Estimator result that provides only expectation values and uncertainties. Success rate, success corrected for chance, and coarse distribution quantities remain companion measures because they represent different attributes. Combining them with DSR would create a new composite whose attribute and weighting would require separate validation~\cite{fentonBieman2015}.
+The Estimator record in Table~\ref{tab:worked-estimator} makes these requirements relevant to software interfaces as well as analysis. A returned field should name its attribute and expose the reference and processing assumptions needed to interpret it. An undefined comparison should remain unavailable even when a numerical substitution produces a value. Combining quantities into a single score introduces another attribute and weighting scheme that require separate justification~\cite{fentonBieman2015}.
 
 \subsection{Limitations}
 \label{sec:threats}
 
 % Internal review guide. This subsection limits the strength and scope of the conclusions, especially the execution evidence used for RQ3. It consolidates evidence, construct, generalization, literature, and researcher limitations without repeating the results.
-The execution evidence supports descriptive conclusions rather than estimates of a provider population effect. Quantities derived from finite samples estimate underlying execution probabilities, while backend, topology, compiler, execution date, and queue conditions were not controlled. The transformation checks establish algebraic consistency, the aggregation analysis uses reused records and groupings selected by the authors, and the reference analysis reports disagreement counts. The absence of an aggregation reversal therefore describes this corpus and does not establish its prevalence, while the hardware results and illustrative cutoffs should not be interpreted as effects independent of the device.
+The execution evidence supports descriptive conclusions for the recorded conditions. Backend, topology, compiler, execution date, and queue conditions were not controlled. Transformation checks establish numerical consistency, while aggregation uses existing records and overlapping groups selected by the authors. The absence of a reversal does not establish its prevalence, and the illustrative cutoffs do not account for sampling uncertainty. These observations therefore do not estimate a provider population effect.
 
-The empirical cases also cover a narrower domain than the classification. The synthetic records in Subsection~\ref{sec:reference-evidence} test compact input processing rather than hardware execution, accuracy, or the superiority of R1. The detailed Sampler evidence is limited to Grover, and the Estimator evidence contains one four qubit GHZ job. The uniform null and task weights are study assumptions rather than universal defaults. Consequently, the results may not extend to variational workloads, analog systems, regimes with fault tolerance, or tasks without a suitable reference. Internal product measures such as circuit depth and the number of gates involving two qubits, together with claims of quantum advantage, also remain outside the study scope.
+The empirical cases cover a narrower domain than the classification. Detailed Sampler comparisons concern Grover, and the Estimator evidence contains one four qubit GHZ job. The uniform null and task weights are study assumptions. The supplementary synthetic records test input processing rather than hardware accuracy. Agreement for these inputs and measured attributes does not establish correctness of the entire quantum program. Generalization to other workloads, measurement procedures, and tasks without suitable references requires further evidence; internal product measures and quantum advantage remain outside the scope.
 
-The literature review was targeted rather than systematic, so an unindexed, unpublished, or differently framed study could weaken the novelty claim. We also maintain the QWARD implementation that motivated the DSR case study, which creates a risk of confirmation bias. The study makes these risks visible by providing the execution records and analysis programs, separating analytical identities from empirical observations, and reporting negative results and limitations alongside the applicable scope. A systematic literature review and replication by independent practitioners remain necessary to test the taxonomy beyond the evidence presented here.
+The literature review was targeted rather than systematic, so differently framed or unindexed work could weaken the claim of a distinct integration. We also maintain the QWARD implementation that motivated the DSR case study, which creates a risk of confirmation bias. The supplied records and analysis programs permit inspection of the reported positive and negative findings, but independent replication and evaluation by practitioners are still needed to assess the classification and selection procedure more broadly.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-The broad label ``execution metric'' conceals distances, similarities, unary scores, prediction systems, and Estimator quantities. The taxonomy of reference classes makes those differences operational by identifying what information a quantity requires and which comparisons it can support.
+% Internal review guide. Close the argument from the task requirement through the mathematical conditions to the observed consequences and their use in software development. Summarize RQ1 through RQ3 without repeating the selection checklist.
+Success in a quantum execution depends on the behavior required by the program and the observations available to evaluate it. The classification in Section~\ref{sec:model} makes this relationship explicit by identifying the attribute, reference information, and permitted comparisons for each quantity. A shared numerical range does not make task success, distribution agreement, and peak dominance interchangeable.
 
-The analytical and empirical results support a qualified conclusion. Strictly monotone transformations agree for individual jobs with a fixed reference under converted thresholds, and the stored corpus values satisfy their defining relations without an observed aggregation inversion. Reference availability and the Grover examples nevertheless show that R1 and R2 are not interchangeable. The GHZ-4 result similarly separates expectation agreement from an affine transform of the estimate, while DSR is an ordinal score of peak dominance rather than a mathematical metric.
+The analytical results establish when a change of representation preserves the intended decision. Strictly monotone transformations preserve individual threshold decisions under the conditions of Lemma~\ref{lem:threshold}, while nonlinear aggregation can reverse a group ranking. Proposition~\ref{prop:kmulti} further shows that coarse Hellinger fidelity combines accepted answer probability with agreement about their relative frequencies. DSR instead represents a censored ordering of peak dominance. These distinctions determine which mathematical operations answer the program's evaluation question.
 
-The GQM analysis yields a compact reporting convention. Authors should state \begin{enumerate*}[label=(\roman*),itemjoin={{, }},itemjoin*={{, and }}]
-\item the primitive interpretation
-\item the execution attribute
-\item the reference class and any task weights or null model
-\item the scale and direction of improvement
-\item the shot budget, mitigation procedure, and uncertainty
-\item any transformation or aggregation applied before drawing a conclusion
-\end{enumerate*}. This convention retains the useful result that strictly monotone pairs agree for a single job with a fixed reference under converted thresholds, while preventing that equivalence from being carried uncritically into aggregation, composition, or comparisons across tasks.
+The execution evidence in Section~\ref{sec:evaluation} illustrates the practical consequences. The corpus reproduces the defining transformations and contains no aggregation reversal in the selected groups. The Grover cases nevertheless produce different decisions under task and complete ideal references, while the Estimator record exposes a success label and a numerical error value that do not represent the intended agreement. The evidence supports these distinctions for the recorded conditions without establishing the correctness of the entire program.
 
-Future work should test the taxonomy with controlled Sampler and Estimator workloads, validate its use by independent practitioners, and study covariance, Hamiltonian weighting, and optimizer dynamics when several observable estimates feed one decision. Until then, measure selection should follow the decision, attribute, available reference, and intended operation identified in Section~\ref{sec:selection}.
+For software development, the resulting contribution is a basis for choosing and interpreting execution quantities according to a stated requirement. The GQM procedure in Section~\ref{sec:selection} connects that requirement to the available reference and intended decision, including uncertainty and aggregation. Future work should evaluate this procedure with independent practitioners and controlled workloads to determine how reliably it supports quantum software assessment.
 
 \section{Data and Code Availability}
 
@@ -724,7 +712,7 @@ The execution records and analysis programs are supplied with the article. The c
 
 \section{AI Tools and Services Acknowledgment}
 
-The authors acknowledge the use of AI tools and services for manuscript preparation, coding, and research assistance. Writefull.com supported language, grammar, and writing improvements; Elicit.com assisted in the literature discovery; and Cursor and Claude Code (Anthropic) assisted with code development, plotting scripts, quantum circuit understanding, statistical analysis, data processing scripts, and manuscript revision. These tools supported and expanded the authors’ abilities, but the essential research, study design, data analysis, and resulting conclusions remain the authors’ own intellectual contribution.
+The authors used AI assistance through different models for code development, quantum circuit analysis, statistical analysis, data processing, visualization, and manuscript revision. Codex supported this work, Writefull assisted with language and grammar improvements, and Elicit supported literature discovery. The authors retain responsibility for the study design, interpretation of results, and the accuracy and originality of the article.
 
 \bibliographystyle{IEEEtran}
 \bibliography{Bibliography}
