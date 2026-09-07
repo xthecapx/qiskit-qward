@@ -111,7 +111,11 @@ def analyze() -> dict[str, object]:
         ),
     }
 
-    provider_rows = data.loc[data["execution_type"].isin(PROVIDER_BY_EXECUTION_TYPE)].copy()
+    # Retain the study's designated groups, but identify Rigetti by its backend.
+    # AWS_BRAKET also contains an IonQ Forte execution.
+    ibm_rows = data["execution_type"].eq("IBM_QPU")
+    rigetti_rows = data["execution_type"].eq("AWS_BRAKET") & data["backend_name"].eq("Ankaa-3")
+    provider_rows = data.loc[ibm_rows | rigetti_rows].copy()
     provider_rows["provider"] = provider_rows["execution_type"].map(PROVIDER_BY_EXECUTION_TYPE)
     aggregation = {
         "provider": _provider_inversions(provider_rows, [], minimum_group_size=5),
