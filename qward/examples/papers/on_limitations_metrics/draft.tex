@@ -135,23 +135,24 @@ Quantum software measurement, representational measurement theory, Goal--Questio
 \section{Introduction}
 \label{sec:intro}
 
-The result of a quantum processing unit (QPU) does not determine by itself what success means. In current quantum execution frameworks, its interpretation depends on the primitive. A Sampler job retains measurement outcomes as samples from output registers, whereas an Estimator job combines outcomes into expectation values for specified observables~\cite{qiskit2024}, as formalized in Section~\ref{sec:primitives}. These outputs preserve different empirical relations. Therefore, using a formula defined for one interpretation to evaluate the other changes the attribute being measured, not merely the notation~\cite{fentonBieman2015}.
+The result of a quantum processing unit (QPU) does not determine by itself what success means. In current quantum execution frameworks, its interpretation depends on the measurements performed and the Primitive through which their results are reported. A Sampler Job stores measurement results as samples from output registers, while an Estimator Job aggregates results into expectation values for chosen observables~\cite{qiskit2024}, as described in Section~\ref{sec:primitives}. Because the two outputs preserve different empirical relations, applying a formula defined for one interpretation to evaluate the other changes the attribute being measured, not only the notation~\cite{fentonBieman2015}.
 
-Quantum information already provides a distinction between fidelity and distance, along with metrics computed using multiple fidelity functions~\cite{gilchrist2005,luo2004,ma2009,nielsen2010}. The unresolved problem in software measurement is how to select among success rate, Hellinger fidelity (HF), total variation distance (TVD), probability of successful trials (PST), estimated success probability (ESP), and related scores when analyzing the output of a quantum job. These quantities are commonly averaged, thresholded, or compared even when they do not share a domain.
+Quantum information already provides a distinction between fidelity and distance, along with metrics computed using multiple fidelity functions~\cite{gilchrist2005,luo2004,ma2009,nielsen2010}. The unresolved problem in software measurement is how to select among success rate, Hellinger fidelity (HF), total variation distance (TVD), probability of successful trials (PST), estimated success probability (ESP) and related scores when analyzing the output of a quantum Job. These quantities are commonly averaged, thresholded, or compared even when they do not share a domain.
 
-For a single job evaluated against a fixed reference, conditions $\TVD\le0.2$ and $1-\TVD\ge0.8$ always lead to the same conclusion about whether the execution satisfies the selected threshold, as Section~\ref{sec:threshold} formalizes. This equivalence holds because the second quantity is a decreasing transformation of the first, and the threshold is converted consistently. This does not imply that the two quantities can be substituted for each other in every analysis. Four limitations are relevant. First, averaging values related by a nonlinear transformation can produce a different group ranking; by contrast, averaging $1-\TVD$ is exactly one minus the average TVD, so this affine transformation preserves the ranking when its direction is interpreted consistently. Second, when an error bound is propagated through successive transformations, its justification must account for how each transformation changes the selected distance. Third, interpreting one value as a multiple of another requires justification that the numerical representation supports such ratios, and applying the same cutoff across different tasks requires a different justification. Fourth, a quantity can be computed and interpreted as defined only when its required inputs and reference information are available; otherwise, the quantity should be reported as unavailable.
+For a Job evaluated against a fixed reference, the conditions $\TVD\le0.2$ and $1-\TVD\ge0.8$ yield the same threshold decision. The second quantity is a decreasing transformation of the first, and both the threshold and inequality direction are converted consistently. Section~\ref{sec:threshold} formalizes this equivalence.
 
-This paper makes three contributions, namely \begin{enumerate*}[label=(\roman*),itemjoin={{; }},itemjoin*={{; and }}]
-\item we classify quantities used to evaluate quantum job executions using representational measurement theory and the Goal--Question--Metric (GQM) approach, distinguishing a known answer set with any required weights or null model, a full ideal distribution $P^{\star}$, ideal observable expectation values $\langle O_i\rangle$, and an operational comparison protocol
-\item we determine when transformations preserve an individual decision, when subsequent operations require additional justification, and how these findings inform quantity selection through GQM
-\item we characterize differential success rate (DSR) as an ordinal score of peak dominance and evaluate the framework using QPU measurements
-\end{enumerate*}. These contributions motivate three research questions (RQs), stated as \begin{enumerate*}[label=\textbf{RQ\arabic*},ref=\arabic*,itemjoin={{ }},itemjoin*={{ }}]
+Equivalent decisions for individual Jobs do not guarantee equivalent conclusions under other operations. Averaging quantities related by a nonlinear transformation can change a group ranking. Propagating error bounds, interpreting ratios, and applying thresholds across tasks also require justification based on the represented attribute and the operation performed. When the required inputs or reference information are absent, the corresponding comparison should be reported as unavailable. Selecting an execution measure therefore requires establishing both what it represents and which operations preserve the intended conclusion.
+
+This paper classifies quantities used to evaluate a Job through representational measurement theory and the Goal--Question--Metric (GQM) approach. It establishes when transformations preserve execution conclusions and when subsequent operations require additional justification. The analysis also characterizes differential success rate (DSR) as an ordinal score of peak dominance and examines these distinctions using QPU execution data.
+
+The study addresses three research questions (RQs).
+\begin{enumerate}[label=\textbf{RQ\arabic*},ref=\arabic*,leftmargin=*,itemsep=2pt,parsep=0pt,topsep=3pt]
 \item\label{rq:attributes} Which execution attribute and reference information does each quantity represent?
 \item\label{rq:operations} Which transformations and operations preserve a conclusion, and which can change it?
 \item\label{rq:evidence} Do these distinctions appear in QPU execution data, and how do they inform the interpretation of DSR?
-\end{enumerate*}
+\end{enumerate}
 
-The analysis separates two questions that are easily conflated. The mathematical question is whether a function satisfies Axioms M1--M4 on a named space. The representational question asks whether a numerical value preserves the intended relations for an attribute of a specified entity~\cite{fentonBieman2015,fenton1994}. Passing one test does not guarantee passing the other. Hellinger distance is a metric on distributions, for example, but histogram closeness may be the wrong attribute when the decision concerns only the probability mass assigned to an answer set $E$.
+The analysis separates two questions that are easily confused. The mathematical question is whether a function satisfies Axioms M1--M4 on a named space. The representational question asks whether a numerical value preserves the intended relations for an attribute of a specified entity~\cite{fentonBieman2015,fenton1994}. Passing one test does not guarantee passing the other. For example, Hellinger distance is a metric on distributions, but agreement between histograms may be the wrong attribute when the decision concerns only the probability mass assigned to an answer set $E$.
 
 The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews the theoretical basis, and Section~\ref{sec:related} positions the work against related studies. Section~\ref{sec:model} classifies execution quantities by their attributes and reference requirements. Section~\ref{sec:analysis} establishes the effects of transformations and operations on their interpretation, and Section~\ref{sec:evaluation} examines these distinctions in execution data. Sections~\ref{sec:discussion}--\ref{sec:conclusion} provide reporting guidance, limitations, and conclusions.
 
@@ -230,7 +231,7 @@ that satisfies the following four axioms:
 
 With Axioms~M1--M4 in place, the quantities commonly reported as quantum metrics can be compared with the formal definition of a distance metric. Among the quantities considered in this paper, Hellinger distance and TVD satisfy M1--M4 on $\Delta_n$ through their norm representations. Other notions appearing in the literature have different mathematical properties. A \emph{pseudometric} relaxes the identity of indiscernibles (M2) by allowing distinct points to have zero separation, while a \emph{quasimetric} relaxes symmetry (M3). A divergence such as Kullback--Leibler is typically asymmetric and may violate the triangle inequality (M4).
 
-By contrast, HF and TVD similarity---the similarity quantities used in our examples---are maximized when their two arguments coincide. Other commonly reported quantities still have different forms: the success rate and the PST are proportions, the ESP is a prediction, and DSR is evaluated in this paper as an ordinal score. These quantities evaluate a job relative to a goal, reference, or calibration model and are therefore not candidates for Axioms~M1--M4 in their original form. This distinction has two practical consequences. First, taking the complement of a distance does not automatically produce another metric. Second, any claim that invokes the triangle inequality should be stated for a verified distance metric or for a dissimilarity explicitly induced from one. For example, the Hellinger construction in Equation~\ref{eq:hellinger-distance} converts the Bhattacharyya overlap of Equation~\ref{eq:bhattacharyya-coefficient} into a metric. Another standard conversion is the angular distance
+By contrast, HF and TVD similarity---the similarity quantities used in our examples---are maximized when their two arguments coincide. Other commonly reported quantities still have different forms: the success rate and the PST are proportions, the ESP is a prediction, and DSR is evaluated in this paper as an ordinal score. These quantities evaluate a Job relative to a goal, reference, or calibration model and are therefore not candidates for Axioms~M1--M4 in their original form. This distinction has two practical consequences. First, taking the complement of a distance does not automatically produce another metric. Second, any claim that invokes the triangle inequality should be stated for a verified distance metric or for a dissimilarity explicitly induced from one. For example, the Hellinger construction in Equation~\ref{eq:hellinger-distance} converts the Bhattacharyya overlap of Equation~\ref{eq:bhattacharyya-coefficient} into a metric. Another standard conversion is the angular distance
 \begin{equation}
 \theta(P,Q)=\arccos\BC(P,Q).
 \label{eq:bhattacharyya-angle}
@@ -248,7 +249,7 @@ In what follows, we explicitly distinguish similarities from distances and name 
 \subsection{Representational Measurement Theory}
 \label{sec:fenton}
 
-The preceding subsection establishes whether a quantity is a mathematical metric in a named space. In this section, we establish whether a numerical value preserves the intended relations for a specified execution attribute. Fenton and Bieman~\cite{fentonBieman2015} define measurement as a mapping from an empirical relational system to a numerical one that preserves those relations, a requirement known as the representation condition~\cite{polancic2017complexity}. Applied to a quantum job, this view requires naming the attribute being measured, such as proximity to a reference distribution, probability mass on $E$, dominance of expected peaks, or deviation from an ideal expectation.
+The preceding subsection establishes whether a quantity is a mathematical metric in a named space. In this section, we establish whether a numerical value preserves the intended relations for a specified execution attribute. Fenton and Bieman~\cite{fentonBieman2015} define measurement as a mapping from an empirical relational system to a numerical one that preserves those relations, a requirement known as the representation condition~\cite{polancic2017complexity}. Applied to a quantum Job, this view requires naming the attribute being measured, such as proximity to a reference distribution, probability mass on $E$, dominance of expected peaks, or deviation from an ideal expectation.
 
 Table~\ref{tab:scale-types} summarizes the five types of scale used in this paper and the comparisons supported by each.
 
@@ -262,7 +263,7 @@ Table~\ref{tab:scale-types} summarizes the five types of scale used in this pape
 \textbf{Scale} & \textbf{Interpretation} \\
 \midrule
 Nominal & Labels only. A provider name is not a success quantity. \\
-Ordinal & Order is preserved; differences are not. Against the same reference and on a common outcome space, a ranking of jobs by $\HF$ supports "\textit{closer than,}" not "\textit{twice as close.}" \\
+Ordinal & Order is preserved; differences are not. Against the same reference and on a common outcome space, a ranking of Jobs by $\HF$ supports "\textit{closer than,}" not "\textit{twice as close.}" \\
 Interval & Differences are meaningful, whereas the zero point is conventional. Treating an expectation value as measured on an interval scale requires an explicit empirical interpretation. \\
 Ratio & A meaningful, nonarbitrary zero and admissible transformations restricted to positive scaling are required to support statements such as "\textit{twice as far.}" Satisfaction of Axioms M1--M4 alone does not establish a ratio scale, and $1-d$ does not inherit one automatically. \\
 Absolute & Shot counts correspond most closely to this type. Derived proportions inherit meaning only after the derivation is stated~\cite{fentonBieman2015}. \\
@@ -270,9 +271,9 @@ Absolute & Shot counts correspond most closely to this type. Derived proportions
 \end{tabularx}
 \end{table}
 
-A scale type belongs to a stated attribute and measurement procedure, not to the numerical value alone. Table~\ref{tab:audit} therefore assigns a conservative measurement status rather than inferring a scale from a familiar formula. Subsection~\ref{sec:operations} applies this principle to $p_E$, aggregation between jobs, ratio statements, and uncertainty due to finite sampling. Mathematical kind, scale interpretation, and sampling uncertainty remain separate properties.
+A scale type belongs to a stated attribute and measurement procedure, not to the numerical value alone. Table~\ref{tab:audit} therefore assigns a conservative measurement status rather than inferring a scale from a familiar formula. Subsection~\ref{sec:operations} applies this principle to $p_E$, aggregation between Jobs, ratio statements, and uncertainty due to finite sampling. Mathematical kind, scale interpretation, and sampling uncertainty remain separate properties.
 
-This framework prevents every numerical quantity from being treated as a mathematical metric, a concern raised by Fenton~\cite{fenton1994,fenton1992}. A unary score can represent the probability mass on an answer set, even though Axioms M1--M4 do not apply to it. On the other hand, a mathematical distance can be unsuitable for a decision concerning a different attribute. Clipping a score corrected for chance at zero provides another limitation because it removes the ordering among jobs below the chance baseline.
+This framework prevents every numerical quantity from being treated as a mathematical metric, a concern raised by Fenton~\cite{fenton1994,fenton1992}. A unary score can represent the probability mass on an answer set, even though Axioms M1--M4 do not apply to it. On the other hand, a mathematical distance can be unsuitable for a decision concerning a different attribute. Clipping a score corrected for chance at zero provides another limitation because it removes the ordering among Jobs below the chance baseline.
 
 Representational measurement theory determines the interpretations and comparisons that a quantity supports. The GQM paradigm complements this analysis by guiding the selection of a quantity from the execution goal and available information~\cite{basili1994,fentonBieman2015}. It also distinguishes measurements from prediction; for example, ESP predicts execution success from calibration data rather than measuring an observed histogram. Section~\ref{sec:related} contrasts this question with the evaluation of predictive validity. Section~\ref{sec:selection} applies GQM by naming the object, purpose, quality focus, viewpoint, and execution context before deriving questions and quantities.
 
@@ -281,18 +282,18 @@ Representational measurement theory determines the interpretations and compariso
 
 The literature on quantum information establishes the distinctions of fidelity and distance~\cite{gilchrist2005,luo2004,ma2009,mendonca2008,uhlmann1976,nielsen2010}, and we summarize them in Section~\ref{sec:vocab}. Since these results already distinguish similarities from the distances they induce, this research therefore does not claim the metric axioms or the fidelity distinction as new results.
 
-The most closely related study to ours is by Mohapatra \emph{et al.}~\cite{mohapatra2025}, who link HF, TVD, ESP, and PST to the fidelity of density matrices. Their strongest reported proxies---ESP and PST---answer how well an inexpensive quantity tracks a reference obtained through tomography. However, Mohapatra claims are complementary to, but distinct from, deciding which attribute should define success for a quantum job.
+The most closely related study to ours is by Mohapatra \emph{et al.}~\cite{mohapatra2025}, who link HF, TVD, ESP, and PST to the fidelity of density matrices. Their strongest reported proxies---ESP and PST---answer how well an inexpensive quantity tracks a reference obtained through tomography. However, Mohapatra claims are complementary to, but distinct from, deciding which attribute should define success for a quantum Job.
 
 Within quantum software engineering, multiple surveys describe distribution distances, statistical tests, assertions, and other criteria used to decide whether a quantum execution succeeded~\cite{paltenghi2024,andrews2026,ramalho2025}. Ye \emph{et al.}~\cite{ye2025} differentiate the validation of measured output values from the validation of complete distributions and show how finite sampling constrains both. The work of Ye establishes the testing context in which a success quantity is consumed, but does not provide the integrated classification framework developed in this study.
 
 Hacaloglu \emph{et al.}~\cite{hacaloglu2026} apply the broader questions of what, how, and why to the measurement of quantum software size. That study targets an internal product attribute rather than execution success, but it demonstrates the relevance of classical software measurement theory to quantum computing.
 
-In contrast, this paper focuses on quantities derived from quantum job outcomes and provides both a classification framework and a procedure based on GQM for selecting a success quantity. Our literature review did not identify prior work that integrates these elements, so our contribution is primarily based on scope and integration rather than novelty claims for the underlying distance measures or axioms.
+In contrast, this paper focuses on quantities derived from quantum Job outcomes and provides both a classification framework and a procedure based on GQM for selecting a success quantity. Our literature review did not identify prior work that integrates these elements, so our contribution is primarily based on scope and integration rather than novelty claims for the underlying distance measures or axioms.
 
 \section{Classification of Quantum Execution Quantities}
 \label{sec:model}
 
-Evaluating execution success requires identifying the behavior expected from the quantum program. A task may require an accepted classical answer, agreement with an ideal distribution, or an expectation value within a specified tolerance. These requirements concern different execution attributes, and the available primitive result determines which of them can be evaluated directly.
+Evaluating execution success requires identifying the behavior expected from the quantum program. A task may require an accepted classical answer, agreement with an ideal distribution, or an expectation value within a specified tolerance. These requirements concern different execution attributes, and the available Primitive result determines which of them can be evaluated directly.
 
 In Qiskit Runtime, \emph{SamplerV2} returns samples from classical output registers, whereas \emph{EstimatorV2} returns expectation estimates and their uncertainties for specified observables~\cite{qiskit2024,ibmEstimator2026}. These views can involve different measurements and processing, including basis rotations and mitigation. Table~\ref{tab:primitives} connects each result to the reference needed to assess agreement.
 
@@ -318,7 +319,7 @@ What can be evaluated? & Did the measured outcomes agree with $E$ or $P^{\star}$
 \subsection{Interpreting Sampler and Estimator Results}
 \label{sec:primitives}
 
-When designing an execution, the evaluation goal guides the choice of measurements and primitive. For a completed job, the available result constrains which attributes can still be assessed. In either case, a quantity requires both a compatible result and the reference information appropriate to the goal, as summarized in Table~\ref{tab:primitives}.
+When designing an execution, the evaluation goal guides the choice of measurements and Primitive. For a completed Job, the available result constrains which attributes can still be assessed. In either case, a quantity requires both a compatible result and the reference information appropriate to the goal, as summarized in Table~\ref{tab:primitives}.
 
 For a Sampler result with $S>0$ shots, normalizing the counts $\mathcal C(x)$ gives the empirical distribution $\widehat P$. A set of accepted answers $E$ defines the observed task success $p_E$. A justified null distribution $Q_0$ additionally supports chance corrected success (CCS), provided its baseline $b<1$.
 \begin{align}
@@ -394,7 +395,7 @@ For each quantity, we identify its attribute and inputs, assess its mathematical
 & \textbf{Status and permitted use} & \textbf{Principal limitation} \\
 \midrule
 Success rate $p_{E}$ & mass on $E$ & R1($E$) & proportion
-& derived proportion; order and thresholds; state how jobs or shots are averaged
+& derived proportion; order and thresholds; state how Jobs or shots are averaged
 & ignores competitors and variation within $E$ \\
 CCS & mass beyond a null baseline & R1($E,Q_0$) & censored score
 & order only above $b$; thresholds require the same null model
@@ -462,7 +463,7 @@ An execution accepted under a distance threshold should receive the same decisio
 \subsection{Equivalent Decisions for a Fixed Interpretation}
 \label{sec:threshold}
 
-A fixed attribute and reference, a strictly monotone transformation, and a consistently converted threshold are sufficient to preserve a decision for an individual job.
+A fixed attribute and reference, a strictly monotone transformation, and a consistently converted threshold are sufficient to preserve a decision for an individual Job.
 
 \begin{lemma}[Threshold invariance]
 \label{lem:threshold}
@@ -478,7 +479,7 @@ d(P,Q)\leq\tau
 \end{equation}
 \end{lemma}
 
-Strict monotonicity preserves or reverses order, so the converted threshold partitions the jobs in the same way. The lemma applies to the Hellinger distance and its similarity forms, TVD and its complement, and absolute expectation deviation and observable fidelity. CCS belongs to a monotone class only above the chance baseline because clipping removes the order among lower values. DSR represents dominance among peaks and is not a transformation of task success, as Section~\ref{sec:dsr} establishes.
+Strict monotonicity preserves or reverses order, so the converted threshold partitions the Jobs in the same way. The lemma applies to the Hellinger distance and its similarity forms, TVD and its complement, and absolute expectation deviation and observable fidelity. CCS belongs to a monotone class only above the chance baseline because clipping removes the order among lower values. DSR represents dominance among peaks and is not a transformation of task success, as Section~\ref{sec:dsr} establishes.
 
 The coarse representation in Section~\ref{sec:primitives} provides an application to known answers. Hellinger distance and TVD are metrics on its $K+1$ bins~\cite{gilchrist2005,nielsen2010}. Applied to full histograms through this mapping, they are only pseudometrics whenever at least two outcomes outside $E$ are combined, because distinct histograms can then have zero separation.
 
@@ -525,7 +526,7 @@ For example, with $m=10$ and $K=1$, distributions having $(p_E,p_{\mathrm{comp}}
 \subsection{Operations That Require Additional Assumptions}
 \label{sec:operations}
 
-Equivalent decisions for individual jobs do not guarantee equivalent summaries over several jobs. HF is the nonlinear transformation $\phi(H)=(1-H^2)^2$. Consider the constructed sets $A=\{0.10,0.10,0.90\}$ and $B=\{0.40,0.40,0.40\}$. Their summaries satisfy
+Equivalent decisions for individual Jobs do not guarantee equivalent summaries over several Jobs. HF is the nonlinear transformation $\phi(H)=(1-H^2)^2$. Consider the constructed sets $A=\{0.10,0.10,0.90\}$ and $B=\{0.40,0.40,0.40\}$. Their summaries satisfy
 \begin{equation}
 \begin{aligned}
 \operatorname{mean}(H_A)&=0.367<0.400=\operatorname{mean}(H_B),\\
@@ -653,7 +654,7 @@ The findings connect the mathematical properties of execution quantities to the 
 \subsection{Selection of a Quantity}
 \label{sec:selection}
 
-Following GQM~\cite{basili1994}, the object is an individual execution, the purpose is evaluation, the quality focus is success for a stated task, and the viewpoint is the developer's. The context fixes the primitive, available reference, shot budget, and mitigation procedure. Table~\ref{tab:gqm} derives questions and quantities from this goal using the classification in Table~\ref{tab:audit} and the operational conditions in Section~\ref{sec:analysis}.
+Following GQM~\cite{basili1994}, the object is an individual execution, the purpose is evaluation, the quality focus is success for a stated task, and the viewpoint is the developer's. The context fixes the Primitive, available reference, shot budget, and mitigation procedure. Table~\ref{tab:gqm} derives questions and quantities from this goal using the classification in Table~\ref{tab:audit} and the operational conditions in Section~\ref{sec:analysis}.
 
 \begin{table}[ht]
 \centering
@@ -690,7 +691,7 @@ The Estimator record in Table~\ref{tab:worked-estimator} makes these requirement
 % Internal review guide. This subsection limits the strength and scope of the conclusions, especially the execution evidence used for RQ3. It consolidates evidence, construct, generalization, literature, and researcher limitations without repeating the results.
 The execution evidence supports descriptive conclusions for the recorded conditions. Backend, topology, compiler, execution date, and queue conditions were not controlled. Transformation checks establish numerical consistency, while aggregation uses existing records and overlapping groups selected by the authors. The absence of a reversal does not establish its prevalence, and the illustrative cutoffs do not account for sampling uncertainty. These observations therefore do not estimate a provider population effect.
 
-The empirical cases cover a narrower domain than the classification. Detailed Sampler comparisons concern Grover, and the Estimator evidence contains one four qubit GHZ job. The uniform null and task weights are study assumptions. The supplementary synthetic records test input processing rather than hardware accuracy. Agreement for these inputs and measured attributes does not establish correctness of the entire quantum program. Generalization to other workloads, measurement procedures, and tasks without suitable references requires further evidence; internal product measures and quantum advantage remain outside the scope.
+The empirical cases cover a narrower domain than the classification. Detailed Sampler comparisons concern Grover, and the Estimator evidence contains one four qubit GHZ Job. The uniform null and task weights are study assumptions. The supplementary synthetic records test input processing rather than hardware accuracy. Agreement for these inputs and measured attributes does not establish correctness of the entire quantum program. Generalization to other workloads, measurement procedures, and tasks without suitable references requires further evidence; internal product measures and quantum advantage remain outside the scope.
 
 The literature review was targeted rather than systematic, so differently framed or unindexed work could weaken the claim of a distinct integration. We also maintain the QWARD implementation that motivated the DSR case study, which creates a risk of confirmation bias. The supplied records and analysis programs permit inspection of the reported positive and negative findings, but independent replication and evaluation by practitioners are still needed to assess the classification and selection procedure more broadly.
 
@@ -708,7 +709,7 @@ For software development, the resulting contribution is a basis for choosing and
 
 \section{Data and Code Availability}
 
-The execution records and analysis programs are supplied with the article. The corpus checks use \texttt{DSR\_result.csv} and \texttt{reproduce\_analysis.py}~\cite{qwardGroverData2026}. The Grover examples apply the filter \texttt{algorithm = GROVER}; Table~\ref{tab:grover-multi} states the additional configuration, backend, and optimization level selections used for its two rows. The reference representation experiment uses \texttt{broad\_ideal\_experiment.py}, random seed 42, and the supplied JSON results. The Estimator example uses the completed IBM Runtime job record in \texttt{estimator\_ibm\_result.json}~\cite{qwardEstimatorData2026}. These artifacts permit reproduction of the reported calculations without submitting a new QPU job.
+The execution records and analysis programs are supplied with the article. The corpus checks use \texttt{DSR\_result.csv} and \texttt{reproduce\_analysis.py}~\cite{qwardGroverData2026}. The Grover examples apply the filter \texttt{algorithm = GROVER}; Table~\ref{tab:grover-multi} states the additional configuration, backend, and optimization level selections used for its two rows. The reference representation experiment uses \texttt{broad\_ideal\_experiment.py}, random seed 42, and the supplied JSON results. The Estimator example uses the completed IBM Runtime Job record in \texttt{estimator\_ibm\_result.json}~\cite{qwardEstimatorData2026}. These artifacts permit reproduction of the reported calculations without submitting a new QPU Job.
 
 \section{Artificial Intelligence (AI) Tools and Services Acknowledgment}
 
