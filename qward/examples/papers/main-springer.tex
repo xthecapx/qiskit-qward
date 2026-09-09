@@ -146,9 +146,9 @@ Probability of successful trials (PST) \cite{mohapatraBenchmarkingFidelityMetric
 
 The main limitation of PST is that its definition modifies the structure of the original circuit. Since calculating PST requires the circuit and its inverse, the total depth of the circuit is doubled, thereby amplifying the impact of errors. In addition, standard PST employs a binary classification for success; because it only checks if the output matches the expected initial state (e.g., an all-zero output), an outcome with a single bit-flip error is penalized in the exact same way as one in which every bit is corrupted.
 
-PST can also avoid constructing a broad ideal output distribution before applying a fidelity-like score. However, it is important to note that PST evaluations are focused on the success of the operation $U^{\dagger}U$, they do not evaluate the agreement between the measured and ideal output of ~$U$. It additionally increases the complexity of the circuit by incorporating the inverse operation, and it also employs an all-zero target state, which can be susceptible to the qubits relaxation process. This strategy is therefore useful as a validation technique, but does not replace direct analysis of the quantum program result.
+PST can also avoid constructing a broad ideal output distribution before applying a fidelity-like score. However, it is important to note that PST evaluations are focused on the success of the operation $U^{\dagger}U$, they do not evaluate the agreement between the measured and ideal output of ~$U$. The all-zero target state can also be susceptible to the qubits relaxation process. This strategy is therefore useful as a validation technique, but does not replace direct analysis of the quantum program result.
 
-\subsection{Hellinger Fidelity}
+\subsection{Hellinger Fidelity}\label{sec:hellinger-fidelity}
 
 Hellinger fidelity (HF) is a metric recommended for algorithms like the Quantum Approximate Optimization Algorithm (QAOA) \cite{zhouQuantumApproximateOptimization_2020}, where the ideal solution is a probability distribution spread over many different basis states. HF is calculated by comparing the expected distribution with the returned outcome distribution, returning a 1 if both are identical or 0 if there is no overlap.
 
@@ -158,7 +158,7 @@ The major limitation of HF \cite{mohapatraBenchmarkingFidelityMetrics_2025} lies
 
 The total variation distance (TVD) \cite{knillBoundsApproximationTotal_1995, bhattacharyyaApproximatingTotalVariation_2023} is a metric that shares similarities with HF. Both metrics are particularly suitable for algorithms whose ideal output is a probability distribution with values spread over many states. What makes TVD unique is its mathematical approach to histogram comparison, which is defined as half the sum of the absolute differences between the corresponding probabilities. By definition, a TVD value of 0 indicates identical distributions, while a value of 1 means completely different. However, for consistency with other fidelity metrics, TVD is often reported as $TVDF = 1 - TVD$.
 
-Similarly, TVD shares the limitations of HF: a high computational overhead due to the need to estimate the ideal probability distribution, a limited sensitivity to errors in circuits whose ideal output is concentrated on a small number of dominant states, and a fundamental inability to capture information about phase-related errors.
+Similarly, TVD shares the limitations of HF described in Section~\ref{sec:hellinger-fidelity} regarding the ideal reference distribution, sensitivity to errors, and phase information.
 
 These limitations motivate direct evaluation of target distinction for quantum jobs with known expected outcomes.
 
@@ -239,7 +239,7 @@ DSR is therefore a continuous score rather than a binary metric. Equation~\eqref
 
 \subsection{Alternative formulations}
 
-Beyond the Michelson expression provided in Equation~\eqref{eq:dsr}, we analyzed three additional contrast functions using the collected data set (refer to Section~\ref{subsec:experiment} for details). The goal was to benchmark all formulations to ultimately identify the most suitable option. Table~\ref{tab:dsr_variants} reports the candidate formulations considered.
+Beyond the Michelson expression provided in Equation~\eqref{eq:dsr}, we analyzed two additional contrast functions using the collected data set (refer to Section~\ref{subsec:experiment} for details). The goal was to benchmark all formulations to ultimately identify the most suitable option. Table~\ref{tab:dsr_variants} reports the candidate formulations considered.
 
 %% Table: DSR variant formulations
 \begin{table}
@@ -250,7 +250,6 @@ Beyond the Michelson expression provided in Equation~\eqref{eq:dsr}, we analyzed
 \midrule
 Michelson       & Eq.~\eqref{eq:dsr}       & $[0,\,1]$ \\
 Ratio           & Eq.~\eqref{eq:dsr_ratio}  & $[0,\,1]$ \\
-Log-Ratio       & Eq.~\eqref{eq:dsr_log}    & $[0,\,1]$ \\
 Norm-Margin     & Eq.~\eqref{eq:dsr_nm}     & $[0,\,1]$ \\
 \botrule
 \end{tabular}
@@ -264,16 +263,6 @@ The \emph{ratio} variant normalizes the expected probability by the total probab
 \frac{\bar{p}_{\text{exp}}}
      {\bar{p}_{\text{exp}} + p_{\text{comp}}},\; 0,\; 1\right)
 \end{equation}
-
-The \emph{log-ratio} variant applies a sigmoid function $\sigma(z)=1/(1+e^{-z})$ to the logarithmic ratio of the two peaks, mapping the result to the interval $[0,1]$:
-
-\begin{equation}
-\label{eq:dsr_log}
-\mathrm{DSR}_{\text{log}} = \mathrm{clip}\!\left(
-\sigma\!\left(\ln \frac{\bar{p}_{\text{exp}}}{p_{\text{comp}}}\right),\; 0,\; 1\right)
-\end{equation}
-
-For zero-valued peaks, we use the continuous limits of Equation~\eqref{eq:dsr_log}. The log-ratio variant is assigned 0 when $\bar{p}_{\mathrm{exp}}=0$ and $p_{\mathrm{comp}}>0$, and 1 when $\bar{p}_{\mathrm{exp}}>0$ and $p_{\mathrm{comp}}=0$. The invalid case in which both values are zero follows the convention established for DSR and is reported as 0.
 
 The \emph{normalized margin} variant divides the difference between the two peaks by the larger of the two:
 
@@ -291,11 +280,11 @@ The \emph{normalized margin} variant divides the difference between the two peak
 \caption{DSR variants for the Grover algorithm as a function of the number of qubits (IBM backends).}\label{fig:dsr_variants}
 \end{figure}
 
-Figure~\ref{fig:dsr_variants} reports the median DSR of each variant for Grover's algorithm as a function of the number of qubits, using the highest level of transpilation optimization. Grover is shown because its wide qubit range (2--8) best illustrates the discriminative differences among formulations.
+Figure~\ref{fig:dsr_variants} reports the median DSR of each variant for Grover's algorithm as a function of the number of qubits, across all transpilation optimization levels. Grover is shown because its wide qubit range (2--8) best illustrates the differences among formulations.
 
-Both the Michelson (teal line) and the normalized-margin (pink line) variants decrease monotonically and reach~$0$ at six qubits; however, Michelson drops more sharply in the $3$--$5$ qubit range, providing an earlier indication of performance degradation. The log-ratio (purple line) and ratio (orange line) variants exhibit a slower decline and still report values of approximately $0.2$--$0.4$ at six to eight qubits, where the expected outcome no longer stands out in the histogram. This behavior fails to expose the distinction boundary and reduces the ability of the score to differentiate the peak separation from complete loss of the expected outcome.
+Both the Michelson (teal line) and the normalized-margin (pink line) variants decrease monotonically and reach~$0$ at six qubits; however, Michelson reports lower scores in the $3$--$5$ qubit range. Both formulations share the distinction boundary defined in Equation~\eqref{eq:dsr_boundary}. The ratio (orange line) variant exhibits a slower decline and still reports values of approximately $0.16$--$0.31$ at six to eight qubits, where the expected outcome no longer stands out in the histogram. In this formulation, equal expected and competing peaks produce a score of~$0.5$, rather than~$0$.
 
-Based on this analysis, we select the Michelson formulation to compute the DSR. In summary, the Michelson formulation is defined in the interval $[0,1]$ and is the first variant to indicate loss of expected-outcome distinction, making its zero boundary directly interpretable.
+Based on this analysis, we select the Michelson formulation to compute the DSR. In summary, the Michelson formulation expresses the difference between the expected and competing peaks relative to their sum, returning a score in $[0,1]$ with a directly interpretable zero boundary.
 
 \section{Experiment setup}\label{subsec:experiment}
 
@@ -305,7 +294,7 @@ To test Grover's search algorithm, we created different configurations of the ci
 
 To evaluate the QFT algorithm, we set the algorithm in two ways. In the first case, \emph{round-trip} mode, the circuit applies the QFT followed by its inverse, so that a correct execution returns the original input state (similar to what we describe in Section~\ref{sec:density-matrix}). In the second configuration, \emph{period-detection} mode, the circuit encodes a signal with a known period~$p$ on $n$~qubits and then applies the QFT. The transform reveals the frequency content of the signal, producing peaks at the positions $k \cdot N/p$ for $k = 0, 1, \ldots, p{-}1$, where $N = 2^n$.
 
-To evaluate BV, we used alternating secret strings with the bit pattern $1010\ldots$ and determined whether the measured query register returned the expected string. The study included a scalability ladder from 2 to 14~query qubits and three larger configurations of 29, 30, and 31~query qubits.
+To evaluate BV, we used alternating secret strings with the bit pattern $1010\ldots$ and determined whether the measured query register returned the expected string.
 
 We additionally designed the BVsb experiment to evaluate a multi-target circuit whose ideal output is not a delta distribution. The circuit assigns an ideal probability mass of~$0.90$ to two analytically known basis states and the remaining~$0.10$ to a broad, non-uniform background. A branch qubit is measured during execution, and a classically controlled block applies the background operations when the measured branch value is one. This construction keeps the expected set~$E$ analytically available to DSR while requiring the broad ideal distribution for exact HF and TVDF.
 
@@ -337,9 +326,9 @@ BVsb & Signal-background experiment & BVSB27--BVSB29 & $n_{\mathrm{tot}}=27$--$2
 \end{tabular}
 \end{table}
 
-For the Grover algorithm, the \emph{scalability} study (S2--S14) uses a single marked state while growing the number of qubits from 2 to 14, expanding the bit-length of the marked state (e.g., $\ket{01}$ for 2~qubits, $\ket{0110}$ for 4~qubits, $\ket{01100110}$ for 8~qubits). The \emph{marked-count} study (M3, M4) fixes the number of qubits at 3 and 4, respectively, and varies the number of marked states (1, 2, and 4) in order to assess whether the size of~$E$ influences the score. The \emph{Hamming-weight} study (H3, H4) varies the Hamming weight (i.e., the number of ones) of the marked state for 3- and 4-qubit systems. Finally, the \emph{symmetry} study (SYM, ASYM) fixes the number of qubits to 3 and evaluates whether the symmetry of the marked states affects the output.
+For the Grover algorithm, the \emph{scalability} study (S2--S14) uses a single marked state while growing the number of qubits, expanding the bit-length of the marked state (e.g., $\ket{01}$ for 2~qubits, $\ket{0110}$ for 4~qubits, $\ket{01100110}$ for 8~qubits). The \emph{marked-count} study (M3, M4) fixes the number of qubits at 3 and 4, respectively, and varies the number of marked states (1, 2, and 4) in order to assess whether the size of~$E$ influences the score. The \emph{Hamming-weight} study (H3, H4) varies the Hamming weight (i.e., the number of ones) of the marked state for 3- and 4-qubit systems. Finally, the \emph{symmetry} study (SYM, ASYM) fixes the number of qubits to 3 and evaluates whether the symmetry of the marked states affects the output.
 
-For the QFT algorithm, the \emph{round-trip scalability} study (SR2--SR10) grows the register from~2 to~10 qubits, extending the input state (e.g., $\ket{01}$ for 2~qubits, $\ket{0110}$ for 4~qubits, $\ket{01100110}$ for 8~qubits). The \emph{period-detection scalability} study (SP3--SP6) increases the qubit count from~3 to~6 while fixing the period, so that the number of possible output states grows, but the number of expected peaks remains constant. The \emph{period-variation} study (PV4, PV6) does the opposite, fixing the qubit count at~4 or~6 and varying the period, which increases the number of expected peaks and makes them harder to resolve. The \emph{input-variation} study (IV4) fixes the qubit count at~4 in round-trip mode and tests five different input states ($\ket{0000}$, $\ket{1111}$, $\ket{0101}$, $\ket{1010}$, $\ket{0001}$).
+For the QFT algorithm, the \emph{round-trip scalability} study (SR2--SR10) grows the register from~2 to~10 qubits, extending the input state with the same bit pattern used for Grover. The \emph{period-detection scalability} study (SP3--SP6) increases the qubit count while fixing the period, so that the number of possible output states grows, but the number of expected peaks remains constant. The \emph{period-variation} study (PV4, PV6) does the opposite, fixing the qubit count at~4 or~6 and varying the period, which increases the number of expected peaks and makes them harder to resolve. The \emph{input-variation} study (IV4) fixes the qubit count at~4 in round-trip mode and tests five different input states ($\ket{0000}$, $\ket{1111}$, $\ket{0101}$, $\ket{1010}$, $\ket{0001}$).
 
 For BV, the \emph{alternating-secret scalability} study grew the alternating secret string from 2 to 14~query qubits. The \emph{large alternating-secret} study used the same pattern at 29, 30, and 31~query qubits, each with one additional ancilla, to evaluate DSR beyond the dense statevector simulation limit of the experiment machine. The BVsb experiment used 27, 28, and 29 total qubits, corresponding to 26, 27, and 28 measured qubits, respectively. Each configuration retained two analytically specified expected outcomes while increasing the size of the broad ideal distribution.
 
@@ -383,7 +372,7 @@ Finally, as reported in our previous study \cite{vTPMarquez_2026}, vTP achieves 
 
 \subsection{DSR versus depth}\label{subsec:dsr_depth}
 
-Figures~\ref{fig:combined_depth_ibm} and~\ref{fig:combined_depth_aws} present the DSR distribution grouped by circuit depth bins of 100~gates on IBM and Rigetti, respectively. To define the bins in these plots, we use all optimization levels for IBM, because the data spans a wide range of circuit depths and the final transpiled circuits change with the optimization. Therefore, to properly capture the DSR degradation, we chose to include all available IBM data.
+Figures~\ref{fig:combined_depth_ibm} and~\ref{fig:combined_depth_aws} present the DSR distribution grouped by circuit depth bins of 100~gates on IBM and Rigetti, respectively. We use all optimization levels for IBM to capture the range of depths produced by the transpiled circuits.
 
 %% Figure: combined DSR vs depth (IBM)
 \begin{figure}[ht]
@@ -420,7 +409,7 @@ Figure~\ref{fig:qft_heatmap} displays a heatmap of the median DSR of QFT executi
 \caption{Heatmap of median DSR of QFT runs by number of qubits and optimization level (IBM backends). Darker green indicates higher DSR.}\label{fig:qft_heatmap}
 \end{figure}
 
-At the optimization level~0, the median DSR is low from 2~qubits ($0.38$) and collapses to near zero by 5--6~qubits. At level~1, the DSR improves substantially (e.g., $0.89$ at 3~qubits), but still degrades to~$0.18$ at 10~qubits. The behavior of levels 0 and 1 of optimization is consistent with the expected error accumulation output degradation. The DSR therefore displays lower values as more operations introduce sufficient error to degrade the expected output.
+At the optimization level~0, the median DSR is low from 2~qubits ($0.38$) and collapses to near zero by 5--6~qubits. At level~1, the DSR improves substantially (e.g., $0.89$ at 3~qubits), but still degrades to~$0.18$ at 10~qubits. This behavior is consistent with output degradation due to error accumulation.
 
 Levels~2 and~3 exhibit comparable performance, with DSR values above~$0.80$ up to 5~qubits and a gradual decline afterward. The difference between them is small (e.g. $0.56$ vs. \ $0.51$ at 6~qubits), suggesting that the level~3 of optimization provides only a marginal improvement over the level~2.
 
@@ -430,7 +419,7 @@ The heatmap also reveals an anomaly at the optimization level~0 for 7--8~qubits,
 
 To position DSR relative to existing fidelity metrics, we calculated HF and TVDF ($1-\mathrm{TVD}$) for QPU runs within simulator capacity. In general, both metrics require an ideal outcome histogram. Our pipeline obtained this histogram through a dense statevector simulation by computing the corresponding probability vector. On the Apple~M3~Pro laptop with 18 GB of unified memory used for the experiment, this procedure exhausted the available memory after completing the 26-qubit simulation. This boundary is specific to experimental conditions; analytic methods, tensor networks, or machines with more memory may extend it. Consequently, our experiment pipeline could not compute HF or TVDF beyond 26 qubits, whereas DSR remained computable under the information requirements defined in Section~\ref{sec:dsr}.
 
-Figures~\ref{fig:grover_metric_comparison} and~\ref{fig:grover_metric_comparison_aws} present the three metrics side by side as a function of the number of qubits for Grover on the IBM and Rigetti backends, respectively.\footnote{The vTP results are excluded from this comparison because its DSR drops to ~$0.00$ by 2~payload qubits, leaving insufficient data for a meaningful cross-metric analysis at the qubit counts where Grover and QFT still exhibit differentiated behavior.} Figure~\ref{fig:bv_metric_comparison} shows the alternating secret BV configurations on IBM backends at optimization level~3. HF and TVDF were computed using dense statevector simulation for the scalability study ($n\leq 14$), but the full ideal distributions were not generated for the larger configurations ($n=29$, $30$, and~$31$; total qubits~$n{+}1$). BV configurations between $n=15$ and~$28$ were not evaluated.
+Figures~\ref{fig:grover_metric_comparison} and~\ref{fig:grover_metric_comparison_aws} present the three metrics side by side as a function of the number of qubits for Grover on the IBM and Rigetti backends, respectively.\footnote{The vTP results are excluded from this comparison because its DSR drops to ~$0.00$ by 2~payload qubits, leaving insufficient data for a meaningful cross-metric analysis at the qubit counts where Grover and QFT still exhibit differentiated behavior.} Figure~\ref{fig:bv_metric_comparison} shows the alternating secret BV configurations on IBM backends at optimization level~3. HF and TVDF were computed for the scalability study ($n\leq 14$). BV configurations between $n=15$ and~$28$ were not evaluated.
 
 Because the BV comparison also includes the raw success rate, we first define this baseline. The success rate measures the fraction of shots whose outcomes belong to the expected set~$E$. Using the histogram $\mathcal{C}$ and the total number of shots~$S$, it is defined as
 
@@ -485,7 +474,7 @@ For Grover on IBM (Figure~\ref{fig:grover_metric_comparison}), all three metrics
 \caption{Comparison of DSR (teal), success rate (pink), HF (orange), and TVDF (purple) across alternating secret BV configurations executed on IBM backends.}\label{fig:bv_metric_comparison}
 \end{figure}
 
-For BV on IBM (Figure~\ref{fig:bv_metric_comparison}), the metrics remain close to their upper bounds for $n \leq 6$ (median DSR~$\approx 0.90$--$0.97$), with narrow interquartile ranges. This behavior emerges because the shallow alternating secret circuits (transpiled depth~$\approx 13$--$15$) concentrate the majority of measurement shots on the expected output bitstring---for $n=2$, for example, the success probability is~$\approx 0.98$. Beginning at $n=7$, the dispersion increases, while the success rate decreases; HF and TVDF decline faster than DSR while the expected peak continues to be modal. Beyond the dense statevector simulation limit (dashed line; $\approx$26~total qubits in this experiment), the figure reports DSR and raw success rate for $n=29$, $30$, and~$31$. HF and TVDF are omitted because the full ideal distributions were not generated, even though Equations~\eqref{eq:hf_bv} and~\eqref{eq:tvdf_bv} permit their analytic recovery for these single target jobs. BV configurations were not evaluated from $n=15$ to~$n=28$.
+For BV on IBM (Figure~\ref{fig:bv_metric_comparison}), the metrics remain close to their upper bounds for $n \leq 6$ (median DSR~$\approx 0.90$--$0.97$), with narrow interquartile ranges. This behavior emerges because the shallow alternating secret circuits (transpiled depth~$\approx 13$--$15$) concentrate the majority of measurement shots on the expected output bitstring---for $n=2$, for example, the success probability is~$\approx 0.98$. Beginning at $n=7$, the dispersion increases, while the success rate decreases; HF and TVDF decline faster than DSR while the expected peak continues to be modal. Beyond the dense statevector simulation limit (dashed line), the figure reports DSR and raw success rate for $n=29$, $30$, and~$31$. HF and TVDF are omitted because the full ideal distributions were not generated, even though Equations~\eqref{eq:hf_bv} and~\eqref{eq:tvdf_bv} permit their analytic recovery for these single target jobs.
 
 For the $n=29$ configuration of the BV algorithm, the expected state is the most frequent outcome in all nine runs of 1{,}024 shots, despite a success rate of only $8.8\%$--$14.5\%$ (median $11.1\%$). DSR ranges from~$0.58$ to~$0.78$, with a median of~$0.62$, because the expected state is 4--8 times more frequent than its strongest competitor. Across all jobs, the expected state represents $11.4\%$ of the shots, while no competitor exceeds $2.1\%$.
 
@@ -539,9 +528,9 @@ For the 27--29-qubit QPU configurations, the expected set remains analytically k
 
 As shown in Table~\ref{tab:bv_signal_background}, the mean success rate decreases from~$0.73\%$ at 27 total qubits to~$0.10\%$ at $29$ total qubits. These non-zero values indicate that some shots reach the expected set, but they do not establish that the two expected states stand out from the competing outcomes. DSR is positive in only one of the $30$ jobs, with a value of~$0.20$ at $27$ total qubits. In that job, the expected state count is $15$, compared to a mean of~$6.67$ across the other jobs. At the same time, the strongest competitor receives $5$ shots, compared to a mean of~$7.44$ in the other jobs. All $10$ jobs share the same transpiled circuit and recorded calibration snapshot. In the positive job, the branch qubit selected the signal path in $90.1\%$ of the shots, close to the intended $90\%$, and the number of distinct outcomes remained close to the batch values. No recorded execution condition therefore explains the difference. Because the second expected state remains absent, the positive score is best interpreted as a joint finite-shot fluctuation near the DSR distinction boundary rather than a stable recovery of the target signal.
 
-Figure~\ref{fig:bv_signal_background_histogram} shows the 40 most frequent outcomes of this DSR~$=0.20$ job, ordered from highest to lowest shot count. Green identifies the observed expected target, pink identifies the strongest outcome outside the expected set, and gray identifies the remaining displayed competitors. The ellipsis indicates that the histogram continues beyond the displayed outcomes. The top 40 outcomes contain 129 shots; the remaining 858 observed outcomes contain 895 shots, giving the complete total of $129+895=1{,}024$ shots across 898 distinct outcomes. The second expected target received zero shots and therefore does not appear among the observed bars.
+Figure~\ref{fig:bv_signal_background_histogram} shows the 40 most frequent outcomes of this DSR~$=0.20$ job, ordered from highest to lowest shot count. The job contains 1{,}024 shots across 898 distinct outcomes, with 129 shots in the top 40. The second expected target received zero shots and therefore does not appear among the observed bars.
 
-The first expected target is the modal outcome with $15$ shots, whereas the second expected target receives no shots. Since the two expected outcomes have equal weight, their mean measured probability is
+The first expected target is the modal outcome with $15$ shots. Since the two expected outcomes have equal weight, their mean measured probability is
 \begin{equation}
     \bar{p}_{\text{exp}}
     = \frac{1}{2}\left(\frac{15}{1024}+\frac{0}{1024}\right)
@@ -557,16 +546,16 @@ The strongest competing outcome receives five shots, so $p_{\text{comp}}=5/1024\
     = 0.20.
 \end{equation}
 
-Thus, although one expected target is absent, the average expected peak remains above every individual competitor and produces a small positive DSR. The result also illustrates why the presence of the target alone is insufficient, since the expected outcomes must remain distinguishable from the strongest competing peak.
+Thus, although one expected target is absent, the average expected peak remains above every individual competitor and produces a small positive DSR.
 
 %% Figure: BVsb DSR=0.20 histogram (IBM)
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.9\textwidth]{plots/1_bv_signal_background_dsr_histogram_ibm.png}
-\caption{Top-40 outcome frequencies for the single BVsb job that scored $\mathrm{DSR}=0.20$ on \textit{ibm\_marrakesh} at 27 total qubits. The ellipsis denotes the remaining observed outcomes.}\label{fig:bv_signal_background_histogram}
+\caption{Top-40 outcome frequencies for the single BVsb job that scored $\mathrm{DSR}=0.20$ on \textit{ibm\_marrakesh} at 27 total qubits. Green identifies the observed expected target, pink the strongest competitor, and gray the remaining displayed outcomes. The ellipsis denotes the remaining observed outcomes.}\label{fig:bv_signal_background_histogram}
 \end{figure}
 
-For the smaller BVsb circuits, all metrics could be calculated and produced different values. For the configurations with 27, 28, and 29 total qubits, the mean percentages of shots selecting the zero branch were $90.6\%$, $90.2\%$, and $91.3\%$, respectively. Although this behavior is close to the intended $90\%$, DSR equals zero in 29 of the 30 jobs. DSR remained available, but the ideal background probabilities could not be generated by our simulation workflow. Therefore, these executions do not establish that DSR performs better than HF or TVDF.
+For the configurations with 27, 28, and 29 total qubits, the mean percentages of shots selecting the zero branch were $90.6\%$, $90.2\%$, and $91.3\%$, respectively. Although this behavior is close to the intended $90\%$, DSR equals zero in 29 of the 30 jobs. DSR remained available, but the ideal background probabilities could not be generated by our simulation workflow. Therefore, these executions do not establish that DSR performs better than HF or TVDF.
 
 \subsection{Cross-provider metric comparison}
 
@@ -579,9 +568,9 @@ For the smaller BVsb circuits, all metrics could be calculated and produced diff
 
 For Grover on Rigetti Ankaa-3 (Figure~\ref{fig:grover_metric_comparison_aws}), the three metrics agree at 2~qubits (medians above~$0.90$). However, at 3~qubits ($n=40$) the DSR falls to~$0.00$, while the HF retains a median of~$0.25$ and TVDF~$0.20$ ($p_{\text{corr}} < 0.001$; $\delta = -0.93$ and $-0.89$, respectively). The same pattern continues at 4~qubits, where DSR stays at~$0.00$ while HF reports~$0.25$, and TVDF~$0.15$ ($\delta = -1.00$ and $-0.84$). This discrepancy occurs because the noise level of Ankaa-3 causes the strongest competing peak to match the average probability of the expected outcomes ($\bar{p}_{\text{exp}}$), pushing the DSR to zero. In contrast, HF and TVDF, which evaluate the intersection of the probability distribution, still detect partial overlap.
 
-Comparing the two providers reveals that DSR exhibits a zero-boundary response associated with the noise level of the backend. In several IBM Heron~R2 jobs\footnote{IBM Quantum Platform, backend calibration data: \url{https://quantum.cloud.ibm.com/computers}. Accessed February 2026.}, where the two-qubit gate errors are approximately $2.6 \times 10^{-3}$ and readout errors $1.3 \times 10^{-2}$, DSR descriptively remains above HF and TVDF while the expected peaks dominate. In contrast, for Rigetti Ankaa-3\footnote{Rigetti Quantum Cloud Services, QPU specifications: \url{https://qcs.rigetti.com/qpus}. Accessed February 2026.}, where typical two-qubit gate errors are roughly twice as large ($5 \times 10^{-3}$) and readout errors reach $2 \times 10^{-2}$, DSR is the first metric to reach zero (Grover at 3~qubits: $\delta = -0.93$, $p_{\text{corr}} < 0.001$). These calibration values provide hardware context rather than a controlled causal explanation of the difference. The observed asymmetry is consistent with expected outcomes standing above the strongest competitor until this peak separation collapses and DSR reaches the distinction boundary at zero. In contrast, HF and TVDF, which are derived from distributional overlap, exhibit a more continuously declining performance profile.
+Comparing the two providers reveals that DSR exhibits a zero-boundary response associated with the noise level of the backend. In several IBM Heron~R2 jobs\footnote{IBM Quantum Platform, backend calibration data: \url{https://quantum.cloud.ibm.com/computers}. Accessed February 2026.}, where the two-qubit gate errors are approximately $2.6 \times 10^{-3}$ and readout errors $1.3 \times 10^{-2}$, DSR descriptively remains above HF and TVDF while the expected peaks dominate. In contrast, for Rigetti Ankaa-3\footnote{Rigetti Quantum Cloud Services, QPU specifications: \url{https://qcs.rigetti.com/qpus}. Accessed February 2026.}, where typical two-qubit gate errors are roughly twice as large ($5 \times 10^{-3}$) and readout errors reach $2 \times 10^{-2}$, DSR is the first metric to reach zero. These calibration values provide hardware context rather than a controlled causal explanation of the difference.
 
-The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse behavior observed in Grover. In IBM, the $4$ jobs at 5~qubits give a median DSR of~$0.82$ versus~$0.65$ for HF and TVDF, while the two jobs at 10~qubits give~$0.28$ versus~$0.13$. At 6~qubits, where eight jobs are available, the three metrics become comparable ($p_{\text{corr}} = 0.766$, $\delta = 0.00$). On the Rigetti platform, the QFT exhibits an early collapse analogous to that observed for Grover's algorithm. At 4 qubits ($n=25$), DSR falls to ~$0.00$, whereas HF and TVDF remain at~$0.29$ ($p_{\text{corr}} = 0.008$, $\delta = -0.45$). At 5 qubits, the discrepancy becomes even more pronounced ($p_{\text{corr}} = 0.003$, $\delta = -0.72$).
+The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse behavior observed in Grover. In IBM, the $4$ jobs at 5~qubits give a median DSR of~$0.82$ versus~$0.65$ for HF and TVDF, while the two jobs at 10~qubits give~$0.28$ versus~$0.13$. At 6~qubits, where eight jobs are available, the three metrics become comparable ($p_{\text{corr}} = 0.766$, $\delta = 0.00$). On the Rigetti platform, at 4 qubits ($n=25$), DSR falls to ~$0.00$, whereas HF and TVDF remain at~$0.29$ ($p_{\text{corr}} = 0.008$, $\delta = -0.45$). At 5 qubits, the discrepancy becomes even more pronounced ($p_{\text{corr}} = 0.003$, $\delta = -0.72$).
 
 %% Table: full statistical comparison (wide -> sidewaystable).
 %% This 12-column table is too wide for the single-column text block, so it is
@@ -644,7 +633,7 @@ The experimental results (Section~\ref{sec:results}) show that DSR characterizes
 
 In this paper, we introduce the Differential Success Rate (DSR), a score designed to assess the output of quantum algorithms. The DSR quantifies how distinctly a predefined set of expected outcomes stands out within the measurement histogram of a quantum job. To this end, the DSR adopts the Michelson contrast formulation to create a normalized score within the interval $[0, 1]$, indicating whether the expected outcomes dominate the strongest competing peak.
 
-In the initial part of this study, four different formulations are evaluated to identify the one that most clearly exposes the distinction boundary across quantum executions. The Michelson formulation is selected over the ratio, logarithmic ratio, and normalized margin methods because of its wider dynamic range and interpretable zero boundary.
+In the initial part of this study, three different formulations are evaluated to characterize their response across quantum executions. The Michelson formulation is selected over the ratio and normalized margin methods because it expresses expected-outcome distinction as a bounded contrast with an interpretable zero boundary.
 
 To empirically evaluate DSR, we computed it for 1{,}478 quantum jobs executed across multiple QPUs accessed through IBM Quantum and Rigetti via AWS. The workloads comprise Grover's search, QFT, BV, and vTP. The results show DSR scores above~$0.80$ for small circuits and a general decline as the size and complexity of the circuit increase. We also characterize the effect of circuit optimization and compare DSR with HF and TVDF. Standard BV shows how DSR distinguishes a dominant expected state from a low success rate. BVsb extends this result to outputs with multiple expected states and a broad background, where HF and TVDF require the complete ideal distribution. On the noisier Rigetti QPU, DSR is the first metric to reach zero once the expected outcomes no longer dominate their competitors, whereas HF and TVDF decline more gradually.
 
