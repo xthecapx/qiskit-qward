@@ -337,14 +337,14 @@ Figures~\ref{fig:combined_qubits_ibm} and~\ref{fig:combined_qubits_aws} show the
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.9\textwidth]{plots/1_combined_dsr_comparison_aws.png}
-\caption{DSR versus number of qubits for Grover search and QFT on Rigetti Ankaa-3 via AWS (up to 4~qubits; beyond this point both algorithms report DSR~$\approx 0$).}\label{fig:combined_qubits_aws}
+\caption{DSR versus number of qubits for Grover search and QFT on Rigetti Ankaa-3 via AWS (up to 4~qubits; beyond this point both algorithms have median DSR~$0$).}\label{fig:combined_qubits_aws}
 \end{figure}
 
 On IBM (Figure~\ref{fig:combined_qubits_ibm}), Grover's algorithm achieves a median DSR of~0.87 at 3~qubits, drops to~0.68 at 4~qubits, and falls to zero at 6~qubits. The degradation of DSR in the Grover search reflects the exponential growth of the problem space ($2^n$) and the increase in the depth of the circuit required by the oracle and diffusion operators, increasing the accumulative error due to hardware noise.
 
 BV, evaluated using an alternating-secret pattern to scale from $n=2$ to $14$, degrades more slowly than Grover's search. Its median DSR remains above~$0.80$ through 8 qubits and remains non-zero at 14 qubits (median $0.75$), consistent with its comparatively shallow circuit structure.
 
-QFT degrades more slowly than Grover's search, maintaining a median DSR above~0.80 up to 5~qubits and still reporting~0.28 at 10~qubits. The slower decay is consistent with the shallower circuit structure of the QFT compared with Grover for equivalent qubit counts. On the Rigetti backend (Figure~\ref{fig:combined_qubits_aws}), both algorithms collapse early, Grover's DSR drops to zero at 3~qubits and the QFT at 4~qubits, consistent with the higher gate and readout error rates of this platform.
+QFT degrades more slowly than Grover's search, maintaining a median DSR above~0.80 up to 5~qubits and still reporting~0.28 at 10~qubits. The slower decay is consistent with the shallower circuit structure of the QFT compared with Grover for equivalent qubit counts. On the Rigetti backend (Figure~\ref{fig:combined_qubits_aws}), both algorithms collapse early. Grover's median DSR drops to zero at 3~qubits, while QFT retains~$0.33$ at 4~qubits before reaching zero at 5~qubits, consistent with the higher gate and readout error rates of this platform.
 
 Finally, as reported in our previous study \cite{vTPMarquez_2026}, vTP achieves a median DSR of~$0.22$ at 1~qubit but drops to zero at 2~qubits and beyond, being effective only for single-qubit payloads. This rapid collapse is expected given the growth of CNOT operations when scaling the transported quantum state.
 
@@ -374,7 +374,7 @@ The QFT DSR decreases monotonically, reaching~$0.38$ in the 200--300 bin and~$0$
 
 Grover's decline exhibits a non-monotonic pattern. Specifically, the 200--300~bin (median~$0.32$) and 300--400~bin (median~$0.43$) are lower than the 400--500~bin (median~$0.74$). This inversion occurs because the 200--400 range includes configurations with four marked states (M4-4), producing deeper oracle circuits and lower DSR, whereas the 400--500~bin contains single-marked-state configurations (S4-1) that achieve higher DSR. This observation indicates that the DSR cannot be characterized solely by the circuit depth; rather, the structural complexity of the circuit exerts a significant influence.
 
-On Rigetti (Figure~\ref{fig:combined_depth_aws}), the degradation happens early. Grover retains a high DSR only in the 0--100~bin (median~$0.88$) and collapses to zero at 100--200~gates, while the QFT maintains a median of~$0.44$ in the 100--200~bin before also falling to zero.
+On Rigetti (Figure~\ref{fig:combined_depth_aws}), the degradation happens early. Grover retains a high DSR only in the 0--100~bin (median~$0.88$) and collapses to zero at 100--200~gates, while QFT maintains a median of~$0.51$ in the 100--200~bin before reaching zero in the 200--300~bin.
 
 \subsection{Effect of optimization level on QFT}\label{subsec:opt_level}
 
@@ -548,7 +548,7 @@ For Grover on Rigetti Ankaa-3 (Figure~\ref{fig:grover_metric_comparison_aws}), t
 
 Comparing the two providers reveals that DSR exhibits a zero-boundary response associated with the noise level of the backend. In several IBM Heron~R2 jobs\footnote{IBM Quantum Platform, backend calibration data at \url{https://quantum.cloud.ibm.com/computers}. Accessed February 2026.}, where the two-qubit gate errors are approximately $2.6 \times 10^{-3}$ and readout errors $1.3 \times 10^{-2}$, DSR descriptively remains above HF and TVDF while the expected peaks dominate. In contrast, for Rigetti Ankaa-3\footnote{Rigetti Quantum Cloud Services, QPU specifications at \url{https://qcs.rigetti.com/qpus}. Accessed February 2026.}, where typical two-qubit gate errors are roughly twice as large ($5 \times 10^{-3}$) and readout errors reach $2 \times 10^{-2}$, DSR is the first metric to reach zero. These calibration values provide hardware context rather than a controlled causal explanation of the difference.
 
-The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse behavior observed in Grover. In IBM, the $4$ jobs at 5~qubits give a median DSR of~$0.82$ versus~$0.65$ for HF and TVDF, while the two jobs at 10~qubits give~$0.28$ versus~$0.13$. At 6~qubits, where eight jobs are available, the three metrics become comparable ($p_{\text{corr}} = 0.766$, $\delta = 0.00$). On the Rigetti platform, at 4 qubits ($n=25$), DSR falls to ~$0.00$, whereas HF and TVDF remain at~$0.29$ ($p_{\text{corr}} = 0.008$, $\delta = -0.45$). At 5 qubits, the discrepancy becomes even more pronounced ($p_{\text{corr}} = 0.003$, $\delta = -0.72$).
+The QFT results (Table~\ref{tab:stat_comparison}) also show a decline with circuit size. In IBM, the $4$ jobs at 5~qubits give a median DSR of~$0.82$ versus~$0.65$ for HF and TVDF, while the two jobs at 10~qubits give~$0.28$ versus~$0.13$. At 6~qubits, where eight jobs are available, the three metrics become comparable ($p_{\text{corr}} = 0.766$, $\delta = 0.00$). On the Rigetti platform, at 4 qubits ($n=25$), the median DSR is~$0.33$, compared with~$0.29$ for HF and TVDF, with no statistically significant difference ($p_{\text{corr}} = 0.822$, $\delta = +0.07$). At 5 qubits, the median DSR reaches zero while HF and TVDF retain~$0.04$ ($p_{\text{corr}} = 0.003$, $\delta = -0.72$).
 
 %% Table: full statistical comparison (wide -> sidewaystable).
 %% This 12-column table is too wide for the single-column text block, so it is
@@ -587,7 +587,7 @@ The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse beh
 \cmidrule{2-12}
  & AWS & 2 & 10 & & $0.77$\,{\scriptsize[$0.75$,$0.78$]} & $0.84$\,{\scriptsize[$0.83$,$0.85$]} & $0.84$\,{\scriptsize[$0.83$,$0.85$]} & $0.004$ & $-1.00$ & $0.004$ & $-1.00$ \\
  & & 3 & 9 & & $0.83$\,{\scriptsize[$0.80$,$0.88$]} & $0.82$\,{\scriptsize[$0.79$,$0.87$]} & $0.82$\,{\scriptsize[$0.79$,$0.87$]} & $0.852$ & $+0.11$ & $0.852$ & $+0.11$ \\
- & & 4 & 25 & & $0.00$\,{\scriptsize[$0.00$,$0.21$]} & $0.29$\,{\scriptsize[$0.23$,$0.38$]} & $0.29$\,{\scriptsize[$0.23$,$0.38$]} & $0.008$ & $-0.45$ & $0.008$ & $-0.45$ \\
+ & & 4 & 25 & & $0.33$\,{\scriptsize[$0.21$,$0.52$]} & $0.29$\,{\scriptsize[$0.23$,$0.38$]} & $0.29$\,{\scriptsize[$0.23$,$0.38$]} & $0.822$ & $+0.07$ & $0.822$ & $+0.07$ \\
  & & 5 & 12 & & $0.00$\,{\scriptsize[$0.00$,$0.00$]} & $0.04$\,{\scriptsize[$0.03$,$0.06$]} & $0.04$\,{\scriptsize[$0.03$,$0.06$]} & $0.003$ & $-0.72$ & $0.003$ & $-0.72$ \\
 \botrule
 \end{tabular*}
