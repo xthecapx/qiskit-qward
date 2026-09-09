@@ -1,10 +1,11 @@
 """
 Differential Success Rate (DSR) and companion evaluation measures.
 
-Histogram-free, task-level evaluation of quantum job outcomes against an
-analytically known expected-outcome set ``E`` (size ``K = |E|``), computed
-only from measurement counts -- never from a full ideal histogram over all
-``2**m`` outcomes.
+Task-level evaluation of quantum job outcomes using measured counts and an
+analytically known expected-outcome set ``E`` (size ``K = |E|``). Computing
+DSR does not require a full ideal distribution over all ``2**m`` outcomes;
+it still requires the expected outcomes. Histogram-only candidate screening
+is available separately through ``compute_output_screen``.
 
 DSR itself is the clipped Michelson contrast returned by :func:`compute_dsr`
 and :func:`compute_dsr_michelson`. It compares the mean expected peak with
@@ -355,6 +356,7 @@ class DSRProfiler:
 
         coarse_tvd = self.coarse_tvd()
         coarse_hd = self.coarse_hellinger_distance()
+        target_counts = [self._counts.get(outcome, 0) for outcome in self._expected_set]
 
         result: Dict[str, Any] = {
             "shots": int(self._total),
@@ -363,6 +365,8 @@ class DSRProfiler:
             "expected_weights": dict(self._expected_weights),
             "num_expected_outcomes": len(self._expected_set),
             "success_rate": round(self.success_rate(), 6),
+            "target_coverage": sum(count > 0 for count in target_counts) / len(target_counts),
+            "min_target_count": min(target_counts),
             "chance_baseline": round(self.chance_baseline(), 6),
             "chance_corrected_success": round(self.chance_corrected_success(), 6),
             "coarse_tvd": round(coarse_tvd, 6),
@@ -456,6 +460,12 @@ def compute_dsr_with_flags(
 ) -> Tuple[float, bool]:
     """
     Compute Michelson-contrast DSR and return a peak-mismatch flag.
+
+    ``peak_mismatch`` is True only if every observed leading outcome is
+    outside the expected set. False can include correct/incorrect ties;
+    it does not certify a unique correct winner. Use ``compute_output_screen``
+    for explicit ties and finite-shot rank evidence. Positive multi-target
+    DSR does not guarantee that every expected outcome was observed.
 
     Returns:
         (dsr_score, peak_mismatch)

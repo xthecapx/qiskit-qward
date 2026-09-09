@@ -48,6 +48,65 @@ QWARD provides several built-in metric calculators:
 
 ## Usage Examples
 
+### Histogram screening followed by application verification
+
+`compute_output_screen` accepts measured counts without expected outcomes or an
+ideal distribution. Use it when the application seeks one outstanding candidate:
+
+```python
+from qward import compute_output_screen, compute_dsr_profile
+
+counts = {"00": 800, "01": 100, "10": 80, "11": 44}
+screen = compute_output_screen(counts, significance_level=0.05)
+print(screen.top_two_contrast, screen.rank_pvalue)
+
+if screen.rank_verified:
+    candidate = screen.leading_outcome
+    # Application verification is a separate step; replace this set with a
+    # task predicate or objective evaluation when appropriate.
+    expected = {"00"}
+    print("Candidate satisfies the task:", candidate in expected)
+    profile = compute_dsr_profile(counts, expected)
+    print(profile.dsr_michelson, profile.success_rate)
+    print(profile.target_coverage, profile.min_target_count)
+```
+
+The result is an `OutputScreeningSchema` with `to_flat_dict()` for DataFrames.
+It reports leading counts/probabilities, top-two Michelson contrast, absolute
+probability gap, combined probability of the leading pair, and a rank-test
+p-value. `leading_outcomes` contains all tied leaders; `leading_outcome` is
+`None` on a tie. QWARD does not choose a tied answer by bitstring order.
+Without an explicit `significance_level`, `rank_verified` is `None` and the
+p-value is still available. There is no default contrast cutoff or discard rule.
+
+For leading counts `n1 >= n2`, `top_two_contrast = (n1-n2)/(n1+n2)`.
+The rank test uses `min(1, 2 * P[Binomial(n1+n2, 0.5) >= n1])`, following the
+selected-winner procedure in [Hung and Fithian, *Rank Verification for
+Exponential Families*, §1.2](https://arxiv.org/abs/1610.03944). This conservative
+two-sided test accounts for selecting the observed ranks under a fixed-shot IID
+multinomial model. It does not control repeated looks, device drift, or joint
+errors across multiple jobs. A small p-value is evidence about the population
+mode, not the probability that the candidate solves the application.
+
+Supply the complete histogram for the intended output register. The caller must
+align or marginalize ancillary registers using the circuit's measurement mapping;
+QWARD does not infer that mapping from bitstrings. The screen rejects fractional,
+negative, nonfinite, and boolean counts: mitigated weights and normalized
+probabilities are not raw multinomial shot counts. Zero-count bins may be omitted;
+filtered top-k histograms must not be used. One observed outcome gives contrast
+one but, with few shots, may still lack enough rank evidence.
+
+Screening complements target-aware DSR; it does not redefine `compute_dsr` or
+its variants. Low contrast can occur with multiple correct answers, so failing
+this screen does not justify discarding such a result or establish randomness.
+DSR still compares the **mean** expected count with the strongest wrong count;
+positive DSR does not guarantee every target is observed. The profile's new
+`target_coverage` is the fraction of expected outcomes observed at least once,
+and `min_target_count` includes zeros for missing targets. Both diagnostics are
+reported even with `include_michelson=False`. Existing fields keep their values;
+serialized profiles gain these two optional fields. Also, `peak_mismatch=False`
+permits correct/incorrect ties and does not certify a unique correct winner.
+
 ### Basic Usage
 ```python
 from qiskit import QuantumCircuit
