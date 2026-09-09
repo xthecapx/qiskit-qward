@@ -30,7 +30,6 @@ from qward.utils.styles import (
     LEGEND_SIZE,
     FIG_SIZE,
     MARKER_SIZE,
-    MARKER_STYLES,
     apply_axes_defaults,
 )
 
@@ -45,9 +44,10 @@ FIG_SIZE_HEATMAP = (18, 14)
 DSR_VARIANT_COLORS = {
     "Michelson": COLORBREWER_PALETTE[1],  # Teal
     "Ratio": COLORBREWER_PALETTE[2],  # Orange
-    "Log-Ratio": COLORBREWER_PALETTE[3],  # Purple
     "Norm-Margin": COLORBREWER_PALETTE[4],  # Pink
 }
+
+DSR_VARIANT_MARKERS = {"Michelson": "o", "Ratio": "s", "Norm-Margin": "D"}
 
 # Algorithm colors for boxplots
 ALGORITHM_COLORS = {
@@ -93,10 +93,10 @@ DEPTH_DISPLAY_CAP_EXTRA_FINE = 150
 OUTLIER_DEPTH_THRESHOLD = 2000  # Depths above this
 OUTLIER_DSR_MAX = 0.5  # DSR values above this at high depth are filtered
 
+# Log-ratio is algebraically equivalent to Ratio, so omit it from paper comparisons.
 DSR_VARIANTS = [
     ("dsr_michelson", "Michelson", DSR_VARIANT_COLORS["Michelson"]),
     ("dsr_ratio", "Ratio", DSR_VARIANT_COLORS["Ratio"]),
-    ("dsr_log_ratio", "Log-Ratio", DSR_VARIANT_COLORS["Log-Ratio"]),
     ("dsr_normalized_margin", "Norm-Margin", DSR_VARIANT_COLORS["Norm-Margin"]),
 ]
 
@@ -604,7 +604,7 @@ def _plot_algorithm_line(
 
     fig, ax = plt.subplots(figsize=figsize or FIG_SIZE)
 
-    for idx, (variant_key, label, color) in enumerate(DSR_VARIANTS):
+    for variant_key, label, color in DSR_VARIANTS:
         # Get all points
         points = []
         for r in algo_rows:
@@ -619,7 +619,7 @@ def _plot_algorithm_line(
         xs, ys = zip(*points)
 
         # Scatter with transparency
-        marker = MARKER_STYLES.get(idx + 1, "o")
+        marker = DSR_VARIANT_MARKERS[label]
         ax.scatter(
             xs,
             ys,
