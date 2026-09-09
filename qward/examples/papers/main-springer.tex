@@ -86,7 +86,7 @@
 
 \abstract{Validating program correctness is a fundamental requirement in software engineering. In classical computing, the deterministic nature of execution enables direct validation by comparing an observed output against an expected value. In contrast, quantum computing (QC) is inherently stochastic. The outcome of an execution is a probability distribution, and validation requires analysis of the observed histogram. This paper presents the \emph{Differential Success Rate (DSR)}, a score based on Michelson contrast to quantify the separation between the mean probability of the expected outcomes and the strongest competing peak. DSR returns a score in $[0,\,1]$ using only the observed histogram and an analytically known set of expected outcomes~$E$, without requiring simulation of the full ideal probability distribution.
 
-We benchmark DSR on 1{,}478 jobs spanning Grover's search (248), the Quantum Fourier Transform (239), Bernstein--Vazirani (BV) algorithm (195), and a variation of the teleportation protocol (796), executed on multiple QPUs available through IBM Quantum and Rigetti via AWS. The results indicate that DSR exceeds~$0.80$ for small circuits and generally declines toward~$0$ as qubit count and circuit depth increase. Compared with Hellinger fidelity (HF) and total-variation-distance fidelity (TVDF), DSR exhibits a sharper, clipped response, reaching zero when the strongest competing peak matches or exceeds the mean expected peak. In IBM devices, DSR reports higher scores while expected peaks remain dominant, whereas on Rigetti QPU it is the first metric to indicate loss of expected outcome in noise. DSR thereby provides an interpretable distinction boundary and remains computationally feasible when the full ideal distribution exceeds the available classical resources.}
+We benchmark DSR on 1{,}478 recorded jobs spanning Grover's search (248), the Quantum Fourier Transform (239), Bernstein--Vazirani (BV) algorithm (195), and a variation of the teleportation protocol (796), primarily on IBM and Rigetti QPUs. The results indicate that DSR exceeds~$0.80$ for small circuits and generally declines toward~$0$ as qubit count and circuit depth increase. Compared with Hellinger fidelity (HF) and total-variation-distance fidelity (TVDF), DSR exhibits a sharper, clipped response, reaching zero when the strongest competing peak matches or exceeds the mean expected peak. We additionally evaluate a process with two steps that first screens the histogram using the top results and then verifies the selected candidate's correctness. The results distinguish peak separation from correctness and show why low contrast alone cannot justify discarding outputs with several valid answers.}
 
 \keywords{Differential success rate, quantum output validation, probability distribution analysis, fidelity metrics, NISQ benchmarking, quantum software testing, Hellinger fidelity, total variation distance, quantum algorithm evaluation, IBM Quantum, Rigetti}
 
@@ -102,7 +102,7 @@ The probability distributions described above are accessible through the SDKs or
 
 Before defining DSR, it is worth considering the applicability of classical performance metrics in quantum software; although doing so restricts the evaluation of quantum success to a classical paradigm in which the observed outcomes are fundamentally stochastic. More precisely, classical success measures can be defined at the shot level, but, because quantum processes require repeated executions to obtain meaningful results, the success measure should be formulated at the job level and, in some scenarios, even at the batch level.
 
-Several metrics have been proposed to quantify the successful execution of quantum circuits \cite{mohapatraBenchmarkingFidelityMetrics_2025}; however, most characterize hardware fidelity or full distribution agreement rather than the separation between target and competing outcomes. Section~\ref{sec:related-work} positions DSR relative to these metrics.
+Several metrics have been proposed to quantify the successful execution of quantum circuits \cite{mohapatraBenchmarkingFidelityMetrics_2025}, including measures of hardware fidelity, distribution agreement, and separation between correct and competing outcomes. Section~\ref{sec:related-work} positions DSR relative to these metrics.
 
 In this paper, we introduce the differential success rate (DSR), a quantitative indicator designed to measure the distinction of a predefined set of expected outcomes~$E$ within a measurement histogram. DSR is expressed as a score in $[0,\,1]$ and indicates how clearly the expected outcomes emerge relative to the competing outcomes.
 
@@ -110,9 +110,9 @@ To characterize DSR, we first use the AER simulator to evaluate circuit implemen
 
 To evaluate DSR, we capture data from Grover, QFT, and Bernstein--Vazirani (BV) circuits on Heron~R2 through the IBM Quantum service. We use three quantum processors for Grover (\textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_kingston}), four for QFT (adding \textit{ibm\_marrakesh}), and three for BV (\textit{ibm\_fez}, \textit{ibm\_kingston}, and \textit{ibm\_marrakesh}). We additionally execute the BV signal-background (BVsb) experiment on \textit{ibm\_marrakesh} and Grover and QFT on the Rigetti \textit{Ankaa-3} device through Amazon Web Services (AWS). The evaluation also incorporates teleportation data from a prior study~\cite{vTPMarquez_2026}.
 
-Our experiments systematically relate DSR to qubit count and circuit depth and compare it with HF, TVDF, and raw success rate. The large BV and BVsb configurations additionally test the reduced distribution requirement beyond the dense statevector limit of our experimental workflow.
+Our experiments systematically relate DSR to qubit count and circuit depth and compare it with HF, TVDF, and raw success rate. The large BV and BVsb configurations additionally test the reduced distribution requirement beyond the dense statevector limit of our experimental workflow. Building on existing contrast measures, we examine the effect of averaging over expected outcomes and screen the histogram before verification.
 
-The remainder of this paper is organized as follows. Section~\ref{sec:background} presents background work. Section~\ref{sec:related-work} reviews related fidelity metrics. Section~\ref{sec:measuring-success} introduces the execution model and success criteria, while Section~\ref{sec:dsr} defines DSR and evaluates alternative formulations. Section~\ref{subsec:experiment} describes the setup of the experiment, including workloads, backends, and variables. Section~\ref{sec:results} reports the empirical results: the relationship between DSR and qubit count, circuit depth, optimization level, and a statistical comparison with Hellinger and TVD fidelity. Section~\ref{sec:discussion} discusses limitations and validity considerations, and Section~\ref{sec:conclusion} concludes the paper.
+The remainder of this paper is organized as follows. Section~\ref{sec:background} presents background work. Section~\ref{sec:related-work} reviews related fidelity metrics. Section~\ref{sec:measuring-success} introduces the execution model and success criteria, while Section~\ref{sec:dsr} defines DSR and the evaluation process in two steps. Section~\ref{subsec:experiment} describes the setup of the experiment, including workloads, backends, and variables. Section~\ref{sec:results} reports the empirical results. Section~\ref{sec:discussion} discusses limitations and validity considerations, and Section~\ref{sec:conclusion} concludes the paper.
 
 \section{Background}\label{sec:background}
 
@@ -160,7 +160,11 @@ The total variation distance (TVD) \cite{knillBoundsApproximationTotal_1995, bha
 
 Similarly, TVD shares the limitations of HF described in Section~\ref{sec:hellinger-fidelity} regarding the ideal reference distribution, sensitivity to errors, and phase information.
 
-These limitations motivate direct evaluation of target distinction for quantum jobs with known expected outcomes.
+\subsection{Peak separation and output ranking}\label{subsec:peak-related-work}
+
+Direct evaluation of target distinction has also been studied. Tannu and Qureshi~\cite{tannuEnsembleDiverseMappings_2019} define Inference Strength (IST) as the probability of the correct output divided by that of the strongest incorrect output. Oliveira et al.~\cite{oliveiraQuFI_2022} use Michelson contrast between these probabilities to define the Quantum Vulnerability Factor (QVF), aggregating the correct probabilities when several outcomes are valid. For one expected outcome, DSR is therefore $\max(0,1-2\,\mathrm{QVF})$, so the contrast itself is already established. The distinction arises with several expected outcomes. QVF uses their combined probability, whereas DSR uses their mean, requiring the average expected peak to exceed the strongest incorrect peak for a positive score. Our experiments examine how this choice affects the evaluation as the number of expected outcomes and circuit size increase.
+
+Brieger et al.~\cite{briegerPeakedRandomCircuits_2026} first check whether a known target is the leading outcome and then compute Relative Peakedness, the Michelson contrast between the two leading probabilities. Micklitz~\cite{micklitzOutputOrderStatistics_2025} instead estimates fidelity from output order statistics under assumptions of chaotic states and depolarizing noise. In this paper, we screen for a candidate before consulting the expected outcomes, then verify its correctness separately. Our contribution is to evaluate this process across structured workloads on QPUs, examining both incorrect candidates that pass screening and correct results that screening misses. This establishes the practical limits of using peak separation to prioritize outputs for verification, particularly when several answers are valid.
 
 \section{Execution model and success criteria}\label{sec:measuring-success}
 
@@ -176,7 +180,7 @@ The main goal of DSR is to facilitate the interpretation of quantum algorithm re
 
 \section{Differential Success Rate}\label{sec:dsr}
 
-DSR is defined as a score that quantifies how well the expected outcomes in~$E$ can be distinguished from the other outcomes in a histogram. DSR utilizes the Michelson contrast formulation \cite{michelsonInterferenceMethods_1890, michelsonStudiesOptics_1927} as it provides three characteristics that are desirable for validating QC algorithms: (i) scale invariance, since the total number of shots $S$ cancels out algebraically (see Equations~\eqref{eq:p_x}--\eqref{eq:dsr}), the score depends only on the relative strength between the expected outcomes and the strongest competitor; however, this property holds in practice only under sufficient sampling or low-noise conditions, as few shots may produce histograms that do not accurately reflect the algorithm outcome; (ii) a bounded range in $[0, 1]$, to follow the conventions of the fidelity metrics; and (iii) sensitivity to the dominance of the expected outcome over the strongest competitor, rather than to the absolute success probability.
+DSR is defined as a score that quantifies how well the expected outcomes in~$E$ can be distinguished from the other outcomes in a histogram. DSR utilizes the Michelson contrast formulation \cite{michelsonInterferenceMethods_1890, michelsonStudiesOptics_1927} for three characteristics: (i) scale invariance, since the total number of shots $S$ cancels out algebraically (Equations~\eqref{eq:p_x}--\eqref{eq:dsr}), although this does not remove sampling uncertainty; (ii) a bounded range in $[0,1]$ after clipping, to follow the conventions of the fidelity metrics; and (iii) sensitivity to whether the expected outcomes dominate the strongest competitor, rather than to absolute success probability.
 
 DSR does not require the full ideal probability distribution because it operates on the observed histogram and the expected set~$E$. This reduced information requirement does not remove the known-target limitation, since $E$ must still be specified analytically. DSR also inherits the inability of measurement-based metrics to capture information about phase-related errors.
 
@@ -208,7 +212,7 @@ Based on these definitions, Equation~\eqref{eq:p_exp} represents the total proba
     p_{\text{comp}} = \max_{x \notin E}\; p_x
 \end{equation}
 
-Observe that when $S = 0$, the probability estimates $p_x$ are \emph{undefined} due to Equation~\eqref{eq:p_x}, and when $E$ is empty, $K = 0$ renders Equation~\eqref{eq:p_exp_bar} \emph{undefined}; in both cases the DSR is reported as 0. In contrast, if all observed states reside in $E$, then the set $\{x \notin E\}$ is \emph{empty}, and Equation~\eqref{eq:p_comp} has no terms. By convention, we set $p_{\text{comp}} = 0$, reflecting the absence of any competing outcome; substituting in Equation~\eqref{eq:dsr} results in $\mathrm{DSR} = \bar{p}_{\text{exp}}\,/\,\bar{p}_{\text{exp}} = 1$ (given $\bar{p}_{\text{exp}} > 0$).
+Observe that when $S=0$ or $E$ is empty, Equations~\eqref{eq:p_x} or~\eqref{eq:p_exp_bar} are undefined; qWard rejects these inputs. Unobserved outcomes have zero counts. If all observed states reside in~$E$, we set $p_{\text{comp}}=0$, including when there is no outcome outside~$E$, and Equation~\eqref{eq:dsr} gives $\mathrm{DSR}=1$. This does not imply that every expected outcome was observed.
 
 \subsection{Formulation}
 
@@ -235,56 +239,30 @@ The clipping operation defines the following distinction boundary.
 \end{aligned}
 \end{equation}
 
-DSR is therefore a continuous score rather than a binary metric. Equation~\eqref{eq:dsr_boundary} defines its distinction boundary. A value of zero indicates that the expected outcomes do not dominate the strongest competitor. Positive values are not classified as pass or fail but quantify graded levels of separation. In practical terms, if $\mathrm{DSR}=d$ for $d<1$, the signal-to-competitor ratio satisfies $\bar{p}_{\mathrm{exp}}/p_{\mathrm{comp}}=(1+d)/(1-d)$; for example, $d=0.8$ corresponds to a ratio of $9{:}1$.
+DSR is therefore a continuous score rather than a binary metric. Equation~\eqref{eq:dsr_boundary} defines its distinction boundary. A value of zero indicates that the mean expected probability does not exceed the strongest competitor, not that success is impossible. Positive values quantify graded levels of separation. In practical terms, if $\mathrm{DSR}=d$ for $0<d<1$, the signal-to-competitor ratio satisfies $\bar{p}_{\mathrm{exp}}/p_{\mathrm{comp}}=(1+d)/(1-d)$; for example, $d=0.8$ corresponds to a ratio of $9{:}1$.
 
 \subsection{Alternative formulations}
 
-Beyond the Michelson expression provided in Equation~\eqref{eq:dsr}, we analyzed two additional contrast functions using the collected data set (refer to Section~\ref{subsec:experiment} for details). The goal was to benchmark all formulations to ultimately identify the most suitable option. Table~\ref{tab:dsr_variants} reports the candidate formulations considered.
+We also considered the ratio and normalized margin formulations. For a positive Michelson score $d$, they equal $(1+d)/2$ and $2d/(1+d)$, respectively. They therefore preserve the ordering of positive scores and give the same decisions at corresponding thresholds. The ratio retains values below $0.5$ where DSR clips negative contrast to zero. Changing the normalization consequently changes the scale, but does not provide independent evidence of output quality. We retain Michelson for its bounded contrast and interpretable distinction boundary.
 
-%% Table: DSR variant formulations
-\begin{table}
-\caption{DSR variant formulations.}\label{tab:dsr_variants}%
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Variant} & \textbf{Equation} & \textbf{Range} \\
-\midrule
-Michelson       & Eq.~\eqref{eq:dsr}       & $[0,\,1]$ \\
-Ratio           & Eq.~\eqref{eq:dsr_ratio}  & $[0,\,1]$ \\
-Norm-Margin     & Eq.~\eqref{eq:dsr_nm}     & $[0,\,1]$ \\
-\botrule
-\end{tabular}
-\end{table}
+\subsection{Screening before verification}\label{subsec:two-step}
 
-The \emph{ratio} variant normalizes the expected probability by the total probability of both peaks:
+The previous definition requires the expected outcomes before evaluating a job. However, when the objective is to obtain one outstanding candidate, the histogram can first be examined without consulting~$E$. This leads to a process in which we first determine whether an observed outcome stands out and then verify whether that candidate satisfies the application.
 
+Let $n_1\geq n_2$ be the two largest observed counts on the application's output register. Following the same contrast used for Relative Peakedness~\cite{briegerPeakedRandomCircuits_2026}, the first step computes
 \begin{equation}
-\label{eq:dsr_ratio}
-\mathrm{DSR}_{\text{ratio}} = \mathrm{clip}\!\left(
-\frac{\bar{p}_{\text{exp}}}
-     {\bar{p}_{\text{exp}} + p_{\text{comp}}},\; 0,\; 1\right)
+\label{eq:screen_contrast}
+C=\frac{n_1-n_2}{n_1+n_2}.
 \end{equation}
-
-The \emph{normalized margin} variant divides the difference between the two peaks by the larger of the two:
-
+Unlike DSR, $C$ compares observed ranks without identifying a correct outcome. To account for uncertainty from a finite number of shots, we use the rank test of Hung and Fithian~\cite{hungRankVerification_2019}, including both tails, given by
 \begin{equation}
-\label{eq:dsr_nm}
-\mathrm{DSR}_{\text{nm}} = \mathrm{clip}\!\left(
-\frac{\bar{p}_{\text{exp}} - p_{\text{comp}}}
-     {\max(\bar{p}_{\text{exp}},\, p_{\text{comp}})},\; 0,\; 1\right)
+\label{eq:rank_test}
+p_{\mathrm{rank}}=\min\!\left(1,\;2\Pr[B\geq n_1]\right),
+\qquad B\sim\operatorname{Binomial}(n_1+n_2,1/2).
 \end{equation}
+Under independent shots from a fixed distribution, this test accounts for selecting the two leading outcomes from the same histogram. A tie gives $C=0$ and no unique candidate. The contrast measures separation, while the $p$ value measures evidence about the population mode; neither establishes application correctness.
 
-%% Figure: DSR variants for Grover vs. qubits (IBM)
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.9\textwidth]{plots/1_grover_dsr_variants_qubits.png}
-\caption{DSR variants for the Grover algorithm as a function of the number of qubits (IBM backends).}\label{fig:dsr_variants}
-\end{figure}
-
-Figure~\ref{fig:dsr_variants} reports the median DSR of each variant for Grover's algorithm as a function of the number of qubits, across all transpilation optimization levels. Grover is shown because its wide qubit range (2--8) best illustrates the differences among formulations.
-
-Both the Michelson (teal line) and the normalized-margin (pink line) variants decrease monotonically and reach~$0$ at six qubits; however, Michelson reports lower scores in the $3$--$5$ qubit range. Both formulations share the distinction boundary defined in Equation~\eqref{eq:dsr_boundary}. The ratio (orange line) variant exhibits a slower decline and still reports values of approximately $0.16$--$0.31$ at six to eight qubits, where the expected outcome no longer stands out in the histogram. In this formulation, equal expected and competing peaks produce a score of~$0.5$, rather than~$0$.
-
-Based on this analysis, we select the Michelson formulation to compute the DSR. In summary, the Michelson formulation expresses the difference between the expected and competing peaks relative to their sum, returning a score in $[0,1]$ with a directly interpretable zero boundary.
+In the second step, the candidate is checked against~$E$, a verification predicate, or an application objective. When~$E$ is available, DSR and success rate describe target distinction and observed target mass. qWard implements the screen separately and also reports observed target coverage alongside DSR. This separation makes the first step available for later studies where expected outcomes are unavailable in advance, while preserving application verification.
 
 \section{Experiment setup}\label{subsec:experiment}
 
@@ -334,7 +312,7 @@ For BV, the \emph{alternating-secret scalability} study grew the alternating sec
 
 \subsection{Backends and execution}
 
-The experiment pipeline used Qiskit AER both to verify circuit correctness without noise and to characterize behavior under parameterized noise models. Detailed noisy simulation of the deeper Grover and QFT configurations became time-consuming (more than one hour beyond 8~qubits), whereas the separate dense statevector reference calculation for the shallow BV jobs reached the memory limit described in Section~\ref{sec:metric_comparison}. After simulation, we ran 1\,024 shots per job on two quantum providers. For Grover, we used three IBM Heron~R2 processors (\textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_kingston}); for QFT, we added a fourth processor (\textit{ibm\_marrakesh}); and for BV, we used \textit{ibm\_fez}, \textit{ibm\_kingston}, and \textit{ibm\_marrakesh}. The BVsb experiment comprised ten jobs for each of its three configurations on \textit{ibm\_marrakesh}. All IBM backends were accessible through the IBM Quantum service. Grover and QFT were also executed on the Rigetti \textit{Ankaa-3} device, accessible through Amazon Web Services (AWS). vTP data were collected in a previous study~\cite{vTPMarquez_2026} on three IBM processors (\textit{ibm\_sherbrooke}, \textit{ibm\_kyiv}, and \textit{ibm\_brisbane}) and the same Rigetti \textit{Ankaa-3} device. In IBM backends, the Grover and QFT configurations were transpiled at four optimization levels (0 to~3), while the BV campaigns used the optimization level~3. In the Rigetti backend, the circuits were transpiled at the optimization level~3 using the default provider settings.
+The experiment pipeline used Qiskit AER both to verify circuit correctness without noise and to characterize behavior under parameterized noise models. Detailed noisy simulation of the deeper Grover and QFT configurations became time-consuming (more than one hour beyond 8~qubits), whereas the separate dense statevector reference calculation for the shallow BV jobs reached the memory limit described in Section~\ref{sec:metric_comparison}. The main campaigns used 1\,024 shots per job. The dataset also includes three BV jobs with 4\,096 shots and one Grover job with 128 shots on IonQ Forte~1 via AWS. For Grover, we used three IBM Heron~R2 processors (\textit{ibm\_fez}, \textit{ibm\_torino}, and \textit{ibm\_kingston}); for QFT, we added a fourth processor (\textit{ibm\_marrakesh}); and for BV, we used \textit{ibm\_fez}, \textit{ibm\_kingston}, and \textit{ibm\_marrakesh}. The BVsb experiment comprised ten jobs for each of its three configurations on \textit{ibm\_marrakesh}. All IBM backends were accessible through the IBM Quantum service. Grover and QFT were also executed on the Rigetti \textit{Ankaa-3} device, accessible through Amazon Web Services (AWS). vTP data were collected in a previous study~\cite{vTPMarquez_2026} on three IBM processors (\textit{ibm\_sherbrooke}, \textit{ibm\_kyiv}, and \textit{ibm\_brisbane}) and the same Rigetti \textit{Ankaa-3} device. In IBM backends, the Grover and QFT configurations were transpiled at four optimization levels (0 to~3), while the BV campaigns used the optimization level~3. In the Rigetti backend, the circuits were transpiled at the optimization level~3 using the default provider settings.
 
 \subsection{Variables}
 
@@ -342,7 +320,7 @@ The independent variables of the experiment are the algorithm, the circuit confi
 
 \section{Results}\label{sec:results}
 
-This section presents the empirical results of 1{,}478 QPU runs covering jobs based on the Grover, QFT, BV, and vTP algorithms (248, 239, 195, and 796 jobs, respectively). The 195 BV-related jobs include 130 jobs with $n=2$--$14$, 31 jobs with $n=29$--$31$, four runs with additional secret patterns, and 30 BVsb runs. When comparing IBM and Rigetti results side by side (Sections~\ref{subsec:dsr_qubits}, \ref{sec:metric_comparison}), IBM Grover and QFT data are filtered to optimization level~3 to enable a fair comparison with Rigetti, which does not expose optimization levels. The depth analysis (Section~\ref{subsec:dsr_depth}) uses all optimization levels, and the effect of the optimization level is analyzed separately in Section~\ref{subsec:opt_level}. Our analysis covers DSR degradation as a function of qubit count and circuit depth. We also benchmark DSR against HF and TVDF to highlight how their behaviors complement each other.
+This section presents the empirical results of 1{,}478 recorded jobs based on the Grover, QFT, BV, and vTP algorithms (248, 239, 195, and 796 jobs, respectively). Four vTP records are simulations and are excluded from the hardware screening analysis below. The 195 BV-related jobs include 130 jobs with $n=2$--$14$, 31 jobs with $n=29$--$31$, four runs with additional secret patterns, and 30 BVsb runs. When comparing IBM and Rigetti results side by side (Sections~\ref{subsec:dsr_qubits}, \ref{sec:metric_comparison}), IBM Grover and QFT data are filtered to optimization level~3 to enable a fair comparison with Rigetti, which does not expose optimization levels. The depth analysis (Section~\ref{subsec:dsr_depth}) uses all optimization levels, and the effect of the optimization level is analyzed separately in Section~\ref{subsec:opt_level}. Our analysis covers DSR degradation as a function of qubit count and circuit depth. We also benchmark DSR against HF and TVDF to highlight how their behaviors complement each other.
 
 \subsection{DSR versus number of qubits}\label{subsec:dsr_qubits}
 
@@ -568,7 +546,7 @@ For the configurations with 27, 28, and 29 total qubits, the mean percentages of
 
 For Grover on Rigetti Ankaa-3 (Figure~\ref{fig:grover_metric_comparison_aws}), the three metrics agree at 2~qubits (medians above~$0.90$). However, at 3~qubits ($n=40$) the DSR falls to~$0.00$, while the HF retains a median of~$0.25$ and TVDF~$0.20$ ($p_{\text{corr}} < 0.001$; $\delta = -0.93$ and $-0.89$, respectively). The same pattern continues at 4~qubits, where DSR stays at~$0.00$ while HF reports~$0.25$, and TVDF~$0.15$ ($\delta = -1.00$ and $-0.84$). This discrepancy occurs because the noise level of Ankaa-3 causes the strongest competing peak to match the average probability of the expected outcomes ($\bar{p}_{\text{exp}}$), pushing the DSR to zero. In contrast, HF and TVDF, which evaluate the intersection of the probability distribution, still detect partial overlap.
 
-Comparing the two providers reveals that DSR exhibits a zero-boundary response associated with the noise level of the backend. In several IBM Heron~R2 jobs\footnote{IBM Quantum Platform, backend calibration data: \url{https://quantum.cloud.ibm.com/computers}. Accessed February 2026.}, where the two-qubit gate errors are approximately $2.6 \times 10^{-3}$ and readout errors $1.3 \times 10^{-2}$, DSR descriptively remains above HF and TVDF while the expected peaks dominate. In contrast, for Rigetti Ankaa-3\footnote{Rigetti Quantum Cloud Services, QPU specifications: \url{https://qcs.rigetti.com/qpus}. Accessed February 2026.}, where typical two-qubit gate errors are roughly twice as large ($5 \times 10^{-3}$) and readout errors reach $2 \times 10^{-2}$, DSR is the first metric to reach zero. These calibration values provide hardware context rather than a controlled causal explanation of the difference.
+Comparing the two providers reveals that DSR exhibits a zero-boundary response associated with the noise level of the backend. In several IBM Heron~R2 jobs\footnote{IBM Quantum Platform, backend calibration data at \url{https://quantum.cloud.ibm.com/computers}. Accessed February 2026.}, where the two-qubit gate errors are approximately $2.6 \times 10^{-3}$ and readout errors $1.3 \times 10^{-2}$, DSR descriptively remains above HF and TVDF while the expected peaks dominate. In contrast, for Rigetti Ankaa-3\footnote{Rigetti Quantum Cloud Services, QPU specifications at \url{https://qcs.rigetti.com/qpus}. Accessed February 2026.}, where typical two-qubit gate errors are roughly twice as large ($5 \times 10^{-3}$) and readout errors reach $2 \times 10^{-2}$, DSR is the first metric to reach zero. These calibration values provide hardware context rather than a controlled causal explanation of the difference.
 
 The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse behavior observed in Grover. In IBM, the $4$ jobs at 5~qubits give a median DSR of~$0.82$ versus~$0.65$ for HF and TVDF, while the two jobs at 10~qubits give~$0.28$ versus~$0.13$. At 6~qubits, where eight jobs are available, the three metrics become comparable ($p_{\text{corr}} = 0.766$, $\delta = 0.00$). On the Rigetti platform, at 4 qubits ($n=25$), DSR falls to ~$0.00$, whereas HF and TVDF remain at~$0.29$ ($p_{\text{corr}} = 0.008$, $\delta = -0.45$). At 5 qubits, the discrepancy becomes even more pronounced ($p_{\text{corr}} = 0.003$, $\delta = -0.72$).
 
@@ -615,27 +593,50 @@ The QFT results (Table~\ref{tab:stat_comparison}) exhibit the early collapse beh
 \end{tabular*}
 \end{sidewaystable}
 
+\subsection{Screening and subsequent verification}\label{subsec:screening-results}
+
+We applied this process to all 682 Grover, QFT, BV, and BVsb hardware jobs, retaining all optimization levels. The first step used only the counts from the output register; the second checked whether the unique leading bitstring belonged to~$E$. Table~\ref{tab:screening} reports two illustrative operating points, without fitting a threshold to the labels. Tied leaders were not forwarded. The deferred counts refer to correct unique leaders, so they measure opportunities lost by screening.
+
+\begin{table}[ht]
+\caption{Screening followed by target verification. The cohorts contain 467 jobs with one expected outcome and 215 with several expected outcomes, with 387 and 160 correct unique leaders, respectively. A forwarded candidate is correct when it belongs to~$E$.}\label{tab:screening}
+\centering
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+\textbf{Targets} & \textbf{Screening rule} & \textbf{Forwarded} & \textbf{Correct} & \shortstack{\textbf{Correct}\\\textbf{deferred}} \\
+\midrule
+$K=1$ & $C\geq0.5$ & 344 & 344 & 43 \\
+      & $p_{\mathrm{rank}}\leq0.05$ & 399 & 372 & 15 \\
+$K>1$ & $C\geq0.5$ & 62 & 62 & 98 \\
+      & $p_{\mathrm{rank}}\leq0.05$ & 125 & 110 & 50 \\
+\botrule
+\end{tabular}
+\end{table}
+
+The contrast cutoff forwards 406 correct candidates, but defers 141 other correct unique leaders. In particular, 39 jobs with several expected outcomes have $\mathrm{DSR}\geq0.8$ while $C<0.2$ because correct outcomes compete with each other. Summing expected probabilities, as in QVF, also yields positive contrast in 40 of the 215 jobs with several expected outcomes for which DSR is zero. The second step remains necessary even with rank evidence, as 42 of the 524 candidates selected by the rank test are incorrect. The same contrast cutoff applied separately to 792 vTP hardware jobs forwards 29 candidates, of which four are incorrect; all four come from jobs with only ten shots.
+
+To examine earlier screening, we randomly partitioned the 678 jobs from the main cohort with 1{,}024 shots into discovery budgets of 64, 128, 256, and 512 shots, sampling without replacement and repeating the procedure 30 times. With 64 discovery shots, rank screening forwards a mean of 336.6 of the 463 jobs with one expected outcome, with 99.7\% correct candidates; the candidate remains the unique leader in the remaining 960 shots in 99.98\% of selections. For 215 jobs with several expected outcomes, the corresponding mean is 69.2 forwarded, with 98.6\% correct candidates. These are retrospective partitions of the same jobs, not independent QPU executions or evidence of saved execution cost. They support investigating candidate screening while showing the need to preserve verification and to evaluate fixed policies on new jobs.
+
 \section{Discussion}\label{sec:discussion}
 
 The experimental results (Section~\ref{sec:results}) show that DSR characterizes whether expected outcomes remain distinct as circuits scale in qubit count and depth. However, as with other fidelity metrics, there exist limitations and important considerations that must be taken into account when determining the appropriate conditions to use DSR.
 
-\textbf{Usability.} We position DSR as an alternative validation score for workloads with a known set of expected outcomes~$E$. DSR offers two distinctions from existing metrics. First, it does not require the full ideal probability distribution and therefore remains computable when that distribution is impractical to obtain, provided that~$E$ is known. Second, DSR evaluates whether the expected outcomes dominate the strongest competing peak, whereas the success rate measures only the observed probability mass on~$E$, and HF and TVDF quantify agreement with the full ideal distribution. DSR is therefore preferable when the validation objective is to determine whether expected results remain distinguishable from noise. Because DSR measures target distinction rather than the probability of obtaining a correct outcome, it should be reported together with the success rate when absolute target mass is also relevant. HF and TVDF remain preferable when the primary objective is agreement with the ideal distribution.
+\textbf{Usability.} We position DSR as a validation score for workloads with a known set of expected outcomes~$E$. It describes mean target distinction, while success rate describes observed target mass and HF and TVDF describe agreement with an ideal distribution. These quantities answer different questions; higher numerical scores alone do not establish that one measure evaluates correctness better. DSR should be reported with success rate when absolute target mass matters, and with target coverage when several outcomes are expected. Avoiding a statevector is not an exclusive advantage, since HF and TVDF also reduce to the observed probability of a single deterministic ideal outcome.
 
-\textbf{Applicability.} The DSR is designed for algorithms in which the developer can specify a well-defined set of expected outcomes~$E$. This requirement is satisfied by search algorithms (e.g., Grover), basis transformation algorithms (e.g., QFT), and state-preparation protocols (e.g., vTP). However, DSR is not directly applicable to algorithms whose ideal output is a broad probability distribution without a discrete set of dominant states (e.g., variational algorithms). In such cases, distribution-level metrics, such as HF or TVDF, are more appropriate.
+\textbf{Applicability.} DSR requires a clearly defined expected set~$E$, as in the search, transformation, and state preparation workloads considered here. The first step uses only the histogram to prioritize an outstanding candidate before its usefulness is known. It should not reject outputs with low contrast when several answers are valid. For optimization, feasibility and objective quality still require evaluation; the most frequent answer need not be the best. Likewise, low contrast between the two leading outcomes cannot establish a uniform distribution or a good random number generator. Evaluation of the distribution remains necessary when the output distribution itself is the objective.
 
 \textbf{Confounding factors.} The depth analysis (Figure~\ref{fig:combined_depth_ibm}) revealed that circuit depth is not a good predictor of DSR, since different circuit configurations can be mapped to similar depths. This observation suggests that DSR should take into account the configuration complexity of the circuits when creating the analyses---for instance, by restricting the analysis to a single family of configurations (e.g., scalability only) or by normalizing depth relative to the number of qubits.
 
 \textbf{Zero-target bias.} DSR may overestimate output distinction when the expected set~$E$ contains only the all-zero bitstring. In superconducting hardware, $T_1$ relaxation drives excited qubits toward the ground state $\ket{0}$, which can increase the observed probability of $\ket{0\cdots0}$ independently of correct algorithm execution. Although this bias does not exclude the use of DSR, it requires appropriate experimental controls. The same concern applies to inverse-circuit validation, where a circuit followed by its inverse is expected to return the all-zero state. This procedure increases circuit depth while producing a target that can be favored by relaxation. Consequently, the all-zero state should not be used as the sole benchmarking target without additional controls. Evaluations should include non-zero expected outcomes, configurations with different Hamming weights, or well-defined calibration and error-mitigation controls to distinguish algorithmic success from zero-state bias.
 
-\textbf{Validity considerations.} There are three main factors that directly affect DSR values. First, a reduced number of shots, particularly when acquired with noisy hardware, introduces sampling uncertainty that propagates into the DSR value. Second, the correct specification of the expected set~$E$ is essential for an accurate evaluation. Third, backend calibration drift between jobs may introduce variability not attributable to the algorithm but to hardware fluctuations.
+\textbf{Validity considerations.} Finite shots, specification of~$E$, and backend calibration drift affect the interpretation of DSR. The rank test assumes independent shots from a fixed distribution; it does not control repeated checks during acquisition or joint errors across jobs. Random partitions cannot test drift, and the screening results depend on the workload and backend composition. The reported cutoffs are therefore operating examples, not universal acceptance rules.
 
 \section{Conclusion}\label{sec:conclusion}
 
 In this paper, we introduce the Differential Success Rate (DSR), a score designed to assess the output of quantum algorithms. The DSR quantifies how distinctly a predefined set of expected outcomes stands out within the measurement histogram of a quantum job. To this end, the DSR adopts the Michelson contrast formulation to create a normalized score within the interval $[0, 1]$, indicating whether the expected outcomes dominate the strongest competing peak.
 
-In the initial part of this study, three different formulations are evaluated to characterize their response across quantum executions. The Michelson formulation is selected over the ratio and normalized margin methods because it expresses expected-outcome distinction as a bounded contrast with an interpretable zero boundary.
+In the initial part of this study, we relate Michelson to alternative normalizations and retain its interpretable zero boundary. We then evaluate a process with two steps that screens for an outstanding candidate before verifying its correctness. This first step provides a basis for later studies, while the results with several expected outcomes show why separation alone cannot determine usefulness.
 
-To empirically evaluate DSR, we computed it for 1{,}478 quantum jobs executed across multiple QPUs accessed through IBM Quantum and Rigetti via AWS. The workloads comprise Grover's search, QFT, BV, and vTP. The results show DSR scores above~$0.80$ for small circuits and a general decline as the size and complexity of the circuit increase. We also characterize the effect of circuit optimization and compare DSR with HF and TVDF. Standard BV shows how DSR distinguishes a dominant expected state from a low success rate. BVsb extends this result to outputs with multiple expected states and a broad background, where HF and TVDF require the complete ideal distribution. On the noisier Rigetti QPU, DSR is the first metric to reach zero once the expected outcomes no longer dominate their competitors, whereas HF and TVDF decline more gradually.
+To empirically evaluate DSR, we computed it for 1{,}478 recorded jobs, primarily executed on IBM and Rigetti QPUs. The workloads comprise Grover's search, QFT, BV, and vTP. The results show DSR scores above~$0.80$ for small circuits and a general decline as the size and complexity of the circuit increase. We also characterize the effect of circuit optimization and compare DSR with HF and TVDF. Standard BV shows how DSR distinguishes a dominant expected state from a low success rate. BVsb extends this result to outputs with multiple expected states and a broad background, where HF and TVDF require the complete ideal distribution. On the noisier Rigetti QPU, DSR is the first metric to reach zero once the expected outcomes no longer dominate their competitors, whereas HF and TVDF decline more gradually.
 
 In future work, we plan to create automated benchmarking pipelines for continuous monitoring of algorithm performance on different quantum providers and to generate a dashboard to visualize the performance history. We also intend to train neural networks to predict DSR values. Finally, we plan to benchmark the hardware-level gate fidelities with the DSR values to determine whether DSR can serve as a lightweight proxy for circuit-level quality characterization.
 
@@ -644,7 +645,7 @@ In future work, we plan to create automated benchmarking pipelines for continuou
 %% \section* avoids hyperref bookmark-level jumps caused by \bmhead
 \section*{Data and code availability}
 
-The complete dataset used in this study is publicly available on IEEE DataPort~\cite{dsrdataset2026}. The dataset includes the measurement histogram, the expected set of outcomes, the backend metadata, circuit parameters, and the metrics computed for each workload. DSR variants are reported for all runs, while HF and TVD are included when the full ideal reference distribution is available. The source code for the qWard framework, the experiment scripts, and the statistical analysis are available in the project repository~\cite{qward2026}.
+The complete dataset used in this study is publicly available on IEEE DataPort~\cite{dsrdataset2026}. It includes measurement histograms, expected outcomes, backend metadata, circuit parameters, and computed metrics. DSR variants are reported for all runs, while HF and TVD are included when the full ideal reference distribution is available. The qWard framework and experiment scripts are available in the project repository~\cite{qward2026}; the screening analysis, shot partitions, and results grouped by backend accompany this study for reproducibility.
 
 \section*{Acknowledgements}
 
@@ -652,11 +653,9 @@ The authors acknowledge the use of AI tools and services for manuscript preparat
 
 %%===========================================================================%%
 %% NOTE ON REFERENCES:                                                        %%
-%% The \cite keys below are unchanged from the IEEE version. Make sure the    %%
-%% bib file compiled by Overleaf (named sn-bibliography.bib here) contains    %%
-%% these keys. If your updated bib file uses a different name, change the     %%
-%% argument of \bibliography{} accordingly.                                   %%
+%% Original references remain in the Overleaf file sn-bibliography.bib.      %%
+%% Upload dsr-screening-references.bib alongside it for the five new works.   %%
 %%===========================================================================%%
-\bibliography{sn-bibliography}
+\bibliography{sn-bibliography,dsr-screening-references}
 
 \end{document}
