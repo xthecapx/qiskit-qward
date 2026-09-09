@@ -31,6 +31,7 @@ from qward.metrics.defaults import get_all_pre_runtime_strategies, get_default_s
 from qward.metrics.backend_metric_base import BackendMetricCollector
 from qward.metrics.backend_calibration import BackendCalibrationCollector
 from qward.metrics.gate_error_characterization import GateErrorCharacterization
+from qward.metrics.output_screening import compute_output_screen
 
 __all__ = [
     "MetricsId",
@@ -48,6 +49,7 @@ __all__ = [
     "compute_dsr_percent",
     "compute_dsr_with_flags",
     "compute_dsr_profile",
+    "compute_output_screen",
     "compute_success_rate",
     "compute_chance_baseline",
     "compute_chance_corrected_success",
