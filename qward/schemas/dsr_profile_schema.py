@@ -16,6 +16,11 @@ class DSRProfileSchema(BaseModel):
 
     Components:
         - ``success_rate``: raw fraction of shots landing in ``E``.
+        - ``target_coverage``: fraction of expected outcomes observed at least
+          once. This is empirical coverage, not a fidelity or confidence level.
+        - ``min_target_count``: smallest count among expected outcomes,
+          including zero for unobserved targets. Mean-target DSR can be
+          positive even when this count is zero.
         - ``chance_corrected_success``: success rescaled so that random
           guessing maps to 0 and perfect success maps to 1.
         - ``coarse_tvd_similarity`` / ``coarse_hellinger_fidelity``: "higher
@@ -42,6 +47,8 @@ class DSRProfileSchema(BaseModel):
     DSR may be included via ``dsr_michelson`` together with the diagnostic
     ``peak_mismatch`` flag. It compares the mean expected peak with the
     strongest competing peak.
+    A false ``peak_mismatch`` also allows ties involving an expected outcome;
+    it does not certify a unique correct winner.
     """
 
     shots: Optional[int] = Field(None, ge=0)
@@ -51,6 +58,8 @@ class DSRProfileSchema(BaseModel):
     num_expected_outcomes: Optional[int] = Field(None, ge=0)
 
     success_rate: Optional[float] = Field(None, ge=0.0, le=1.0)
+    target_coverage: Optional[float] = Field(None, ge=0.0, le=1.0)
+    min_target_count: Optional[int] = Field(None, ge=0)
     chance_baseline: Optional[float] = Field(None, ge=0.0, le=1.0)
     chance_corrected_success: Optional[float] = Field(None, ge=0.0, le=1.0)
 
