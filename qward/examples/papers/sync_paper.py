@@ -1,7 +1,8 @@
 """Check or synchronize the manuscript files shared with the release artifact.
 
-Default usage checks equality without writing. Pass --source artifact or
---source qward to explicitly choose which copy to retain when synchronizing.
+Default usage checks source files without writing. Pass --source artifact or
+--source qward to choose which copy to retain when synchronizing. PDFs remain
+in the artifact folder unless --include-pdf is explicitly requested.
 """
 
 import argparse
@@ -15,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", choices=("artifact", "qward"))
     parser.add_argument("--artifact", type=Path)
+    parser.add_argument("--include-pdf", action="store_true")
     args = parser.parse_args()
     papers = Path(__file__).resolve().parent
     repo = papers.parents[2]
@@ -22,8 +24,9 @@ def main():
     release = artifact / "paper"
     pairs = [
         (papers / "main-springer.tex", release / "sn-article.tex"),
-        (papers / "main-springer.pdf", release / "sn-article.pdf"),
     ]
+    if args.include_pdf:
+        pairs.append((papers / "main-springer.pdf", release / "sn-article.pdf"))
     source_tex = pairs[0][1 if args.source == "artifact" else 0]
     text = source_tex.read_text()
     names = {"sn-jnl.cls", "sn-mathphys-num.bst"}
@@ -55,7 +58,7 @@ def main():
         print("\n".join(different))
         raise SystemExit(1)
     print(f"All {len(pairs)} shared manuscript files match.")
-    print("After editing the source, rebuild its PDF before synchronizing.")
+    print("Compile the PDF in the artifact folder after synchronizing source changes.")
 
 
 if __name__ == "__main__":
