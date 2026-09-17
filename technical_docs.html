@@ -326,6 +326,60 @@
 </section>
 <section id="usage-examples">
 <h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h2>
+<section id="histogram-screening-followed-by-application-verification">
+<h3>Histogram screening followed by application verification<a class="headerlink" href="#histogram-screening-followed-by-application-verification" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">compute_output_screen</span></code> accepts measured counts without expected outcomes or an
+ideal distribution. Use it when the application seeks one outstanding candidate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qward</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_output_screen</span><span class="p">,</span> <span class="n">compute_dsr_profile</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"00"</span><span class="p">:</span> <span class="mi">800</span><span class="p">,</span> <span class="s2">"01"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"10"</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span> <span class="s2">"11"</span><span class="p">:</span> <span class="mi">44</span><span class="p">}</span>
+<span class="n">screen</span> <span class="o">=</span> <span class="n">compute_output_screen</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">significance_level</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">screen</span><span class="o">.</span><span class="n">top_two_contrast</span><span class="p">,</span> <span class="n">screen</span><span class="o">.</span><span class="n">rank_pvalue</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">screen</span><span class="o">.</span><span class="n">rank_verified</span><span class="p">:</span>
+    <span class="n">candidate</span> <span class="o">=</span> <span class="n">screen</span><span class="o">.</span><span class="n">leading_outcome</span>
+    <span class="c1"># Application verification is a separate step; replace this set with a</span>
+    <span class="c1"># task predicate or objective evaluation when appropriate.</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"00"</span><span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Candidate satisfies the task:"</span><span class="p">,</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">expected</span><span class="p">)</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="n">compute_dsr_profile</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">dsr_michelson</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">success_rate</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">target_coverage</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">min_target_count</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result is an <code class="docutils literal notranslate"><span class="pre">OutputScreeningSchema</span></code> with <code class="docutils literal notranslate"><span class="pre">to_flat_dict()</span></code> for DataFrames.
+It reports leading counts/probabilities, top-two Michelson contrast, absolute
+probability gap, combined probability of the leading pair, and a rank-test
+p-value. <code class="docutils literal notranslate"><span class="pre">leading_outcomes</span></code> contains all tied leaders; <code class="docutils literal notranslate"><span class="pre">leading_outcome</span></code> is
+<code class="docutils literal notranslate"><span class="pre">None</span></code> on a tie. QWARD does not choose a tied answer by bitstring order.
+Without an explicit <code class="docutils literal notranslate"><span class="pre">significance_level</span></code>, <code class="docutils literal notranslate"><span class="pre">rank_verified</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and the
+p-value is still available. There is no default contrast cutoff or discard rule.</p>
+<p>For leading counts <code class="docutils literal notranslate"><span class="pre">n1</span> <span class="pre">&gt;=</span> <span class="pre">n2</span></code>, <code class="docutils literal notranslate"><span class="pre">top_two_contrast</span> <span class="pre">=</span> <span class="pre">(n1-n2)/(n1+n2)</span></code>.
+The rank test uses <code class="docutils literal notranslate"><span class="pre">min(1,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">P[Binomial(n1+n2,</span> <span class="pre">0.5)</span> <span class="pre">&gt;=</span> <span class="pre">n1])</span></code>, following the
+selected-winner procedure in <a class="reference external" href="https://arxiv.org/abs/1610.03944">Hung and Fithian, <em>Rank Verification for
+Exponential Families</em>, §1.2</a>. This conservative
+two-sided test accounts for selecting the observed ranks under a fixed-shot IID
+multinomial model. It does not control repeated looks, device drift, or joint
+errors across multiple jobs. A small p-value is evidence about the population
+mode, not the probability that the candidate solves the application.</p>
+<p>Supply the complete histogram for the intended output register. The caller must
+align or marginalize ancillary registers using the circuit’s measurement mapping;
+QWARD does not infer that mapping from bitstrings. The screen rejects fractional,
+negative, nonfinite, and boolean counts: mitigated weights and normalized
+probabilities are not raw multinomial shot counts. Zero-count bins may be omitted;
+filtered top-k histograms must not be used. One observed outcome gives contrast
+one but, with few shots, may still lack enough rank evidence.</p>
+<p>Screening complements target-aware DSR; it does not redefine <code class="docutils literal notranslate"><span class="pre">compute_dsr</span></code> or
+its variants. Low contrast can occur with multiple correct answers, so failing
+this screen does not justify discarding such a result or establish randomness.
+DSR still compares the <strong>mean</strong> expected count with the strongest wrong count;
+positive DSR does not guarantee every target is observed. The profile’s new
+<code class="docutils literal notranslate"><span class="pre">target_coverage</span></code> is the fraction of expected outcomes observed at least once,
+and <code class="docutils literal notranslate"><span class="pre">min_target_count</span></code> includes zeros for missing targets. Both diagnostics are
+reported even with <code class="docutils literal notranslate"><span class="pre">include_michelson=False</span></code>. Existing fields keep their values;
+serialized profiles gain these two optional fields. Also, <code class="docutils literal notranslate"><span class="pre">peak_mismatch=False</span></code>
+permits correct/incorrect ties and does not certify a unique correct winner.</p>
+</section>
 <section id="basic-usage">
 <h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
@@ -1014,6 +1068,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#histogram-screening-followed-by-application-verification">Histogram screening followed by application verification</a></li>
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
 <li><a class="reference internal" href="#working-with-execution-results">Working with Execution Results</a></li>
 <li><a class="reference internal" href="#alternative-approach-with-job-object">Alternative Approach with Job Object</a></li>
