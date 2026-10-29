@@ -39,6 +39,9 @@ from qward.examples.papers.ibm_campaign import RECORD_SCHEMA_VERSION
 
 PAPERS = Path(__file__).resolve().parent
 DATASET_SCHEMA_VERSION = "1.0"
+# Algorithms dropped from the campaign. Records that exist on disk (the coin-toss
+# pilot) stay untouched but never enter the dataset.
+EXCLUDED_ALGORITHMS = ("COIN_TOSS",)
 GROUP_PREFIXES = ("meta", "config", "a", "b", "c", "d", "e", "e_exec", "f", "g")
 # Group E may be missing only for these documented reasons.
 ALLOWED_E_REASONS = {"dynamic_circuit", "no_reference"}
@@ -208,8 +211,8 @@ def _validate_row(row: pd.Series, errors: List[str], warnings: List[str]) -> Non
     if row.get("a.quantum_specific.available") is not True:
         if not str(reason).startswith(ALLOWED_QUANTUM_SPECIFIC_REASONS):
             warnings.append(f"{tag}: QuantumSpecific unavailable ({reason})")
-    if row.get("d.changed_since_prepare") is True:
-        warnings.append(f"{tag}: calibration changed between prepare and execution")
+    if row.get("d.changed_values") is True:
+        warnings.append(f"{tag}: calibration values of the qubits used changed before execution")
     if row.get("g.reference_exact") is False:
         warnings.append(f"{tag}: sampled (not exact) reference")
 
@@ -300,6 +303,11 @@ def export(
     """Build, validate and write the dataset. Raises on errors unless allowed."""
     paths = discover(root)
     frame, skipped = build_frame(paths)
+    excluded = 0
+    if not frame.empty:
+        keep = ~frame["meta.algorithm"].isin(EXCLUDED_ALGORITHMS)
+        excluded = int((~keep).sum())
+        frame = frame[keep].reset_index(drop=True)
     if backend and not frame.empty:
         frame = frame[frame["meta.backend_name"] == backend].reset_index(drop=True)
     problems = validate(frame, allow_fake=allow_fake)
@@ -308,6 +316,8 @@ def export(
         "records_found": len(paths),
         "rows": int(len(frame)),
         "skipped_records": skipped,
+        "excluded_rows": excluded,
+        "excluded_algorithms": list(EXCLUDED_ALGORITHMS),
         "errors": problems["errors"],
         "warnings": problems["warnings"],
         "algorithms": sorted(frame["meta.algorithm"].unique()) if not frame.empty else [],

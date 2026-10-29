@@ -8,14 +8,14 @@
 #   run_campaign.sh status  [algo] [window]   offline: planned vs submitted vs done
 #   run_campaign.sh export  [out_dir]         build dataset.csv from completed records
 #
-# <algo>: ghz bv vtp qft pe grover coin_toss rv shor (or "all" for the 9 of them)
-# <window>: 0 = pilot (34 jobs), 1-3 = campaign windows
+# <algo>: ghz bv vtp qft pe grover rv shor (or "all" for the 8 of them)
+# <window>: 0 = pilot (30 jobs), 1-3 = campaign windows
 # Plans live in  <algo>/plans/<algo>-w<window>.json  (format: docs/ibm_fez_dataset_plan.md,
 # "Plan files"); manifests are written beside them as <algo>-w<window>_manifest.json.
 #
 # Credentials come from IBM_QUANTUM_* in the repo-root .env or the environment.
 # Nothing is passed on the command line, so tokens never appear in `ps`.
-# Window 0 is the pilot (34 jobs, run it first); windows 1-3 are the campaign.
+# Window 0 is the pilot (30 jobs, run it first); windows 1-3 are the campaign.
 # `submit all` runs ONE Batch at a time (open, wait until it finishes, recover,
 # then the next algorithm): IBM limits how many Batches can be active, and a
 # queued Batch stays active. If a Batch cannot be opened, nothing was sent and
@@ -40,14 +40,13 @@ module_for() {
         qft)        echo "qward.examples.papers.qft.qft_ibm" ;;
         pe)         echo "qward.examples.papers.phase_estimation.pe_ibm" ;;
         grover)     echo "qward.examples.papers.grover.grover_ibm" ;;
-        coin_toss)  echo "qward.examples.papers.coin_toss.coin_toss_ibm" ;;
         rv)         echo "qward.examples.papers.random_volumetric.rv_ibm" ;;
         shor)       echo "qward.examples.papers.shor.shor_ibm" ;;
         *) echo "unknown algorithm: $1" >&2; exit 2 ;;
     esac
 }
 
-ALGOS="ghz bv vtp qft pe grover coin_toss rv shor"
+ALGOS="ghz bv vtp qft pe grover rv shor"
 dir_of() {
     case "$1" in
         pe) echo "phase_estimation" ;;

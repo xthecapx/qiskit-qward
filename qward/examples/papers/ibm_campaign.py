@@ -382,16 +382,28 @@ class RecordStore:
 
     @staticmethod
     def calibration_flag(prepared: Mapping[str, Any], current: Optional[str]) -> Dict[str, Any]:
-        """Record whether the backend recalibrated between freeze and submission."""
+        """Record whether the backend recalibrated between freeze and submission.
+
+        Silent: IBM advances its calibration timestamp several times a day even
+        when the values of the qubits a circuit uses do not move. Whether the
+        values changed is measured at recovery (``changed_values`` in the
+        execution-time hardware group), so only the fact is stored here.
+        """
         frozen = prepared["calibration_snapshot"]["calibrated_at"]
         changed = frozen is not None and current is not None and frozen != current
-        if changed:
+        return {"calibrated_at_submission": current, "recalibrated_before_submission": changed}
+
+    @staticmethod
+    def announce_recalibration(manifest_name: str, flags: Sequence[Mapping[str, Any]]) -> None:
+        """One line per submission instead of one per job."""
+        moved = sum(1 for flag in flags if flag.get("recalibrated_before_submission"))
+        if moved:
             print(
-                f"WARNING: backend recalibrated since preparation ({frozen} -> {current}); "
-                "submitting anyway, drift is measured from job.properties() at recovery.",
+                f"note: {manifest_name}: IBM advanced its calibration timestamp after "
+                f"preparation for {moved} of {len(flags)} records; this is normal. "
+                "Whether the values for the qubits used changed is recorded at recovery.",
                 file=sys.stderr,
             )
-        return {"calibrated_at_submission": current, "recalibrated_before_submission": changed}
 
     def submit_job(
         self,
@@ -436,6 +448,7 @@ class RecordStore:
 
         loaded = self.check_submittable(record_path, backend, runs)
         calibration = self.calibration_flag(loaded[1], current_calibration_date(backend))
+        self.announce_recalibration(Path(record_path).name, [calibration])
         sampler = SamplerV2(mode=backend, options=loaded[1]["runtime_options"])
         for run_index in range(runs):
             self.submit_job(
@@ -623,6 +636,10 @@ class Campaign:
             if prior.get(key, 0) + total > limits[key]:
                 raise ValueError(f"Manifest exceeds run budget of campaign/window {key}")
         current = current_calibration_date(backend)
+        self.store.announce_recalibration(
+            manifest_path.name,
+            [self.store.calibration_flag(prepared, current) for _, prepared, _ in loaded],
+        )
         try:
             batch_cm = Batch(backend=backend)
         except Exception as exc:  # pylint: disable=broad-except
