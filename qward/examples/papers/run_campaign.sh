@@ -13,6 +13,7 @@
 #
 # Credentials come from IBM_QUANTUM_* in the repo-root .env or the environment.
 # Nothing is passed on the command line, so tokens never appear in `ps`.
+# Window 0 is the pilot (34 jobs, run it first); windows 1-3 are the campaign.
 # Only `submit` sends jobs. Prepare each window just before submitting it so its
 # calibration is current, and keep windows on different days.
 

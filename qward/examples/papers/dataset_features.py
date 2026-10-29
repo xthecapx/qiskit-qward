@@ -17,8 +17,12 @@ tell *missing* from *measured as zero*.
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
 import math
 import time
+from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
 from qiskit import QuantumCircuit, QuantumRegister
@@ -28,6 +32,7 @@ from qward.metrics import BackendCalibrationCollector, QuantumSpecificMetrics
 from qward.metrics.circuit_error_prediction import (
     CONTROL_FLOW,
     CircuitErrorPrediction,
+    circuit_hash,
     is_dynamic,
     snapshot_at_properties,
 )
@@ -36,6 +41,8 @@ from qward.metrics.histogram_assessment import HistogramAssessment
 
 FEATURES_SCHEMA_VERSION = "1.0"
 QUANTUM_SPECIFIC_MAX_QUBITS = 8
+QUANTUM_SPECIFIC_SEED = 11
+QUANTUM_SPECIFIC_CACHE = Path(__file__).resolve().parent / "data" / "quantum_specific_cache"
 MAX_REFERENCE_BITS = 12
 MAX_STATEVECTOR_QUBITS = 20
 DYNAMIC_REFERENCE_SHOTS = 200_000
@@ -216,19 +223,62 @@ def _qward(circuit: QuantumCircuit) -> Dict[str, Any]:
     return metrics
 
 
-def quantum_specific(circuit: QuantumCircuit) -> Dict[str, Any]:
-    """QuantumSpecificMetrics with explicit size/dynamic limits."""
+def _quantum_specific_key(circuit: QuantumCircuit) -> str:
+    """Cache key: logical circuit, seed, and the metric's own source code."""
+    import torch  # pylint: disable=import-outside-toplevel
+    from qward.metrics import quantum_specific_metrics  # pylint: disable=import-outside-toplevel
+
+    source = hashlib.sha256(inspect.getsource(quantum_specific_metrics).encode()).hexdigest()
+    payload = f"{circuit_hash(circuit)}|{QUANTUM_SPECIFIC_SEED}|{source}|torch{torch.__version__}"
+    return hashlib.sha256(payload.encode()).hexdigest()[:32]
+
+
+_DEFAULT_CACHE = object()
+
+
+def quantum_specific(circuit: QuantumCircuit, *, cache_dir: Any = _DEFAULT_CACHE) -> Dict[str, Any]:
+    """QuantumSpecificMetrics with explicit size/dynamic limits.
+
+    The metric depends only on the logical circuit and takes up to ~75 s at
+    8 qubits, so results are cached per circuit (``cache_dir=None`` disables).
+    A cache hit is marked ``cached: true``; ``compute_seconds`` stays the
+    original cost.
+    """
     if is_dynamic(circuit):
         return missing("dynamic_circuit")
     if circuit.num_qubits > QUANTUM_SPECIFIC_MAX_QUBITS:
         return missing(f"size_limit>{QUANTUM_SPECIFIC_MAX_QUBITS}_qubits")
+    if cache_dir is _DEFAULT_CACHE:
+        cache_dir = QUANTUM_SPECIFIC_CACHE  # Read at call time so tests can redirect it.
+    entry = None
+    if cache_dir is not None:
+        entry = Path(cache_dir) / f"{_quantum_specific_key(circuit)}.json"
+        if entry.exists():
+            return {**json.loads(entry.read_text(encoding="utf-8")), "cached": True}
 
     def compute():
-        start = time.perf_counter()
-        values = QuantumSpecificMetrics(circuit).get_metrics().model_dump()
-        return {**values, "compute_seconds": round(time.perf_counter() - start, 3)}
+        # The metric optimizes from random starts; seed it so one circuit always
+        # yields the same features, then restore the caller's RNG state.
+        import torch  # pylint: disable=import-outside-toplevel
 
-    return _safe(compute)
+        state = torch.get_rng_state()
+        torch.manual_seed(QUANTUM_SPECIFIC_SEED)
+        try:
+            start = time.perf_counter()
+            values = QuantumSpecificMetrics(circuit).get_metrics().model_dump()
+        finally:
+            torch.set_rng_state(state)
+        return {
+            **values,
+            "seed": QUANTUM_SPECIFIC_SEED,
+            "compute_seconds": round(time.perf_counter() - start, 3),
+        }
+
+    result = _safe(compute)
+    if entry is not None and result.get("available"):
+        entry.parent.mkdir(parents=True, exist_ok=True)
+        entry.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return {**result, "cached": False}
 
 
 def logical_features(
