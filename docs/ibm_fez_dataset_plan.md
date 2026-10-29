@@ -202,13 +202,29 @@ groups A–G are present.
 - Output: `ideal_reference` refuses circuits above 12 measured bits instead
   of enumerating them.
 
-### Phase 5 — Exporter (no QPU)
-- [ ] One row per job, all groups as columns.
-- [ ] Export schema document.
-- [ ] Missing-field check that fails loudly.
-- [ ] Output under `data/qpu/v2/`; legacy CSV pipeline unchanged.
-- [ ] Single driver `run_campaign.sh` (`uv run -m`, `.env`, no tokens on
-      the command line).
+### Phase 5 — Exporter and driver (no QPU) ✅
+- [x] `qward/examples/papers/dataset_export.py`: one row per completed job,
+      groups A–G flattened into prefixed columns (`meta`, `config`, `a`–`f`,
+      `e_exec`, `g`); ~450 columns. Also derives `f.observed_error` and
+      `f.residual_vs_<model>`, and queue/run seconds from IBM timestamps.
+- [x] Output: `dataset.csv`, `schema.json` (column → group, dtype, non-null),
+      `export_report.json` (skipped records, errors, warnings).
+- [x] Validation fails the export (override: `--allow-incomplete`) on: no rows,
+      duplicate job IDs, mixed/unexpected record schema, simulated backends
+      (override: `--allow-fake`, tests only), unavailable group a/b/c/d/f, e
+      missing without a documented reason, counts ≠ shots, coverage < 1.
+      Warnings: undocumented QuantumSpecific gaps, calibration changed between
+      prepare and execution, sampled references.
+- [x] Reads only `<algo>/data/qpu/v2/`; legacy files and the legacy CSV
+      pipeline are untouched. Prepared-but-unsubmitted records are skipped and
+      reported.
+- [x] `docs/ibm_fez_dataset_schema.md`: column groups, documented reasons for
+      missing values, how to compare predictions with targets, plan-file format.
+- [x] `qward/examples/papers/run_campaign.sh`: `prepare | submit | recover |
+      status | export` per algorithm and window. Credentials come from `.env`
+      or the environment (nothing on the command line); `submit` asks for
+      confirmation and is the only action that sends jobs; `status` is offline.
+- [x] Tests: `tests/test_dataset_export.py` (10); 553 passing overall.
 
 ### Phase 6 — Campaign plan files (no QPU)
 - [ ] One plan per algorithm × window (9 algorithms × 3 windows = 27 files).
@@ -267,3 +283,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Phase 2 done: shared lifecycle `ibm_campaign.py` + base CLI flags. |
 | 2026-10-29 | Phase 3 done: feature/target groups A–G (`dataset_features.py`); exact ideal references. |
 | 2026-10-29 | Phase 4 done: all runners on the lifecycle, Shor options hook, 543 tests passing. |
+| 2026-10-29 | Phase 5 done: `dataset_export.py`, schema doc, `run_campaign.sh`; 553 tests passing. |
