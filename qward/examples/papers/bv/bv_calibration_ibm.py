@@ -29,6 +29,7 @@ from qward.examples.papers.bv.bv_calibration_configs import (
     build_circuit,
     get_config,
 )
+from qward.examples.papers.bv.bv_calibration_analysis import CLAIMS_PER_RUN
 from qward.examples.papers.experiment_helpers import calculate_qward_metrics
 from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
 from qward.metrics.circuit_error_prediction import (
@@ -184,7 +185,7 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
         )
 
     def prepare_batch(self, plan_path: Path, service: Any) -> Dict[str, Any]:
-        """Prepare every record of a plan from one calibration read; submit nothing.
+        """Prepare every record of a plan from current calibration; submit nothing.
 
         Plan JSON: {"backend": str, "campaign_id": str, "window": int (default 1),
         "planned_executions": int,
@@ -193,6 +194,18 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
         Writes ``<plan stem>_manifest.json`` beside the plan, listing each record.
         """
         plan = json.loads(plan_path.read_text())
+        manifest_path = plan_path.with_name(f"{plan_path.stem}_manifest.json")
+        if manifest_path.exists():
+            raise ValueError(f"Manifest already exists: {manifest_path}")
+        runs = [item.get("runs", 1) for item in plan["items"]]
+        if not plan["items"] or any(
+            isinstance(r, bool) or not isinstance(r, int) or r < 1 for r in runs
+        ):
+            raise ValueError("Plan needs items, each with a positive integer 'runs'")
+        if sum(runs) > plan["planned_executions"]:
+            raise ValueError("Plan runs exceed its planned_executions budget")
+        for item in plan["items"]:
+            self.get_config(item["config"])  # Unknown configs fail before any record.
         backend = service.backend(plan["backend"])
         backend.refresh()
         items = []
@@ -235,9 +248,6 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             "jobs_planned": sum(i["runs"] for i in items),
             "items": items,
         }
-        manifest_path = plan_path.with_name(f"{plan_path.stem}_manifest.json")
-        if manifest_path.exists():
-            raise ValueError(f"Manifest already exists: {manifest_path}")
         _write(manifest_path, manifest)
         return {**manifest, "manifest_path": str(manifest_path)}
 
@@ -301,12 +311,11 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
                 seed_transpiler=seed_transpiler,
                 scheduling_method="alap",
             ).run(logical)
+            snapshot = capture_calibration(isa, backend)
             prediction = CircuitErrorPrediction(
-                isa, snapshot=capture_calibration(isa, backend), reference=injected
+                isa, snapshot=snapshot, reference=injected
             ).get_metrics()
-            snapshot_errors = [
-                e["error"] for e in capture_calibration(isa, backend)["instructions"]
-            ]
+            snapshot_errors = [e["error"] for e in snapshot["instructions"]]
             if prediction.m1_success is None or any(
                 e is not None and e >= 0.5 for e in snapshot_errors
             ):
@@ -496,10 +505,9 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             "calibration_snapshot": snapshot,
             "prediction": prediction.model_dump(),
             "qward_metrics": calculate_qward_metrics(logical),
-            # Three claim families per execution: task, model, and rank.
-            # Error interval, mixture check, rank test, central count range,
-            # and one-sided count budget are separate claims.
-            "assessment_alpha": 0.05 / (5 * planned_executions),
+            # Bonferroni over every per-run claim, shared with offline analysis.
+            "assessment_alpha": 0.05 / (CLAIMS_PER_RUN * planned_executions),
+            "claims_per_run": CLAIMS_PER_RUN,
             "planned_executions_per_window": planned_executions,
             "runtime_options": (
                 {
@@ -591,18 +599,22 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             raise ValueError("Repetitions exceed the prespecified multiplicity allocation")
         if backend.name != prepared["backend_name"]:
             raise ValueError("Submission backend differs from the calibration snapshot")
-        allocated = 0
-        for other_path in record_path.parent.glob("*.json"):
-            other = json.loads(other_path.read_text())
-            if (
-                other.get("algorithm") == self.algorithm_name
-                and other.get("campaign_id") == prepared["campaign_id"]
-                and other.get("window") == prepared["window"]
-            ):
-                allocated += len(other.get("submission_journal", []))
+        allocated = self._submitted_runs(record_path.parent).get(
+            (prepared["campaign_id"], prepared["window"]), 0
+        )
         if allocated + num_runs > prepared["planned_executions_per_window"]:
             raise ValueError("Campaign window exceeds its prespecified execution/alpha budget")
         return journal, prepared, circuits
+
+    def _submitted_runs(self, directory: Path) -> Dict[Any, int]:
+        """Jobs already journaled per (campaign_id, window) in a records directory."""
+        counts: Dict[Any, int] = {}
+        for path in directory.glob("*.json"):
+            other = json.loads(path.read_text())
+            if other.get("algorithm") == self.algorithm_name:
+                key = (other.get("campaign_id"), other.get("window"))
+                counts[key] = counts.get(key, 0) + len(other.get("submission_journal", []))
+        return counts
 
     @staticmethod
     def _submit_jobs(record_path, loaded, sampler, *, num_runs, calibration_check) -> Dict:
@@ -658,19 +670,17 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             for item in manifest["items"]
         ]
         # Per-record checks see prior submissions; also bound the batch as a whole.
-        prior: Dict[Any, int] = {}
-        for other_path in items[0][0].parent.glob("*.json"):
-            other = json.loads(other_path.read_text())
-            if other.get("algorithm") == self.algorithm_name:
-                key = (other.get("campaign_id"), other.get("window"))
-                prior[key] = prior.get(key, 0) + len(other.get("submission_journal", []))
+        prior = self._submitted_runs(items[0][0].parent)
         total: Dict[Any, int] = {}
+        limit: Dict[Any, int] = {}
         for _, runs, _, prepared, _ in items:
             key = (prepared["campaign_id"], prepared["window"])
             total[key] = total.get(key, 0) + runs
+            limit[key] = min(limit.get(key, 10**9), prepared["planned_executions_per_window"])
         for key, runs in total.items():
-            if prior.get(key, 0) + runs > items[0][3]["planned_executions_per_window"]:
+            if prior.get(key, 0) + runs > limit[key]:
                 raise ValueError(f"Batch exceeds run budget of campaign/window {key}")
+        current_date = self._current_calibration_date(backend)
         manifest["status"] = "submitting"
         _write(manifest_path, manifest)
         with Batch(backend=backend) as batch:
@@ -678,7 +688,7 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             _write(manifest_path, manifest)
             for (path, runs, journal, prepared, circuits), item in zip(items, manifest["items"]):
                 journal["batch_id"] = batch.session_id
-                check = self._calibration_at_submission(path, backend)
+                check = self._calibration_at_submission(prepared, backend, current_date)
                 sampler = SamplerV2(mode=batch, options=prepared["runtime_options"])
                 result = self._submit_jobs(
                     path,
@@ -693,7 +703,7 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
         _write(manifest_path, manifest)
         return manifest
 
-    def recover_batch(self, manifest_path: Path, service: Any) -> Dict[str, Any]:
+    def recover_manifest(self, manifest_path: Path, service: Any) -> Dict[str, Any]:
         """Collect every record in a manifest; never resubmits."""
         manifest = json.loads(manifest_path.read_text())
         if manifest["status"] == "prepared" or not manifest.get("batch_id"):
@@ -880,7 +890,7 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
             planned_executions=planned_executions,
         )
         print(f"Prepared prediction and recovery record: {path}")
-        check = self._calibration_at_submission(path, backend)
+        check = self._calibration_at_submission(self._load(path)[1], backend)
         self.submit_prepared(path, backend, num_runs=num_runs, calibration_check=check)
         return self.collect(path, service)
 
@@ -891,20 +901,26 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
         credentials = resolve_ibm_credentials()
         return QiskitRuntimeService(**{k: v for k, v in credentials.items() if v is not None})
 
-    def _calibration_at_submission(self, record_path: Path, backend: Any) -> Dict[str, Any]:
+    @staticmethod
+    def _current_calibration_date(backend: Any) -> Optional[str]:
+        try:
+            current = backend.properties(refresh=True)
+        except TypeError:
+            current = backend.properties()
+        return str(current.last_update_date) if current is not None else None
+
+    def _calibration_at_submission(
+        self, prepared: Dict[str, Any], backend: Any, current_date: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Compare the frozen calibration date with the backend's at submission.
 
         Queues can outlast a calibration cycle, so drift may also happen after
         submission; refusing here would not prevent it. The flag is recorded and
         ``collect`` re-predicts from the calibration the job actually ran under.
         """
-        _, prepared, _ = self._load(record_path)
         frozen = prepared["calibration_snapshot"]["calibrated_at"]
-        try:
-            current = backend.properties(refresh=True)
-        except TypeError:
-            current = backend.properties()
-        current_date = str(current.last_update_date) if current is not None else None
+        if current_date is None:
+            current_date = self._current_calibration_date(backend)
         changed = frozen is not None and current_date is not None and frozen != current_date
         if changed:
             print(
@@ -1013,12 +1029,12 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
                 parsed.submit_batch, self._service().backend(manifest["backend_name"])
             )
         elif parsed.recover_batch:
-            result = self.recover_batch(parsed.recover_batch, self._service())
+            result = self.recover_manifest(parsed.recover_batch, self._service())
         elif parsed.submit_prepared:
             service = self._service()
             journal = json.loads(parsed.submit_prepared.read_text())
             backend = service.backend(journal["backend_name"])
-            check = self._calibration_at_submission(parsed.submit_prepared, backend)
+            check = self._calibration_at_submission(self._load(parsed.submit_prepared)[1], backend)
             result = self.submit_prepared(
                 parsed.submit_prepared, backend, num_runs=parsed.runs, calibration_check=check
             )
