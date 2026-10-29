@@ -135,6 +135,14 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
     def get_priority_configs(self) -> List[Dict[str, Any]]:
         return REGION1_PRIORITY
 
+    def get_runtime_options(self, config: ExperimentConfig) -> Optional[Dict[str, Any]]:
+        """Dynamical decoupling and gate twirling for Shor's deep circuits.
+
+        Replaces the executor monkey-patch used by the legacy ``run()`` path;
+        the campaign lifecycle records these options with the frozen record.
+        """
+        return SHOR_SAMPLER_OPTIONS
+
     def get_output_dir(self) -> Path:
         return Path(__file__).parent / "data" / "qpu" / "raw"
 
@@ -236,7 +244,7 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
             result["simulator_baseline"] = self._sim_baseline
         return result
 
-    def run(self, config_id: str, *args, **kwargs):
+    def _require_qpu_safe(self, config_id: str) -> ExperimentConfig:
         config = self.get_config(config_id)
         if not config.for_qpu:
             raise ValueError(
@@ -245,6 +253,21 @@ class ShorIBMExperiment(IBMExperimentBase[ExperimentConfig]):
             )
         if config.strategy != "swap_network":
             raise ValueError(f"{config_id} strategy={config.strategy!r} is not QPU-safe.")
+        return config
+
+    def campaign_hooks(self):
+        hooks = super().campaign_hooks()
+        build = hooks.build
+
+        def checked_build(config_id: str):
+            self._require_qpu_safe(config_id)  # Lifecycle path enforces the same guard.
+            return build(config_id)
+
+        hooks.build = checked_build
+        return hooks
+
+    def run(self, config_id: str, *args, **kwargs):
+        config = self._require_qpu_safe(config_id)
 
         self._sim_baseline = None
         if self._run_simulator:

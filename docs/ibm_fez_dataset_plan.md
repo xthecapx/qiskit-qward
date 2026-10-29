@@ -176,19 +176,31 @@ seconds are finalized in the plan files (Phase 6) before approval.
       all 9 algorithms — every group present (vTP-S: QS and E missing by
       design). 521 passing.
 
-### Phase 4 — Port runners (no QPU)
-For each: FakeFez dry run + test that every A–G field is present.
-- [ ] GHZ
-- [ ] BV
-- [ ] vTP (static + dynamic)
-- [ ] QFT
-- [ ] PE
-- [ ] Grover
-- [ ] Coin toss (ideal biased distribution)
-- [ ] Random volumetric
-- [ ] Shor (Runtime-options hook)
-- [ ] BV calibration campaign on the shared module; existing
-      `bv-ibm-fez-1/2/3` records still load and recover.
+### Phase 4 — Port runners (no QPU) ✅
+All runners inherit the lifecycle from `IBMExperimentBase`; each gets a
+FakeFez + noisy-Aer test (`tests/test_runner_ports.py`, 22 tests) that checks
+groups A–G are present.
+- [x] GHZ, BV, QFT, PE, Grover, random volumetric, coin toss (biased
+      distribution is the exact reference, not the success set)
+- [x] vTP static (V) and dynamic (S): dynamic is transpiled unscheduled;
+      group E is missing by design; control-flow ops (`if_else`) have no IBM
+      error and are counted separately (`uncalibrated_control_flow_ops`), not
+      treated as missing calibration.
+- [x] Shor: `get_runtime_options` returns DD (XpXm) + gate twirling, recorded
+      in the frozen record; the lifecycle enforces the same QPU-safe guard as
+      the legacy `run()` (simulator-only configs are refused). The executor
+      monkey-patch stays only on the legacy path.
+- [x] BV calibration campaign: shares `write_json`/`json_value`/`now` with
+      `ibm_campaign`; its own lifecycle (prediction-specific records, M1/M2
+      assessment) stays for now and keeps reading `bv-ibm-fez-1/2/3`.
+      Fully merging it into `RecordStore` is deferred: it adds nothing to the
+      dataset and risks the archived records.
+- [x] BV signal-background (27–29 qubits): no tractable ideal (more than 12
+      measured bits), so `get_reference` returns `None`; targets and baselines
+      are `{"available": false, "reason": "no_reference"}`. Not part of the
+      ibm_fez matrix.
+- Output: `ideal_reference` refuses circuits above 12 measured bits instead
+  of enumerating them.
 
 ### Phase 5 — Exporter (no QPU)
 - [ ] One row per job, all groups as columns.
@@ -254,3 +266,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Phase 1 done: calibration-campaign bug fixes. |
 | 2026-10-29 | Phase 2 done: shared lifecycle `ibm_campaign.py` + base CLI flags. |
 | 2026-10-29 | Phase 3 done: feature/target groups A–G (`dataset_features.py`); exact ideal references. |
+| 2026-10-29 | Phase 4 done: all runners on the lifecycle, Shor options hook, 543 tests passing. |

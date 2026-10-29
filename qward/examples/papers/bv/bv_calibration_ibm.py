@@ -30,6 +30,9 @@ from qward.examples.papers.bv.bv_calibration_configs import (
     get_config,
 )
 from qward.examples.papers.bv.bv_calibration_analysis import CLAIMS_PER_RUN
+from qward.examples.papers.ibm_campaign import json_value as _json_value
+from qward.examples.papers.ibm_campaign import now as _now
+from qward.examples.papers.ibm_campaign import write_json as _write
 from qward.examples.papers.experiment_helpers import calculate_qward_metrics
 from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
 from qward.metrics.circuit_error_prediction import (
@@ -44,36 +47,6 @@ from qward.metrics.histogram_assessment import HistogramAssessment
 from qward.schemas.error_prediction_schema import ErrorPredictionSchema
 
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "data" / "qpu" / "calibration_prediction" / "raw"
-
-
-def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _write(path: Path, value: Dict[str, Any]) -> None:
-    """Atomically replace a journal; fail rather than serialize invalid numeric data."""
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, indent=2, allow_nan=False, default=_json_value) + "\n")
-    temp.replace(path)
-
-
-def _json_value(value):
-    if isinstance(value, datetime):
-        return value.isoformat()
-    if hasattr(value, "tolist"):
-        return value.tolist()
-    if hasattr(value, "item"):
-        return value.item()
-    if isinstance(value, complex):
-        return {"real": value.real, "imag": value.imag}
-    if type(value).__name__ == "UnsetType":
-        return "server_default_unknown_at_submission"
-    # Runtime metadata includes ExecutionSpans and other structured objects.
-    # Preserve their official encoding rather than dropping timestamps or
-    # converting the entire metadata payload to an opaque string.
-    from qiskit_ibm_runtime.utils.json import RuntimeEncoder
-
-    return RuntimeEncoder().default(value)
 
 
 def summarize_record(journal: Dict[str, Any]) -> Dict[str, Any]:

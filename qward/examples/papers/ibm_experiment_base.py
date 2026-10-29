@@ -228,7 +228,10 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         computed against it; ``success_rate`` still uses
         ``create_success_criteria``.
         """
-        return dataset_features.ideal_reference(self.create_circuit(config))
+        circuit = self.create_circuit(config)
+        if circuit.num_clbits > dataset_features.MAX_REFERENCE_BITS:
+            return None  # No tractable ideal; targets/baselines are recorded as missing.
+        return dataset_features.ideal_reference(circuit)
 
     def include_quantum_specific(self, config: ConfigT) -> bool:
         """Compute QuantumSpecificMetrics (bounded by size) for group A."""
@@ -265,8 +268,10 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             config = self.get_config(item.config_id)
             reference = self.get_reference(config)
             item.reference = reference
-            winners = dataset_features.success_labels(
-                item.circuit, self.create_success_criteria(config)
+            winners = (
+                dataset_features.success_labels(item.circuit, self.create_success_criteria(config))
+                if item.circuit.num_clbits <= dataset_features.MAX_REFERENCE_BITS
+                else None
             )
             return {
                 "reference_exact": dataset_features.reference_is_exact(item.circuit),
