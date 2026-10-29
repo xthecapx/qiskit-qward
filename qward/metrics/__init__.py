@@ -32,6 +32,8 @@ from qward.metrics.backend_metric_base import BackendMetricCollector
 from qward.metrics.backend_calibration import BackendCalibrationCollector
 from qward.metrics.gate_error_characterization import GateErrorCharacterization
 from qward.metrics.output_screening import compute_output_screen
+from qward.metrics.circuit_error_prediction import CircuitErrorPrediction
+from qward.metrics.histogram_assessment import HistogramAssessment
 
 __all__ = [
     "MetricsId",
@@ -50,6 +52,8 @@ __all__ = [
     "compute_dsr_with_flags",
     "compute_dsr_profile",
     "compute_output_screen",
+    "CircuitErrorPrediction",
+    "HistogramAssessment",
     "compute_success_rate",
     "compute_chance_baseline",
     "compute_chance_corrected_success",
