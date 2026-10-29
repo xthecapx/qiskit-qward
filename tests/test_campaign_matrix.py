@@ -135,3 +135,26 @@ def test_pilot_and_real_windows_have_separate_run_budgets():
     real = M.plan_for("ghz", 1)
     assert pilot["campaign_id"] == real["campaign_id"] and pilot["window"] != real["window"]
     assert pilot["order_seed"] != real["order_seed"]
+
+
+@pytest.mark.parametrize("cwd", ["root", "papers", "elsewhere"])
+def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
+    """`all` re-invokes the script; it must not depend on a relative $0."""
+    papers = ROOT
+    directory = {"root": papers.parents[2], "papers": papers, "elsewhere": tmp_path}[cwd]
+    absolute = str(papers / "run_campaign.sh")
+    commands = [absolute]
+    if cwd == "papers":
+        commands.append("./run_campaign.sh")
+    if cwd == "root":
+        commands.append("qward/examples/papers/run_campaign.sh")
+    for command in commands:
+        result = subprocess.run(
+            [command, "recover", "all", "0"],
+            cwd=directory,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        assert "No such file or directory" not in result.stderr, (cwd, command, result.stderr)
+        assert "no manifest" in result.stderr  # Reached the per-algorithm step.

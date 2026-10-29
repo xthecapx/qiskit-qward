@@ -38,6 +38,7 @@ import json
 import os
 import random
 import sys
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -511,6 +512,10 @@ def job_order(items: Sequence[Mapping[str, Any]], seed: int) -> List[Tuple[int, 
     return [(i, r) for r in range(rounds) for i in order if r < items[i]["runs"]]
 
 
+class BatchUnavailable(RuntimeError):
+    """IBM would not open a Batch; the manifest was not touched."""
+
+
 class Campaign:
     """Plan -> manifest -> Batch submission -> recovery for one RecordStore."""
 
@@ -618,9 +623,18 @@ class Campaign:
             if prior.get(key, 0) + total > limits[key]:
                 raise ValueError(f"Manifest exceeds run budget of campaign/window {key}")
         current = current_calibration_date(backend)
+        try:
+            batch_cm = Batch(backend=backend)
+        except Exception as exc:  # pylint: disable=broad-except
+            # IBM refused to open the Batch (for example too many active ones):
+            # nothing was sent, so the manifest stays prepared and can be retried.
+            raise BatchUnavailable(
+                f"Could not open a Batch; no job was sent and the manifest is still "
+                f"prepared: {exc}"
+            ) from exc
         manifest["status"] = "submitting"
         write_json(manifest_path, manifest)
-        with Batch(backend=backend) as batch:
+        with batch_cm as batch:
             manifest["batch_id"] = batch.session_id
             write_json(manifest_path, manifest)
             samplers = {}
@@ -643,6 +657,49 @@ class Campaign:
         manifest.update(status="submitted", submitted_at=now())
         write_json(manifest_path, manifest)
         return manifest
+
+    @staticmethod
+    def wait_manifest(
+        manifest_path: Path,
+        service: Any,
+        *,
+        poll_seconds: float = 30.0,
+        max_seconds: Optional[float] = None,
+        sleep: Callable[[float], None] = time.sleep,
+        log: Callable[[str], None] = lambda message: print(message, file=sys.stderr, flush=True),
+    ) -> Dict[str, Any]:
+        """Block until every job of a submitted manifest reaches a final state.
+
+        IBM may limit how many Batches are active at once, and a closed Batch
+        stays active while its jobs are queued or running. Waiting here before
+        opening the next Batch keeps only one active. Polling is read-only;
+        timing out leaves the jobs running and the manifest untouched.
+        """
+        manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+        if manifest["status"] == "prepared" or not manifest.get("batch_id"):
+            raise ValueError("Manifest was never submitted; nothing to wait for")
+        job_ids = [job_id for item in manifest["items"] for job_id in item.get("job_ids", [])]
+        started = time.monotonic()
+        while True:
+            pending: Dict[str, str] = {}
+            for job_id in job_ids:
+                job = service.job(job_id)
+                if not job.in_final_state():
+                    pending[job_id] = str(job.status())
+            done = len(job_ids) - len(pending)
+            log(f"{Path(manifest_path).name}: {done}/{len(job_ids)} jobs finished")
+            if not pending:
+                return {
+                    "jobs": len(job_ids),
+                    "finished": done,
+                    "waited_seconds": time.monotonic() - started,
+                }
+            if max_seconds is not None and time.monotonic() - started > max_seconds:
+                raise TimeoutError(
+                    f"{len(pending)} of {len(job_ids)} jobs still pending after "
+                    f"{max_seconds:.0f} s; they keep running (recover later)"
+                )
+            sleep(poll_seconds)
 
     def recover_manifest(self, manifest_path: Path, service: Any) -> Dict[str, Any]:
         """Recover every record of a submitted manifest; never resubmits."""
