@@ -1,0 +1,230 @@
+{
+  "schema_version": "0.3-design",
+  "status": "proposal_not_executable",
+  "created_date": "2026-10-22",
+  "plan": "calibration_histogram_experiment_plan.md",
+  "purpose": "Predict task-level output error from frozen ISA circuits and calibration; assess histogram utility and prediction mismatch.",
+  "simulation_policy": {
+    "statevector": false,
+    "density_matrix": false,
+    "analytic_references": true,
+    "classical_multinomial_sampling": true,
+    "optional_clifford_tableau_checks": true,
+    "noisy_methods": [
+      "stabilizer",
+      "matrix_product_state_for_non_clifford_diagnostic"
+    ]
+  },
+  "execution": {
+    "backend": null,
+    "physical_layouts": null,
+    "layout_labels": [
+      "low_predicted_error",
+      "contrasting_predicted_error"
+    ],
+    "calibration_windows": 3,
+    "shots_per_circuit": 2048,
+    "compiler_configuration": "Resolve once before pilot; preserve and validate exposure treatments",
+    "runtime_options": "Resolve and save effective options; prediction must describe executed transformations",
+    "submit_frozen_isa_only": true,
+    "randomize_within_window": true,
+    "prediction_frozen_before_results": true
+  },
+  "families": [
+    {
+      "id": "bv_padded",
+      "output_widths": [
+        2,
+        4
+      ],
+      "extra_unmeasured_qubits": 1,
+      "forward_layers": [
+        0,
+        2,
+        8,
+        32
+      ],
+      "layout_count": 2,
+      "reference": "Point mass at bv.expected_outcomes[0], the reversed secret_string",
+      "construction": "Use QWARD BernsteinVazirani; L=0 unchanged; for L>0 insert barrier-protected U_L,inverse(U_L) on data after oracle and before final data H.",
+      "instances_per_window": 48,
+      "role": "primary_predictor_training_and_evaluation",
+      "secret_patterns": [
+        "ONES",
+        "ALT",
+        "SINGLE"
+      ],
+      "padding_seed": 11,
+      "padding_sequence": "Shared across patterns; prefix of the same sequence across L",
+      "config_ids": [
+        "BV2-ONES",
+        "BV2-ALT",
+        "BV2-SINGLE",
+        "BV4-ONES",
+        "BV4-ALT",
+        "BV4-SINGLE"
+      ]
+    },
+    {
+      "id": "spam",
+      "output_widths": [
+        2,
+        4
+      ],
+      "masks": [
+        "all_zero",
+        "all_one",
+        "alternating_q0_one",
+        "alternating_q0_zero"
+      ],
+      "layout_count": 2,
+      "reference": "Point mass on prepared mask",
+      "construction": "X on mask 1 bits; measurement",
+      "instances_per_window": 16,
+      "role": "diagnostic_control_reported_separately"
+    },
+    {
+      "id": "ghz_phase",
+      "output_widths": [
+        2,
+        4
+      ],
+      "phase_radians": [
+        "0",
+        "pi"
+      ],
+      "measurement_bases": [
+        "Z",
+        "X"
+      ],
+      "layout_count": 2,
+      "reference": "Z: equal all-zero/all-one. X: [1+(-1)^popcount(x)*cos(phi)]/2^m",
+      "nominal_task_phase_radians": "0",
+      "preserve_nominal_and_injected_references": true,
+      "construction": "H(q0); chain CX; RZ(phi,q0); for X measurement add H on all outputs; measure",
+      "instances_per_window": 16,
+      "role": "diagnostic_control_reported_separately"
+    },
+    {
+      "id": "uniform",
+      "output_widths": [
+        2,
+        4
+      ],
+      "layout_count": 2,
+      "reference": "Uniform over 2^m outcomes",
+      "construction": "H on every output; measurement",
+      "instances_per_window": 4,
+      "role": "diagnostic_control_reported_separately"
+    },
+    {
+      "id": "bv_target_deviation",
+      "output_widths": [
+        2,
+        4
+      ],
+      "theta_radians": [
+        "0",
+        "pi/6",
+        "pi/2",
+        "pi"
+      ],
+      "layout_count": 2,
+      "reference": "cos(theta/2)^2 at t=bv.expected_outcomes[0]; sin(theta/2)^2 at t with rightmost bit toggled",
+      "nominal_task_reference": "Point mass at t=bv.expected_outcomes[0]",
+      "preserve_nominal_and_injected_references": true,
+      "construction": "Unpadded QWARD ALT BV; insert RY(theta,q0) after final data H and before measurement",
+      "instances_per_window": 16,
+      "role": "diagnostic_control_reported_separately",
+      "secret_pattern": "ALT",
+      "extra_unmeasured_qubits": 1
+    }
+  ],
+  "budget": {
+    "core_executions_per_window": 100,
+    "core_executions_all_windows": 300,
+    "core_shots_all_windows": 614400,
+    "smoke_test_filter": "Core families only; output width 2; one layout; one window",
+    "smoke_test_executions": 25,
+    "smoke_test_shots": 51200,
+    "primary_bv_executions_all_windows": 144,
+    "primary_bv_shots_all_windows": 294912
+  },
+  "analysis": {
+    "alpha": 0.05,
+    "desired_power": 0.9,
+    "test_multiplicity": "Bonferroni over the prespecified claims in each fixed analysis family",
+    "interval_multiplicity": "Prespecified simultaneous intervals for joint decisions; marginal intervals labeled separately",
+    "held_out_window": 3,
+    "models": [
+      "M1_success",
+      "M1_mixture"
+    ],
+    "primary_data": "raw_unmitigated_counts",
+    "uncertain_task_labels": "independent_confirmation_or_inconclusive",
+    "never_infer_correctness_from_peak_only": true,
+    "primary_evaluation_population": "BV sweep only; controls reported separately",
+    "generalization": "Validate on independent calibration windows before automatic triage",
+    "screening": {
+      "primary_criterion": "Statistical resolution in units of uncertainty",
+      "exploratory_sigma_threshold": 3.0,
+      "prediction_residual": "(observed_error - predicted_error) / combined_standard_uncertainty",
+      "combined_uncertainty": "Requires calibrated prediction/model uncertainty and dependence treatment; otherwise label shot-only residual",
+      "target_signal": "Prespecified BV target versus frozen background; uniform is an explicit hypothesis",
+      "decision_test": "Exact one-sided binomial tail with campaign multiplicity adjustment",
+      "unresolved_signal": "Inconclusive at current shots; optional deprioritization for answer interpretation, not proof of no information",
+      "automatic_discard": false,
+      "preserve_all_raw_histograms": true,
+      "implementation_status": "Conditional exact binomial count budgets, signed predicted-shot residuals and uniform-target diagnostics implemented; model uncertainty calibration pending",
+      "derived_baseline_multiplicity": "0.05/(5 * completed primary runs) for two central ranges, two upper budgets and one target-background claim; retrospective fixed-archive analysis"
+    }
+  },
+  "primary_algorithm": "QWARD BernsteinVazirani",
+  "selection_rationale": "User reports BV gave the best results in earlier experimentation; test prospective reliability under controlled noise exposure.",
+  "qward_integration": {
+    "builder": "qward.algorithms.BernsteinVazirani",
+    "configuration": "qward.examples.papers.bv.bv_configs.BVExperimentConfig",
+    "runner_base": "qward.examples.papers.bv.bv_ibm.BVIBMExperiment",
+    "expected_output": "bv.expected_outcomes[0] == config.expected_outcome == secret_string[::-1]",
+    "new_campaign_directory": "qward/examples/papers/bv/",
+    "baseline_must_match_library": true,
+    "treatment_adapter": "Copy library circuit; insert identity padding after oracle and before final H; insert RY fault after final H and before measurement",
+    "submission_change_required": "Accept frozen ISA circuit paired with saved prediction",
+    "exclude_statevector_wall_and_signal_background_workflows": true
+  },
+  "implementation": {
+    "status": "core_implemented_hardware_execution_pending",
+    "runner": "qward.examples.papers.bv.bv_calibration_ibm.BVCalibrationIBMExperiment",
+    "configs": "qward.examples.papers.bv.bv_calibration_configs.CONFIGS",
+    "analysis": "qward.examples.papers.bv.bv_calibration_analysis",
+    "usage": "qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md",
+    "multiplicity": "conservative Bonferroni over five claim families and planned executions per window for new preparations; preserve archived allocation",
+    "default_optimization_level": 0,
+    "requires_explicit_submission_action": true,
+    "required_validation": [
+      "prediction_uncertainty_across_calibration_windows",
+      "held_out_predictive_bound_coverage",
+      "false_dismissal_rate"
+    ]
+  },
+  "simulator_baseline": {
+    "status": "completed",
+    "runner": "qward.examples.papers.bv.bv_calibration_simulator",
+    "scope": "25-configuration smoke set",
+    "profiles": [
+      "IDEAL",
+      "NOMINAL",
+      "STRESS"
+    ],
+    "runs_per_configuration_profile": 3,
+    "shots_per_execution": 2048,
+    "executions": 225,
+    "shots": 460800,
+    "seed": 20261022,
+    "artifact_root": "qward/examples/papers/bv/data/simulator/calibration_prediction/baseline_20261022_smoke_v2",
+    "stationary_synthetic_noise": true,
+    "hardware_validation": false,
+    "repeated_same_seed_histograms_identical": 225,
+    "noise_models": "Synthetic Target average gate infidelities -> Aer local depolarization; symmetric readout; no thermal/idle channel"
+  }
+}
