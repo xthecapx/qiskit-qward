@@ -1706,6 +1706,18 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         lifecycle.add_argument("--prepare-plan", type=Path, metavar="PLAN_JSON")
         lifecycle.add_argument("--submit-plan", type=Path, metavar="MANIFEST_JSON")
         lifecycle.add_argument("--recover-plan", type=Path, metavar="MANIFEST_JSON")
+        lifecycle.add_argument(
+            "--wait-plan",
+            type=Path,
+            metavar="MANIFEST_JSON",
+            help="Block until every job of a submitted manifest has finished (read-only)",
+        )
+        lifecycle.add_argument(
+            "--wait-timeout",
+            type=float,
+            default=None,
+            help="With --wait-plan: give up waiting after this many seconds",
+        )
         lifecycle.add_argument("--plan-status", type=Path, metavar="MANIFEST_JSON")
         lifecycle.add_argument(
             "--prepare-only",
@@ -1732,6 +1744,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 parsed.prepare_plan,
                 parsed.submit_plan,
                 parsed.recover_plan,
+                parsed.wait_plan,
                 parsed.plan_status,
                 parsed.prepare_only,
                 parsed.submit_record,
@@ -1757,6 +1770,10 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             )
         if parsed.recover_plan:
             return campaign.recover_manifest(parsed.recover_plan, service())
+        if parsed.wait_plan:
+            return campaign.wait_manifest(
+                parsed.wait_plan, service(), max_seconds=parsed.wait_timeout
+            )
         if parsed.prepare_only:
             if not parsed.config or not parsed.backend:
                 parser.error("--prepare-only requires --config and --backend")

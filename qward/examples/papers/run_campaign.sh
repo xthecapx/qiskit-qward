@@ -4,6 +4,7 @@
 #   run_campaign.sh prepare <algo|all> <window>   freeze records for one plan (no jobs)
 #   run_campaign.sh submit  <algo|all> <window>   submit that manifest in ONE Batch
 #   run_campaign.sh recover <algo|all> <window>   fetch results by saved job IDs
+#   run_campaign.sh wait    <algo> <window>       block until that Batch's jobs finish
 #   run_campaign.sh status  [algo] [window]   offline: planned vs submitted vs done
 #   run_campaign.sh export  [out_dir]         build dataset.csv from completed records
 #
@@ -15,16 +16,21 @@
 # Credentials come from IBM_QUANTUM_* in the repo-root .env or the environment.
 # Nothing is passed on the command line, so tokens never appear in `ps`.
 # Window 0 is the pilot (34 jobs, run it first); windows 1-3 are the campaign.
+# `submit all` runs ONE Batch at a time (open, wait until it finishes, recover,
+# then the next algorithm): IBM limits how many Batches can be active, and a
+# queued Batch stays active. If a Batch cannot be opened, nothing was sent and
+# the manifest stays prepared; rerun `submit` for that algorithm later.
 # Only `submit` sends jobs. Prepare each window just before submitting it so its
 # calibration is current, and keep windows on different days.
 
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
+SELF="${HERE}/$(basename "$0")"  # Absolute: the script cd's to the repo root below.
 REPO="$(cd "${HERE}/../../.." && pwd)"
 cd "${REPO}"
 
-usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
+usage() { sed -n '2,24p' "${SELF}" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
 
 module_for() {
     case "$1" in
@@ -61,7 +67,7 @@ ACTION="${1:-}"
 shift || true
 
 case "${ACTION}" in
-    prepare|submit|recover)
+    prepare|submit|recover|wait)
         [[ $# -eq 2 ]] || usage 2
         ALGO="$1"; WINDOW="$2"; require_window "${WINDOW}"
         if [[ "${ALGO}" == "all" ]]; then
@@ -71,14 +77,26 @@ case "${ACTION}" in
                     [[ -f "$(manifest_file "${A}" "${WINDOW}")" ]] \
                         || { echo "prepare ${A} ${WINDOW} first" >&2; exit 2; }
                 done
-                "$0" status
-                read -r -p "Submit ALL ${ALGOS} (window ${WINDOW}) to IBM, one Batch each? [y/N] " ANSWER
+                "${SELF}" status
+                read -r -p "Submit ALL ${ALGOS} (window ${WINDOW}) to IBM, one Batch at a time? [y/N] " ANSWER
                 [[ "${ANSWER}" == "y" || "${ANSWER}" == "Y" ]] || { echo "aborted"; exit 1; }
                 for A in ${ALGOS}; do
-                    uv run -m "$(module_for "${A}")" --submit-plan "$(manifest_file "${A}" "${WINDOW}")"
+                    M="$(manifest_file "${A}" "${WINDOW}")"
+                    # Skip what is already in IBM so a rerun resumes where it stopped.
+                    if grep -q '"status": "prepared"' "${M}"; then
+                        echo "=== ${A}: opening Batch"
+                        uv run -m "$(module_for "${A}")" --submit-plan "${M}" > /dev/null \
+                            || { echo "!!! ${A}: Batch not opened or submit failed; stopping. Rerun 'submit all ${WINDOW}' to resume." >&2; exit 1; }
+                    else
+                        echo "=== ${A}: already submitted"
+                    fi
+                    echo "=== ${A}: waiting for its jobs (Ctrl-C is safe; rerun to resume)"
+                    uv run -m "$(module_for "${A}")" --wait-plan "${M}" > /dev/null
+                    uv run -m "$(module_for "${A}")" --recover-plan "${M}" > /dev/null
+                    echo "=== ${A}: done"
                 done
             else
-                for A in ${ALGOS}; do "$0" "${ACTION}" "${A}" "${WINDOW}"; done
+                for A in ${ALGOS}; do "${SELF}" "${ACTION}" "${A}" "${WINDOW}"; done
             fi
             exit 0
         fi
@@ -102,6 +120,11 @@ case "${ACTION}" in
                 MANIFEST="$(manifest_file "${ALGO}" "${WINDOW}")"
                 [[ -f "${MANIFEST}" ]] || { echo "no manifest: ${MANIFEST}" >&2; exit 2; }
                 uv run -m "${MODULE}" --recover-plan "${MANIFEST}"
+                ;;
+            wait)
+                MANIFEST="$(manifest_file "${ALGO}" "${WINDOW}")"
+                [[ -f "${MANIFEST}" ]] || { echo "no manifest: ${MANIFEST}" >&2; exit 2; }
+                uv run -m "${MODULE}" --wait-plan "${MANIFEST}"
                 ;;
         esac
         ;;
