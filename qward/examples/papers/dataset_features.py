@@ -26,6 +26,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qward.examples.papers.experiment_helpers import calculate_qward_metrics
 from qward.metrics import BackendCalibrationCollector, QuantumSpecificMetrics
 from qward.metrics.circuit_error_prediction import (
+    CONTROL_FLOW,
     CircuitErrorPrediction,
     is_dynamic,
     snapshot_at_properties,
@@ -102,6 +103,11 @@ def ideal_reference(circuit: QuantumCircuit) -> Dict[str, float]:
     """
     from qiskit.quantum_info import Statevector  # pylint: disable=import-outside-toplevel
 
+    if circuit.num_clbits > MAX_REFERENCE_BITS:
+        raise ValueError(
+            f"No tractable ideal distribution: {circuit.num_clbits} measured bits "
+            f"(limit {MAX_REFERENCE_BITS})"
+        )
     measures = [i for i in circuit.data if i.operation.name == "measure"]
     clbit_of = {
         circuit.find_bit(i.clbits[0]).index: circuit.find_bit(i.qubits[0]).index for i in measures
@@ -277,7 +283,13 @@ def _stats(values) -> Dict[str, Optional[float]]:
 
 def hardware_features(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
     """Group C or D from a calibration snapshot of the exact ISA circuit."""
-    instructions = [e for e in snapshot["instructions"] if e["name"] not in {"delay", "barrier"}]
+    # IBM publishes no error for control flow; it is counted, not treated as missing.
+    control_flow = [e for e in snapshot["instructions"] if e["name"] in CONTROL_FLOW]
+    instructions = [
+        e
+        for e in snapshot["instructions"]
+        if e["name"] not in {"delay", "barrier"} and e["name"] not in CONTROL_FLOW
+    ]
     one_q = [e["error"] for e in instructions if len(e["qubits"]) == 1 and e["name"] != "measure"]
     two_q = [e["error"] for e in instructions if len(e["qubits"]) == 2]
     readout = [e["error"] for e in instructions if e["name"] == "measure"]
@@ -296,6 +308,7 @@ def hardware_features(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
         "collected_at": snapshot.get("collected_at"),
         "source": snapshot.get("source", "prepare_snapshot"),
         "calibration_coverage": len(known) / len(instructions) if instructions else 0.0,
+        "uncalibrated_control_flow_ops": len(control_flow),
         "one_qubit_gate_error": _stats(one_q),
         "two_qubit_gate_error": _stats(two_q),
         "readout_error": _stats(readout),
