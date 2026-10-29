@@ -42,6 +42,24 @@ above that, record as missing with reason `size_limit` (not zero).
 vTP S-configs are dynamic (`if_else`); M1/M2 reject dynamic circuits, so group
 E is recorded as missing for them. All other groups are computed.
 
+**Reference vs success set.** Each record stores two things:
+- `reference`: the ideal noiseless output distribution of the logical
+  circuit. It is exact (statevector) for static circuits up to 20 qubits;
+  dynamic circuits use noiseless Aer sampling (200k shots, `reference_exact:
+  false`). Hellinger and TVD are computed against it.
+- `success_set`: the labels accepted by the runner's `create_success_criteria`
+  (for example PE accepts ±1 around the phase peak). `success_rate` and DSR
+  use it. Baselines report `*_error` = predicted 1 − P(success set) and
+  `*_tvd` = predicted TVD to the ideal, so each is comparable with its target.
+
+**Where the groups live in a record:**
+- A, B, C, E: `artifacts/<stem>/prepared.json` → `payload.features`
+- D: journal → `submission_journal[i].hardware_at_execution` and
+  `baselines_at_execution`
+- F: journal → `individual_results[i].targets`; the legacy `evaluate_result`
+  fields are kept alongside
+- G: journal and `prepared.json` top-level keys
+
 ## Findings that motivate the redesign
 
 Old pipeline (`ibm_experiment_base.py` + `executor.run_ibm`):
@@ -134,14 +152,29 @@ seconds are finalized in the plan files (Phase 6) before approval.
 - Note: the BV calibration campaign still uses its own lifecycle; it moves
   onto `ibm_campaign` in Phase 4 (records stay readable).
 
-### Phase 3 — Shared feature/target extractor (no QPU)
-- [ ] Groups A–G from one function, for any algorithm.
-- [ ] Runner contract: configs, circuit, ideal distribution (+ optional
-      hooks: Runtime options, prediction, extra assessments).
-- [ ] Replace per-runner `evaluate_result` targets with one `FidelityMetrics`
-      pass; keep algorithm-specific extras additive.
-- [ ] QuantumSpecific size limit with explicit missing reason.
-- [ ] Dynamic-circuit handling for group E.
+### Phase 3 — Shared feature/target extractor (no QPU) ✅
+- [x] `qward/examples/papers/dataset_features.py`: groups A–F as functions;
+      G comes from the record. A group that cannot be computed is
+      `{"available": false, "reason": ...}`, never zeros.
+- [x] Group B on the executed circuit: `compact_isa` keeps active qubits in
+      physical order and drops delays (QWARD metrics fail on the 156-qubit
+      ISA with a `TranspileLayout`); gate depth and 2Q count preserved.
+- [x] Runner contract in `IBMExperimentBase`: configs, circuit,
+      `create_success_criteria`; `get_reference` defaults to the exact ideal
+      distribution; optional `get_runtime_options`, `include_quantum_specific`.
+- [x] One shared `FidelityMetrics` + `HistogramAssessment` pass for targets;
+      legacy `evaluate_result` fields kept additively. Multi-register labels
+      flattened (FidelityMetrics returned 0 success with spaced labels).
+- [x] QuantumSpecific ≤ 8 qubits and static only; otherwise explicit reason.
+- [x] Group E missing for dynamic circuits; `*_error` vs success set and
+      `*_tvd` vs ideal; works for multi-target references.
+- [x] Group D at recovery from `job.properties()` (calibration in effect when
+      the job ran) plus baselines re-predicted from it.
+- [x] Removed the Halstead `difficulty ≤ 1000` / `effort ≤ 1e8` caps in
+      `StructuralMetricsSchema`; transpiled Shor exceeded them.
+- [x] Tests: `tests/test_dataset_features.py` (13); local Aer dry run of
+      all 9 algorithms — every group present (vTP-S: QS and E missing by
+      design). 521 passing.
 
 ### Phase 4 — Port runners (no QPU)
 For each: FakeFez dry run + test that every A–G field is present.
@@ -220,3 +253,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Batches organized per algorithm (one per algorithm per window). |
 | 2026-10-29 | Phase 1 done: calibration-campaign bug fixes. |
 | 2026-10-29 | Phase 2 done: shared lifecycle `ibm_campaign.py` + base CLI flags. |
+| 2026-10-29 | Phase 3 done: feature/target groups A–G (`dataset_features.py`); exact ideal references. |

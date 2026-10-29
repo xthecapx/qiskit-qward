@@ -24,11 +24,10 @@ def fez():
     return backend
 
 
-def _experiment(cls, tmp_path, monkeypatch):
-    from qward.examples.papers import ibm_experiment_base
-
-    monkeypatch.setattr(ibm_experiment_base, "calculate_qward_metrics", lambda c: {"ok": True})
+def _experiment(cls, tmp_path, monkeypatch, *, quantum_specific=False):
     experiment = cls()
+    # QuantumSpecificMetrics are slow; exercised separately in test_dataset_features.
+    experiment.include_quantum_specific = lambda config: quantum_specific
     experiment.get_campaign_output_dir = lambda: tmp_path / "v2"
     return experiment
 
@@ -139,7 +138,11 @@ def test_prepare_freezes_isa_once_with_seed_and_used_qubit_calibration(tmp_path,
     assert snapshot["backend_properties"] is None  # Used-qubit data only.
     assert set(snapshot["qubits"]) <= {str(q) for q in range(fez.num_qubits)}
     assert all(q["prob_meas1_prep0"] is not None for q in snapshot["qubits"].values())
-    assert prepared["payload"]["qward_metrics"] == {"ok": True}
+    features = prepared["payload"]["features"]
+    assert features["logical"]["available"] and features["isa"]["available"]
+    assert features["isa"]["physical_layout"] == prepared["physical_layout"]
+    assert features["baselines"]["available"]
+    assert prepared["reference"] == {"0000": 0.5, "1111": 0.5}
     assert prepared["runtime_options"]["twirling"]["enable_gates"] is False
     assert circuits["isa.qpy"].num_qubits == fez.num_qubits
     (path.parent / journal["artifact_directory"] / "isa.qpy").write_bytes(b"changed")

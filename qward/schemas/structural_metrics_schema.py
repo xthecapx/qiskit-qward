@@ -186,21 +186,21 @@ class StructuralMetricsSchema(BaseModel):
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, v, info):
-        """Validate that difficulty is positive and reasonable."""
+        """Validate that difficulty is non-negative.
+
+        No upper bound: transpiled hardware circuits (thousands of native
+        gates) legitimately exceed any fixed "reasonable" cap.
+        """
         if v < 0:
             raise ValueError("Difficulty must be positive")
-        if v > 1000:  # Reasonable upper bound for quantum circuits
-            raise ValueError(f"Difficulty ({v}) seems unreasonably high for a quantum circuit")
         return v
 
     @field_validator("effort")
     @classmethod
     def validate_effort(cls, v, info):
-        """Validate that effort is positive and reasonable."""
+        """Validate that effort is non-negative (no upper bound, see difficulty)."""
         if v < 0:
             raise ValueError("Effort must be positive")
-        if v > 100000000:  # Reasonable upper bound for quantum circuits
-            raise ValueError(f"Effort ({v}) seems unreasonably high for a quantum circuit")
         return v
 
     @field_validator("width")

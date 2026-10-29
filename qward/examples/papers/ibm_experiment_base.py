@@ -37,7 +37,7 @@ from dotenv import load_dotenv
 from qiskit import QuantumCircuit
 
 from qward.algorithms import QuantumCircuitExecutor, IBMBatchResult
-from qward.examples.papers import ibm_campaign
+from qward.examples.papers import dataset_features, ibm_campaign
 from qward.examples.papers.experiment_helpers import (
     calculate_qward_metrics,
     calculate_backend_calibration,
@@ -221,8 +221,18 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         return None
 
     def get_reference(self, config: ConfigT) -> Optional[Dict[str, float]]:
-        """Ideal output distribution, when known. Subclasses override (Phase 3)."""
-        return None
+        """Ideal (noiseless) output distribution in count-label format.
+
+        Default: exact statevector marginal of the logical circuit, or noiseless
+        Aer sampling for dynamic circuits. Targets (Hellinger, TVD, DSR) are
+        computed against it; ``success_rate`` still uses
+        ``create_success_criteria``.
+        """
+        return dataset_features.ideal_reference(self.create_circuit(config))
+
+    def include_quantum_specific(self, config: ConfigT) -> bool:
+        """Compute QuantumSpecificMetrics (bounded by size) for group A."""
+        return True
 
     def get_campaign_output_dir(self) -> Path:
         """Records of the campaign lifecycle; kept apart from legacy results."""
@@ -233,28 +243,75 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
     # =========================================================================
 
     def campaign_hooks(self) -> ibm_campaign.CampaignHooks:
-        """Adapt this runner's configs and evaluation to the generic lifecycle."""
+        """Adapt this runner to the lifecycle; record feature groups A-G.
+
+        ``build`` is cheap (validation and plan checks call it). Metrics are
+        computed once per record in ``before_freeze``, on the exact ISA circuit
+        and calibration snapshot that will run.
+        """
 
         def build(config_id: str) -> ibm_campaign.PreparedCircuit:
             if config_id not in self.get_all_config_ids():
                 raise ValueError(f"Unknown config: {config_id}")
             config = self.get_config(config_id)
-            circuit = self.create_circuit(config)
             return ibm_campaign.PreparedCircuit(
                 config_id=config_id,
                 config=json.loads(json.dumps(self.get_config_description(config), default=str)),
-                circuit=circuit,
-                reference=self.get_reference(config),
-                payload={"qward_metrics": calculate_qward_metrics(circuit)},
+                circuit=self.create_circuit(config),
                 runtime_options=self.get_runtime_options(config),
             )
 
+        def before_freeze(item, isa, snapshot):
+            config = self.get_config(item.config_id)
+            reference = self.get_reference(config)
+            item.reference = reference
+            winners = dataset_features.success_labels(
+                item.circuit, self.create_success_criteria(config)
+            )
+            return {
+                "reference_exact": dataset_features.reference_is_exact(item.circuit),
+                "success_set": winners,
+                "features": {
+                    "schema_version": dataset_features.FEATURES_SCHEMA_VERSION,
+                    "logical": dataset_features.logical_features(
+                        item.circuit,
+                        include_quantum_specific=self.include_quantum_specific(config),
+                    ),
+                    "isa": dataset_features.isa_features(isa),
+                    "hardware_at_submission": dataset_features.hardware_features(snapshot),
+                    "baselines": dataset_features.baseline_predictions(
+                        isa, snapshot, reference, success_set=winners
+                    ),
+                },
+            }
+
         def evaluate(counts, prepared, _isa):
             config = self.get_config(prepared["config_id"])
-            return self.evaluate_result(counts, config, sum(counts.values()))
+            logical = self.create_circuit(config)
+            row = self.evaluate_result(counts, config, sum(counts.values()))
+            row["targets"] = dataset_features.targets(
+                counts,
+                logical,
+                prepared["reference"],
+                success=self.create_success_criteria(config),
+            )
+            return row
+
+        def after_job(job, prepared, circuits):
+            return dataset_features.execution_hardware(
+                job,
+                prepared["calibration_snapshot"],
+                circuits["isa.qpy"],
+                prepared["reference"],
+                success_set=prepared["payload"].get("success_set"),
+            )
 
         return ibm_campaign.CampaignHooks(
-            algorithm=self.algorithm_name, build=build, evaluate=evaluate
+            algorithm=self.algorithm_name,
+            build=build,
+            evaluate=evaluate,
+            before_freeze=before_freeze,
+            after_job=after_job,
         )
 
     def campaign(self) -> ibm_campaign.Campaign:
