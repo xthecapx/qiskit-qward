@@ -25,12 +25,38 @@ def record_hash(record: Mapping[str, Any]) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def circuit_hash(circuit: QuantumCircuit) -> str:
-    """Fingerprint static instruction semantics including physical/classical operands."""
+CONTROL_FLOW = {"if_else", "while_loop", "for_loop", "switch_case"}
+
+
+def is_dynamic(circuit: QuantumCircuit) -> bool:
+    """True when the circuit contains classical control flow."""
+    return any(item.operation.name in CONTROL_FLOW for item in circuit.data)
+
+
+def circuit_hash(circuit: QuantumCircuit, *, allow_dynamic: bool = False) -> str:
+    """Fingerprint instruction semantics including physical/classical operands.
+
+    Prediction requires static circuits. With ``allow_dynamic`` the control-flow
+    bodies are fingerprinted recursively, so frozen dynamic circuits can still
+    be integrity-checked.
+    """
     instructions = []
     for item in circuit.data:
-        if item.operation.name in {"if_else", "while_loop", "for_loop", "switch_case"}:
-            raise ValueError("Prediction currently requires a static circuit")
+        if item.operation.name in CONTROL_FLOW:
+            if not allow_dynamic:
+                raise ValueError("Prediction currently requires a static circuit")
+            instructions.append(
+                {
+                    "name": item.operation.name,
+                    "qubits": [circuit.find_bit(q).index for q in item.qubits],
+                    "clbits": [circuit.find_bit(c).index for c in item.clbits],
+                    "condition": str(getattr(item.operation, "condition", None)),
+                    "blocks": [
+                        circuit_hash(block, allow_dynamic=True) for block in item.operation.blocks
+                    ],
+                }
+            )
+            continue
         instructions.append(
             {
                 "name": item.operation.name,
@@ -162,12 +188,18 @@ def _add_directional_readout(qubit_properties: Dict[str, Dict], raw: Any) -> Non
                 values[name] = None
 
 
-def capture_calibration(circuit: QuantumCircuit, backend: Any) -> Dict[str, Any]:
+def capture_calibration(
+    circuit: QuantumCircuit, backend: Any, *, include_backend_properties: bool = True
+) -> Dict[str, Any]:
     """Capture properties for the exact ISA circuit; never submit or simulate it.
 
     Collection time and backend calibration time are deliberately distinct.
     When available, the backend's complete properties record preserves individual
     calibration timestamps. Target-only backends leave those timestamps unknown.
+    ``include_backend_properties=False`` keeps only the used qubits' data and the
+    calibration date (the device-wide record is ~2 MB on 156-qubit devices).
+    Dynamic circuits are captured instruction by instruction at the top level;
+    control-flow bodies are not expanded.
     """
     target = backend.target
     dt = target.dt
@@ -237,13 +269,16 @@ def capture_calibration(circuit: QuantumCircuit, backend: Any) -> Dict[str, Any]
         if raw is not None:
             raw_properties = json.loads(json.dumps(raw.to_dict(), default=str))
             _add_directional_readout(qubit_properties, raw)
+    calibrated_at = raw_properties.get("last_update_date") if raw_properties else None
+    if not include_backend_properties:
+        raw_properties = None
     snapshot = {
         "schema_version": "1.0",
         "backend_name": backend.name,
         "collected_at": datetime.now(timezone.utc).isoformat(),
-        "calibrated_at": raw_properties.get("last_update_date") if raw_properties else None,
+        "calibrated_at": calibrated_at,
         "backend_properties": raw_properties,
-        "circuit_hash": circuit_hash(circuit),
+        "circuit_hash": circuit_hash(circuit, allow_dynamic=True),
         "dt_s": dt,
         "scheduled": starts is not None and dt is not None,
         "instructions": entries,
