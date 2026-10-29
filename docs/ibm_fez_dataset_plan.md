@@ -90,17 +90,18 @@ seconds are finalized in the plan files (Phase 6) before approval.
 
 ## Phases
 
-### Phase 1 — Fix calibration-campaign bugs (no QPU)
-- [ ] Rename `BVCalibrationIBMExperiment.recover_batch(manifest)`; it clashes
-      with base `recover_batch(batch_id, ...)` used by `recover_batches`.
-- [ ] Align alpha: `prepare` uses 5 claims/run, analysis uses 7.
-- [ ] `prepare_batch`: check manifest existence before writing records;
-      validate `runs`.
-- [ ] `submit_batch`: use each key's own `planned_executions_per_window`;
-      remove duplicated budget scan.
-- [ ] Minor: single `capture_calibration` per candidate in `rank_layouts`;
-      avoid reloading records in `_calibration_at_submission`.
-- [ ] Tests for each fix.
+### Phase 1 — Fix calibration-campaign bugs (no QPU) ✅
+- [x] Rename manifest recovery to `recover_manifest`; base
+      `recover_batch(batch_id, ...)` is no longer shadowed.
+- [x] Align alpha: `prepare` and analysis share `CLAIMS_PER_RUN` (7);
+      records store `claims_per_run`. Archived records keep their frozen alpha.
+- [x] `prepare_batch`: manifest existence, `runs`, run budget and config IDs
+      validated before any record is written.
+- [x] `submit_batch`: per-(campaign, window) limits; one `_submitted_runs`
+      helper replaces the duplicated scan.
+- [x] One `capture_calibration` per candidate in `rank_layouts`; one
+      calibration read per Batch submission.
+- [x] Tests for each fix (499 passing).
 
 ### Phase 2 — Shared lifecycle `qward/examples/papers/ibm_campaign.py` (no QPU)
 - [ ] Record/journal with hashes, atomic writes, JSON encoder.
@@ -200,3 +201,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Plan written. Calibration feature committed (`5ebae5d`). Scaling simulator raw data removed (regenerable; README added). |
 | 2026-10-29 | Switched to opt 3 only with 2 runs per config per window (~1,100 jobs). |
 | 2026-10-29 | Batches organized per algorithm (one per algorithm per window). |
+| 2026-10-29 | Phase 1 done: calibration-campaign bug fixes. |

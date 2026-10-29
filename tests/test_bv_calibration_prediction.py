@@ -555,12 +555,13 @@ def test_recalibration_before_submission_is_flagged_not_refused(tmp_path, monkey
     path = experiment.prepare(
         "BVCP2-low_predicted_error-ALT-L000", fez, initial_layout=[86, 87, 88]
     )
-    same = experiment._calibration_at_submission(path, fez)
+    prepared = experiment._load(path)[1]
+    same = experiment._calibration_at_submission(prepared, fez)
     assert same["recalibrated_before_submission"] is False
     recalibrated = SimpleNamespace(
         properties=lambda refresh=False: SimpleNamespace(last_update_date="2099-01-01")
     )
-    changed = experiment._calibration_at_submission(path, recalibrated)
+    changed = experiment._calibration_at_submission(prepared, recalibrated)
     assert changed == {
         "calibrated_at_submission": "2099-01-01",
         "recalibrated_before_submission": True,
@@ -644,7 +645,7 @@ def test_batch_prepare_submit_recover_with_mocked_runtime(tmp_path, monkeypatch)
     path = Path(manifest["manifest_path"])
     # Recovering before submission must refuse and leave everything submittable.
     with pytest.raises(ValueError, match="never submitted"):
-        experiment.recover_batch(path, service)
+        experiment.recover_manifest(path, service)
     with pytest.raises(ValueError, match="never submitted"):
         experiment.collect(Path(manifest["items"][0]["record_path"]), service)
     assert json.loads(path.read_text())["status"] == "prepared"
@@ -658,3 +659,93 @@ def test_batch_prepare_submit_recover_with_mocked_runtime(tmp_path, monkeypatch)
     over.write_text(plan.read_text().replace('"runs": 2', '"runs": 4'))
     with pytest.raises(ValueError, match="budget"):
         experiment.submit_batch(Path(experiment.prepare_batch(over, service)["manifest_path"]), fez)
+
+
+def test_manifest_recovery_does_not_shadow_base_recover_batch():
+    import inspect
+
+    from qward.examples.papers.ibm_experiment_base import IBMExperimentBase
+
+    own = inspect.signature(campaign.BVCalibrationIBMExperiment.recover_batch)
+    assert own == inspect.signature(IBMExperimentBase.recover_batch)
+    assert hasattr(campaign.BVCalibrationIBMExperiment, "recover_manifest")
+
+
+def test_prepare_alpha_matches_offline_analysis_claims(prepared):
+    from qward.examples.papers.bv.bv_calibration_analysis import CLAIMS_PER_RUN
+
+    experiment, path = prepared
+    frozen = experiment._load(path)[1]
+    assert frozen["claims_per_run"] == CLAIMS_PER_RUN
+    assert frozen["assessment_alpha"] == pytest.approx(
+        0.05 / (CLAIMS_PER_RUN * frozen["planned_executions_per_window"])
+    )
+
+
+def _plan(tmp_path, name, **overrides):
+    plan = {
+        "backend": "fake_fez",
+        "campaign_id": "plan-test",
+        "planned_executions": 4,
+        "items": [{"config": "BVCP2-low_predicted_error-ALT-L000", "layout": [86, 87, 88]}],
+        **overrides,
+    }
+    path = tmp_path / name
+    path.write_text(json.dumps(plan))
+    return path
+
+
+def test_prepare_batch_validates_before_writing_records(tmp_path, monkeypatch):
+    from qiskit_ibm_runtime.fake_provider import FakeFez
+
+    monkeypatch.setattr(campaign, "calculate_qward_metrics", lambda circuit: {})
+    fez = FakeFez()
+    fez.refresh = lambda: None
+    service = SimpleNamespace(backend=lambda name: fez)
+    raw = tmp_path / "raw"
+    experiment = campaign.BVCalibrationIBMExperiment(output_dir=raw)
+    existing = _plan(tmp_path, "existing.json")
+    (tmp_path / "existing_manifest.json").write_text("{}")
+    with pytest.raises(ValueError, match="already exists"):
+        experiment.prepare_batch(existing, service)
+    bad_runs = _plan(
+        tmp_path,
+        "bad.json",
+        items=[{"config": "BVCP2-low_predicted_error-ALT-L000", "layout": [86, 87, 88], "runs": 0}],
+    )
+    with pytest.raises(ValueError, match="runs"):
+        experiment.prepare_batch(bad_runs, service)
+    over = _plan(
+        tmp_path,
+        "over.json",
+        items=[{"config": "BVCP2-low_predicted_error-ALT-L000", "layout": [86, 87, 88], "runs": 5}],
+    )
+    with pytest.raises(ValueError, match="budget"):
+        experiment.prepare_batch(over, service)
+    unknown = _plan(tmp_path, "unknown.json", items=[{"config": "NOPE", "layout": [1, 2, 3]}])
+    with pytest.raises(ValueError, match="Unknown"):
+        experiment.prepare_batch(unknown, service)
+    assert not raw.exists() or not list(raw.glob("*.json"))
+
+
+def test_batch_budget_uses_each_campaign_window_limit(tmp_path, monkeypatch):
+    from qiskit_ibm_runtime.fake_provider import FakeFez
+
+    monkeypatch.setattr(campaign, "calculate_qward_metrics", lambda circuit: {})
+    fez = FakeFez()
+    fez.refresh = lambda: None
+    service = SimpleNamespace(backend=lambda name: fez)
+    experiment = campaign.BVCalibrationIBMExperiment(output_dir=tmp_path / "raw")
+    big = experiment.prepare_batch(
+        _plan(tmp_path, "big.json", campaign_id="big", planned_executions=10), service
+    )
+    small = experiment.prepare_batch(
+        _plan(tmp_path, "small.json", campaign_id="small", planned_executions=1), service
+    )
+    manifest = json.loads(Path(big["manifest_path"]).read_text())
+    manifest["items"] += json.loads(Path(small["manifest_path"]).read_text())["items"]
+    manifest["items"][1]["runs"] = 2  # Exceeds "small" only; the first item's limit is 10.
+    merged = tmp_path / "merged_manifest.json"
+    merged.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="Repetitions exceed|budget"):
+        experiment.submit_batch(merged, fez)
