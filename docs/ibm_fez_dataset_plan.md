@@ -103,19 +103,36 @@ seconds are finalized in the plan files (Phase 6) before approval.
       calibration read per Batch submission.
 - [x] Tests for each fix (499 passing).
 
-### Phase 2 — Shared lifecycle `qward/examples/papers/ibm_campaign.py` (no QPU)
-- [ ] Record/journal with hashes, atomic writes, JSON encoder.
-- [ ] Prepare: transpile once with fixed seed, store logical + ISA QPY,
-      calibration snapshot, config, ideal distribution; status `prepared`.
-- [ ] Submit: job mode for single runs, one Batch per plan; IDs saved
-      immediately; Runtime-options hook (replaces Shor monkey-patch).
-- [ ] Recover by saved job ID, idempotent, never resubmits; run-time
-      calibration via `job.properties()`; refuse never-submitted records.
-- [ ] Plans/manifests with windows and run budgets; `--status`.
-- [ ] Compact CLI summary; `--full-json`.
-- [ ] `IBMExperimentBase.run()` keeps current CLI (`--config --backend
-      --opt-levels --runs`), now prepare → submit → wait; `--no-wait`.
-- [ ] Old `--update`/`--recover` kept as read-only legacy importer.
+### Phase 2 — Shared lifecycle `qward/examples/papers/ibm_campaign.py` (no QPU) ✅
+- [x] Record/journal with hashes, atomic UTF-8 writes, JSON encoder
+      (`RecordStore`, schema 2.0).
+- [x] Prepare: transpile once with fixed seed (default opt 3, seed 11), store
+      logical + ISA QPY, used-qubit calibration snapshot (device-wide record
+      optional), config, reference, payload; status `prepared`. ALAP for static
+      circuits; dynamic circuits (vTP S) transpiled unscheduled. Faulty
+      qubits/edges rejected before archiving.
+- [x] Submit: job mode for single records; one Batch per plan with seeded
+      shuffle, run 1 of every config before run 2; IDs journaled immediately;
+      `submission_unknown` on send failure, never retried.
+- [x] Runtime-options hook `get_runtime_options(config)` merged onto defaults
+      (replaces Shor monkey-patch once Shor is ported).
+- [x] Recover by saved job ID, idempotent, never resubmits; skips completed
+      jobs; refuses never-submitted records; `after_job` hook for run-time
+      calibration (wired in Phase 3).
+- [x] Multi-register counts joined like Aer (`"last first"`, space separated),
+      verified against Aer.
+- [x] Plans/manifests with windows and run budgets; offline `--plan-status`.
+- [x] Compact CLI summaries.
+- [x] Base CLI: `--prepare-plan/--submit-plan/--recover-plan/--plan-status`,
+      `--prepare-only` (with `--config --backend`), `--submit-record`,
+      `--recover-record`. New records go to `<algo>/data/qpu/v2/`.
+- [x] Legacy `run()` and `--update`/`--recover` unchanged for existing data.
+- [x] Dynamic-circuit-safe `circuit_hash(allow_dynamic=True)`; static hashes
+      unchanged, so archived snapshots still verify.
+- [x] Tests: `tests/test_ibm_campaign.py` (9) with FakeFez + mocked Runtime;
+      local Aer dry run of a 3-config GHZ plan end to end. 508 passing.
+- Note: the BV calibration campaign still uses its own lifecycle; it moves
+  onto `ibm_campaign` in Phase 4 (records stay readable).
 
 ### Phase 3 — Shared feature/target extractor (no QPU)
 - [ ] Groups A–G from one function, for any algorithm.
@@ -202,3 +219,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Switched to opt 3 only with 2 runs per config per window (~1,100 jobs). |
 | 2026-10-29 | Batches organized per algorithm (one per algorithm per window). |
 | 2026-10-29 | Phase 1 done: calibration-campaign bug fixes. |
+| 2026-10-29 | Phase 2 done: shared lifecycle `ibm_campaign.py` + base CLI flags. |

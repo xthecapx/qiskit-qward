@@ -10,6 +10,15 @@ as the transpiled circuit will be different from what we designed.
 
 Subclass `IBMExperimentBase` to create algorithm-specific implementations
 (e.g., Grover, QFT, Phase Estimation).
+
+Two execution paths share these subclasses:
+
+* Campaign lifecycle (``ibm_campaign``): ``--prepare-plan/--submit-plan/
+  --recover-plan`` and ``--prepare-only/--submit-record/--recover-record``.
+  Records are written before submission and recovered by saved job ID.
+* Legacy ``run()`` (``--config ...``): blocking Batch via the executor; kept
+  for compatibility with existing data, with ``--update``/``--recover`` as
+  importers for legacy files.
 """
 
 import argparse
@@ -28,6 +37,7 @@ from dotenv import load_dotenv
 from qiskit import QuantumCircuit
 
 from qward.algorithms import QuantumCircuitExecutor, IBMBatchResult
+from qward.examples.papers import ibm_campaign
 from qward.examples.papers.experiment_helpers import (
     calculate_qward_metrics,
     calculate_backend_calibration,
@@ -205,6 +215,54 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
     def get_output_dir(self) -> Path:
         """Get the output directory for saving results."""
         return Path(self.output_subdir)
+
+    def get_runtime_options(self, config: ConfigT) -> Optional[Dict[str, Any]]:
+        """Runtime options merged onto ``ibm_campaign.DEFAULT_RUNTIME_OPTIONS``."""
+        return None
+
+    def get_reference(self, config: ConfigT) -> Optional[Dict[str, float]]:
+        """Ideal output distribution, when known. Subclasses override (Phase 3)."""
+        return None
+
+    def get_campaign_output_dir(self) -> Path:
+        """Records of the campaign lifecycle; kept apart from legacy results."""
+        return self.get_output_dir().parent / "v2"
+
+    # =========================================================================
+    # Campaign lifecycle (ibm_campaign)
+    # =========================================================================
+
+    def campaign_hooks(self) -> ibm_campaign.CampaignHooks:
+        """Adapt this runner's configs and evaluation to the generic lifecycle."""
+
+        def build(config_id: str) -> ibm_campaign.PreparedCircuit:
+            if config_id not in self.get_all_config_ids():
+                raise ValueError(f"Unknown config: {config_id}")
+            config = self.get_config(config_id)
+            circuit = self.create_circuit(config)
+            return ibm_campaign.PreparedCircuit(
+                config_id=config_id,
+                config=json.loads(json.dumps(self.get_config_description(config), default=str)),
+                circuit=circuit,
+                reference=self.get_reference(config),
+                payload={"qward_metrics": calculate_qward_metrics(circuit)},
+                runtime_options=self.get_runtime_options(config),
+            )
+
+        def evaluate(counts, prepared, _isa):
+            config = self.get_config(prepared["config_id"])
+            return self.evaluate_result(counts, config, sum(counts.values()))
+
+        return ibm_campaign.CampaignHooks(
+            algorithm=self.algorithm_name, build=build, evaluate=evaluate
+        )
+
+    def campaign(self) -> ibm_campaign.Campaign:
+        return ibm_campaign.Campaign(
+            ibm_campaign.RecordStore(
+                self.get_campaign_output_dir(), self.campaign_hooks(), timeout=self.timeout
+            )
+        )
 
     def get_timed_out_batches(self) -> List[Dict[str, Any]]:
         """Return a list of known timed-out batches for recovery.
@@ -1582,6 +1640,18 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             default=None,
             help="With --recover --batch-id: backend name for the batch being recovered",
         )
+        lifecycle = parser.add_argument_group("campaign lifecycle (records saved before submit)")
+        lifecycle.add_argument("--prepare-plan", type=Path, metavar="PLAN_JSON")
+        lifecycle.add_argument("--submit-plan", type=Path, metavar="MANIFEST_JSON")
+        lifecycle.add_argument("--recover-plan", type=Path, metavar="MANIFEST_JSON")
+        lifecycle.add_argument("--plan-status", type=Path, metavar="MANIFEST_JSON")
+        lifecycle.add_argument(
+            "--prepare-only",
+            action="store_true",
+            help="With --config --backend: freeze one record, submit nothing",
+        )
+        lifecycle.add_argument("--submit-record", type=Path, metavar="RECORD_JSON")
+        lifecycle.add_argument("--recover-record", type=Path, metavar="RECORD_JSON")
         parser.add_argument(
             "--recover-opt-level",
             type=int,
@@ -1592,6 +1662,61 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             ),
         )
         return parser
+
+    def _run_lifecycle_cli(self, parser, parsed) -> Optional[Dict[str, Any]]:
+        """Dispatch campaign-lifecycle flags; None when none was given."""
+        if not any(
+            (
+                parsed.prepare_plan,
+                parsed.submit_plan,
+                parsed.recover_plan,
+                parsed.plan_status,
+                parsed.prepare_only,
+                parsed.submit_record,
+                parsed.recover_record,
+            )
+        ):
+            return None
+        self.shots, self.timeout = parsed.shots, parsed.timeout
+        campaign = self.campaign()
+        if parsed.plan_status:
+            return campaign.status(parsed.plan_status)
+
+        def service():
+            creds = resolve_ibm_credentials(parsed.channel, parsed.token, parsed.instance)
+            return ibm_campaign.service_from_env(**creds)
+
+        if parsed.prepare_plan:
+            return campaign.prepare_plan(parsed.prepare_plan, service())
+        if parsed.submit_plan:
+            manifest = json.loads(parsed.submit_plan.read_text())
+            return campaign.submit_manifest(
+                parsed.submit_plan, service().backend(manifest["backend_name"])
+            )
+        if parsed.recover_plan:
+            return campaign.recover_manifest(parsed.recover_plan, service())
+        if parsed.prepare_only:
+            if not parsed.config or not parsed.backend:
+                parser.error("--prepare-only requires --config and --backend")
+            if len(parsed.opt_levels) != 1:
+                parser.error("--prepare-only takes exactly one --opt-levels value")
+            path = campaign.store.prepare(
+                parsed.config,
+                service().backend(parsed.backend),
+                shots=parsed.shots,
+                optimization_level=parsed.opt_levels[0],
+                planned_executions=max(1, parsed.runs),
+            )
+            return {"record_path": str(path), "status": "prepared", "jobs_submitted": 0}
+        if parsed.submit_record:
+            journal = json.loads(parsed.submit_record.read_text())
+            record = campaign.store.submit(
+                parsed.submit_record,
+                service().backend(journal["backend_name"]),
+                runs=parsed.runs,
+            )
+            return ibm_campaign.summarize(record)
+        return ibm_campaign.summarize(campaign.store.recover(parsed.recover_record, service()))
 
     def list_configs(self) -> None:
         """Print available configurations."""
@@ -1626,6 +1751,10 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         """Run from command line arguments."""
         parser = self.create_argument_parser()
         parsed = parser.parse_args(args)
+        lifecycle = self._run_lifecycle_cli(parser, parsed)
+        if lifecycle is not None:
+            print(json.dumps(lifecycle, indent=2, default=ibm_campaign.json_value))
+            return lifecycle
 
         # Handle --status command
         if parsed.status:
