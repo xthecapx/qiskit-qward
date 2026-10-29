@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Driver for the ibm_fez dataset campaign (docs/ibm_fez_dataset_plan.md).
 #
-#   run_campaign.sh prepare <algo> <window>   freeze records for one plan (no jobs)
-#   run_campaign.sh submit  <algo> <window>   submit that manifest in ONE Batch
-#   run_campaign.sh recover <algo> <window>   fetch results by saved job IDs
+#   run_campaign.sh prepare <algo|all> <window>   freeze records for one plan (no jobs)
+#   run_campaign.sh submit  <algo|all> <window>   submit that manifest in ONE Batch
+#   run_campaign.sh recover <algo|all> <window>   fetch results by saved job IDs
 #   run_campaign.sh status  [algo] [window]   offline: planned vs submitted vs done
 #   run_campaign.sh export  [out_dir]         build dataset.csv from completed records
 #
-# <algo>: ghz bv vtp qft pe grover coin_toss rv shor
+# <algo>: ghz bv vtp qft pe grover coin_toss rv shor (or "all" for the 9 of them)
+# <window>: 0 = pilot (34 jobs), 1-3 = campaign windows
 # Plans live in  <algo>/plans/<algo>-w<window>.json  (format: docs/ibm_fez_dataset_plan.md,
 # "Plan files"); manifests are written beside them as <algo>-w<window>_manifest.json.
 #
@@ -23,7 +24,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "${HERE}/../../.." && pwd)"
 cd "${REPO}"
 
-usage() { sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
+usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
 
 module_for() {
     case "$1" in
@@ -52,7 +53,7 @@ plan_file() { echo "${HERE}/$(dir_of "$1")/plans/$1-w$2.json"; }
 manifest_file() { echo "${HERE}/$(dir_of "$1")/plans/$1-w$2_manifest.json"; }
 
 require_window() {
-    [[ "$1" =~ ^[0-9]+$ && "$1" -ge 1 ]] || { echo "window must be a positive integer" >&2; exit 2; }
+    [[ "$1" =~ ^[0-9]+$ ]] || { echo "window must be 0 (pilot) or 1-3" >&2; exit 2; }
 }
 
 ACTION="${1:-}"
@@ -63,6 +64,24 @@ case "${ACTION}" in
     prepare|submit|recover)
         [[ $# -eq 2 ]] || usage 2
         ALGO="$1"; WINDOW="$2"; require_window "${WINDOW}"
+        if [[ "${ALGO}" == "all" ]]; then
+            # One Batch per algorithm; `submit all` asks once for the whole window.
+            if [[ "${ACTION}" == "submit" ]]; then
+                for A in ${ALGOS}; do
+                    [[ -f "$(manifest_file "${A}" "${WINDOW}")" ]] \
+                        || { echo "prepare ${A} ${WINDOW} first" >&2; exit 2; }
+                done
+                "$0" status
+                read -r -p "Submit ALL ${ALGOS} (window ${WINDOW}) to IBM, one Batch each? [y/N] " ANSWER
+                [[ "${ANSWER}" == "y" || "${ANSWER}" == "Y" ]] || { echo "aborted"; exit 1; }
+                for A in ${ALGOS}; do
+                    uv run -m "$(module_for "${A}")" --submit-plan "$(manifest_file "${A}" "${WINDOW}")"
+                done
+            else
+                for A in ${ALGOS}; do "$0" "${ACTION}" "${A}" "${WINDOW}"; done
+            fi
+            exit 0
+        fi
         MODULE="$(module_for "${ALGO}")"
         case "${ACTION}" in
             prepare)
