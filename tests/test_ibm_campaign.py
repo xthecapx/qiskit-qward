@@ -425,3 +425,84 @@ def test_recalibration_notice_is_one_line_per_submission_not_per_record(
     assert "3 of 3 records" in err and "WARNING" not in err
     record = json.loads(Path(manifest["items"][0]["record_path"]).read_text())
     assert record["submission_journal"][0]["recalibrated_before_submission"] is True
+
+
+def test_job_tags_lead_with_the_algorithm_for_the_dashboard(tmp_path, fez, monkeypatch, runtime):
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    plan = _plan(tmp_path, window=2, items=[{"config": "GHZ3"}])
+    manifest = campaign.prepare_plan(plan, runtime.service(fez))
+    campaign.submit_manifest(Path(manifest["manifest_path"]), fez)
+    run_id = json.loads(Path(manifest["items"][0]["record_path"]).read_text())["run_id"]
+    first, second = runtime.submitted[0]["tags"], runtime.submitted[1]["tags"]
+    assert first[0] == "ghz" and first[1] == "cfg:GHZ3"
+    assert first[2:5] == ["campaign:test", "w2", "repeat-0"] and first[-1] == run_id
+    assert second[4] == "repeat-1" and second[-1] == run_id
+    assert all(len(tag) <= 128 for tag in first) and len(first) <= 20
+
+
+@pytest.mark.parametrize(
+    "algorithm,tag",
+    [
+        ("BERNSTEIN-VAZIRANI", "bernstein-vazirani"),
+        ("PHASE-ESTIMATION", "phase-estimation"),
+        ("RANDOM-VOLUMETRIC", "random-volumetric"),
+        ("COIN_TOSS", "coin-toss"),
+        ("VTP", "vtp"),
+    ],
+)
+def test_algorithm_tag_is_lowercase_and_dashed(algorithm, tag):
+    prepared = {
+        "algorithm": algorithm,
+        "config_id": "X",
+        "campaign_id": "c",
+        "window": 1,
+        "run_id": "r",
+    }
+    assert ibm_campaign.job_tags(prepared, 0)[0] == tag
+
+
+def test_usage_reports_batch_seconds_next_to_saved_job_seconds(tmp_path, fez, monkeypatch, runtime):
+    import qiskit_ibm_runtime
+
+    campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
+    campaign.recover_manifest(path, runtime.service(fez))
+    for record_path in [i["record_path"] for i in json.loads(path.read_text())["items"]]:
+        record = json.loads(Path(record_path).read_text())
+        for entry in record["submission_journal"]:
+            entry["execution_metrics"] = {"usage": {"quantum_seconds": 2}}
+        Path(record_path).write_text(json.dumps(record))
+
+    class FakeBatch:
+        @staticmethod
+        def from_id(batch_id, service):
+            return SimpleNamespace(usage=lambda: 8)
+
+    monkeypatch.setattr(qiskit_ibm_runtime, "Batch", FakeBatch)
+    service = SimpleNamespace(
+        usage=lambda: {
+            "usage_consumed_seconds": 192,
+            "usage_limit_seconds": 10800,
+            "usage_remaining_seconds": 10608,
+            "usage_limit_reached": False,
+        }
+    )
+    report = campaign.usage([path], service)
+    assert report["batches"][0]["batch_usage_seconds"] == 8
+    assert report["batches"][0]["saved_job_quantum_seconds"] == 8
+    assert report["batches"][0]["jobs"] == 4
+    assert report["total_batch_usage_seconds"] == 8
+    assert report["account"]["usage_remaining_seconds"] == 10608
+
+
+def test_usage_skips_manifests_that_were_never_submitted(tmp_path, fez, monkeypatch, runtime):
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    manifest = campaign.prepare_plan(
+        _plan(tmp_path, items=[{"config": "GHZ3"}]), runtime.service(fez)
+    )
+    report = campaign.usage(
+        [Path(manifest["manifest_path"])],
+        SimpleNamespace(usage=lambda: {"usage_consumed_seconds": 0}),
+    )
+    assert report["batches"] == [] and report["total_batch_usage_seconds"] == 0

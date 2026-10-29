@@ -1720,6 +1720,13 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         )
         lifecycle.add_argument("--plan-status", type=Path, metavar="MANIFEST_JSON")
         lifecycle.add_argument(
+            "--plan-usage",
+            type=Path,
+            nargs="+",
+            metavar="MANIFEST_JSON",
+            help="QPU seconds IBM billed for submitted manifests, and the account balance",
+        )
+        lifecycle.add_argument(
             "--prepare-only",
             action="store_true",
             help="With --config --backend: freeze one record, submit nothing",
@@ -1746,6 +1753,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 parsed.recover_plan,
                 parsed.wait_plan,
                 parsed.plan_status,
+                parsed.plan_usage,
                 parsed.prepare_only,
                 parsed.submit_record,
                 parsed.recover_record,
@@ -1770,6 +1778,8 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             )
         if parsed.recover_plan:
             return campaign.recover_manifest(parsed.recover_plan, service())
+        if parsed.plan_usage:
+            return campaign.usage(parsed.plan_usage, service())
         if parsed.wait_plan:
             return campaign.wait_manifest(
                 parsed.wait_plan, service(), max_seconds=parsed.wait_timeout

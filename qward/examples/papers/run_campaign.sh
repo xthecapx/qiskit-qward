@@ -6,6 +6,7 @@
 #   run_campaign.sh recover <algo|all> <window>   fetch results by saved job IDs
 #   run_campaign.sh wait    <algo> <window>       block until that Batch's jobs finish
 #   run_campaign.sh status  [algo] [window]   offline: planned vs submitted vs done
+#   run_campaign.sh usage   [window]          QPU seconds billed by IBM vs the estimate
 #   run_campaign.sh export  [out_dir]         build dataset.csv from completed records
 #
 # <algo>: ghz bv vtp qft pe grover rv shor (or "all" for the 8 of them)
@@ -30,7 +31,7 @@ SELF="${HERE}/$(basename "$0")"  # Absolute: the script cd's to the repo root be
 REPO="$(cd "${HERE}/../../.." && pwd)"
 cd "${REPO}"
 
-usage() { sed -n '2,24p' "${SELF}" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
+usage() { sed -n '2,25p' "${SELF}" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
 
 module_for() {
     case "$1" in
@@ -143,6 +144,27 @@ s = json.load(sys.stdin)
 print('%-10s %-7s %-10s %-10s %-10s %s' % ('${ALGO}', '${WINDOW}', s['status'], s['jobs_planned'], s['jobs_submitted'], s['records_by_status']))"
             done
         done
+        ;;
+    usage)
+        FILTER_WINDOW="${1:-}"
+        MANIFESTS=()
+        for ALGO in ${ALGOS}; do
+            for MANIFEST in "${HERE}/$(dir_of "${ALGO}")"/plans/${ALGO}-w*_manifest.json; do
+                [[ -f "${MANIFEST}" ]] || continue
+                W="$(basename "${MANIFEST}" | sed -E "s/^${ALGO}-w([0-9]+)_manifest.json$/\1/")"
+                [[ -z "${FILTER_WINDOW}" || "${FILTER_WINDOW}" == "${W}" ]] && MANIFESTS+=("${MANIFEST}")
+            done
+        done
+        [[ ${#MANIFESTS[@]} -gt 0 ]] || { echo "no manifests" >&2; exit 2; }
+        uv run -m qward.examples.papers.ghz.ghz_ibm --plan-usage "${MANIFESTS[@]}" \
+            | uv run python -c "
+import json, sys
+u = json.load(sys.stdin)
+print('%-20s %-7s %-6s %-14s %s' % ('ALGO', 'WINDOW', 'JOBS', 'IBM BATCH (s)', 'SAVED PER-JOB (s)'))
+for b in u['batches']:
+    print('%-20s %-7s %-6s %-14s %s' % (b['algorithm'], b['window'], b['jobs'], b['batch_usage_seconds'], b['saved_job_quantum_seconds']))
+a = u['account']
+print('total billed: %s s | account: %s of %s s used, %s s left' % (u['total_batch_usage_seconds'], a['usage_consumed_seconds'], a['usage_limit_seconds'], a['usage_remaining_seconds']))"
         ;;
     export)
         OUT="${1:-${HERE}/dataset_out}"
