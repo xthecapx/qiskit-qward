@@ -244,3 +244,47 @@ def test_baselines_use_success_set_and_ideal_mass(fez):
     assert group["ideal_success_mass"] == pytest.approx(reference["011"])
     assert group["m1_error"] == pytest.approx(1 - group["esp_score"] * reference["011"])
     assert 0 < group["m2_tvd"] < 1
+
+
+def test_quantum_specific_is_reproducible_and_restores_rng():
+    import torch
+
+    from qward.examples.papers.grover.grover_ibm import GroverIBMExperiment
+
+    experiment = GroverIBMExperiment()
+    circuit = experiment.create_circuit(experiment.get_config("S3-1"))
+    first, second = F.quantum_specific(circuit), F.quantum_specific(circuit)
+    for key in ("magic", "coherence", "sensitivity", "entanglement_ratio"):
+        assert first[key] == second[key]
+    torch.manual_seed(5)
+    expected = torch.rand(1).item()
+    torch.manual_seed(5)
+    F.quantum_specific(circuit)
+    assert torch.rand(1).item() == expected  # Caller's RNG state untouched.
+
+
+def test_quantum_specific_cache_roundtrip_and_key(tmp_path):
+    circuit = QuantumCircuit(2)
+    circuit.h(0)
+    circuit.cx(0, 1)
+    first = F.quantum_specific(circuit, cache_dir=tmp_path)
+    assert first["available"] and first["cached"] is False
+    assert len(list(tmp_path.glob("*.json"))) == 1
+    again = F.quantum_specific(circuit, cache_dir=tmp_path)
+    assert again["cached"] is True
+    assert {k: v for k, v in again.items() if k != "cached"} == {
+        k: v for k, v in first.items() if k != "cached"
+    }
+    other = QuantumCircuit(2)
+    other.h(0)
+    other.cx(1, 0)
+    F.quantum_specific(other, cache_dir=tmp_path)
+    assert len(list(tmp_path.glob("*.json"))) == 2  # Different circuit, different entry.
+    assert F.quantum_specific(circuit, cache_dir=None)["cached"] is False
+    assert len(list(tmp_path.glob("*.json"))) == 2  # cache_dir=None writes nothing.
+
+
+def test_unavailable_results_are_never_cached(tmp_path):
+    big = QuantumCircuit(F.QUANTUM_SPECIFIC_MAX_QUBITS + 1)
+    assert F.quantum_specific(big, cache_dir=tmp_path)["available"] is False
+    assert list(tmp_path.glob("*.json")) == []

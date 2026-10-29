@@ -90,21 +90,33 @@ on 23 of 25 sampled configs, median ratio 1.0). Predicted error is M1; real
 `ibm_fez` error was 1.5–3× higher in BV runs. Keep circuits between "almost
 always succeeds" and "pure noise".
 
-| Algorithm | Keep | Drop / anchor | Configs (≈) | Jobs (×2 runs ×3 windows) |
-|---|---|---|---|---|
-| GHZ | GHZ2–GHZ16 (2Q 3→15) | — | 15 | 90 |
-| BV | ONES/ALT/SINGLE × BV2–BV14 | — | 39 | 234 |
-| vTP | V1–V5 static, S1–S5 dynamic × 3 payloads | — | 30 | 180 |
-| QFT | SR2–SR8, SP/PV ≤ 9 qubits, IV4 | SR10–14, SP10/12 | 28 | 168 |
-| PE | T/S/Z families, 2–8 counting qubits | 9–10 counting | 21 | 126 |
-| Grover | S2–S4, M3/M4, H3/H4, SYM/ASYM | S6+ dropped; S5 once as anchor | 23 | 138 |
-| Coin toss | all CT configs (noise floor) | — | 11 | 66 |
-| Random volumetric | RV2–RV5 × 3 depths; RV6-D6, RV7-D7, RV8-D8 | deeper RV (80–100% predicted) | 15 | 90 |
-| Shor | SHOR-N15-M3 (anchor) | other N15 configs | 1 | 6 |
-| **Total** | | | **~183** | **~1,100** |
+Final matrix (source of truth: `qward/examples/papers/campaign_matrix.py`;
+`--report` re-measures sizes locally). Sizes are the ISA at optimization level
+3, seed 11, on FakeFez calibration; "max M1 error" is the largest predicted
+error in the algorithm's set (real `ibm_fez` ran 1.5–3× higher in BV).
 
-Estimated QPU time: 55–80 min total, 18–27 min per window. Exact counts and
-seconds are finalized in the plan files (Phase 6) before approval.
+| Algorithm | Configs kept | Dropped / anchor | Configs | Jobs/window | Jobs (3 windows) | Max 2Q | Max M1 err |
+|---|---|---|---:|---:|---:|---:|---:|
+| GHZ | GHZ2–GHZ16 | GHZ17–20 | 15 | 30 | 90 | 15 | 0.15 |
+| BV | ONES/ALT/SINGLE × BV2–BV14 | BV15+ | 39 | 78 | 234 | 38 | 0.21 |
+| vTP | V1–V5 static, S1–S5 dynamic × 3 payloads | — | 30 | 60 | 180 | 36 | 0.14 (15 dynamic) |
+| QFT | SR2–SR8; SP3–SP8 (≤ 9 q); PV4/PV6; IV4 | SR10–14, SP10/12 | 27 | 54 | 162 | 208 | 0.53 |
+| PE | T/S/Z × 2–8 counting qubits | 9–10 counting | 21 | 42 | 126 | 112 | 0.35 |
+| Grover | S2–S5, M3/M4, H3/H4, SYM/ASYM | S6+; **S5 = failure anchor** | 24 | 48 | 144 | 530 | 0.82 |
+| Coin toss | all 11 | — | 11 | 22 | 66 | 2 | 0.01 |
+| Random volumetric | RV2–RV5 × 3 depths; RV6-D6, RV7-D7, RV8-D8 | RV9+ | 15 | 30 | 90 | 330 | 0.71 |
+| Shor | SHOR-N15-M3 | other N15 configs; **M3 = failure anchor** | 1 | 2 | 6 | 1388 | 0.99 |
+| **Total** | | | **183** | **366** | **1,098** | | |
+
+Distribution of predicted M1 error across the 183 configs: 86 below 10%, 59 at
+10–30%, 20 at 30–60%, 2 at 60–90%, 1 above 90% (Shor), 15 dynamic (no
+prediction). The three high-error entries (Grover S5, Shor M3, RV8-D8) are
+deliberate anchors for where output turns into noise.
+
+**QPU time.** Every real `ibm_fez` job so far billed 3 s at 2,048 shots
+(30–200 2Q gates; `usage.quantum_seconds`, integer seconds). The model
+(`campaign_matrix.qpu_seconds`) is a conservative upper bound: ~12 min per
+window, ~37 min for all 1,098 jobs. Real usage will likely be lower.
 
 ## Phases
 
@@ -226,17 +238,33 @@ groups A–G are present.
       confirmation and is the only action that sends jobs; `status` is offline.
 - [x] Tests: `tests/test_dataset_export.py` (10); 553 passing overall.
 
-### Phase 6 — Campaign plan files (no QPU)
-- [ ] One plan per algorithm × window (9 algorithms × 3 windows = 27 files).
-      Each plan is submitted as **one Batch containing every config of that
-      algorithm** (2 runs each). A Batch cannot span days, so each window
-      gets its own Batch.
-- [ ] Job order inside a Batch: shuffle the configs (seeded, saved in the
-      manifest), then submit run 1 of all configs, then run 2 of all configs.
-      Size is not then tied to submission time, and the two runs of a config
-      are spread across the Batch's duration.
-- [ ] Exact job counts and QPU-second estimates per Batch.
-- [ ] **User approval.**
+### Phase 6 — Campaign plan files (no QPU) ✅ (awaiting approval)
+- [x] `qward/examples/papers/campaign_matrix.py` holds the selection as data,
+      validates it against every runner's config registry, and writes the
+      plans: `uv run -m qward.examples.papers.campaign_matrix --write`
+      (refuses to overwrite a plan that already has a manifest).
+- [x] 27 plan files, `<algo>/plans/<algo>-w<N>.json`: campaign `fez-dataset-v2`,
+      `ibm_fez`, 1,024 shots, optimization level 3, seed 11, 2 runs per config,
+      distinct seeded order per plan, run budget = configs × 2.
+- [x] One Batch per algorithm per window; seeded shuffle of configs, run 1 of
+      every config before run 2 (`job_order` in the manifest).
+- [x] Job counts and QPU estimate per window: see the table above;
+      `campaign_matrix --report` reproduces them locally.
+- [x] `QuantumSpecificMetrics` seeded (`torch` seed 11, RNG state restored):
+      it optimizes from random starts, so two computations of the same circuit
+      differed. Features are now reproducible.
+- [x] QuantumSpecific measured over the matrix: 134 configs have it (static,
+      ≤ 8 qubits), **23.8 min of compute per window** (8-qubit circuits take
+      60–80 s each, 863 s in total). It depends only on the logical circuit, so
+      results are cached per circuit (key: circuit hash + seed + metric source
+      + torch version) under `qward/examples/papers/data/quantum_specific_cache/`.
+      `campaign_matrix --precompute-quantum-specific` fills it once (~24 min);
+      afterwards every `prepare` is a cache hit and the three windows share
+      the same values. Tests never touch the repository cache.
+- [x] Tests: `tests/test_campaign_matrix.py` (18): configs exist, sizes,
+      anchors and cuts, files on disk equal the generator output, every plan
+      passes `prepare_plan` validation, driver paths match.
+- [ ] **User approval of the matrix before any QPU use.**
 
 ### Phase 7 — Pilot (QPU)
 - [ ] 1 small + 1 mid config per algorithm, opt 3, 2 runs each; Shor anchor
