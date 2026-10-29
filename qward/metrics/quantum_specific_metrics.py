@@ -234,9 +234,25 @@ class QuantumSpecificMetrics(MetricCalculator):
         unitary_t = torch.tensor(unitary, dtype=torch.complex64, device=self._device)
         return self._coherence_optimize(unitary_t)
 
+    @staticmethod
+    def _safe_abs(z):
+        """Exact |z| whose gradient is 0 (not NaN) where |z|^2 is 0 or underflows.
+
+        Off-diagonal entries of structured unitaries (phase estimation, QFT)
+        are exactly zero or vanishingly small; backpropagating torch.abs through
+        them produced NaN after ~100 steps and poisoned every later update.
+        """
+        squared = torch.real(z) ** 2 + torch.imag(z) ** 2
+        zero = squared == 0
+        return torch.where(
+            zero,
+            torch.zeros_like(squared),
+            torch.sqrt(torch.where(zero, torch.ones_like(squared), squared)),
+        )
+
     def _coherence_l1(self, rho):
         off_diag = rho - torch.diag(torch.diag(rho))
-        return torch.sum(torch.abs(off_diag))
+        return torch.sum(self._safe_abs(off_diag))
 
     def _coherence_optimize(self, unitary):
         dim = unitary.shape[0]
