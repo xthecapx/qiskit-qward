@@ -22,6 +22,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 PAPERS = Path(__file__).resolve().parent
+# Not part of the dataset: GHZ and random volumetric already cover the noise
+# floor. The coin-toss runner stays available; 4 pilot jobs were run before
+# this decision and are kept on disk but excluded from the export.
+EXCLUDED_ALGORITHMS = ("coin_toss",)
 CAMPAIGN_ID = "fez-dataset-v2"
 BACKEND = "ibm_fez"
 SHOTS = 1024
@@ -38,7 +42,6 @@ RUNNERS: Dict[str, Dict[str, str]] = {
     "qft": {"module": "qft.qft_ibm", "dir": "qft"},
     "pe": {"module": "phase_estimation.pe_ibm", "dir": "phase_estimation"},
     "grover": {"module": "grover.grover_ibm", "dir": "grover"},
-    "coin_toss": {"module": "coin_toss.coin_toss_ibm", "dir": "coin_toss"},
     "rv": {"module": "random_volumetric.rv_ibm", "dir": "random_volumetric"},
     "shor": {"module": "shor.shor_ibm", "dir": "shor"},
 }
@@ -96,19 +99,6 @@ MATRIX: Dict[str, List[str]] = {
         "ASYM-1",
         "ASYM-2",
     ],
-    "coin_toss": [
-        "CT1",
-        "CT2",
-        "CT3",
-        "CT4",
-        "CT5",
-        "CT1-B25",
-        "CT1-B75",
-        "CT3-B25",
-        "CT3-B75",
-        "CT5-B25",
-        "CT5-B75",
-    ],
     # Mirror circuits: RV2-RV5 at three depths, plus the edge points of RV6-RV8.
     "rv": (
         [
@@ -134,9 +124,24 @@ PILOT: Dict[str, List[str]] = {
     "qft": ["SR3", "SP6-P4"],
     "pe": ["PE-T3", "PE-S6"],
     "grover": ["S3-1", "M4-2"],
-    "coin_toss": ["CT3", "CT3-B25"],
     "rv": ["RV2-D2", "RV4-D4"],
     "shor": ["SHOR-N15-M3"],
+}
+
+
+# Fixed per algorithm so adding or removing an algorithm never changes the
+# shuffle of plans that already have manifests (alphabetical order of the
+# original nine, coin toss included).
+ORDER_SEED_OFFSET: Dict[str, int] = {
+    "bv": 0,
+    "coin_toss": 1,
+    "ghz": 2,
+    "grover": 3,
+    "pe": 4,
+    "qft": 5,
+    "rv": 6,
+    "shor": 7,
+    "vtp": 8,
 }
 
 
@@ -179,7 +184,7 @@ def plan_for(key: str, window: int) -> Dict:
         "shots": SHOTS,
         "optimization_level": OPTIMIZATION_LEVEL,
         "seed_transpiler": SEED_TRANSPILER,
-        "order_seed": 1000 * window + sorted(RUNNERS).index(key),
+        "order_seed": 1000 * window + ORDER_SEED_OFFSET[key],
         "runs": runs,
         "planned_executions": len(configs) * runs,
         "purpose": (
@@ -209,7 +214,10 @@ def write_plans(root: Path = PAPERS, *, overwrite: bool = False) -> List[Path]:
             path = plan_path(key, window, root)
             manifest = path.with_name(f"{path.stem}_manifest.json")
             if manifest.exists():
-                raise ValueError(f"{manifest} exists; its plan is already in use")
+                # The plan is in use: keep it as it is and leave the others alone.
+                if json.loads(path.read_text(encoding="utf-8")) != plan_for(key, window):
+                    raise ValueError(f"{path} differs from the matrix but {manifest} exists")
+                continue
             if path.exists() and not overwrite:
                 raise ValueError(f"{path} exists (use --overwrite)")
             path.parent.mkdir(parents=True, exist_ok=True)

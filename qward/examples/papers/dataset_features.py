@@ -501,6 +501,29 @@ def targets(
     }
 
 
+def values_changed(
+    before: Mapping[str, Any], after: Mapping[str, Any], tolerance: float = 1e-12
+) -> bool:
+    """True when any gate/readout error or coherence time of the used qubits differs.
+
+    The calibration *date* advances several times a day; this compares what the
+    circuit actually depends on.
+    """
+    for old, new in zip(before["instructions"], after["instructions"]):
+        a, b = old.get("error"), new.get("error")
+        if (a is None) != (b is None) or (a is not None and abs(a - b) > tolerance):
+            return True
+    for qubit, old in before["qubits"].items():
+        new = after["qubits"].get(qubit, {})
+        for key in ("t1_s", "t2_s", "prob_meas1_prep0", "prob_meas0_prep1"):
+            a, b = old.get(key), new.get(key)
+            if (a is None) != (b is None) or (
+                a is not None and abs(a - b) > tolerance * max(1.0, abs(a))
+            ):
+                return True
+    return False
+
+
 def execution_hardware(
     job: Any,
     snapshot: Mapping[str, Any],
@@ -517,6 +540,7 @@ def execution_hardware(
     group = hardware_features(late)
     group["source"] = "job.properties()"
     group["changed_since_prepare"] = late["calibrated_at"] != snapshot.get("calibrated_at")
+    group["changed_values"] = values_changed(snapshot, late)
     return {
         "hardware_at_execution": group,
         "baselines_at_execution": baseline_predictions(

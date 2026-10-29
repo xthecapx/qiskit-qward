@@ -305,3 +305,123 @@ def test_extract_counts_matches_aer_register_order():
     expected = AerSimulator(seed_simulator=5).run(circuit, shots=200).result().get_counts()
     assert sorted(ibm_campaign.extract_counts(pub)) == sorted(expected)
     assert sum(ibm_campaign.extract_counts(pub).values()) == 200
+
+
+def _submitted_manifest(tmp_path, fez, monkeypatch, runtime):
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    plan = _plan(tmp_path, items=[{"config": "GHZ3"}, {"config": "GHZ4"}])
+    manifest = campaign.prepare_plan(plan, runtime.service(fez))
+    path = Path(manifest["manifest_path"])
+    campaign.submit_manifest(path, fez)
+    return campaign, path
+
+
+def test_rejected_batch_leaves_manifest_prepared_and_sends_nothing(
+    tmp_path, fez, monkeypatch, runtime
+):
+    import qiskit_ibm_runtime
+
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    manifest = campaign.prepare_plan(
+        _plan(tmp_path, items=[{"config": "GHZ3"}]), runtime.service(fez)
+    )
+    path = Path(manifest["manifest_path"])
+
+    def refuse(*, backend):
+        raise RuntimeError("maximum number of active batches reached")
+
+    monkeypatch.setattr(qiskit_ibm_runtime, "Batch", refuse)
+    with pytest.raises(ibm_campaign.BatchUnavailable, match="no job was sent"):
+        campaign.submit_manifest(path, fez)
+    assert json.loads(path.read_text())["status"] == "prepared"
+    assert runtime.submitted == []
+    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text())
+    assert record["status"] == "prepared" and record["submission_journal"] == []
+    # Once IBM accepts a Batch again, the same manifest submits normally.
+    monkeypatch.setattr(qiskit_ibm_runtime, "Batch", runtime.Batch)
+    assert campaign.submit_manifest(path, fez)["status"] == "submitted"
+    assert len(runtime.submitted) == 2
+
+
+def test_wait_returns_when_all_jobs_are_final(tmp_path, fez, monkeypatch, runtime):
+    campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
+    states = {"polls": 0}
+
+    class Job:
+        def __init__(self, job_id):
+            self.job_id = job_id
+
+        def in_final_state(self):
+            return states["polls"] >= 2
+
+        def status(self):
+            return "RUNNING"
+
+    def service_job(job_id):
+        states["polls"] += 1 if job_id == runtime.submitted[-1]["job_id"] else 0
+        return Job(job_id)
+
+    sleeps, logs = [], []
+    outcome = campaign.wait_manifest(
+        path,
+        SimpleNamespace(job=service_job),
+        poll_seconds=7,
+        sleep=sleeps.append,
+        log=logs.append,
+    )
+    assert outcome["jobs"] == 4 and outcome["finished"] == 4
+    assert sleeps and set(sleeps) == {7}
+    assert logs[-1].endswith("4/4 jobs finished")
+
+
+def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch, runtime):
+    campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
+    before = path.read_text()
+
+    class Running:
+        def in_final_state(self):
+            return False
+
+        def status(self):
+            return "QUEUED"
+
+    clock = iter(range(0, 1000, 100))
+    monkeypatch.setattr(ibm_campaign.time, "monotonic", lambda: next(clock))
+    with pytest.raises(TimeoutError, match="still pending"):
+        campaign.wait_manifest(
+            path,
+            SimpleNamespace(job=lambda job_id: Running()),
+            poll_seconds=1,
+            max_seconds=150,
+            sleep=lambda seconds: None,
+            log=lambda message: None,
+        )
+    assert path.read_text() == before
+
+
+def test_wait_refuses_a_manifest_that_was_never_submitted(tmp_path, fez, monkeypatch, runtime):
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    manifest = campaign.prepare_plan(
+        _plan(tmp_path, items=[{"config": "GHZ3"}]), runtime.service(fez)
+    )
+    with pytest.raises(ValueError, match="never submitted"):
+        campaign.wait_manifest(Path(manifest["manifest_path"]), runtime.service(fez))
+
+
+def test_recalibration_notice_is_one_line_per_submission_not_per_record(
+    tmp_path, fez, monkeypatch, runtime, capsys
+):
+    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
+    campaign = experiment.campaign()
+    plan = _plan(tmp_path, items=[{"config": "GHZ3"}, {"config": "GHZ4"}, {"config": "GHZ5"}])
+    manifest = campaign.prepare_plan(plan, runtime.service(fez))
+    monkeypatch.setattr(ibm_campaign, "current_calibration_date", lambda backend: "2099-01-01")
+    campaign.submit_manifest(Path(manifest["manifest_path"]), fez)
+    err = capsys.readouterr().err
+    assert err.count("IBM advanced its calibration timestamp") == 1
+    assert "3 of 3 records" in err and "WARNING" not in err
+    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text())
+    assert record["submission_journal"][0]["recalibrated_before_submission"] is True

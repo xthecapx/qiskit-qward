@@ -103,20 +103,23 @@ error in the algorithm's set (real `ibm_fez` ran 1.5–3× higher in BV).
 | QFT | SR2–SR8; SP3–SP8 (≤ 9 q); PV4/PV6; IV4 | SR10–14, SP10/12 | 27 | 54 | 162 | 208 | 0.53 |
 | PE | T/S/Z × 2–8 counting qubits | 9–10 counting | 21 | 42 | 126 | 112 | 0.35 |
 | Grover | S2–S5, M3/M4, H3/H4, SYM/ASYM | S6+; **S5 = failure anchor** | 24 | 48 | 144 | 530 | 0.82 |
-| Coin toss | all 11 | — | 11 | 22 | 66 | 2 | 0.01 |
 | Random volumetric | RV2–RV5 × 3 depths; RV6-D6, RV7-D7, RV8-D8 | RV9+ | 15 | 30 | 90 | 330 | 0.71 |
 | Shor | SHOR-N15-M3 | other N15 configs; **M3 = failure anchor** | 1 | 2 | 6 | 1388 | 0.99 |
-| **Total** | | | **183** | **366** | **1,098** | | |
+| **Total** | | | **172** | **344** | **1,032** | | |
 
-Distribution of predicted M1 error across the 183 configs: 86 below 10%, 59 at
+Coin toss is not part of the campaign: GHZ and random volumetric already cover
+the noise floor. Its runner stays available, and the 4 pilot jobs already run
+(CT3, CT3-B25) stay on disk but are filtered out of the export.
+
+Distribution of predicted M1 error across the 172 configs: 75 below 10%, 59 at
 10–30%, 20 at 30–60%, 2 at 60–90%, 1 above 90% (Shor), 15 dynamic (no
 prediction). The three high-error entries (Grover S5, Shor M3, RV8-D8) are
 deliberate anchors for where output turns into noise.
 
 **QPU time.** Every real `ibm_fez` job so far billed 3 s at 2,048 shots
 (30–200 2Q gates; `usage.quantum_seconds`, integer seconds). The model
-(`campaign_matrix.qpu_seconds`) is a conservative upper bound: ~12 min per
-window, ~37 min for all 1,098 jobs. Real usage will likely be lower.
+(`campaign_matrix.qpu_seconds`) is a conservative upper bound: ~11 min per
+window, ~34 min for all 1,032 jobs. Real usage will likely be lower.
 
 ## Phases
 
@@ -238,12 +241,12 @@ groups A–G are present.
       confirmation and is the only action that sends jobs; `status` is offline.
 - [x] Tests: `tests/test_dataset_export.py` (10); 553 passing overall.
 
-### Phase 6 — Campaign plan files (no QPU) ✅ (awaiting approval)
+### Phase 6 — Campaign plan files (no QPU) ✅
 - [x] `qward/examples/papers/campaign_matrix.py` holds the selection as data,
       validates it against every runner's config registry, and writes the
       plans: `uv run -m qward.examples.papers.campaign_matrix --write`
       (refuses to overwrite a plan that already has a manifest).
-- [x] 27 plan files, `<algo>/plans/<algo>-w<N>.json`: campaign `fez-dataset-v2`,
+- [x] 32 plan files (8 algorithms × windows 0–3), `<algo>/plans/<algo>-w<N>.json`: campaign `fez-dataset-v2`,
       `ibm_fez`, 1,024 shots, optimization level 3, seed 11, 2 runs per config,
       distinct seeded order per plan, run budget = configs × 2.
 - [x] One Batch per algorithm per window; seeded shuffle of configs, run 1 of
@@ -266,10 +269,28 @@ groups A–G are present.
       passes `prepare_plan` validation, driver paths match.
 - [ ] **User approval of the matrix before any QPU use.**
 
-### Phase 7 — Pilot (QPU)
-- [ ] 1 small + 1 mid config per algorithm, opt 3, 2 runs each; Shor anchor
-      once (~34 jobs, ~2 min).
-- [ ] Verify export end to end; fix before scaling up.
+### Phase 7 — Pilot (QPU) ✅ run, ✅ export clean
+- [x] 1 small + 1 mid config per algorithm, opt 3, 2 runs each; Shor anchor
+      once. 30 jobs for the 8 campaign algorithms (the 4 coin-toss jobs run
+      before it was dropped stay on disk, excluded from the export).
+- [x] Prepared, submitted one Batch at a time, recovered; all 9 manifests
+      `completed`, no job errors.
+- [x] Export of the real data: 30 rows, 0 errors. Warnings: 2 sampled
+      references (the dynamic vTP config, by design) and 4 QuantumSpecific
+      failures on PE-S6 and SP6-P4 (see Findings).
+- Findings:
+  - IBM advanced its calibration timestamp 2–3 times between prepare and
+    execution, but the values of the qubits used did not change in any of the
+    17 records. The notice is now one line per submission, and group D has
+    `changed_values` (compares what the circuit depends on); the export warns
+    only when values change.
+  - `QuantumSpecificMetrics` gave NaN coherence on PE-S6 and SP6-P4:
+    `torch.abs` backpropagates NaN through exactly-zero off-diagonals of
+    structured unitaries (first at step 120 of 300). Fixed with an exact
+    zero-safe absolute value; values elsewhere are unchanged.
+  - IBM limits active Batches; `submit all` is sequential and resumable.
+- [ ] Re-run `prepare` for PE-S6 and SP6-P4 features if the pilot data is
+      kept (their `a.quantum_specific` is unavailable in those 4 rows).
 
 ### Phase 8 — Full campaign (QPU)
 - [ ] Window 1, all algorithms.
@@ -312,3 +333,5 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Phase 3 done: feature/target groups A–G (`dataset_features.py`); exact ideal references. |
 | 2026-10-29 | Phase 4 done: all runners on the lifecycle, Shor options hook, 543 tests passing. |
 | 2026-10-29 | Phase 5 done: `dataset_export.py`, schema doc, `run_campaign.sh`; 553 tests passing. |
+| 2026-10-29 | Phase 6 done; coin toss dropped (GHZ and RV cover the noise floor): 8 algorithms, 172 configs, 1,032 jobs. |
+| 2026-10-29 | Phase 7 pilot run on ibm_fez: 34 jobs, export clean; calibration notice, QuantumSpecific NaN and sequential Batch fixes. |

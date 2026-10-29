@@ -170,3 +170,26 @@ def test_legacy_files_are_never_read(root, tmp_path):
     )
     assert all("/v2/" in str(p) for p in D.discover(copy))
     assert D.export(tmp_path / "out", root=copy, allow_fake=True)["rows"] == 6
+
+
+def test_excluded_algorithms_never_enter_the_dataset(root, tmp_path, fez, monkeypatch):
+    """Coin-toss pilot records stay on disk but are filtered out of the export."""
+    import shutil
+
+    from qward.examples.papers.coin_toss.coin_toss_ibm import CoinTossIBMExperiment
+
+    copy = tmp_path / "copy"
+    shutil.copytree(root, copy)
+    runtime = AerRuntime(fez)
+    monkeypatch.setattr(qiskit_ibm_runtime, "SamplerV2", runtime.Sampler)
+    experiment = CoinTossIBMExperiment()
+    experiment.include_quantum_specific = lambda config: False
+    experiment.get_campaign_output_dir = lambda: copy / "coin_toss" / "data" / "qpu" / "v2"
+    store = experiment.campaign().store
+    path = store.prepare("CT3", fez, shots=64, planned_executions=4)
+    store.submit(path, fez)
+    store.recover(path, runtime.service)
+    assert any("COIN_TOSS" in p.read_text() for p in D.discover(copy))
+    report = D.export(tmp_path / "out", root=copy, allow_fake=True)
+    assert report["rows"] == 6 and report["excluded_rows"] == 1
+    assert "COIN_TOSS" not in set(pd.read_csv(tmp_path / "out" / "dataset.csv")["meta.algorithm"])

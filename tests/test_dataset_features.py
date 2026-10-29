@@ -288,3 +288,47 @@ def test_unavailable_results_are_never_cached(tmp_path):
     big = QuantumCircuit(F.QUANTUM_SPECIFIC_MAX_QUBITS + 1)
     assert F.quantum_specific(big, cache_dir=tmp_path)["available"] is False
     assert list(tmp_path.glob("*.json")) == []
+
+
+def test_quantum_specific_is_finite_for_structured_unitaries():
+    """PE and QFT unitaries have exactly-zero off-diagonals: torch.abs gave NaN gradients."""
+    import math
+
+    from qward.examples.papers.phase_estimation.pe_ibm import PEIBMExperiment
+    from qward.examples.papers.qft.qft_ibm import QFTIBMExperiment
+
+    for runner, config_id in ((PEIBMExperiment(), "PE-S6"), (QFTIBMExperiment(), "SP6-P4")):
+        circuit = runner.create_circuit(runner.get_config(config_id))
+        group = F.quantum_specific(circuit, cache_dir=None)
+        assert group["available"], group
+        assert all(math.isfinite(group[k]) for k in ("magic", "coherence", "sensitivity"))
+        assert group["coherence"] > 1
+
+
+def test_safe_abs_has_zero_gradient_at_zero_and_exact_values():
+    import torch
+
+    from qward.metrics.quantum_specific_metrics import QuantumSpecificMetrics
+
+    z = torch.tensor([0 + 0j, 3 + 4j, 1e-25 + 0j], dtype=torch.complex64, requires_grad=True)
+    values = QuantumSpecificMetrics._safe_abs(z)
+    values.sum().backward()
+    assert values.tolist() == [0.0, 5.0, 0.0]
+    assert not torch.isnan(z.grad).any()
+
+
+def test_values_changed_ignores_date_only_recalibration(fez):
+    experiment = GHZIBMExperiment()
+    isa = _isa(experiment.create_circuit(experiment.get_config("GHZ3")), fez)
+    before = capture_calibration(isa, fez, include_backend_properties=False)
+    same_values = json.loads(json.dumps(before))
+    same_values["calibrated_at"] = "2099-01-01 00:00:00+00:00"
+    assert F.values_changed(before, same_values) is False
+    moved = json.loads(json.dumps(before))
+    gate = next(e for e in moved["instructions"] if e["name"] == "cz")
+    gate["error"] += 1e-3
+    assert F.values_changed(before, moved) is True
+    coherence = json.loads(json.dumps(before))
+    qubit = next(iter(coherence["qubits"].values()))
+    qubit["t1_s"] *= 0.5
+    assert F.values_changed(before, coherence) is True

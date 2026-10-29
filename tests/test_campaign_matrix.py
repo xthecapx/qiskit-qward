@@ -28,11 +28,10 @@ def test_matrix_sizes_match_the_plan():
         "qft": 27,
         "pe": 21,
         "grover": 24,
-        "coin_toss": 11,
         "rv": 15,
         "shor": 1,
     }
-    assert sum(sizes.values()) * M.RUNS_PER_WINDOW * len(M.WINDOWS) == 1098
+    assert sum(sizes.values()) * M.RUNS_PER_WINDOW * len(M.WINDOWS) == 1032
 
 
 def test_known_failure_anchors_and_cuts():
@@ -125,7 +124,7 @@ def test_pilot_is_a_small_subset_of_the_matrix_with_its_own_window():
         assert plan["window"] == 0 and plan["runs"] == M.PILOT_RUNS
         assert plan["planned_executions"] == len(configs) * M.PILOT_RUNS
         jobs += plan["planned_executions"]
-    assert jobs == 34  # ~2 minutes of QPU time
+    assert jobs == 30  # ~2 minutes of QPU time
     assert M.PILOT["vtp"] == ["VTP-V2-SINGLE", "VTP-S2-TRIPLE"]  # Static and dynamic.
     assert M.PILOT["shor"] == ["SHOR-N15-M3"]
 
@@ -150,7 +149,7 @@ def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
         commands.append("qward/examples/papers/run_campaign.sh")
     for command in commands:
         result = subprocess.run(
-            [command, "recover", "all", "0"],
+            [command, "recover", "all", "9"],  # Window 9 never has manifests.
             cwd=directory,
             capture_output=True,
             text=True,
@@ -158,3 +157,19 @@ def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
         )
         assert "No such file or directory" not in result.stderr, (cwd, command, result.stderr)
         assert "no manifest" in result.stderr  # Reached the per-algorithm step.
+
+
+def test_coin_toss_is_not_part_of_the_campaign():
+    assert "coin_toss" not in M.MATRIX and "coin_toss" not in M.RUNNERS
+    assert "coin_toss" not in M.PILOT and "coin_toss" in M.EXCLUDED_ALGORITHMS
+    for window in M.WINDOWS:
+        assert not M.plan_path("ghz", window).with_name(f"coin_toss-w{window}.json").exists()
+    assert "coin_toss" not in (ROOT / "run_campaign.sh").read_text()
+
+
+def test_order_seeds_are_stable_per_algorithm():
+    """Removing an algorithm must not change the plans of the others."""
+    assert set(M.MATRIX) <= set(M.ORDER_SEED_OFFSET)
+    assert len(set(M.ORDER_SEED_OFFSET.values())) == len(M.ORDER_SEED_OFFSET)
+    assert M.plan_for("ghz", 0)["order_seed"] == 2 and M.plan_for("shor", 0)["order_seed"] == 7
+    assert M.plan_for("vtp", 3)["order_seed"] == 3008
