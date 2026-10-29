@@ -173,3 +173,16 @@ def test_order_seeds_are_stable_per_algorithm():
     assert len(set(M.ORDER_SEED_OFFSET.values())) == len(M.ORDER_SEED_OFFSET)
     assert M.plan_for("ghz", 0)["order_seed"] == 2 and M.plan_for("shor", 0)["order_seed"] == 7
     assert M.plan_for("vtp", 3)["order_seed"] == 3008
+
+
+def test_qpu_time_model_reproduces_the_pilot_billing():
+    """34 pilot jobs on ibm_fez: 32 billed 2 s (depth <= 440), 2 Shor jobs billed 3 s (depth 4640)."""
+    for depth in (4, 14, 44, 77, 135, 140, 177, 438):
+        assert M.qpu_seconds(depth) == 2
+    assert M.qpu_seconds(4640) == 3
+    assert M.qpu_seconds(100000) > M.qpu_seconds(4640)
+
+
+def test_pilot_estimate_matches_ibm_batch_usage():
+    four_job_batch = 4 * M.qpu_seconds(100)
+    assert four_job_batch == 8  # The dashboard showed 8 s for every 4-job batch.

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import math
 import inspect
 import json
 from pathlib import Path
@@ -255,13 +256,20 @@ def measure(key: str, config_id: str, backend, pass_manager) -> Dict:
     }
 
 
-# QPU seconds per job at 1,024 shots. Real ibm_fez jobs at 2,048 shots with
-# 30-200 two-qubit gates billed 3 s each (usage.quantum_seconds, integer
-# seconds). Deeper circuits take longer to execute; the model below is a
-# conservative upper bound, not a measurement.
+# QPU seconds billed per job (IBM ``usage.quantum_seconds``, whole seconds).
+# Measured on the 34 pilot jobs on ibm_fez at 1,024 shots: 32 jobs billed 2 s
+# (circuit durations 0-14 us) and the two Shor jobs billed 3 s (136 us). A
+# batch's usage in the dashboard is the sum of its jobs (4 jobs = 8 s). The
+# circuit duration is about 31 ns per layer of ISA depth; the 250 us rep delay
+# dominates short circuits. The fixed 1.7 s overhead is fitted to the pilot, so
+# treat the result as an estimate and compare it with `run_campaign.sh usage`.
+PILOT_NS_PER_LAYER = 31e-9
+JOB_OVERHEAD_S = 1.7
+
+
 def qpu_seconds(isa_depth: int, shots: int = SHOTS, rep_delay_s: float = 250e-6) -> int:
-    per_shot_s = rep_delay_s + isa_depth * 5e-8  # ~50 ns per layer
-    return max(2, int(round(shots * per_shot_s)) + 2)
+    per_shot_s = rep_delay_s + isa_depth * PILOT_NS_PER_LAYER
+    return max(2, math.ceil(shots * per_shot_s + JOB_OVERHEAD_S))
 
 
 def report(sample: Optional[List[str]] = None) -> Dict:

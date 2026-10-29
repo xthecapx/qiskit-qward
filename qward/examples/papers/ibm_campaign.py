@@ -420,7 +420,7 @@ class RecordStore:
         journal["status"] = "submitting"
         if batch_id is not None:
             journal["batch_id"] = batch_id
-        sampler.options.environment.job_tags = [prepared["run_id"], f"repeat-{run_index}"]
+        sampler.options.environment.job_tags = job_tags(prepared, run_index)
         entry = {
             "run_index": run_index,
             "status": "submitting",
@@ -515,6 +515,25 @@ class RecordStore:
 # ---------------------------------------------------------------------------
 # Plans and manifests (one Batch per algorithm per window)
 # ---------------------------------------------------------------------------
+
+
+def job_tags(prepared: Mapping[str, Any], run_index: int) -> List[str]:
+    """Tags shown in the IBM dashboard: algorithm first, then config, window, repeat.
+
+    The tag text is readable on its own (``bv``, ``cfg:BV8-ONES``, ``w1``,
+    ``repeat-0``); the run ID stays last so a job can still be traced to its
+    record. IBM allows up to 20 tags of 128 characters each.
+    """
+    algorithm = str(prepared["algorithm"]).lower().replace("_", "-").replace(" ", "-")
+    tags = [
+        algorithm,
+        f"cfg:{prepared['config_id']}",
+        f"campaign:{prepared['campaign_id']}",
+        f"w{prepared['window']}",
+        f"repeat-{run_index}",
+        prepared["run_id"],
+    ]
+    return [tag[:128] for tag in tags]
 
 
 def job_order(items: Sequence[Mapping[str, Any]], seed: int) -> List[Tuple[int, int]]:
@@ -732,6 +751,60 @@ class Campaign:
             "manifest": str(manifest_path),
             "status": manifest["status"],
             "records": [summarize(r) for r in records],
+        }
+
+    @staticmethod
+    def usage(manifest_paths: Sequence[Path], service: Any) -> Dict[str, Any]:
+        """QPU seconds IBM billed for submitted manifests, plus the account balance.
+
+        Per manifest: the Batch usage from IBM (sum of its jobs' QPU time) and the
+        per-job ``quantum_seconds`` saved in the records at recovery, so the two can
+        be compared. Read-only.
+        """
+        from qiskit_ibm_runtime import Batch  # pylint: disable=import-outside-toplevel
+
+        rows = []
+        for path in manifest_paths:
+            manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+            if not manifest.get("batch_id"):
+                continue
+            saved = 0
+            for item in manifest["items"]:
+                record = json.loads(Path(item["record_path"]).read_text(encoding="utf-8"))
+                for entry in record["submission_journal"]:
+                    usage = (entry.get("execution_metrics") or {}).get("usage") or {}
+                    saved += usage.get("quantum_seconds") or 0
+            try:
+                billed = Batch.from_id(manifest["batch_id"], service=service).usage()
+            except Exception as exc:  # pylint: disable=broad-except
+                billed = None
+                note = f"{type(exc).__name__}: {exc}"
+            else:
+                note = None
+            rows.append(
+                {
+                    "algorithm": manifest.get("algorithm"),
+                    "window": manifest.get("window"),
+                    "batch_id": manifest["batch_id"],
+                    "jobs": sum(len(i.get("job_ids", [])) for i in manifest["items"]),
+                    "batch_usage_seconds": billed,
+                    "saved_job_quantum_seconds": saved,
+                    **({"error": note} if note else {}),
+                }
+            )
+        account = service.usage()
+        return {
+            "batches": rows,
+            "total_batch_usage_seconds": sum(r["batch_usage_seconds"] or 0 for r in rows),
+            "account": {
+                key: account.get(key)
+                for key in (
+                    "usage_consumed_seconds",
+                    "usage_limit_seconds",
+                    "usage_remaining_seconds",
+                    "usage_limit_reached",
+                )
+            },
         }
 
     @staticmethod

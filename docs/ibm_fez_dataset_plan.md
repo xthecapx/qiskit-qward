@@ -116,10 +116,24 @@ Distribution of predicted M1 error across the 172 configs: 75 below 10%, 59 at
 prediction). The three high-error entries (Grover S5, Shor M3, RV8-D8) are
 deliberate anchors for where output turns into noise.
 
-**QPU time.** Every real `ibm_fez` job so far billed 3 s at 2,048 shots
-(30–200 2Q gates; `usage.quantum_seconds`, integer seconds). The model
-(`campaign_matrix.qpu_seconds`) is a conservative upper bound: ~11 min per
-window, ~34 min for all 1,032 jobs. Real usage will likely be lower.
+**QPU time.** Measured on the 34 pilot jobs (IBM `usage.quantum_seconds`,
+whole seconds, 1,024 shots): 32 jobs billed 2 s (ISA depth 4–438, circuit
+duration 0–14 µs), the two Shor jobs billed 3 s (depth 4,640, 136 µs). A
+Batch's usage in the dashboard is the sum of its jobs (4 jobs = 8 s, Shor's
+2 jobs = 6 s); the pilot used 62 s in total. The 250 µs rep delay dominates
+short circuits, so billing is almost flat in circuit size.
+`campaign_matrix.qpu_seconds` is fitted to those numbers (31 ns per layer plus
+1.7 s fixed per job) and predicts **~12 min per window, ~35 min for all 1,032
+jobs** (≈ 2,100 s of the account's 10,800 s). The earlier "30 min" figure was
+this same total; the dashboard figure per Batch is 6–8 s because each Batch
+holds 2–4 jobs, not a whole window. `run_campaign.sh usage [window]` reads the
+real numbers from IBM next to the saved per-job values.
+
+**Dashboard tags.** Every job carries `<algorithm>` first (`ghz`, `bv` →
+`bernstein-vazirani`, `phase-estimation`, …), then `cfg:<config>`,
+`campaign:<id>`, `w<window>`, `repeat-<n>` and the run ID. In the IBM
+dashboard, filter the Jobs table by the algorithm tag. Jobs submitted before
+this change carry only `<run id>` and `repeat-<n>`.
 
 ## Phases
 
