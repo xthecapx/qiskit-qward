@@ -91,7 +91,7 @@ def load_tables(directory):
                 "shots": shots,
                 "rep": int(row["meta.run_index"]) + 1,
                 "ref": ref,
-                "date": row["g.finished_at"][:10],
+                "finishedAt": row["g.finished_at"],
                 "exact": row["g.reference_exact"] == "True",
                 "counts": counts,
                 "contrast": (ranked[0] - ranked[1]) / (ranked[0] + ranked[1]),

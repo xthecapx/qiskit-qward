@@ -32,126 +32,157 @@
         results.</noscript
       >
       <div id="error" role="alert" hidden></div>
-      <section class="filters" aria-label="Measurement scope">
-        <label>Chip<select id="backend"></select></label
-        ><label>Campaign window<select id="window"></select></label>
-        <label>Algorithm<select id="algorithm"></select></label
-        ><label>Circuit family<select id="family"></select></label>
-      </section>
-      <section class="surface">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">01 &nbsp; / &nbsp; Operating range</p>
-            <h2>Find a boundary</h2>
+      <section class="surface" aria-label="Experiment explorer">
+        <div id="plot-view">
+          <div class="plot-toolbar" aria-label="Explore measurements">
+            <label>Algorithm<select id="algorithm"></select></label>
+            <label>Question<select id="question"></select></label>
+            <button type="button" id="adjust-plot" class="view-button" aria-haspopup="dialog" aria-controls="plot-settings">
+              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h7m4 0h7M3 17h11m4 0h3"/><circle cx="12" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+              Adjust plot
+            </button>
           </div>
-          <small id="coverage"></small>
-        </div>
-        <div class="settings">
-          <label
-            >What do you need to know?<select id="question"></select
-          ></label>
-          <label id="target-label"
-            >Task target (0–1)
-            <input
-              id="target"
-              type="number"
-              min="0"
-              max="1"
-              step="any"
-              placeholder="Optional"
-          /></label>
-          <label
-            >Horizontal axis<select id="axis">
-              <option value="width">Logical qubits</option>
-              <option value="depth">Executed ISA depth</option>
-              <option value="bits">Measured bits</option>
-              <option value="gates">Two-qubit gates</option>
-            </select></label
-          >
-        </div>
-        <div class="analysis">
-          <article class="finding" aria-live="polite">
-            <p class="eyebrow">Measured result</p>
-            <h3 id="headline"></h3>
-            <p id="explain"></p>
-            <hr />
-            <b id="metric"></b>
-            <p id="meaning"></p>
-          </article>
-          <div>
-            <div
-              id="trend"
-              class="plot"
-              role="img"
-              aria-label="Selected metric by circuit setting"
-            ></div>
-            <p class="note">
-              Points are individual jobs. Select a point to inspect its
-              histogram.
-            </p>
+          <div class="plot-caption">
+            <h2 id="plot-title">Operating range</h2>
+            <p id="scope-caption" class="note"></p>
+            <p class="note"><span id="coverage"></span><span id="target-caption"></span></p>
           </div>
-        </div>
-        <details>
-          <summary>Compare all settings in this sweep</summary>
-          <div class="scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Configuration</th>
-                  <th>Qubits</th>
-                  <th>ISA depth</th>
-                  <th>Job values</th>
-                  <th>Target result</th>
-                </tr>
-              </thead>
-              <tbody id="settings-table"></tbody>
-            </table>
+          <dialog id="plot-settings" aria-labelledby="settings-title">
+            <form method="dialog">
+              <div class="section-head">
+                <h2 id="settings-title">Adjust plot</h2>
+                <button class="view-button" type="submit">Done</button>
+              </div>
+              <fieldset>
+                <legend>Which jobs to include</legend>
+                <label>Chip<select id="backend"></select></label>
+                <label>Measurement period (UTC)<select id="window"></select></label>
+                <label>Experiment group<select id="family"></select></label>
+                <p class="note">Use all experiments for the full algorithm, or choose a group to compare related circuits.</p>
+              </fieldset>
+              <fieldset>
+                <legend>How to compare them</legend>
+                <label>Plot against<select id="axis">
+                  <option value="width">Logical qubits</option>
+                  <option value="depth">Executed ISA depth</option>
+                  <option value="bits">Measured bits</option>
+                  <option value="gates">Two-qubit gates</option>
+                </select></label>
+                <label><span id="target-label">Target</span>
+                  <input id="target" type="number" min="0" max="1" step="any" aria-describedby="target-help" placeholder="Optional">
+                </label>
+                <p class="note" id="target-help"></p>
+              </fieldset>
+            </form>
+          </dialog>
+          <div class="analysis">
+            <div>
+              <div
+                id="trend"
+                class="plot"
+                role="img"
+                aria-label="Selected metric by circuit setting"
+              ></div>
+              <div class="plot-foot">
+                <p class="note">Each point is one job. Select it to inspect its outcomes.</p>
+                <button type="button" class="view-button" id="open-histogram"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M8 17v-5m5 5V6m5 11v-8"/></svg>View job histogram</button>
+              </div>
+            </div>
+            <article class="finding" aria-label="Experiment overview">
+              <div class="finding-tabs" role="tablist" aria-label="Experiment details">
+                <button id="tab-overview" role="tab" aria-controls="panel-overview" aria-selected="true">Overview</button>
+                <button id="tab-metric" role="tab" aria-controls="panel-metric" aria-selected="false" tabindex="-1">Metric</button>
+                <button id="tab-job" role="tab" aria-controls="panel-job" aria-selected="false" tabindex="-1">Selected job</button>
+              </div>
+              <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+                <h3 id="headline"></h3>
+                <p id="explain"></p>
+              </div>
+              <div id="panel-metric" role="tabpanel" aria-labelledby="tab-metric" tabindex="0" hidden>
+                <h3 id="metric"></h3>
+                <p id="meaning"></p>
+              </div>
+              <div id="panel-job" role="tabpanel" aria-labelledby="tab-job" tabindex="0" hidden>
+                <h3 id="selected-label"></h3>
+                <b id="selected-result"></b>
+                <p id="experiment-description"></p>
+              </div>
+            </article>
           </div>
-        </details>
-      </section>
-      <section class="surface">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">02 &nbsp; / &nbsp; Run evidence</p>
-            <h2>Inspect the histogram</h2>
-          </div>
+          <details>
+            <summary>Compare the experiments shown</summary>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Experiment</th>
+                    <th>Group</th>
+                    <th>Qubits</th>
+                    <th>ISA depth</th>
+                    <th>Job values</th>
+                    <th>Target result</th>
+                  </tr>
+                </thead>
+                <tbody id="settings-table"></tbody>
+              </table>
+            </div>
+          </details>
         </div>
-        <div class="settings">
-          <label>Configuration<select id="config"></select></label
-          ><label>Repetition<select id="rep"></select></label
-          ><label
-            >Visible outcomes<select id="bins">
-              <option>8</option>
-              <option>16</option>
-              <option>32</option>
-            </select></label
-          >
-        </div>
-        <p id="run-context" class="note"></p>
-        <div class="numbers" id="numbers"></div>
-        <p id="hist-note"></p>
-        <div
-          id="hist"
-          role="img"
-          aria-label="Observed outcome probabilities with reference markers"
-        ></div>
-        <details>
-          <summary>View all outcome counts and reference values</summary>
-          <div class="scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Outcome</th>
-                  <th>Shots</th>
-                  <th>Observed</th>
-                  <th>Ideal</th>
-                  <th>Accepted</th>
-                </tr>
-              </thead>
-              <tbody id="outcomes"></tbody>
-            </table>
+        <div id="histogram-view" hidden>
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">02 &nbsp; / &nbsp; Run evidence</p>
+              <h2>Inspect the histogram</h2>
+            </div>
+            <button type="button" class="view-button" id="back-to-plot">← Back to main plot</button>
           </div>
-        </details>
+          <div class="settings">
+            <div class="experiment-field"><span id="experiment-label">Experiment</span><button id="choose-config" class="picker-trigger" type="button" aria-labelledby="experiment-label choose-config" aria-haspopup="dialog" aria-controls="experiment-picker"></button></div>
+            <label>Repetition<select id="rep"></select></label
+            ><label
+              >Outcomes to show<select id="bins">
+                <option>8</option>
+                <option>16</option>
+                <option>32</option>
+              </select></label
+            >
+          </div>
+          <dialog id="experiment-picker" aria-labelledby="picker-title">
+            <div class="section-head">
+              <h2 id="picker-title">Choose an experiment</h2>
+              <button type="button" class="view-button" id="close-picker">Close</button>
+            </div>
+            <label for="experiment-search">Search by ID, group or description</label>
+            <input id="experiment-search" type="search" autocomplete="off" autofocus aria-controls="experiment-results">
+            <p id="match-count" class="note" role="status"></p>
+            <div id="experiment-results"></div>
+          </dialog>
+          <p id="run-context" class="note"></p>
+          <div class="numbers" id="numbers"></div>
+          <p id="hist-note"></p>
+          <div
+            id="hist"
+            role="img"
+            aria-label="Observed outcome probabilities with reference markers"
+          ></div>
+          <details>
+            <summary>View all outcome counts and reference values</summary>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Outcome</th>
+                    <th>Shots</th>
+                    <th>Observed</th>
+                    <th>Ideal</th>
+                    <th>Accepted</th>
+                  </tr>
+                </thead>
+                <tbody id="outcomes"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
       </section>
       <footer>
         <span id="source">Reading the exported snapshot…</span
