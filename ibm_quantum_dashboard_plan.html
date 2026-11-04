@@ -1,0 +1,618 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html">
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2025.12.19 -->
+        <title>IBM Quantum experiment dashboard plan - Qward 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/qiskit-sphinx-theme.css?v=fc6d6d93" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Qward 0.1.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">Qward 0.1.0</span>
+  
+</a>
+<form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">QWARD Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input aria-label="Toggle navigation of API References" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_element.html">Element Metrics (Gate-Level)</a><input aria-label="Toggle navigation of Element Metrics (Gate-Level)" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.element_metrics.ElementMetrics.html">qward.metrics.element_metrics.ElementMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_structural.html">Structural Metrics</a><input aria-label="Toggle navigation of Structural Metrics" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.structural_metrics.StructuralMetrics.html">qward.metrics.structural_metrics.StructuralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_behavioral.html">Behavioral Metrics (Execution Dynamics)</a><input aria-label="Toggle navigation of Behavioral Metrics (Execution Dynamics)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.behavioral_metrics.BehavioralMetrics.html">qward.metrics.behavioral_metrics.BehavioralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_quantum_specific.html">Quantum Specific Metrics (Magic / Coherence / Sensitivity)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
+</ul>
+</li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/ibm_quantum_dashboard_plan.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="ibm-quantum-experiment-dashboard-plan">
+<h1>IBM Quantum experiment dashboard plan<a class="headerlink" href="#ibm-quantum-experiment-dashboard-plan" title="Link to this heading">¶</a></h1>
+<p>Working draft, 4 November 2026. Interface and figures are open for iteration.</p>
+<section id="purpose-and-current-evidence">
+<h2>Purpose and current evidence<a class="headerlink" href="#purpose-and-current-evidence" title="Link to this heading">¶</a></h2>
+<p>The dashboard now lives in the independent top-level <code class="docutils literal notranslate"><span class="pre">dashboard/</span></code> project. Its static build shares the QWARD GitHub Pages deployment at <code class="docutils literal notranslate"><span class="pre">dashboard/</span></code>. Sphinx provides a discovery link. The first release presents the current results for a professor-facing demonstration, then supports repeated measurements on named IBM backends.</p>
+<p>The validated snapshot contains 404 unique jobs on <code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code>. It includes the original 30-job pilot, the 30-job pilot repeat, and the 344-job first campaign window. Window 1 covers 172 configurations, two repetitions per configuration, 1,024 shots per job, optimization level 3, and transpiler seed 11. Its billed QPU usage is 692 seconds. The combined exporter reports zero errors, zero skipped records, and 48 warnings. Of those warnings, 34 concern sampled references, 10 concern calibration changes in the pilot repeat, and four concern QuantumSpecific failures in the original pilot.</p>
+<p>The source is <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/dataset_out/dataset.csv</span></code> and its export report. Preserve campaign, window, and backend identity throughout filtering and aggregation. Future figures must disclose their selected snapshot and last measurement date.</p>
+</section>
+<section id="landing-page-how-far-can-i-use-this-raw-circuit">
+<h2>Landing page · How far can I use this raw circuit?<a class="headerlink" href="#landing-page-how-far-can-i-use-this-raw-circuit" title="Link to this heading">¶</a></h2>
+<p>Start with <strong>Choose an algorithm</strong>. Offer all eight algorithms on the selected chip and show the latest completed window and measurement date. Inside each algorithm, name the circuit family in plain language and show the task it performs. Open one family at a time. Default to the QFT SR example for the first demonstration. Here “raw” means the observed job counts after the recorded transpilation and execution settings, before any dashboard-side correction or pooling.</p>
+<ol class="arabic simple">
+<li><p><strong>Read the result.</strong> Show one sentence with the last tested setting meeting the selected task requirement and the next tested setting that missed it, when the measurements support that summary. Directly below it show the requirement, the metric, both repetitions, shot count and execution context. A developer should be able to quote the result with its conditions from this screen.</p></li>
+<li><p><strong>Check the signal.</strong> Put task performance and DSR side by side on the same width or depth axis. In plain language, the first answers “Did enough shots satisfy my task?” and DSR answers “How clearly did the expected outcomes stand above the strongest competing outcome?” The requirement applies to the selected task metric alone. Offer the task’s random-guess baseline where defined. A missed target can still contain useful signal.</p></li>
+<li><p><strong>Inspect a run.</strong> Select either side of the boundary, then a repetition, to see its observed histogram with expected labels and reference probabilities. Offer the neighbouring configuration for side-by-side comparison. Carry the exact selection into <strong>Explore plots</strong>.</p></li>
+<li><p><strong>Explore plots</strong> opens the editable axes, metrics, chips, families, dates and repetition filters. Changing the task target recalculates the summary immediately and labels it as a custom target. Reset restores the published view. Browsing or hiding points in Explore must leave the published measurement scope visible and must never silently redefine its boundary.</p></li>
+</ol>
+<section id="choose-the-question-that-defines-the-boundary">
+<h3>Choose the question that defines the boundary<a class="headerlink" href="#choose-the-question-that-defines-the-boundary" title="Link to this heading">¶</a></h3>
+<p>Use the practitioner questions from <em>Choosing a Quantity for an Execution Requirement</em> in the limitation-metrics manuscript (LaTeX table <code class="docutils literal notranslate"><span class="pre">tab:gqm</span></code>). After the chip and algorithm selection, ask <strong>What do you need this circuit to do?</strong> Default the QFT SR example to <strong>Return an accepted answer</strong>. Keep the selected question above the headline, width/depth plot and histogram. Changing questions keeps the same runs and loads that question’s metric, threshold direction, reference and histogram annotations. If no target has been chosen for that question, show the measurements and invite the developer to set one before drawing a boundary.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Developer question</p></th>
+<th class="head"><p>What determines the result</p></th>
+<th class="head"><p>What to highlight in the selected run</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Did enough shots return an accepted answer?</p></td>
+<td><p>Success rate, the observed fraction in the defined answer set (R1). For “How much better than guessing?”, offer chance-corrected success only with an explicit, justified null model.</p></td>
+<td><p>Shade every accepted bar and show their combined count over all shots. Show the chance baseline when used.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Do the expected peaks dominate competitors?</p></td>
+<td><p>DSR, the contrast between the average accepted-label probability and the strongest individual competing probability (R1).</p></td>
+<td><p>Mark the accepted average and the strongest competitor. Show the number of accepted labels, measured bits and shots.</p></td>
+</tr>
+<tr class="row-even"><td><p>Does any candidate stand out before I know the answer?</p></td>
+<td><p>Top-two observed contrast and the per-job rank test (R0). Derive contrast from complete counts and show the recorded rank status, significance level and p-value. The manuscript’s separated-group procedure needs its own implementation and validation.</p></td>
+<td><p>Mark the two leading counts and any tie. A resolved rank supports a separation claim under the sampling assumptions. Application verification is a separate step.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Do the accepted answers occur in the proportions my task requires?</p></td>
+<td><p>Coarse TVD or coarse Hellinger distance against justified target weights (R1). Display the weights used by the exported metric.</p></td>
+<td><p>Show a bin for each accepted answer and one bin for all remaining mass. For GHZ this exposes imbalance between the two accepted strings.</p></td>
+</tr>
+<tr class="row-even"><td><p>How close is the whole output to the ideal distribution?</p></td>
+<td><p>Full TVD or Hellinger comparison with a complete reference (R2). Name the representation and direction, e.g. lower TVD or higher Hellinger fidelity. Identify sampled ideal references.</p></td>
+<td><p>Overlay ideal probabilities on the observed histogram. Compute the comparison on the full support before display-only grouping.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every view states what evidence it requires. When the reference or justified weights are missing, keep the question visible with the reason it is unavailable. Estimator questions about observable deviation, energy, positive-eigenspace success and reported uncertainty belong to R3 or Estimator diagnostics and require their own records. The current Sampler campaign supplies counts. Operational fidelity and inverse-return questions require additional protocol runs (R4). Calibration-based predictions stay in their own view.</p>
+<p>A changed question can yield a different last usable setting. Preserve a threshold across representations only when the conversion preserves the per-job decision for the same attribute and reference. For example, TVD at most 0.20 means TVD similarity at least 0.80. Switching from success to DSR loads a separate requirement. Treat DSR as ordinal within a fixed answer set, outcome space and sampling design. Across widths, label DSR points as descriptive per-configuration checks and show the changing context. A shared DSR cutoff across widths or families needs justification.</p>
+<p>Keep both job values visible. If an uncertainty-aware decision is requested, show the interval method and level for that metric, and mark a threshold-overlapping interval <strong>Inconclusive</strong>. A missing interval leaves that decision unavailable. Apply conversions to each job before reporting summaries and identify their weighting. Pooled counts answer a separate question from an equal-job summary.</p>
+</section>
+<section id="reading-a-boundary-from-the-measurements">
+<h3>Reading a boundary from the measurements<a class="headerlink" href="#reading-a-boundary-from-the-measurements" title="Link to this heading">¶</a></h3>
+<p>A boundary belongs to a backend, window, raw circuit family, ordered sweep and explicit task requirement. Start with an editable example such as “at least half the shots return an accepted answer” for a recovery task. Offer distribution agreement when the task is to reproduce a distribution. Record metric, direction, numerical target, and profile version with every published summary. Confirm defaults with the research team across windows 2 and 3 before presenting them as monthly benchmarks.</p>
+<p>Classify each tested setting from the individual jobs. For window 1, label it <strong>Meets target</strong> when both repetitions meet the inclusive requirement, <strong>Below target</strong> when both miss, and <strong>Mixed</strong> when they disagree. Incomplete jobs or missing required metrics mean <strong>Insufficient evidence</strong>. Display the observed fractions, including close calls. These labels describe this sample. They do not establish a future job’s success probability.</p>
+<p>Show a single bracket only for an ordered, comparable sweep with a passing prefix and a failing suffix. Use the actual endpoints and identify gaps in coverage. If all pass, say “met target through the largest tested setting.” If all miss, say “below target at every tested setting.” For reversals, split repetitions or missing evidence, show the sequence of tested settings with their individual statuses. For a single point, report that measurement alone. Changing the plot to depth preserves the original sweep and annotates the endpoints with their measured depths. A depth-limit claim requires its own comparable ordered sweep.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>What the developer can compare</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GHZ</p></td>
+<td><p>Width sweep with both expected bitstrings visible. Offer distribution agreement to expose imbalance between them.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bernstein–Vazirani</p></td>
+<td><p>Width within a fixed secret pattern (SINGLE, ALT or ONES). Label measured bits and ancilla separately.</p></td>
+</tr>
+<tr class="row-even"><td><p>QFT</p></td>
+<td><p>Start with the ordered SR width sweep. Separate the other preparation and input variants.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Phase estimation</p></td>
+<td><p>Counting-register width within each phase family. Explain the accepted tolerance beside the ideal distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p>Grover</p></td>
+<td><p>Width for matched search tasks, such as S3-1 through S5-1. Keep the marked fraction and chance level visible.</p></td>
+</tr>
+<tr class="row-odd"><td><p>vTP</p></td>
+<td><p>V and S series separately with payload fixed. Show individual settings when a larger circuit recovers after a dip.</p></td>
+</tr>
+<tr class="row-even"><td><p>Random volumetric</p></td>
+<td><p>Compare depths at fixed width. Keep the circuit instance and seed visible and identify where the sweep has a single sampled setting.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shor</p></td>
+<td><p>Show the N15-M3 result and “one configuration tested.” More sizes are needed to bracket a limit.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="proposed-first-screen">
+<h3>Proposed first screen<a class="headerlink" href="#proposed-first-screen" title="Link to this heading">¶</a></h3>
+<p><img alt="QFT SR first-screen preview comparing task success and DSR at the measured boundary" src="_images/00_algorithm_boundary.png" /></p>
+<p>With the <strong>illustrative 50% success target</strong>, SR5 returned accepted answers on 67.4% and 66.7% of shots at executed depth 161. SR6 returned 43.8% and 45.2% at depth 277. Mean DSR at SR6 was still 0.74. A developer seeking an answer on at least half their shots would pick SR5 from this sweep. Someone investigating whether the expected peak survives has a reason to open the SR6 histogram. This is one Fez window.</p>
+</section>
+</section>
+<section id="dsr-as-the-first-screening-view">
+<h2>DSR as the first screening view<a class="headerlink" href="#dsr-as-the-first-screening-view" title="Link to this heading">¶</a></h2>
+<p>When an accepted-answer set is available, feature Differential Success Rate as a quick check of expected-peak dominance. Make it the primary result when the developer selects that question and a companion measure for task success. Use the existing <code class="docutils literal notranslate"><span class="pre">f.fidelity.dsr</span></code> field and its QWARD Michelson definition. Let a be the mean observed probability over the accepted outcome set and b the largest observed probability of an outcome outside that set. DSR is the contrast <code class="docutils literal notranslate"><span class="pre">(a</span> <span class="pre">-</span> <span class="pre">b)</span> <span class="pre">/</span> <span class="pre">(a</span> <span class="pre">+</span> <span class="pre">b)</span></code>, clipped to the supported range, with the implementation’s boundary handling.</p>
+<p>DSR consumes observed counts and expected outcome labels. It can avoid generating a full ideal distribution when those labels are readily available. Present that practical advantage with a short explanation and a later reproducible benchmark. Success rate, chance-corrected success, and coarse similarities are companion measures with separate names.</p>
+<p>Keep success rate and distribution metrics available next to DSR. BV14-ONES is an instructive example from window 1. Its mean DSR is approximately 0.815 while mean success is 0.329. Its expected outcome remains prominent relative to individual competing outcomes while substantial probability lies elsewhere. Show this relationship directly in the histogram explorer.</p>
+<p>Use existing peak-mismatch and rank-evidence fields with their definitions. Multi-peak expected distributions, ties, and finite shot counts need explicit explanations. Define task-specific screening thresholds after reviewing repeated windows. The initial interface displays continuous values and their evidence.</p>
+<p>The benchmark phase should measure the DSR operation, full-distribution metric evaluation with an available reference, and ideal-reference construction separately. Include warm-up, repeated timings, median and spread, input size, machine details, and cached versus uncached reference construction. Current records do not contain isolated DSR timing. A numerical speedup claim requires that measurement.</p>
+</section>
+<section id="explore-plots-controls-and-visual-grammar">
+<h2>Explore plots · controls and visual grammar<a class="headerlink" href="#explore-plots-controls-and-visual-grammar" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Global filters select backend, campaign, window or date, algorithm, family, configuration, and repetition.</p></li>
+<li><p>The horizontal axis selector offers logical qubit count, measured bit count, executed ISA depth, and two-qubit gate count. Start with separate width and depth views so units are clear.</p></li>
+<li><p>The vertical axis selects DSR, success rate, chance-corrected success, Hellinger fidelity, raw TVD, or TVD similarity. Default to the metric of the selected question.</p></li>
+<li><p>A comparison mode shows aligned metric panels with the same selected circuits. Label raw TVD as lower-is-better and similarity measures as higher-is-better.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">a.num_qubits</span></code> for logical width, <code class="docutils literal notranslate"><span class="pre">a.num_clbits</span></code> for measured width, and <code class="docutils literal notranslate"><span class="pre">b.depth</span></code> for the stored executed ISA depth. Avoid displaying idle device wires as algorithm width. BV14 has 14 measured bits and 15 logical qubits including its ancilla.</p></li>
+<li><p>Show individual repetitions and their configuration means. Two repetitions provide a range of observed values, not a reliable estimate of variability across months. Any shot-based confidence intervals should identify their method and what they measure.</p></li>
+<li><p>Connect points within an ordered algorithm family. Use scatter plots across heterogeneous algorithms, with a logarithmic depth toggle.</p></li>
+<li><p>Stable colours identify algorithms or families. Hover information includes configuration, metrics, logical and measured width, ISA depth, two-qubit gate count, shots, repetition, job ID, and execution time.</p></li>
+</ul>
+</section>
+<section id="initial-image-previews">
+<h2>Initial image previews<a class="headerlink" href="#initial-image-previews" title="Link to this heading">¶</a></h2>
+<p>These PNGs use the actual window 1 export. They are static figure proposals for layout review. Their styling and chosen default selections can change before dashboard implementation.</p>
+<section id="width-view">
+<h3>Width view<a class="headerlink" href="#width-view" title="Link to this heading">¶</a></h3>
+<p>The initial selection is Bernstein–Vazirani, separated into SINGLE, ALT, and ONES. DSR, success rate, and Hellinger fidelity share a logical-qubit horizontal axis. Pale dots represent individual jobs and lines show configuration means. For deterministic BV references, success and Hellinger fidelity coincide in these data.</p>
+<p><img alt="Metric previews against logical qubits" src="_images/01_metrics_vs_qubits.png" /></p>
+</section>
+<section id="depth-view">
+<h3>Depth view<a class="headerlink" href="#depth-view" title="Link to this heading">¶</a></h3>
+<p>All eight algorithms appear as configuration means against executed ISA depth. DSR, success rate, and Hellinger fidelity occupy aligned panels. This comparison is available under Explore plots after the developer has seen the selected family’s result.</p>
+<p><img alt="Metric previews against executed depth" src="_images/02_metrics_vs_depth.png" /></p>
+</section>
+<section id="histogram-explorer">
+<h3>Histogram explorer<a class="headerlink" href="#histogram-explorer" title="Link to this heading">¶</a></h3>
+<p>Three selected individual jobs demonstrate a two-peak target, a dominant expected outcome with diffuse error, and a degraded dynamic circuit. These are GHZ10, BV14-ONES, and VTP-S2-TRIPLE. Reference markers show theoretical probabilities, including the sampled ideal reference for dynamic vTP. Bars use the original shot total. The displayed other-outcomes bin preserves omitted mass.</p>
+<p><img alt="Observed histograms with ideal reference probabilities" src="_images/03_histogram_explorer.png" /></p>
+<p>Regenerate the previews from the repository root with <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">python</span> <span class="pre">scripts/preview_ibm_dashboard.py</span></code>.</p>
+</section>
+</section>
+<section id="histogram-interaction-design">
+<h2>Histogram interaction design<a class="headerlink" href="#histogram-interaction-design" title="Link to this heading">¶</a></h2>
+<p>Selecting a point opens that run’s histogram and metadata. Provide selectors for repetition and campaign window, plus a clearly labelled pooled-counts option. Reference data comes from the run’s frozen <code class="docutils literal notranslate"><span class="pre">prepared.json</span></code> and follows the record’s multi-register bit ordering.</p>
+<p>Display observed probabilities and an ideal-reference overlay. Offer counts as an alternative scale. Highlight the accepted success set independently from the ideal probability values, because the two can differ for algorithms such as phase estimation. Hover details show the bitstring, observed count, observed probability, ideal probability, accepted status, and difference from the reference.</p>
+<p>Keep relevant expected labels visible, including labels with zero observed counts. Support search and pagination when the expected set is large. A top-outcomes view aggregates omitted outcomes into a labelled bin and reports both observed and reference mass in it. Preserve normalization against all shots. Label sampled references and distinguish unavailable references from zero ideal probability.</p>
+<p>Provide side-by-side run comparison, fixed category ordering across an animation, a log-probability toggle, and PNG/SVG/data downloads. Plot captions carry configuration, backend, shots, job, repetition, and reference type. Clicking an expected label should highlight its contribution to success and its role in DSR.</p>
+</section>
+<section id="animated-visual-library-and-interface">
+<h2>Animated visual library and interface<a class="headerlink" href="#animated-visual-library-and-interface" title="Link to this heading">¶</a></h2>
+<p>Use <strong>Apache ECharts</strong> for the proposed interactive dashboard, with its version pinned and its browser bundle distributed with the documentation assets. Its data transitions support animated changes to scatter plots and bars. Its universal-transition features support linked drill-down between aggregate selections and individual runs. This updates the earlier Plotly proposal to fit the emphasis on animation across views.</p>
+<p>The standalone project uses browser JavaScript and CSS. Its Python build reads only the job and reference tables and writes a compact local script containing the dashboard snapshot. ECharts reads it directly in the browser.</p>
+<p>Animate changes to backend, window, selected metric, histogram, and highlighted run. Use stable configuration and outcome IDs so transitions preserve object identity. Provide a play/pause timeline for discrete measured windows and monthly observations. Keep axis limits stable during playback when possible and stop playback when the user inspects a run. Intermediate frames are visual interpolation between observations, while actual measurement dates remain visible.</p>
+<p>Default update animations should take approximately 300–500 ms. Honour reduced-motion preferences and provide an explicit animation toggle. Provide keyboard controls, descriptive text, distinguishable markers or patterns, and accessible data tables. The scientific export offers a frozen frame with its complete caption.</p>
+<p>Library references are the <a class="reference external" href="https://apache.github.io/echarts-handbook/en/how-to/animation/transition/">ECharts data-transition guide</a>, <a class="reference external" href="https://echarts.apache.org/handbook/en/basics/release-note/5-2-0/">universal transitions</a>, and <a class="reference external" href="https://echarts.apache.org/handbook/en/best-practices/aria/">accessibility guide</a>.</p>
+</section>
+<section id="additional-dashboard-views">
+<h2>Additional dashboard views<a class="headerlink" href="#additional-dashboard-views" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>View</p></th>
+<th class="head"><p>Proposed content</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Algorithm boundaries</p></td>
+<td><p>Choose the chip, algorithm and family. Read the observed result and task target, then inspect either endpoint.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Campaign details</p></td>
+<td><p>Latest execution date, profile version, backend, coverage, jobs, billed QPU usage, and warnings</p></td>
+</tr>
+<tr class="row-even"><td><p>DSR screening</p></td>
+<td><p>Width/depth metric panels, expected-peak interpretation, mismatch and rank evidence</p></td>
+</tr>
+<tr class="row-odd"><td><p>Histogram explorer</p></td>
+<td><p>Observed and reference probabilities, accepted labels, run comparison, and timeline</p></td>
+</tr>
+<tr class="row-even"><td><p>Predictions</p></td>
+<td><p>Observed errors against M1, M1-mixture, and M2, with residuals</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hardware context</p></td>
+<td><p>Actual physical layout, used-qubit calibration summaries, and changes before execution</p></td>
+</tr>
+<tr class="row-even"><td><p>History</p></td>
+<td><p>Per-configuration trends across pilots, windows, and monthly campaigns</p></td>
+</tr>
+<tr class="row-odd"><td><p>Coverage</p></td>
+<td><p>Tested ranges, sample sizes, excluded data, missing metrics and documented reasons</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Show the current vTP S2 and V3 anomalies with their layouts. They are candidates for follow-up. Window 1 establishes association with a selected execution context, while later experiments are needed to identify the cause.</p>
+</section>
+<section id="monthly-measurement-profile">
+<h2>Monthly measurement profile<a class="headerlink" href="#monthly-measurement-profile" title="Link to this heading">¶</a></h2>
+<p>Retain the full 172-configuration research profile while completing windows 2 and 3. The smaller monthly profile below is provisional and should be finalized using their repeatability results.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Candidate configurations</p></th>
+<th class="head"><p>Count</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GHZ</p></td>
+<td><p>GHZ3, GHZ8, GHZ10, GHZ12, GHZ14, GHZ16</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-odd"><td><p>BV</p></td>
+<td><p>Widths 3, 8, and 14, each with SINGLE, ALT, and ONES</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>vTP</p></td>
+<td><p>V2/V3/V4/V5 and S1/S2/S3/S5, using SINGLE payloads</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-odd"><td><p>QFT</p></td>
+<td><p>SR3, SR5, SR8</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>Phase estimation</p></td>
+<td><p>PE-T3, PE-T6, PE-T8</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>Grover</p></td>
+<td><p>S3-1, S4-1, S5-1</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>Random volumetric</p></td>
+<td><p>RV2-D2, RV4-D4, RV5-D10, RV8-D8</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shor</p></td>
+<td><p>SHOR-N15-M3</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Total</p></td>
+<td><p>Two repetitions at 1,024 shots</p></td>
+<td><p>37 configurations, 74 jobs</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Estimated Fez usage is approximately 2.5–3 QPU minutes before a budget margin, based on the observed billing. Check access and available allowance per instance and estimate each additional backend separately. The current research window used 11 minutes 32 seconds on Fez. The account’s actual allowance governs execution.</p>
+<p>Each profile version fixes the configuration list, shots, repetitions, transpiler settings, and metric definitions. Add a backend selector to execution plans and output paths. Cross-backend comparisons use matching profile versions and tasks, while preserving each backend’s actual layout, depth, and calibration. Display measured operating ranges and their dates with any proposed performance threshold.</p>
+</section>
+<section id="cloud-execution-history-and-publication">
+<h2>Cloud execution, history, and publication<a class="headerlink" href="#cloud-execution-history-and-publication" title="Link to this heading">¶</a></h2>
+<p>Start with manual GitHub Actions execution, then enable a configurable monthly schedule. Secrets hold <code class="docutils literal notranslate"><span class="pre">IBM_QUANTUM_TOKEN</span></code> and the instance identifier. Variables hold backend selections, profile version, shots, repetitions, batch concurrency, and the QPU usage budget.</p>
+<p>The workflow loads a selected profile, checks access and remaining allowance, reuses eligible QuantumSpecific cache entries, and prepares fresh calibration snapshots and transpiled circuits. It then submits within the configured limit and recovers results using saved IDs.</p>
+<p>Persist submission intent, manifests, and accepted job IDs in versioned durable storage. A dedicated results branch is a candidate. Reconcile interrupted or uncertain submissions before retrying. Separate submission from bounded collection invocations so long IBM queues can survive runner expiration. Workflow artifacts can supplement the archive. Avoid relying on an expiring dependency cache as the sole copy of a job journal.</p>
+<p>After validation, export a dataset snapshot and explicitly trigger the documentation build. Publish a defined set of scientific fields and provenance, with credentials and account identifiers confined to execution configuration. Retain old snapshots so historical plots remain reproducible. Missing or failed monthly measurements receive explicit status rather than an invented score.</p>
+</section>
+<section id="delivery-sequence-and-review-gates">
+<h2>Delivery sequence and review gates<a class="headerlink" href="#delivery-sequence-and-review-gates" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Review the boundary preview first. Ask a developer to identify the last setting meeting their goal, the first miss, and how to inspect that run. Then review the supporting figures.</p></li>
+<li><p>Prototype the algorithm and question selectors, boundary summary, linked run histogram and expandable plot editor in ECharts using the current export. Review its motion, controls, tooltips, and readability.</p></li>
+<li><p>Link the independent dashboard from Sphinx and publish its own build alongside the documentation. Reuse the dataset exporter and QWARD metric implementations.</p></li>
+<li><p>Add history, prediction, hardware, and multi-backend views using the same validated data contract.</p></li>
+<li><p>Finalize the monthly profile after windows 2 and 3, then verify a manual cloud run and interruption recovery.</p></li>
+<li><p>Enable the agreed schedule and budgets after the manual workflow is validated.</p></li>
+</ol>
+<p>Check that the example 50% success target brackets SR5 and SR6 and that a changed target recalculates from both jobs at every setting. Switch from success to DSR on the same jobs and check that the question, target, histogram annotations and headline change together. Remove the ideal reference and verify that full-distribution agreement becomes unavailable while answer-set questions remain usable. Exercise all-pass, all-below, reversal, mixed, missing and single-point cases.</p>
+<p>Acceptance requires matching the 404-job current export and the 344-job first window, displaying all 172 window 1 configuration pairs, and preserving metric values and histogram probability mass. Check multi-target GHZ, deterministic BV, sampled dynamic vTP, and phase estimation’s distinct success set. Test zero-count expected outcomes, aggregated tails, multi-register labels, missing references, missing metrics, and interrupted submissions.</p>
+<p>Review the page at professor-presentation size and on a smaller screen. Confirm filters and chart selection stay linked, animation can be paused, exported figures identify their data, public assets contain only the intended fields, and documentation builds require completed data alone.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">IBM Quantum experiment dashboard plan</a><ul>
+<li><a class="reference internal" href="#purpose-and-current-evidence">Purpose and current evidence</a></li>
+<li><a class="reference internal" href="#landing-page-how-far-can-i-use-this-raw-circuit">Landing page · How far can I use this raw circuit?</a><ul>
+<li><a class="reference internal" href="#choose-the-question-that-defines-the-boundary">Choose the question that defines the boundary</a></li>
+<li><a class="reference internal" href="#reading-a-boundary-from-the-measurements">Reading a boundary from the measurements</a></li>
+<li><a class="reference internal" href="#proposed-first-screen">Proposed first screen</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dsr-as-the-first-screening-view">DSR as the first screening view</a></li>
+<li><a class="reference internal" href="#explore-plots-controls-and-visual-grammar">Explore plots · controls and visual grammar</a></li>
+<li><a class="reference internal" href="#initial-image-previews">Initial image previews</a><ul>
+<li><a class="reference internal" href="#width-view">Width view</a></li>
+<li><a class="reference internal" href="#depth-view">Depth view</a></li>
+<li><a class="reference internal" href="#histogram-explorer">Histogram explorer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#histogram-interaction-design">Histogram interaction design</a></li>
+<li><a class="reference internal" href="#animated-visual-library-and-interface">Animated visual library and interface</a></li>
+<li><a class="reference internal" href="#additional-dashboard-views">Additional dashboard views</a></li>
+<li><a class="reference internal" href="#monthly-measurement-profile">Monthly measurement profile</a></li>
+<li><a class="reference internal" href="#cloud-execution-history-and-publication">Cloud execution, history, and publication</a></li>
+<li><a class="reference internal" href="#delivery-sequence-and-review-gates">Delivery sequence and review gates</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+    <script src="_static/mermaid-init.js?v=05525452"></script>
+    </body>
+</html>
