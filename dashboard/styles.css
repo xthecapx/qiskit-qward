@@ -76,18 +76,10 @@ h1 {
   line-height: 1.55;
   margin-top: 9px;
 }
-.filters,
 .settings {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-}
-.filters {
-  padding: 16px 20px;
-  background: #e5ece3;
-  border: 1px solid #cad7cc;
-  border-radius: 12px;
-  margin-bottom: 20px;
 }
 label {
   display: flex;
@@ -96,10 +88,7 @@ label {
   font-size: 0.78rem;
   font-weight: 650;
 }
-.filters label {
-  flex: 1 1 150px;
-}
-.settings label:first-child {
+.settings .experiment-field {
   flex: 2 1 260px;
 }
 .settings label {
@@ -110,7 +99,11 @@ label {
 }
 .settings input,
 .settings select,
-.filters select {
+.plot-toolbar select,
+#plot-settings select,
+#plot-settings input,
+#experiment-search,
+.picker-trigger {
   font: inherit;
   font-weight: 500;
   color: var(--ink);
@@ -128,6 +121,23 @@ label {
   padding: clamp(16px, 2.5vw, 30px);
   margin-bottom: 18px;
 }
+.view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 39px;
+  background: #edf4ef;
+  border: 1px solid #abbdb3;
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 650;
+  padding: 8px 12px;
+}
+.section-head small { margin-left: auto; }
 .section-head,
 footer {
   display: flex;
@@ -148,39 +158,41 @@ footer {
 }
 .analysis {
   display: grid;
-  grid-template-columns: minmax(195px, 0.8fr) minmax(0, 1.8fr);
-  align-items: stretch;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
 }
 .finding {
   background: #153f39;
   color: #fff;
   border-radius: 10px;
-  padding: 22px;
+  padding: 12px 18px 15px;
 }
-.finding .eyebrow {
-  color: #c4da95;
+.finding-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 9px;
 }
-.finding h3 {
-  font-family: Georgia, serif;
-  font-size: clamp(1.45rem, 2.6vw, 2.05rem);
-  font-weight: 500;
-  line-height: 1.16;
-  margin: 12px 0;
+.finding-tabs button {
+  background: transparent;
+  color: #e1eee9;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: .82rem;
+  cursor: pointer;
 }
-.finding p:not(.eyebrow) {
-  font-size: 0.87rem;
-  line-height: 1.5;
-  color: #deebe2;
+.finding-tabs button[aria-selected="true"] {
+  background: #e0ecd9;
+  color: #143e39;
+  font-weight: 650;
 }
-.finding b {
-  font-size: 0.86rem;
-}
-.finding hr {
-  border: 0;
-  border-top: 1px solid #527169;
-  margin: 17px 0;
-}
+.finding-tabs button:hover { border-color: #93b5a9; }
+.finding :focus-visible { outline: 2px solid #e0ecd9; outline-offset: 2px; }
+.finding h3 { font-size: 1.1rem; margin-bottom: 3px; }
+.finding p, .finding b { font-size: .86rem; line-height: 1.45; }
+.finding p { color: #deebe2; }
 .plot {
   height: 285px;
 }
@@ -265,20 +277,13 @@ a:focus-visible {
   outline-offset: 2px;
 }
 @media (max-width: 720px) {
-  .analysis {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .filters {
-    gap: 10px;
-  }
-  .filters label,
   .settings label {
     min-width: 0;
   }
   .nav-inner > span {
     display: none;
   }
-  .settings label:first-child {
+  .settings .experiment-field {
     flex-basis: 100%;
   }
   .plot {
@@ -288,3 +293,67 @@ a:focus-visible {
     padding-top: 22px;
   }
 }
+
+.plot-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(12rem, 2fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 10px 0 14px;
+  background: white;
+  border-bottom: 1px solid var(--line);
+}
+.plot-toolbar label { min-width: 0; }
+.view-button:hover { background: #deeae2; border-color: #7b9889; }
+button:focus-visible { outline: 3px solid #c17a23; outline-offset: 2px; }
+.plot-caption { padding: 18px 0 0; }
+.plot-caption h2 { font-size: clamp(1.25rem, 3vw, 1.65rem); }
+.plot-caption .note { margin-top: 3px; }
+.plot-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+#experiment-picker,
+#plot-settings {
+  color: var(--ink);
+  width: min(410px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: clamp(16px, 3vw, 24px);
+  box-shadow: 0 12px 48px #132e3729;
+}
+#experiment-picker::backdrop, #plot-settings::backdrop { background: #152e2966; }
+#experiment-picker h2, #plot-settings h2 { font-size: 1.4rem; }
+#plot-settings fieldset { min-width: 0; margin: 20px 0 0; padding: 0; border: 0; }
+#plot-settings legend { font-weight: 650; padding: 0; }
+#plot-settings label { margin: 10px 0 4px; }
+@media (max-width: 640px) {
+  .plot-toolbar { position: static; grid-template-columns: minmax(0, 1fr) auto; }
+  .plot-toolbar label:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+  #adjust-plot { grid-area: 1 / 2; }
+  .plot-toolbar select { text-overflow: ellipsis; }
+}
+
+.settings select, .plot-toolbar select, #plot-settings select, .picker-trigger {
+  appearance: none;
+  padding-inline: 10px 38px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23506a64' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+@media (forced-colors: active) {
+  .settings select, .plot-toolbar select, #plot-settings select { appearance: auto; background-image: none; }
+  .picker-trigger::after { content: " ▾"; }
+}
+.experiment-field { display: grid; gap: 5px; min-width: 0; font-size: .78rem; font-weight: 650; }
+.picker-trigger { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#experiment-picker label { margin: 18px 0 5px; }
+#match-count { margin: 10px 0 6px; }
+#experiment-results { max-height: min(46dvh, 22rem); overflow-y: auto; }
+#experiment-results button { display: grid; gap: 3px; width: 100%; text-align: left; background: white; color: var(--ink); border: 0; border-top: 1px solid var(--line); padding: 9px 7px; font: inherit; cursor: pointer; }
+#experiment-results button span { color: var(--muted); font-size: .8rem; }
+#experiment-results button:hover, #experiment-results button[aria-current="true"] { background: #edf4ef; }
+#experiment-results button:focus-visible { outline-offset: -3px; }
