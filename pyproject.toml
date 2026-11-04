@@ -4,6 +4,22 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "qiskit-qward"
+requires-python = ">=3.11"
+# Existing release metadata and dependency extras continue to come from setup.py.
+dynamic = [
+    "version", "description", "readme", "license", "authors", "classifiers",
+    "keywords", "dependencies", "optional-dependencies", "urls",
+]
+
+[tool.uv]
+# qBraid's older Braket SDK conflicts with the direct AWS execution stack.
+conflicts = [
+    [{ extra = "aws" }, { extra = "qbraid" }],
+    [{ extra = "all" }, { extra = "qbraid" }],
+]
+
 [tool.black]
 line-length = 100
 target-version = ['py311', 'py312']
