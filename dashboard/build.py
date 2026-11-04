@@ -52,8 +52,10 @@ def success_interval(accepted_shots, shots):
     denominator = shots + z**2
     center = (accepted_shots + z**2 / 2) / denominator
     radius = z * math.sqrt(shots * proportion * (1 - proportion) + z**2 / 4) / denominator
-    return [0 if accepted_shots == 0 else center - radius,
-            1 if accepted_shots == shots else center + radius]
+    return [
+        0 if accepted_shots == 0 else center - radius,
+        1 if accepted_shots == shots else center + radius,
+    ]
 
 
 def load_tables(directory):
