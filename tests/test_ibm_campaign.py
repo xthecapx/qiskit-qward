@@ -346,8 +346,25 @@ def test_rejected_batch_leaves_manifest_prepared_and_sends_nothing(
     assert len(runtime.submitted) == 2
 
 
-def test_wait_returns_when_all_jobs_are_final(tmp_path, fez, monkeypatch, runtime):
-    campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
+@pytest.fixture
+def wait_manifest(tmp_path):
+    """Polling needs only durable job IDs, without preparing quantum circuits."""
+    path = tmp_path / "manifest.json"
+    path.write_text(
+        json.dumps(
+            {
+                "status": "submitted",
+                "batch_id": "batch-1",
+                "items": [{"job_ids": ["job-0", "job-1", "job-2", "job-3"]}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_wait_returns_when_all_jobs_are_final(wait_manifest):
+    path = wait_manifest
     states = {"polls": 0}
 
     class Job:
@@ -361,11 +378,11 @@ def test_wait_returns_when_all_jobs_are_final(tmp_path, fez, monkeypatch, runtim
             return "RUNNING"
 
     def service_job(job_id):
-        states["polls"] += 1 if job_id == runtime.submitted[-1]["job_id"] else 0
+        states["polls"] += 1 if job_id == "job-3" else 0
         return Job(job_id)
 
     sleeps, logs = [], []
-    outcome = campaign.wait_manifest(
+    outcome = ibm_campaign.Campaign.wait_manifest(
         path,
         SimpleNamespace(job=service_job),
         poll_seconds=7,
@@ -377,8 +394,8 @@ def test_wait_returns_when_all_jobs_are_final(tmp_path, fez, monkeypatch, runtim
     assert logs[-1].endswith("4/4 jobs finished")
 
 
-def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch, runtime):
-    campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
+def test_wait_times_out_without_touching_the_manifest(wait_manifest, monkeypatch):
+    path = wait_manifest
     before = path.read_text(encoding="utf-8")
 
     class Running:
@@ -391,7 +408,7 @@ def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch
     clock = iter(range(0, 1000, 100))
     monkeypatch.setattr(ibm_campaign.time, "monotonic", lambda: next(clock))
     with pytest.raises(TimeoutError, match="still pending"):
-        campaign.wait_manifest(
+        ibm_campaign.Campaign.wait_manifest(
             path,
             SimpleNamespace(job=lambda job_id: Running()),
             poll_seconds=1,
@@ -402,14 +419,12 @@ def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch
     assert path.read_text(encoding="utf-8") == before
 
 
-def test_wait_refuses_a_manifest_that_was_never_submitted(tmp_path, fez, monkeypatch, runtime):
-    experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
-    campaign = experiment.campaign()
-    manifest = campaign.prepare_plan(
-        _plan(tmp_path, items=[{"config": "GHZ3"}]), runtime.service(fez)
-    )
+def test_wait_refuses_a_manifest_that_was_never_submitted(wait_manifest):
+    manifest = json.loads(wait_manifest.read_text(encoding="utf-8"))
+    manifest.update(status="prepared", batch_id=None)
+    wait_manifest.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ValueError, match="never submitted"):
-        campaign.wait_manifest(Path(manifest["manifest_path"]), runtime.service(fez))
+        ibm_campaign.Campaign.wait_manifest(wait_manifest, SimpleNamespace())
 
 
 def test_recalibration_notice_is_one_line_per_submission_not_per_record(

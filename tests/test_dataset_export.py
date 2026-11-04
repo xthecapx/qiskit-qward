@@ -12,7 +12,7 @@ from qiskit_ibm_runtime.fake_provider import FakeFez
 from qward.examples.papers import dataset_export as D
 from qward.examples.papers.ghz.ghz_ibm import GHZIBMExperiment
 from qward.examples.papers.vtp.vtp_ibm import VTPIBMExperiment
-from tests.test_runner_ports import AerRuntime
+from tests.test_ibm_campaign import FakeRuntime
 
 
 @pytest.fixture(scope="module")
@@ -23,12 +23,28 @@ def fez():
 
 
 @pytest.fixture(scope="module")
-def root(tmp_path_factory, fez):
+def runtime(fez):
+    """Exporter tests need completed journals with counts and calibration."""
+    fake = FakeRuntime(lambda reg, shots: {"0" * reg.size: shots})
+    service = fake.service(fez)
+    job_factory = service.job
+
+    def job(job_id):
+        result = job_factory(job_id)
+        result.properties = fez.properties
+        return result
+
+    service.job = job
+    return fake.SamplerV2, service
+
+
+@pytest.fixture(scope="module")
+def root(tmp_path_factory, fez, runtime):
     """<root>/<algo>/data/qpu/v2 with GHZ (2 configs x 2 runs) and dynamic vTP."""
     root = tmp_path_factory.mktemp("papers")
-    runtime = AerRuntime(fez)
+    sampler, service = runtime
     mp = pytest.MonkeyPatch()
-    mp.setattr(qiskit_ibm_runtime, "SamplerV2", runtime.Sampler)
+    mp.setattr(qiskit_ibm_runtime, "SamplerV2", sampler)
     for cls, algorithm, configs in (
         (GHZIBMExperiment, "ghz", ["GHZ3", "GHZ4"]),
         (VTPIBMExperiment, "vtp", ["VTP-S2-SINGLE"]),
@@ -42,7 +58,7 @@ def root(tmp_path_factory, fez):
                 config_id, fez, shots=128, campaign_id="export-test", planned_executions=10
             )
             store.submit(path, fez, runs=2)
-            store.recover(path, runtime.service)
+            store.recover(path, service)
     mp.undo()
     return root
 
@@ -160,19 +176,19 @@ def test_records_without_completed_jobs_are_skipped_and_reported(root, tmp_path,
     assert "no completed jobs" in report["skipped_records"][0]["reason"]
 
 
-def test_legacy_files_are_never_read(root, tmp_path):
-    copy = tmp_path / "copy"
-    shutil.copytree(root, copy)
-    legacy = copy / "ghz" / "data" / "qpu" / "raw"
-    legacy.mkdir(parents=True)
-    (legacy / "GHZ3_IBM_ibm_fez_20260101_000000.json").write_text(
-        json.dumps({"config_id": "GHZ3", "individual_results": [{"counts": {"000": 1}}]})
-    )
-    assert all("/v2/" in str(p) for p in D.discover(copy))
-    assert D.export(tmp_path / "out", root=copy, allow_fake=True)["rows"] == 6
+def test_legacy_files_are_never_read(tmp_path):
+    records = tmp_path / "ghz/data/qpu/v2"
+    records.mkdir(parents=True)
+    record = records / "run.json"
+    journal = json.dumps({"artifact_directory": "artifacts/run", "submission_journal": []})
+    record.write_text(journal, encoding="utf-8")
+    legacy = tmp_path / "ghz/data/qpu/raw"
+    legacy.mkdir()
+    (legacy / "old.json").write_text(journal, encoding="utf-8")
+    assert D.discover(tmp_path) == [record]
 
 
-def test_excluded_algorithms_never_enter_the_dataset(root, tmp_path, fez, monkeypatch):
+def test_excluded_algorithms_never_enter_the_dataset(root, tmp_path, fez, monkeypatch, runtime):
     """Coin-toss pilot records stay on disk but are filtered out of the export."""
     import shutil
 
@@ -180,15 +196,15 @@ def test_excluded_algorithms_never_enter_the_dataset(root, tmp_path, fez, monkey
 
     copy = tmp_path / "copy"
     shutil.copytree(root, copy)
-    runtime = AerRuntime(fez)
-    monkeypatch.setattr(qiskit_ibm_runtime, "SamplerV2", runtime.Sampler)
+    sampler, service = runtime
+    monkeypatch.setattr(qiskit_ibm_runtime, "SamplerV2", sampler)
     experiment = CoinTossIBMExperiment()
     experiment.include_quantum_specific = lambda config: False
     experiment.get_campaign_output_dir = lambda: copy / "coin_toss" / "data" / "qpu" / "v2"
     store = experiment.campaign().store
     path = store.prepare("CT3", fez, shots=64, planned_executions=4)
     store.submit(path, fez)
-    store.recover(path, runtime.service)
+    store.recover(path, service)
     assert any("COIN_TOSS" in p.read_text() for p in D.discover(copy))
     report = D.export(tmp_path / "out", root=copy, allow_fake=True)
     assert report["rows"] == 6 and report["excluded_rows"] == 1

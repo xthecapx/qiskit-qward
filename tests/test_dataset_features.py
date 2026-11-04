@@ -16,6 +16,19 @@ from qward.examples.papers.vtp.vtp_ibm import VTPIBMExperiment
 from qward.metrics.circuit_error_prediction import capture_calibration
 
 
+@pytest.fixture(scope="module", autouse=True)
+def _small_matrix_threads():
+    """Small test matrices run faster without Torch's thread-pool overhead."""
+    import torch
+
+    previous = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        yield
+    finally:
+        torch.set_num_threads(previous)
+
+
 @pytest.fixture(scope="module")
 def fez():
     return FakeFez()
