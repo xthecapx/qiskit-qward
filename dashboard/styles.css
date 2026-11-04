@@ -261,10 +261,6 @@ th {
 footer {
   padding: 8px 0 28px;
 }
-footer label {
-  flex-direction: row;
-  align-items: center;
-}
 #error {
   background: #ffefe2;
   padding: 12px;
@@ -326,9 +322,55 @@ button:focus-visible { outline: 3px solid #c17a23; outline-offset: 2px; }
 }
 #experiment-picker::backdrop, #plot-settings::backdrop { background: #152e2966; }
 #experiment-picker h2, #plot-settings h2 { font-size: 1.4rem; }
-#plot-settings fieldset { min-width: 0; margin: 20px 0 0; padding: 0; border: 0; }
-#plot-settings legend { font-weight: 650; padding: 0; }
-#plot-settings label { margin: 10px 0 4px; }
+#plot-settings { width: min(760px, calc(100% - 24px)); }
+.plot-setting-sections {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-block: 18px;
+}
+#plot-settings fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f6f9f6;
+}
+#plot-settings legend {
+  padding-inline: 4px;
+  font-size: .95rem;
+  font-weight: 700;
+}
+#plot-settings legend svg {
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+  margin-right: 3px;
+  padding: 3px;
+  border-radius: 5px;
+  background: #deeee5;
+  color: var(--teal);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+#plot-settings label + label { margin-top: 12px; }
+#plot-settings select { text-overflow: ellipsis; }
+#target-help { margin-top: 6px; }
+.settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+@media (max-width: 680px) {
+  .plot-setting-sections { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
   .plot-toolbar { position: static; grid-template-columns: minmax(0, 1fr) auto; }
   .plot-toolbar label:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
