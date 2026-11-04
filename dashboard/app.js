@@ -60,7 +60,7 @@ const windowKey = (j) => JSON.stringify([j.campaign, j.window]);
 const format = (key, value) => (key === "success" ? pct(value) : score(value));
 const lower = (key) => ["coarse", "tvd"].includes(key);
 const compareText = (a, b) => a.localeCompare(b, "en", { numeric: true });
-let windowJobs, jobs, configs, trend, hist;
+let windowJobs, jobs, configs, selectedConfig, trend, hist;
 const chartTheme = {
   textStyle: { fontFamily: "system-ui, sans-serif", color: "#34554e" },
 };
@@ -76,46 +76,51 @@ function scope() {
   const backend = snapshot.jobs.filter(
     (j) => j.backend === el("backend").value,
   );
-  const windows = unique(backend.map(windowKey)).sort((a, b) =>
-    latest(backend.filter((j) => windowKey(j) === b)).localeCompare(
-      latest(backend.filter((j) => windowKey(j) === a)),
-    ),
+  const windows = new Map();
+  for (const job of backend) {
+    const id = windowKey(job);
+    if (!windows.has(id)) windows.set(id, []);
+    windows.get(id).push(job);
+  }
+  const times = new Map([...windows].map(([id, rows]) => [
+    id, rows.map(j => j.finishedAt).filter(Boolean).sort(),
+  ]));
+  const ordered = [...windows.keys()].sort((a, b) =>
+    (times.get(b).at(-1) || "").localeCompare(times.get(a).at(-1) || ""),
   );
-  options("window", windows, null, (v) => {
-    const [campaign, w] = JSON.parse(v);
-    return `W${w} · ${campaign}`;
+  options("window", ordered, null, id => {
+    const dates = times.get(id);
+    if (!dates.length) return `Date unavailable · window ${windows.get(id)[0].window}`;
+    const start = dates[0], end = dates.at(-1);
+    const stamp = value => value.slice(0, 16).replace("T", " ");
+    const finish = start.slice(0, 10) === end.slice(0, 10) ? end.slice(11, 16) : stamp(end);
+    return `${stamp(start)}–${finish} · window ${windows.get(id)[0].window}`;
   });
-  windowJobs = backend.filter((j) => windowKey(j) === el("window").value);
+  windowJobs = windows.get(el("window").value);
   options(
     "algorithm",
     unique(windowJobs.map((j) => j.algorithm)).sort(),
     el("algorithm").value || "QFT",
     (v) => names[v] || v,
   );
-  families();
+  experimentGroups();
 }
-function latest(rows) {
-  return rows
-    .map((j) => j.date)
-    .sort()
-    .at(-1);
-}
-function families() {
+function experimentGroups() {
   const rows = windowJobs.filter((j) => j.algorithm === el("algorithm").value);
   const families = unique(rows.map((j) => j.family)).sort(compareText);
   options(
     "family",
-    families,
-    families.includes(el("family").value)
-      ? el("family").value
-      : "SR · round trip",
+    ["", ...families],
+    "",
+    (group) => group || "All experiments",
   );
   sweep();
 }
 function sweep() {
   jobs = windowJobs.filter(
     (j) =>
-      j.algorithm === el("algorithm").value && j.family === el("family").value,
+      j.algorithm === el("algorithm").value &&
+      (!el("family").value || j.family === el("family").value),
   );
   configs = unique(jobs.map((j) => j.config))
     .map((id) =>
@@ -127,7 +132,7 @@ function sweep() {
         compareText(a[0].config, b[0].config),
     );
   el("coverage").textContent =
-    `${configs.length} setting${configs.length === 1 ? "" : "s"} · ${jobs.length} jobs · ${latest(jobs)} UTC`;
+    `${configs.length} experiment${configs.length === 1 ? "" : "s"} · ${jobs.length} jobs`;
   renderSweep(true);
 }
 function target() {
@@ -157,7 +162,9 @@ function renderSweep(selectBoundary = false) {
   const missed = states.indexOf("Below"),
     first = configs[0][0],
     last = configs.at(-1)[0];
+  const combined = unique(jobs.map((j) => j.family)).length > 1;
   const bracket =
+    !combined &&
     missed > 0 &&
     states.slice(0, missed).every((s) => s === "Meets") &&
     states.slice(missed).every((s) => s === "Below");
@@ -165,6 +172,10 @@ function renderSweep(selectBoundary = false) {
   if (threshold == null) {
     title = "Explore the measured values";
     detail = "Set a target between 0 and 1 to classify the tested settings.";
+  } else if (combined) {
+    const passed = states.filter((state) => state === "Meets").length;
+    title = `${passed} of ${configs.length} experiments met the target`;
+    detail = "Each experiment is assessed across its repetitions. Choose a group of related experiments to inspect its measured boundary.";
   } else if (configs.length === 1) {
     title = "One setting tested";
     detail = `${first.config} · ${states[0]}. More settings are needed to locate a boundary.`;
@@ -195,11 +206,23 @@ function renderSweep(selectBoundary = false) {
       ? ""
       : ` ${lower(key) ? "≤" : "≥"} ${format(key, threshold)}`);
   el("meaning").textContent = questions[key][2];
+  const metric = questions[key][1];
+  el("plot-title").textContent = `${metric} by ${axes[axis].toLowerCase()}`;
+  el("scope-caption").textContent = [
+    el("backend").value, el("window").selectedOptions[0].text + " (UTC)",
+    el("family").selectedOptions[0].text,
+  ].join(" · ");
+  el("target-caption").textContent = threshold == null
+    ? " · No target set"
+    : ` · Target ${lower(key) ? "≤" : "≥"} ${format(key, threshold)}`;
+  el("target-label").textContent = `${lower(key) ? "Maximum" : "Minimum"} ${metric.toLowerCase()}`;
+  el("target-help").textContent = (key === "success" ? "Enter a fraction, e.g. 0.5 for 50%." : "Enter a value from 0 to 1.") + " Leave blank to explore without a cutoff.";
   const body = el("settings-table");
   body.replaceChildren();
   configs.forEach((g, i) =>
     cells(body, [
       g[0].config,
+      g[0].family,
       g[0].width,
       unique(g.map((j) => j.depth)).join(", "),
       g.map((j) => format(key, j[key])).join(" / "),
@@ -210,7 +233,9 @@ function renderSweep(selectBoundary = false) {
     .filter((j) => j[key] != null)
     .map((j) => ({
       value: [j[axis], j[key]],
-      name: j.config,
+      name: `${j.config} · job ${j.rep}`,
+      family: j.family,
+      description: j.description,
       config: j.config,
       rep: j.rep,
     }));
@@ -234,7 +259,7 @@ function renderSweep(selectBoundary = false) {
       trigger: "item",
       renderMode: "richText",
       formatter: (p) =>
-        `${p.data.config} · job ${p.data.rep}\n${questions[key][1]}  ${format(key, p.value[1])}\n${axes[axis]}  ${p.value[0]}`,
+        `${p.name}\n${p.data.description}\nGroup · ${p.data.family}\n${questions[key][1]}  ${format(key, p.value[1])}\n${axes[axis]}  ${p.value[0]}`,
     },
     xAxis: {
       type: "value",
@@ -280,18 +305,40 @@ function renderSweep(selectBoundary = false) {
       },
     ],
   });
-  const preferred = selectBoundary
-    ? configs[bracket ? missed : 0][0].config
-    : el("config").value;
-  options(
-    "config",
-    configs.map((g) => g[0].config),
-    preferred,
-  );
+  if (selectBoundary || !configs.some(([job]) => job.config === selectedConfig)) {
+    selectedConfig = configs[bracket ? missed : 0][0].config;
+  }
   repetitions();
 }
+function renderExperimentChoices() {
+  const words = el("experiment-search").value.trim().toLowerCase().split(/\s+/);
+  const matches = configs.map(([job]) => job).filter(job => {
+    const text = [job.config, job.family, job.description].join(" ").toLowerCase();
+    return words.every(word => text.includes(word));
+  });
+  el("match-count").textContent = matches.length
+    ? `${matches.length} of ${configs.length} experiments`
+    : "No matching experiments. Try another ID, group or description.";
+  el("experiment-results").replaceChildren(...matches.map(job => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("aria-current", String(job.config === selectedConfig));
+    const name = document.createElement("strong");
+    name.textContent = job.config;
+    const detail = document.createElement("span");
+    detail.textContent = [job.family, job.description].filter(Boolean).join(" · ");
+    button.append(name, detail);
+    button.onclick = () => {
+      selectedConfig = job.config;
+      repetitions();
+      el("experiment-picker").close();
+    };
+    return button;
+  }));
+}
 function repetitions(preferred) {
-  const group = configs.find((g) => g[0].config === el("config").value);
+  const group = configs.find((g) => g[0].config === selectedConfig);
+  el("choose-config").textContent = selectedConfig;
   options(
     "rep",
     group.map((j) => String(j.rep)),
@@ -302,7 +349,7 @@ function repetitions(preferred) {
 }
 function renderRun() {
   const job = jobs.find(
-    (j) => j.config === el("config").value && String(j.rep) === el("rep").value,
+    (j) => j.config === selectedConfig && String(j.rep) === el("rep").value,
   );
   const { accepted, ideal } = snapshot.refs[job.ref];
   const allowed = new Set(accepted),
@@ -315,6 +362,30 @@ function renderRun() {
   const key = el("question").value,
     coarse = key === "coarse",
     blind = key === "contrast";
+  const task = {
+    GROVER: "Grover searches for a marked bitstring.",
+    GHZ: "The GHZ circuit prepares a superposition of the all-zero and all-one strings.",
+    "BERNSTEIN-VAZIRANI": "Bernstein–Vazirani recovers the hidden bitstring.",
+    QFT: "This experiment checks the measured output of a Fourier-transform circuit.",
+    "PHASE-ESTIMATION": "Phase estimation encodes the gate’s phase in the counting register.",
+    VTP: "The protocol tests whether the payload is recovered after teleportation.",
+    "RANDOM-VOLUMETRIC": "This experiment tests output recovery as a random circuit grows in size or depth.",
+    SHOR: "This circuit samples phase peaks associated with the order-finding step of Shor’s algorithm.",
+  };
+  const acceptedText = allowed.size > 0 && allowed.size <= 4
+    ? `Accepted outcomes: ${[...allowed].join(", ")}.`
+    : allowed.size ? `${allowed.size} outcomes satisfy the task.` : "Accepted outcomes unavailable.";
+  el("experiment-description").textContent = [task[job.algorithm], job.description, acceptedText].filter(Boolean).join(" ");
+  const threshold = target();
+  const value = job[key];
+  let decision = "";
+  if (value != null && threshold != null) {
+    const passes = lower(key) ? value <= threshold : value >= threshold;
+    decision = ` · ${passes ? "meets" : "misses"} the ${format(key, threshold)} target`;
+  }
+  el("selected-label").textContent = `${job.config} · job ${job.rep}`;
+  el("selected-result").textContent = `${questions[key][1]} ${format(key, value)}${decision}`;
+  if (el("histogram-view").hidden) return;
   const probability = (label) => (counts[label] || 0) / job.shots;
   const reference = (label) =>
     coarse ? (allowed.has(label) ? 1 / allowed.size : 0) : ideal?.[label] || 0;
@@ -346,7 +417,7 @@ function renderRun() {
       : reference(k),
   );
   el("run-context").textContent =
-    `${job.description} · ${job.shots.toLocaleString()} shots · ${job.bits} measured bits · ISA depth ${job.depth} · ${job.date} UTC`;
+    `${job.description} · ${job.shots.toLocaleString()} shots · ${job.bits} measured bits · ISA depth ${job.depth} · ${job.finishedAt.slice(0, 16).replace("T", " ")} UTC`;
   const numbers = el("numbers");
   numbers.replaceChildren();
   for (const [name, value] of [
@@ -387,6 +458,7 @@ function renderRun() {
     .join(" ");
   const height = Math.max(240, display.length * 26 + 65);
   el("hist").style.height = height + "px";
+  if (!hist) hist = echarts.init(el("hist"), null, { renderer: "svg" });
   hist.resize();
   hist.setOption({
     ...chartTheme,
@@ -445,11 +517,36 @@ function renderRun() {
     ]),
   );
 }
+function selectFindingTab(selected) {
+  for (const tab of document.querySelectorAll(".finding-tabs button")) {
+    const active = tab === selected;
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    el(tab.getAttribute("aria-controls")).hidden = !active;
+  }
+}
+
 function init() {
+  el("adjust-plot").onclick = () => el("plot-settings").showModal();
+  const tabs = [...document.querySelectorAll(".finding-tabs button")];
+  tabs.forEach((tab, index) => {
+    tab.onclick = () => selectFindingTab(tab);
+    tab.onkeydown = (event) => {
+      const nextIndex = {
+        ArrowLeft: (index + tabs.length - 1) % tabs.length,
+        ArrowRight: (index + 1) % tabs.length,
+        Home: 0,
+        End: tabs.length - 1,
+      }[event.key];
+      if (nextIndex === undefined) return;
+      event.preventDefault();
+      selectFindingTab(tabs[nextIndex]);
+      tabs[nextIndex].focus();
+    };
+  });
   el("motion").checked = !matchMedia("(prefers-reduced-motion: reduce)")
     .matches;
   trend = echarts.init(el("trend"), null, { renderer: "svg" });
-  hist = echarts.init(el("hist"), null, { renderer: "svg" });
   options("backend", unique(snapshot.jobs.map((j) => j.backend)), "ibm_fez");
   options(
     "question",
@@ -461,7 +558,7 @@ function init() {
   el("source").textContent =
     `Exported observations · ${snapshot.jobs.length} jobs · ${unique(snapshot.jobs.map((j) => j.algorithm)).length} algorithms · ECharts 5.6.0`;
   for (const id of ["backend", "window"]) el(id).onchange = scope;
-  el("algorithm").onchange = families;
+  el("algorithm").onchange = experimentGroups;
   el("family").onchange = sweep;
   el("question").onchange = () => {
     el("target").value = el("question").value === "success" ? "0.5" : "";
@@ -469,20 +566,47 @@ function init() {
   };
   el("axis").onchange = () => renderSweep();
   el("target").oninput = () => renderSweep();
-  el("config").onchange = () => repetitions();
+  el("choose-config").onclick = () => {
+    el("experiment-search").value = "";
+    renderExperimentChoices();
+    el("experiment-picker").showModal();
+    el("experiment-search").focus();
+  };
+  el("close-picker").onclick = () => el("experiment-picker").close();
+  el("experiment-search").oninput = renderExperimentChoices;
+  el("experiment-search").onkeydown = event => {
+    const first = el("experiment-results").firstElementChild;
+    if (!first) return;
+    if (event.key === "ArrowDown") { event.preventDefault(); first.focus(); }
+    if (event.key === "Enter") { event.preventDefault(); first.click(); }
+  };
   el("rep").onchange = renderRun;
   el("bins").onchange = renderRun;
-  el("motion").onchange = () => renderSweep();
-  trend.on("click", (p) => {
-    if (p.data?.config) {
-      el("config").value = p.data.config;
-      repetitions(String(p.data.rep));
-      el("config").scrollIntoView({ block: "center" });
+  el("motion").onchange = () => el("histogram-view").hidden ? renderSweep() : renderRun();
+  function showHistogram(point) {
+    el("plot-view").hidden = true;
+    el("histogram-view").hidden = false;
+    if (point) {
+      selectedConfig = point.config;
+      repetitions(String(point.rep));
+    } else {
+      renderRun();
     }
+    el("back-to-plot").focus();
+  }
+  el("open-histogram").onclick = () => showHistogram();
+  el("back-to-plot").onclick = () => {
+    el("histogram-view").hidden = true;
+    el("plot-view").hidden = false;
+    trend.resize();
+    el("open-histogram").focus();
+  };
+  trend.on("click", (p) => {
+    if (p.data?.config) showHistogram(p.data);
   });
   new ResizeObserver(() => {
-    trend.resize();
-    hist.resize();
+    if (el("histogram-view").hidden) trend.resize();
+    else hist?.resize();
   }).observe(document.querySelector("main"));
   scope();
 }
