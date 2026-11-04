@@ -1,8 +1,9 @@
 """Schedule prepared algorithm manifests within one window's active Batch limit."""
 
 import argparse
-import fcntl
+import errno
 import json
+import os
 import time
 from collections import deque
 from pathlib import Path
@@ -81,6 +82,20 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30):
             time.sleep(poll_seconds)
 
 
+def lock_plan(lock):
+    """Acquire a nonblocking lock for the lifetime of this open plan file."""
+    if os.name == "nt":
+        import msvcrt
+
+        # Lock one byte beyond the JSON so other processes can still read it.
+        lock.seek(0, os.SEEK_END)
+        msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--max-batches", type=int, choices=(1, 2, 3), required=True)
@@ -94,8 +109,10 @@ def main():
     plan = paths["ghz"].with_name(paths["ghz"].name.replace("_manifest.json", ".json"))
     with plan.open("rb") as lock:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            lock_plan(lock)
+        except OSError as exc:
+            if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                raise
             parser.exit(1, "A submit driver is already running for this window.\n")
         submit_window(paths, args.max_batches)
 

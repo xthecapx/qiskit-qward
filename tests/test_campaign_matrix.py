@@ -2,6 +2,7 @@
 
 import json
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -99,9 +100,13 @@ def test_driver_paths_match_matrix_paths():
     assert 'pe) echo "phase_estimation"' in script and 'rv) echo "random_volumetric"' in script
 
 
-def test_driver_status_runs_offline_without_manifests():
+def test_driver_status_runs_offline_without_manifests(tmp_path, bash):
+    papers = tmp_path / "qward/examples/papers"
+    papers.mkdir(parents=True)
+    driver = papers / "run_campaign.sh"
+    shutil.copy2(ROOT / driver.name, driver)
     result = subprocess.run(
-        [str(ROOT / "run_campaign.sh"), "status", "ghz"],
+        [bash, driver.as_posix(), "status", "ghz"],
         check=True,
         capture_output=True,
         text=True,
@@ -138,11 +143,11 @@ def test_pilot_and_real_windows_have_separate_run_budgets():
 
 
 @pytest.mark.parametrize("cwd", ["root", "papers", "elsewhere"])
-def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
+def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path, bash):
     """`all` re-invokes the script; it must not depend on a relative $0."""
     papers = ROOT
     directory = {"root": papers.parents[2], "papers": papers, "elsewhere": tmp_path}[cwd]
-    absolute = str(papers / "run_campaign.sh")
+    absolute = (papers / "run_campaign.sh").as_posix()
     commands = [absolute]
     if cwd == "papers":
         commands.append("./run_campaign.sh")
@@ -150,7 +155,7 @@ def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
         commands.append("qward/examples/papers/run_campaign.sh")
     for command in commands:
         result = subprocess.run(
-            [command, "recover", "all", "9"],  # Window 9 never has manifests.
+            [bash, command, "recover", "all", "9"],  # Window 9 never has manifests.
             check=False,
             cwd=directory,
             capture_output=True,

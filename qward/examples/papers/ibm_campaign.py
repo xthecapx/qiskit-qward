@@ -41,7 +41,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 from uuid import uuid4
 
@@ -544,6 +544,18 @@ def job_order(items: Sequence[Mapping[str, Any]], seed: int) -> List[Tuple[int, 
     return [(i, r) for r in range(rounds) for i in order if r < items[i]["runs"]]
 
 
+def manifest_record_path(manifest_path: Path, item: Mapping[str, Any]) -> Path:
+    """Locate a bundled campaign record even after its checkout has moved."""
+    saved = Path(item["record_path"])
+    # Pilot manifests include the originating machine's absolute checkout path.
+    parts = PureWindowsPath(item["record_path"]).parts
+    if manifest_path.parent.name == "plans" and parts[-4:-1] == ("data", "qpu", "v2"):
+        local = manifest_path.parent.parent.joinpath(*parts[-4:])
+        if local.is_file():
+            return local
+    return saved
+
+
 class BatchUnavailable(RuntimeError):
     """IBM would not open a Batch; the manifest was not touched."""
 
@@ -642,7 +654,7 @@ class Campaign:
             raise ValueError("Only a fresh prepared manifest can be submitted")
         loaded = []
         for item in manifest["items"]:
-            path = Path(item["record_path"])
+            path = manifest_record_path(manifest_path, item)
             loaded.append(self.store.check_submittable(path, backend, item["runs"]))
         prior = self.store.submitted_runs()
         totals: Dict[Tuple[str, int], int] = {}
@@ -681,7 +693,7 @@ class Campaign:
                 if key not in samplers:
                     samplers[key] = SamplerV2(mode=batch, options=prepared["runtime_options"])
                 job_id = self.store.submit_job(
-                    Path(item["record_path"]),
+                    manifest_record_path(manifest_path, item),
                     (journal, prepared, circuits),
                     samplers[key],
                     run_index=run_index,
@@ -743,7 +755,10 @@ class Campaign:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest["status"] == "prepared" or not manifest.get("batch_id"):
             raise ValueError("Manifest was never submitted; submit it first")
-        records = [self.store.recover(Path(i["record_path"]), service) for i in manifest["items"]]
+        records = [
+            self.store.recover(manifest_record_path(manifest_path, i), service)
+            for i in manifest["items"]
+        ]
         done = all(r["status"] == "completed" for r in records)
         manifest["status"] = "completed" if done else "incomplete"
         write_json(manifest_path, manifest)
@@ -770,7 +785,9 @@ class Campaign:
                 continue
             saved = 0
             for item in manifest["items"]:
-                record = json.loads(Path(item["record_path"]).read_text(encoding="utf-8"))
+                record = json.loads(
+                    manifest_record_path(Path(path), item).read_text(encoding="utf-8")
+                )
                 for entry in record["submission_journal"]:
                     usage = (entry.get("execution_metrics") or {}).get("usage") or {}
                     saved += usage.get("quantum_seconds") or 0
@@ -813,7 +830,9 @@ class Campaign:
         manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
         counts: Dict[str, int] = {}
         for item in manifest["items"]:
-            journal = json.loads(Path(item["record_path"]).read_text(encoding="utf-8"))
+            journal = json.loads(
+                manifest_record_path(Path(manifest_path), item).read_text(encoding="utf-8")
+            )
             counts[journal["status"]] = counts.get(journal["status"], 0) + 1
         return {
             "manifest": str(manifest_path),

@@ -1,5 +1,6 @@
 """Offline driver tests for bounded Batch submission and pilot repeats."""
 
+import errno
 import json
 import os
 import shutil
@@ -128,6 +129,19 @@ def test_failed_open_survives_restart_without_duplicating_other_batch(tmp_path, 
     assert len([e for e in service.events if e[0] == "submit"]) == 8
 
 
+def test_plan_lock_excludes_second_driver_and_releases_on_close(tmp_path):
+    plan = tmp_path / "ghz-w0.json"
+    plan.write_bytes(b"{}")
+    with plan.open("rb") as first:
+        S.lock_plan(first)
+        with plan.open("rb") as second, pytest.raises(OSError) as busy:
+            S.lock_plan(second)
+        assert busy.value.errno in (errno.EACCES, errno.EAGAIN)
+    with plan.open("rb") as restarted:
+        S.lock_plan(restarted)
+    assert plan.read_bytes() == b"{}"
+
+
 def test_repeat_gets_own_budget_and_preserves_original(tmp_path):
     jobs = 0
     for key in M.RUNNERS:
@@ -149,7 +163,7 @@ def test_repeat_gets_own_budget_and_preserves_original(tmp_path):
 @pytest.mark.parametrize(
     "option,expected", [([], 2), (["--max-batches", "1"], 1), (["--max-batches", "3"], 3)]
 )
-def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expected):
+def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expected, bash):
     papers = tmp_path / "qward/examples/papers"
     papers.mkdir(parents=True)
     driver = papers / "run_campaign.sh"
@@ -161,20 +175,22 @@ def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expecte
         for label in ("0", "0-r2"):
             path = directory / f"{key}-w{label}_manifest.json"
             path.touch()
-        manifests.append(str(path))
+        manifests.append(path.relative_to(tmp_path).as_posix())
     # Intercept the uv boundary; the final exec arguments show what would run.
     uv = tmp_path / "uv"
     uv.write_text(
-        '#!/bin/sh\nif [ "$2" = python ]; then cat >/dev/null; fi\nprintf "%s\\n" "$@"\n',
+        '#!/bin/sh\nif [ "$2" = python ]; then cat >/dev/null; fi\n'
+        'for arg do printf "%s\\n" "${arg#"$PWD"/}"; done\n',
         encoding="utf-8",
+        newline="\n",
     )
     uv.chmod(0o755)
     proc = subprocess.run(
-        [str(driver), "submit", "all", "0-r2", *option],
+        [bash, driver.as_posix(), "submit", "all", "0-r2", *option],
         input="y\n",
         text=True,
         capture_output=True,
-        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        env={**os.environ, "PATH": f"{tmp_path}{os.pathsep}{os.environ['PATH']}"},
         check=True,
     )
     assert proc.stdout.splitlines()[-13:] == [
