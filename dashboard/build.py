@@ -7,6 +7,7 @@ import math
 import re
 import shutil
 from pathlib import Path
+from statistics import NormalDist
 
 PROJECT = Path(__file__).resolve().parent
 TABLES = PROJECT.parent / "qward/examples/papers/dataset_out"
@@ -42,6 +43,17 @@ def family(row):
     if algorithm == "GROVER" and re.fullmatch(r"S\d+-1", config):
         return "Single marked state · S series"
     return config
+
+
+def success_interval(accepted_shots, shots):
+    """Two-sided 99% Wilson interval for a job's accepted-shot probability."""
+    z = NormalDist().inv_cdf(0.995)
+    proportion = accepted_shots / shots
+    denominator = shots + z**2
+    center = (accepted_shots + z**2 / 2) / denominator
+    radius = z * math.sqrt(shots * proportion * (1 - proportion) + z**2 / 4) / denominator
+    return [0 if accepted_shots == 0 else center - radius,
+            1 if accepted_shots == shots else center + radius]
 
 
 def load_tables(directory):
@@ -99,9 +111,14 @@ def load_tables(directory):
                 "alpha": row["f.histogram_assessment.alpha"],
                 "rankP": row["f.histogram_assessment.rank_pvalue"],
             }
+            if job["algorithm"] == "QFT" and row.get("config.test_mode") == "period_detection":
+                job["countingQubits"] = int(float(row["config.num_qubits"]))
             for name, column in METRICS.items():
                 value = row[f"f.fidelity.{column}"]
                 job[name] = float(value) if value else None
+            if target["accepted"] is not None and job["success"] is not None:
+                accepted_shots = sum(counts.get(label, 0) for label in target["accepted"])
+                job["successInterval"] = success_interval(accepted_shots, shots)
             jobs.append(job)
     if not jobs:
         raise ValueError("The dashboard needs at least one completed job")
