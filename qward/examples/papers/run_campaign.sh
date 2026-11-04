@@ -2,7 +2,8 @@
 # Driver for the ibm_fez dataset campaign (docs/ibm_fez_dataset_plan.md).
 #
 #   run_campaign.sh prepare <algo|all> <window>   freeze records for one plan (no jobs)
-#   run_campaign.sh submit  <algo|all> <window>   submit that manifest in ONE Batch
+#   run_campaign.sh submit  all <window> [--max-batches 1|2|3]   default: 2 active Batches
+#   run_campaign.sh submit  <algo> <window>       submit one algorithm Batch
 #   run_campaign.sh recover <algo|all> <window>   fetch results by saved job IDs
 #   run_campaign.sh wait    <algo> <window>       block until that Batch's jobs finish
 #   run_campaign.sh status  [algo] [window]   offline: planned vs submitted vs done
@@ -10,17 +11,15 @@
 #   run_campaign.sh export  [out_dir]         build dataset.csv from completed records
 #
 # <algo>: ghz bv vtp qft pe grover rv shor (or "all" for the 8 of them)
-# <window>: 0 = pilot (30 jobs), 1-3 = campaign windows
+# <window>: 0 = original pilot; 0-r2, 0-r3, ... = fresh pilot repeats; 1-3 = campaign
 # Plans live in  <algo>/plans/<algo>-w<window>.json  (format: docs/ibm_fez_dataset_plan.md,
 # "Plan files"); manifests are written beside them as <algo>-w<window>_manifest.json.
 #
 # Credentials come from IBM_QUANTUM_* in the repo-root .env or the environment.
 # Nothing is passed on the command line, so tokens never appear in `ps`.
-# Window 0 is the pilot (30 jobs, run it first); windows 1-3 are the campaign.
-# `submit all` runs ONE Batch at a time (open, wait until it finishes, recover,
-# then the next algorithm): IBM limits how many Batches can be active, and a
-# queued Batch stays active. If a Batch cannot be opened, nothing was sent and
-# the manifest stays prepared; rerun `submit` for that algorithm later.
+# Each pilot repeat has its own campaign ID and budget (30 jobs in 8 Batches).
+# The limit applies to Batches in the selected window; queued jobs occupy a slot.
+# Reuse the same window label to resume. Completed manifests are skipped.
 # Only `submit` sends jobs. Prepare each window just before submitting it so its
 # calibration is current, and keep windows on different days.
 
@@ -31,7 +30,7 @@ SELF="${HERE}/$(basename "$0")"  # Absolute: the script cd's to the repo root be
 REPO="$(cd "${HERE}/../../.." && pwd)"
 cd "${REPO}"
 
-usage() { sed -n '2,25p' "${SELF}" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
+usage() { sed -n '2,/^$/p' "${SELF}" | sed 's/^# \{0,1\}//'; exit "${1:-1}"; }
 
 module_for() {
     case "$1" in
@@ -59,7 +58,7 @@ plan_file() { echo "${HERE}/$(dir_of "$1")/plans/$1-w$2.json"; }
 manifest_file() { echo "${HERE}/$(dir_of "$1")/plans/$1-w$2_manifest.json"; }
 
 require_window() {
-    [[ "$1" =~ ^[0-9]+$ ]] || { echo "window must be 0 (pilot) or 1-3" >&2; exit 2; }
+    [[ "$1" =~ ^[0-9]+$ || "$1" =~ ^0-r([2-9]|[1-9][0-9]+)$ ]] || { echo "use a numeric window or a pilot repeat like 0-r2" >&2; exit 2; }
 }
 
 ACTION="${1:-}"
@@ -68,33 +67,26 @@ shift || true
 
 case "${ACTION}" in
     prepare|submit|recover|wait)
-        [[ $# -eq 2 ]] || usage 2
+        MAX_BATCHES=2
+        if [[ "${ACTION}" == "submit" && "${1:-}" == "all" && $# -eq 4 && "$3" == "--max-batches" ]]; then
+            MAX_BATCHES="$4"
+            [[ "${MAX_BATCHES}" =~ ^[123]$ ]] || { echo "--max-batches must be 1, 2 or 3" >&2; exit 2; }
+        else
+            [[ $# -eq 2 ]] || usage 2
+        fi
         ALGO="$1"; WINDOW="$2"; require_window "${WINDOW}"
         if [[ "${ALGO}" == "all" ]]; then
-            # One Batch per algorithm; `submit all` asks once for the whole window.
             if [[ "${ACTION}" == "submit" ]]; then
-                for A in ${ALGOS}; do
-                    [[ -f "$(manifest_file "${A}" "${WINDOW}")" ]] \
-                        || { echo "prepare ${A} ${WINDOW} first" >&2; exit 2; }
-                done
-                "${SELF}" status
-                read -r -p "Submit ALL ${ALGOS} (window ${WINDOW}) to IBM, one Batch at a time? [y/N] " ANSWER
-                [[ "${ANSWER}" == "y" || "${ANSWER}" == "Y" ]] || { echo "aborted"; exit 1; }
+                MANIFESTS=()
                 for A in ${ALGOS}; do
                     M="$(manifest_file "${A}" "${WINDOW}")"
-                    # Skip what is already in IBM so a rerun resumes where it stopped.
-                    if grep -q '"status": "prepared"' "${M}"; then
-                        echo "=== ${A}: opening Batch"
-                        uv run -m "$(module_for "${A}")" --submit-plan "${M}" > /dev/null \
-                            || { echo "!!! ${A}: Batch not opened or submit failed; stopping. Rerun 'submit all ${WINDOW}' to resume." >&2; exit 1; }
-                    else
-                        echo "=== ${A}: already submitted"
-                    fi
-                    echo "=== ${A}: waiting for its jobs (Ctrl-C is safe; rerun to resume)"
-                    uv run -m "$(module_for "${A}")" --wait-plan "${M}" > /dev/null
-                    uv run -m "$(module_for "${A}")" --recover-plan "${M}" > /dev/null
-                    echo "=== ${A}: done"
+                    [[ -f "${M}" ]] || { echo "prepare ${A} ${WINDOW} first" >&2; exit 2; }
+                    MANIFESTS+=("${M}")
                 done
+                "${SELF}" status "" "${WINDOW}"
+                read -r -p "Submit window ${WINDOW} to IBM with up to ${MAX_BATCHES} active Batches? [y/N] " ANSWER
+                [[ "${ANSWER}" == "y" || "${ANSWER}" == "Y" ]] || { echo "aborted"; exit 1; }
+                exec uv run -m qward.examples.papers.campaign_submit --max-batches "${MAX_BATCHES}" "${MANIFESTS[@]}"
             else
                 for A in ${ALGOS}; do "${SELF}" "${ACTION}" "${A}" "${WINDOW}"; done
             fi
@@ -103,6 +95,9 @@ case "${ACTION}" in
         MODULE="$(module_for "${ALGO}")"
         case "${ACTION}" in
             prepare)
+                if [[ "${WINDOW}" == 0-r* ]]; then
+                    uv run -m qward.examples.papers.campaign_matrix --pilot-repeat "${WINDOW#0-r}" --only "${ALGO}"
+                fi
                 PLAN="$(plan_file "${ALGO}" "${WINDOW}")"
                 [[ -f "${PLAN}" ]] || { echo "missing plan: ${PLAN}" >&2; exit 2; }
                 echo "Preparing ${ALGO} window ${WINDOW} (no jobs are submitted)"
@@ -135,7 +130,7 @@ case "${ACTION}" in
             [[ -z "${FILTER_ALGO}" || "${FILTER_ALGO}" == "${ALGO}" ]] || continue
             for MANIFEST in "${HERE}/$(dir_of "${ALGO}")"/plans/${ALGO}-w*_manifest.json; do
                 [[ -f "${MANIFEST}" ]] || continue
-                WINDOW="$(basename "${MANIFEST}" | sed -E "s/^${ALGO}-w([0-9]+)_manifest.json$/\1/")"
+                WINDOW="$(basename "${MANIFEST}" | sed -E "s/^${ALGO}-w([0-9]+(-r[0-9]+)?)_manifest.json$/\1/")"
                 [[ -z "${FILTER_WINDOW}" || "${FILTER_WINDOW}" == "${WINDOW}" ]] || continue
                 uv run -m "$(module_for "${ALGO}")" --plan-status "${MANIFEST}" 2>/dev/null \
                     | uv run python -c "
@@ -151,7 +146,7 @@ print('%-10s %-7s %-10s %-10s %-10s %s' % ('${ALGO}', '${WINDOW}', s['status'], 
         for ALGO in ${ALGOS}; do
             for MANIFEST in "${HERE}/$(dir_of "${ALGO}")"/plans/${ALGO}-w*_manifest.json; do
                 [[ -f "${MANIFEST}" ]] || continue
-                W="$(basename "${MANIFEST}" | sed -E "s/^${ALGO}-w([0-9]+)_manifest.json$/\1/")"
+                W="$(basename "${MANIFEST}" | sed -E "s/^${ALGO}-w([0-9]+(-r[0-9]+)?)_manifest.json$/\1/")"
                 [[ -z "${FILTER_WINDOW}" || "${FILTER_WINDOW}" == "${W}" ]] && MANIFESTS+=("${MANIFEST}")
             done
         done

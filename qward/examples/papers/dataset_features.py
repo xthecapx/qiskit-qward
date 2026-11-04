@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister, transpile
 
 from qward.examples.papers.experiment_helpers import calculate_qward_metrics
 from qward.metrics import BackendCalibrationCollector, QuantumSpecificMetrics
@@ -229,7 +229,12 @@ def _quantum_specific_key(circuit: QuantumCircuit) -> str:
     from qward.metrics import quantum_specific_metrics  # pylint: disable=import-outside-toplevel
 
     source = hashlib.sha256(inspect.getsource(quantum_specific_metrics).encode()).hexdigest()
-    payload = f"{circuit_hash(circuit)}|{QUANTUM_SPECIFIC_SEED}|{source}|torch{torch.__version__}"
+    # Named composite gates can wrap different oracles. Include their actual operations.
+    expanded = transpile(circuit, basis_gates=["u", "cx"], optimization_level=0, seed_transpiler=11)
+    payload = (
+        f"{circuit_hash(circuit)}|{circuit_hash(expanded)}|{QUANTUM_SPECIFIC_SEED}|"
+        f"{source}|torch{torch.__version__}"
+    )
     return hashlib.sha256(payload.encode()).hexdigest()[:32]
 
 
@@ -423,8 +428,10 @@ def baseline_predictions(
         ideal_success = mass(flat)
         mixture_success = mass(values.mixture_probabilities)
         m2_success = mass(values.m2_probabilities)
-        if m2_success is None and len(flat) == 1:
-            m2_success = values.m2_success  # >12 bits: single-target point value.
+        if mixture_success is None and q is not None:
+            mixture_success = q * ideal_success + (1 - q) * len(winners) / (2**isa.num_clbits)
+        if m2_success is None and set(winners) == flat.keys():
+            m2_success = values.m2_reference_mass
         return {
             "esp_score": q,
             "m1_error": 1 - q * ideal_success if q is not None else None,
@@ -452,6 +459,7 @@ def targets(
     reference: Optional[Mapping[str, float]],
     *,
     success: Optional[Callable[[str], bool]] = None,
+    success_set: Optional[Sequence[str]] = None,
     alpha: float = 0.01,
 ) -> Dict[str, Any]:
     """Group F: one FidelityMetrics pass + HistogramAssessment against the reference.
@@ -469,7 +477,9 @@ def targets(
         key = label.replace(" ", "")
         flat_counts[key] = flat_counts.get(key, 0) + count
     flat_reference = {k.replace(" ", ""): v for k, v in reference.items()}
-    if success is not None:
+    if success_set is not None:
+        expected = [label.replace(" ", "") for label in success_set]
+    elif success is not None:
         expected = [label.replace(" ", "") for label in success_labels(circuit, success)]
     else:
         expected = [label for label, p in flat_reference.items() if p > 0]

@@ -140,23 +140,16 @@ def depolarizing_prediction(
         dimension = 2 ** len(entry["qubits"])
         polarization *= max(0.0, 1 - error * dimension / (dimension - 1))
     if not complete or sorted(flips) != list(range(width)):
-        return {"polarization": None, "success": None, "tvd": None, "probabilities": None}
+        return {
+            "polarization": None,
+            "success": None,
+            "reference_mass": None,
+            "tvd": None,
+            "probabilities": None,
+        }
     uniform = math.ldexp(1.0, -width)
-    deterministic = len(reference) == 1
-    success = None
-    if deterministic:
-        target = next(iter(reference))
-        # A bit reads correctly with 1 - P(flip | its value); uniform input
-        # reads as t with probability prod((1 - up - down) / 2 + (bit's in-rate)).
-        readout_success = 1.0
-        scrambled_success = 1.0
-        for clbit, (up, down) in flips.items():
-            bit = target[width - 1 - clbit]
-            readout_success *= 1 - (up if bit == "0" else down)
-            scrambled_success *= 0.5 * ((1 - up + down) if bit == "0" else (1 - down + up))
-        success = polarization * readout_success + (1 - polarization) * scrambled_success
     probabilities = None
-    tvd = None
+    on_support = {}
     if width <= 12:
         flipped = flip_distribution(reference, flips, width)
         noisy_uniform = flip_distribution(
@@ -167,12 +160,28 @@ def depolarizing_prediction(
             + (1 - polarization) * noisy_uniform.get(f"{x:0{width}b}", 0)
             for x in range(2**width)
         }
-        tvd = 0.5 * sum(abs(probabilities[key] - reference.get(key, 0)) for key in probabilities)
-    elif deterministic:
-        tvd = 1 - success
+        on_support = {label: probabilities[label] for label in reference}
+    elif len(reference) <= 2:
+        # BV/GHZ: evaluate only the one or two ideal labels, including flips
+        # from the other ideal label and asymmetric readout of uniform noise.
+        for label in reference:
+            from_ideal = 0.0
+            from_uniform = 1.0
+            for clbit, bit in enumerate(reversed(label)):
+                up, down = flips[clbit]
+                from_uniform *= (1 - up + down if bit == "0" else 1 - down + up) / 2
+            for source, weight in reference.items():
+                for clbit, (before, after) in enumerate(zip(reversed(source), reversed(label))):
+                    rate = flips[clbit][int(before)]
+                    weight *= (1 - rate) if before == after else rate
+                from_ideal += weight
+            on_support[label] = polarization * from_ideal + (1 - polarization) * from_uniform
+    # TVD is the total probability deficit on the ideal support.
+    tvd = sum(max(0.0, reference[k] - p) for k, p in on_support.items()) if on_support else None
     return {
         "polarization": polarization,
-        "success": success,
+        "success": next(iter(on_support.values())) if len(reference) == 1 else None,
+        "reference_mass": min(1.0, sum(on_support.values())) if on_support else None,
         "tvd": min(1.0, max(0.0, tvd)) if tvd is not None else None,
         "probabilities": probabilities,
     }
@@ -449,6 +458,7 @@ class CircuitErrorPrediction(MetricCalculator):
             mixture_probabilities=probabilities,
             m2_polarization=m2["polarization"],
             m2_success=m2["success"],
+            m2_reference_mass=m2["reference_mass"],
             m2_tvd=m2["tvd"],
             m2_probabilities=m2["probabilities"],
             features=features,

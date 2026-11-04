@@ -284,6 +284,53 @@ def test_quantum_specific_cache_roundtrip_and_key(tmp_path):
     assert len(list(tmp_path.glob("*.json"))) == 2  # cache_dir=None writes nothing.
 
 
+def test_cache_distinguishes_grover_oracle_definitions():
+    from qward.examples.papers.grover.grover_ibm import GroverIBMExperiment
+
+    runner = GroverIBMExperiment()
+
+    def key(config_id):
+        return F._quantum_specific_key(runner.create_circuit(runner.get_config(config_id)))
+
+    assert key("SYM-1") == key("SYM-1")
+    assert key("SYM-1") != key("ASYM-1")
+
+
+@pytest.mark.parametrize("config_id", ["GHZ16", "BV14-SINGLE"])
+def test_wide_campaign_scores_known_labels(fez, tmp_path, config_id):
+    from qward.examples.papers.bv.bv_ibm import BVIBMExperiment
+
+    runner = GHZIBMExperiment() if config_id == "GHZ16" else BVIBMExperiment()
+    runner.get_campaign_output_dir = lambda: tmp_path
+    store = runner.campaign().store
+    _, prepared, circuits = store.load(store.prepare(config_id, fez, shots=1024))
+    if config_id == "GHZ16":
+        expected = {"0" * 16: 0.5, "1" * 16: 0.5}
+        counts = {"0" * 16: 600, "1" * 16: 300, "10" * 8: 124}
+        expected_tvd = (512 - 300) / 1024
+    else:
+        expected = {"1" + "0" * 13: 1.0}
+        counts = {"1" + "0" * 13: 900, "0" * 14: 124}
+        expected_tvd = 124 / 1024
+    assert prepared["reference"] == expected
+    assert set(prepared["payload"]["success_set"]) == set(expected)
+    assert prepared["payload"]["reference_exact"]
+    row = store.hooks.evaluate(counts, prepared, circuits["isa.qpy"])
+    fidelity = row["targets"]["fidelity"]
+    assert fidelity["success_rate"] == pytest.approx(900 / 1024)
+    assert fidelity["tvd"] == pytest.approx(expected_tvd, abs=1e-6)
+    hist = row["targets"]["histogram_assessment"]
+    assert hist["tvd"] == pytest.approx(expected_tvd)
+    assert hist["tvd_interval"][0] <= expected_tvd <= hist["tvd_interval"][1]
+    baseline = prepared["payload"]["features"]["baselines"]
+    q = baseline["esp_score"]
+    chance = len(expected) / 2 ** circuits["isa.qpy"].num_clbits
+    assert baseline["m1_mixture_error"] == pytest.approx((1 - q) * (1 - chance))
+    for model in ("m1", "m1_mixture", "m2"):
+        for metric in ("error", "tvd"):
+            assert 0 <= baseline[f"{model}_{metric}"] <= 1
+
+
 def test_unavailable_results_are_never_cached(tmp_path):
     big = QuantumCircuit(F.QUANTUM_SPECIFIC_MAX_QUBITS + 1)
     assert F.quantum_specific(big, cache_dir=tmp_path)["available"] is False

@@ -137,6 +137,10 @@ class BVCalibrationIBMExperiment(BVIBMExperiment):
         nominal, _ = analytic_references(config)
         return lambda outcome: outcome.replace(" ", "") in nominal
 
+    def exact_success_outcomes(self, config):
+        # Injected deviations and controls can separate task success from the ideal output.
+        return None
+
     def get_random_chance(self, config):
         nominal, _ = analytic_references(config)
         return len(nominal) / 2**config.num_qubits

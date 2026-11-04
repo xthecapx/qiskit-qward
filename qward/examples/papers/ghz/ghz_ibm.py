@@ -48,6 +48,9 @@ class GHZIBMExperiment(IBMExperimentBase[GHZExperimentConfig]):
         ghz = GHZ(num_qubits=config.num_qubits, use_barriers=True)
         return ghz.circuit
 
+    def exact_success_outcomes(self, config: GHZExperimentConfig) -> List[str]:
+        return config.expected_outcomes
+
     def create_success_criteria(self, config: GHZExperimentConfig) -> Callable[[str], bool]:
         expected = config.expected_outcomes
 

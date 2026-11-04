@@ -220,6 +220,10 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         """Runtime options merged onto ``ibm_campaign.DEFAULT_RUNTIME_OPTIONS``."""
         return None
 
+    def exact_success_outcomes(self, config: ConfigT) -> Optional[List[str]]:
+        """Known equally likely ideal labels, when they are also the complete success set."""
+        return None
+
     def get_reference(self, config: ConfigT) -> Optional[Dict[str, float]]:
         """Ideal (noiseless) output distribution in count-label format.
 
@@ -228,6 +232,9 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         computed against it; ``success_rate`` still uses
         ``create_success_criteria``.
         """
+        outcomes = self.exact_success_outcomes(config)
+        if outcomes is not None:
+            return dict.fromkeys(outcomes, 1.0 / len(outcomes))
         circuit = self.create_circuit(config)
         if circuit.num_clbits > dataset_features.MAX_REFERENCE_BITS:
             return None  # No tractable ideal; targets/baselines are recorded as missing.
@@ -268,13 +275,14 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
             config = self.get_config(item.config_id)
             reference = self.get_reference(config)
             item.reference = reference
-            winners = (
-                dataset_features.success_labels(item.circuit, self.create_success_criteria(config))
-                if item.circuit.num_clbits <= dataset_features.MAX_REFERENCE_BITS
-                else None
-            )
+            winners = self.exact_success_outcomes(config)
+            analytic = winners is not None
+            if winners is None and item.circuit.num_clbits <= dataset_features.MAX_REFERENCE_BITS:
+                winners = dataset_features.success_labels(
+                    item.circuit, self.create_success_criteria(config)
+                )
             return {
-                "reference_exact": dataset_features.reference_is_exact(item.circuit),
+                "reference_exact": analytic or dataset_features.reference_is_exact(item.circuit),
                 "success_set": winners,
                 "features": {
                     "schema_version": dataset_features.FEATURES_SCHEMA_VERSION,
@@ -299,6 +307,7 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
                 logical,
                 prepared["reference"],
                 success=self.create_success_criteria(config),
+                success_set=prepared["payload"].get("success_set"),
             )
             return row
 
