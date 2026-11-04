@@ -415,6 +415,32 @@ def _snapshot(instructions):
     return {"instructions": instructions}
 
 
+def test_wide_sparse_m2_matches_dense_asymmetric_readout():
+    from qward.metrics.circuit_error_prediction import depolarizing_prediction, flip_distribution
+
+    width = 13
+    labels = [f"{i:013b}" for i in range(2**width)]
+    reference = {labels[1]: 0.3, labels[-2]: 0.7}
+    # Different rates on different bits also exercise the clbit order.
+    flips = {i: (0.01 + i / 100, 0.45 - i / 50) for i in range(width)}
+    gates = [{"name": "sx", "qubits": [0], "clbits": [], "error": 0.1}]
+    measures = [{"name": "measure", "qubits": [i], "clbits": [i], "error": 0.1} for i in flips]
+    snapshot = {
+        "instructions": gates + measures,
+        "qubits": {
+            str(i): {"prob_meas1_prep0": up, "prob_meas0_prep1": down}
+            for i, (up, down) in flips.items()
+        },
+    }
+    m2 = depolarizing_prediction(snapshot, reference, width)
+    dense = flip_distribution(
+        {s: 0.8 * reference.get(s, 0) + 0.2 / len(labels) for s in labels}, flips, width
+    )
+    assert m2["probabilities"] is None
+    assert m2["reference_mass"] == pytest.approx(sum(dense[k] for k in reference))
+    assert m2["tvd"] == pytest.approx(sum(abs(dense[k] - reference.get(k, 0)) for k in labels) / 2)
+
+
 def test_m2_converts_infidelity_to_depolarization_and_caps_at_uniform():
     from qward.metrics.circuit_error_prediction import depolarizing_prediction
 

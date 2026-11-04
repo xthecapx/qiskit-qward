@@ -35,7 +35,9 @@ Documented reasons:
   control flow (vTP S configs).
 - `size_limit>8_qubits` (`a.quantum_specific.*`): QuantumSpecific is skipped
   above 8 qubits.
-- `no_reference` (`e.*`, `f.*`): more than 12 measured bits, no tractable ideal.
+- `no_reference` (`e.*`, `f.*`) means the runner has no tractable ideal
+  distribution. GHZ and standard BV supply their analytic references and
+  complete success sets above the generic 12-bit enumeration limit.
 
 Gate counts `b.count_ops.<gate>` are filled with 0 when a gate is absent from
 the executed circuit.
@@ -49,6 +51,10 @@ the executed circuit.
   `e.m1_mixture_error`, `e.m2_error` (predicted 1 − P(success set)), and
   `f.fidelity.tvd` with `e.m2_tvd` / `e.m1_mixture_tvd` / `e.m1_tvd`.
 - `f.residual_vs_<model>` = observed error − predicted error.
+- For GHZ above 12 measured bits, the histogram TVD interval uses simultaneous
+  binomial intervals on the two ideal labels. The interval method is recorded
+  in `f.histogram_assessment.interval_method`. BV retains the single-label
+  Clopper–Pearson interval at every width.
 
 ## Validation (the export fails unless `--allow-incomplete`)
 

@@ -66,6 +66,9 @@ class BVIBMExperiment(IBMExperimentBase[BVExperimentConfig]):
         bv = BernsteinVazirani(secret_string=config.secret_string, use_barriers=True)
         return bv.circuit
 
+    def exact_success_outcomes(self, config: BVExperimentConfig) -> List[str]:
+        return [config.expected_outcome]
+
     def create_success_criteria(self, config: BVExperimentConfig) -> Callable[[str], bool]:
         expected = config.expected_outcome
 

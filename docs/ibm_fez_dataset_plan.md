@@ -43,10 +43,12 @@ vTP S-configs are dynamic (`if_else`); M1/M2 reject dynamic circuits, so group
 E is recorded as missing for them. All other groups are computed.
 
 **Reference vs success set.** Each record stores two things:
-- `reference`: the ideal noiseless output distribution of the logical
-  circuit. It is exact (statevector) for static circuits up to 20 qubits;
-  dynamic circuits use noiseless Aer sampling (200k shots, `reference_exact:
-  false`). Hellinger and TVD are computed against it.
+- `reference` stores the ideal noiseless output distribution. GHZ uses its
+  two equally likely labels and BV uses the measured secret in Qiskit bit
+  order, including above 12 measured bits. The generic statevector path
+  supports up to 20 qubits and 12 measured bits. Dynamic circuits use
+  noiseless Aer sampling (200k shots, `reference_exact: false`).
+  Hellinger and TVD are computed against this distribution.
 - `success_set`: the labels accepted by the runner's `create_success_criteria`
   (for example PE accepts ±1 around the phase peak). `success_rate` and DSR
   use it. Baselines report `*_error` = predicted 1 − P(success set) and
@@ -270,11 +272,11 @@ groups A–G are present.
 - [x] `QuantumSpecificMetrics` seeded (`torch` seed 11, RNG state restored):
       it optimizes from random starts, so two computations of the same circuit
       differed. Features are now reproducible.
-- [x] QuantumSpecific measured over the matrix: 134 configs have it (static,
-      ≤ 8 qubits), **23.8 min of compute per window** (8-qubit circuits take
-      60–80 s each, 863 s in total). It depends only on the logical circuit, so
-      results are cached per circuit (key: circuit hash + seed + metric source
-      + torch version) under `qward/examples/papers/data/quantum_specific_cache/`.
+- [x] QuantumSpecific eligibility in the current matrix: 123 configs (static,
+      ≤ 8 qubits). The original timing sweep took 23.8 min with a cold cache
+      (60–80 s per 8-qubit circuit). The cache key includes the logical circuit,
+      its expansion into primitive gates, seed, metric source and torch version.
+      The cache lives under `qward/examples/papers/data/quantum_specific_cache/`.
       `campaign_matrix --precompute-quantum-specific` fills it once (~24 min);
       afterwards every `prepare` is a cache hit and the three windows share
       the same values. Tests never touch the repository cache.
@@ -302,15 +304,80 @@ groups A–G are present.
     `torch.abs` backpropagates NaN through exactly-zero off-diagonals of
     structured unitaries (first at step 120 of 300). Fixed with an exact
     zero-safe absolute value; values elsewhere are unchanged.
-  - IBM limits active Batches; `submit all` is sequential and resumable.
+  - IBM limits active Batches. The driver tracks queued and running jobs and
+    can resume from their manifest IDs.
 - [ ] Re-run `prepare` for PE-S6 and SP6-P4 features if the pilot data is
       kept (their `a.quantum_specific` is unavailable in those 4 rows).
+
+To repeat the 30-job pilot, use a fresh label such as `0-r2`. It copies the
+original plans and order into campaign `fez-dataset-v2-pilot-r2`, window 0.
+The original pilot and the new repeat have separate manifests and run budgets.
+
+```bash
+campaign=qward/examples/papers/run_campaign.sh
+"$campaign" prepare all 0-r2
+"$campaign" status "" 0-r2
+"$campaign" submit all 0-r2 --max-batches 2
+"$campaign" usage 0-r2
+```
+
+Expect eight prepared manifests and 30 planned jobs before confirming submission.
+Reuse the same label to resume. A fresh repeat uses the next label, e.g. `0-r3`.
+After export, select this repeat by its `meta.campaign_id`.
 
 ### Phase 8 — Full campaign (QPU)
 - [ ] Window 1, all algorithms.
 - [ ] Window 2 (different day).
 - [ ] Window 3 (different day).
 - [ ] Final export and data description.
+
+From the repository root, prepare window 1 shortly before submitting it.
+To move the QuantumSpecific compute time ahead of calibration capture, first
+run `uv run -m qward.examples.papers.campaign_matrix --precompute-quantum-specific`.
+
+```bash
+campaign=qward/examples/papers/run_campaign.sh
+"$campaign" prepare all 1
+"$campaign" status "" 1
+```
+
+For a fresh window the status should show eight prepared manifests, 344 jobs
+planned in total and zero submitted. If preparation was interrupted, prepare
+the individual algorithms that still lack manifests.
+
+```bash
+"$campaign" submit all 1
+"$campaign" status "" 1
+"$campaign" usage 1
+"$campaign" export
+```
+
+`submit all` defaults to two active Batches in the selected window.
+Use `--max-batches 1`, `2` or `3` to change the limit. Queued jobs occupy a
+slot until the Batch finishes and its results are recovered. On restart,
+previously submitted Batches count toward the limit. Other windows and
+independent submissions can also occupy IBM account slots.
+At completion expect eight completed manifests and 344 submitted jobs.
+The default export is `qward/examples/papers/dataset_out/dataset.csv`.
+Filter to window 1 to check its coverage separately from the 30 retained pilot jobs.
+
+```python
+import pandas as pd
+
+data = pd.read_csv("qward/examples/papers/dataset_out/dataset.csv")
+w1 = data[(data["meta.backend_name"] == "ibm_fez")
+          & (data["meta.campaign_id"] == "fez-dataset-v2")
+          & (data["meta.window"] == 1)]
+pairs = w1.groupby(["meta.algorithm", "meta.config_id"])["meta.run_index"].agg(set)
+assert len(w1) == w1["meta.job_id"].nunique() == 344
+assert len(pairs) == 172 and all(indices == {0, 1} for indices in pairs)
+```
+
+For the monthly dashboard, filter by backend, campaign and window. Window 0
+is the pilot. In QFT `PV4-P8`, the ±1 tolerance accepts all 16 labels, so use
+TVD to measure performance. The SP and PV variants at (qubits, period) =
+(4, 2), (4, 4), (6, 4) and (6, 8) are identical logical circuits. Keep their
+job rows and group each pair together when estimating a size limit.
 
 ## Related experiment: BV calibration prediction
 
@@ -349,3 +416,4 @@ Details and findings: `qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md`.
 | 2026-10-29 | Phase 5 done: `dataset_export.py`, schema doc, `run_campaign.sh`; 553 tests passing. |
 | 2026-10-29 | Phase 6 done; coin toss dropped (GHZ and RV cover the noise floor): 8 algorithms, 172 configs, 1,032 jobs. |
 | 2026-10-29 | Phase 7 pilot run on ibm_fez: 34 jobs, export clean; calibration notice, QuantumSpecific NaN and sequential Batch fixes. |
+| 2026-11-03 | Window 1 preflight: added wide GHZ/BV scoring and distinguished composite Grover oracles in the QuantumSpecific cache. All 172 configs retained. |

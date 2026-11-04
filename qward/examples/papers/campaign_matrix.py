@@ -204,6 +204,23 @@ def plan_path(key: str, window: int, root: Path = PAPERS) -> Path:
     return Path(root) / RUNNERS[key]["dir"] / "plans" / f"{key}-w{window}.json"
 
 
+def write_pilot_repeat(key: str, repeat: int, root: Path = PAPERS) -> Path:
+    """Copy the pilot settings into a new campaign budget, still in window zero."""
+    if repeat < 2:
+        raise ValueError("pilot repeat must be 2 or higher")
+    original = plan_path(key, PILOT_WINDOW, root)
+    plan = json.loads(original.read_text())
+    plan["campaign_id"] += f"-pilot-r{repeat}"
+    path = original.with_stem(f"{original.stem}-r{repeat}")
+    if path.exists():
+        if json.loads(path.read_text()) != plan:
+            raise ValueError(f"Existing pilot repeat differs: {path}")
+    else:
+        with path.open("x", encoding="utf-8") as stream:
+            stream.write(json.dumps(plan, indent=2) + "\n")
+    return path
+
+
 def write_plans(root: Path = PAPERS, *, overwrite: bool = False) -> List[Path]:
     """Write all plan files; refuse to replace one that already has a manifest."""
     problems = validate_matrix()
@@ -327,6 +344,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.add_argument("--report", action="store_true")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument(
+        "--pilot-repeat", type=int, help="Create separately budgeted window 0 plans"
+    )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument(
         "--precompute-quantum-specific",
@@ -336,6 +356,10 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument("--only", nargs="+", choices=sorted(MATRIX))
     parser.add_argument("--json", type=Path, help="Write the full report here")
     args = parser.parse_args(argv)
+    if args.pilot_repeat is not None:
+        for key in args.only or MATRIX:
+            print(write_pilot_repeat(key, args.pilot_repeat))
+        return
     problems = validate_matrix()
     if problems:
         raise SystemExit(f"Invalid matrix: {problems}")
