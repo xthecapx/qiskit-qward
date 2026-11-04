@@ -2,7 +2,6 @@
 
 import errno
 import json
-import os
 import shutil
 import subprocess
 from types import SimpleNamespace
@@ -186,14 +185,26 @@ def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expecte
     )
     uv.chmod(0o755)
     proc = subprocess.run(
-        [bash, driver.as_posix(), "submit", "all", "0-r2", *option],
-        input="y\n",
-        text=True,
+        [
+            bash,
+            "-c",
+            'export PATH="$PWD:$PATH"; exec bash "$@"',
+            "campaign-test",
+            driver.as_posix(),
+            "submit",
+            "all",
+            "0-r2",
+            *option,
+        ],
+        # Send LF literally. Windows text mode sends CRLF, which Bash reads as y\r.
+        input=b"y\n",
         capture_output=True,
-        env={**os.environ, "PATH": f"{tmp_path}{os.pathsep}{os.environ['PATH']}"},
-        check=True,
+        cwd=tmp_path,
+        timeout=15,
+        check=False,
     )
-    assert proc.stdout.splitlines()[-13:] == [
+    assert proc.returncode == 0, (proc.stdout, proc.stderr)
+    assert proc.stdout.decode("utf-8").splitlines()[-13:] == [
         "run",
         "-m",
         "qward.examples.papers.campaign_submit",
