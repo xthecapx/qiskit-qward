@@ -265,7 +265,7 @@ def test_mock_submission_recovery_and_tracking_export(prepared, backend, monkeyp
     assert report["executions"] == report["primary_executions"] == 1
     assert report["shots"] == 2048
     assert len(submitted) == 1  # Recovery never submits another job.
-    stored = json.loads(path.read_text())
+    stored = json.loads(path.read_text(encoding="utf-8"))
     assert stored["prepared_hash"] == record_hash(original)
 
 
@@ -355,7 +355,7 @@ def test_runtime_execution_metadata_is_preserved(tmp_path):
 
     path = tmp_path / "metadata.json"
     campaign._write(path, {"execution": {"execution_spans": ExecutionSpans([])}})
-    saved = json.loads(path.read_text())
+    saved = json.loads(path.read_text(encoding="utf-8"))
     assert saved["execution"]["execution_spans"]["__type__"] == "ExecutionSpans"
 
 
@@ -493,9 +493,9 @@ def test_m2_is_frozen_with_prediction_and_budgeted_by_assessment(config, backend
     assert 1 - prediction.m1_success < 1 - prediction.m2_success <= 1 - 2.0**-isa.num_clbits
     shots = 1000
     expected = round(prediction.m2_success * shots)
-    counts = {target: expected}
-    other = next(k for k in prediction.m2_probabilities if k != target)
-    counts[other] = shots - expected
+    other = target[:-1] + ("1" if target[-1] == "0" else "0")
+    assert other in (prediction.m2_probabilities or {})
+    counts = {target: expected, other: shots - expected}
     assessment = HistogramAssessment(
         isa, counts=counts, reference=reference, prediction=prediction
     ).get_metrics()
@@ -637,7 +637,8 @@ def test_batch_prepare_submit_recover_with_mocked_runtime(tmp_path, monkeypatch)
                     },
                 ],
             }
-        )
+        ),
+        encoding="utf-8",
     )
     experiment = campaign.BVCalibrationIBMExperiment(output_dir=tmp_path / "raw")
     manifest = experiment.prepare_batch(plan, service)
@@ -674,7 +675,7 @@ def test_batch_prepare_submit_recover_with_mocked_runtime(tmp_path, monkeypatch)
         experiment.recover_manifest(path, service)
     with pytest.raises(ValueError, match="never submitted"):
         experiment.collect(Path(manifest["items"][0]["record_path"]), service)
-    assert json.loads(path.read_text())["status"] == "prepared"
+    assert json.loads(path.read_text(encoding="utf-8"))["status"] == "prepared"
     submitted = experiment.submit_batch(path, fez)
     assert len(batches) == 1 and submitted["batch_id"] == "batch-1"
     assert sent == [False, True, True]
@@ -682,7 +683,9 @@ def test_batch_prepare_submit_recover_with_mocked_runtime(tmp_path, monkeypatch)
     with pytest.raises(ValueError, match="fresh prepared batch"):
         experiment.submit_batch(path, fez)
     over = tmp_path / "over.json"
-    over.write_text(plan.read_text().replace('"runs": 2', '"runs": 4'))
+    over.write_text(
+        plan.read_text(encoding="utf-8").replace('"runs": 2', '"runs": 4'), encoding="utf-8"
+    )
     with pytest.raises(ValueError, match="budget"):
         experiment.submit_batch(Path(experiment.prepare_batch(over, service)["manifest_path"]), fez)
 
@@ -717,7 +720,7 @@ def _plan(tmp_path, name, **overrides):
         **overrides,
     }
     path = tmp_path / name
-    path.write_text(json.dumps(plan))
+    path.write_text(json.dumps(plan), encoding="utf-8")
     return path
 
 
@@ -731,7 +734,7 @@ def test_prepare_batch_validates_before_writing_records(tmp_path, monkeypatch):
     raw = tmp_path / "raw"
     experiment = campaign.BVCalibrationIBMExperiment(output_dir=raw)
     existing = _plan(tmp_path, "existing.json")
-    (tmp_path / "existing_manifest.json").write_text("{}")
+    (tmp_path / "existing_manifest.json").write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="already exists"):
         experiment.prepare_batch(existing, service)
     bad_runs = _plan(
@@ -768,10 +771,12 @@ def test_batch_budget_uses_each_campaign_window_limit(tmp_path, monkeypatch):
     small = experiment.prepare_batch(
         _plan(tmp_path, "small.json", campaign_id="small", planned_executions=1), service
     )
-    manifest = json.loads(Path(big["manifest_path"]).read_text())
-    manifest["items"] += json.loads(Path(small["manifest_path"]).read_text())["items"]
+    manifest = json.loads(Path(big["manifest_path"]).read_text(encoding="utf-8"))
+    manifest["items"] += json.loads(Path(small["manifest_path"]).read_text(encoding="utf-8"))[
+        "items"
+    ]
     manifest["items"][1]["runs"] = 2  # Exceeds "small" only; the first item's limit is 10.
     merged = tmp_path / "merged_manifest.json"
-    merged.write_text(json.dumps(manifest))
+    merged.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ValueError, match="Repetitions exceed|budget"):
         experiment.submit_batch(merged, fez)

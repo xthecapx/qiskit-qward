@@ -120,7 +120,8 @@ def _plan(tmp_path, **plan):
                 "order_seed": 3,
                 **plan,
             }
-        )
+        ),
+        encoding="utf-8",
     )
     return path
 
@@ -182,7 +183,7 @@ def test_plan_submits_one_batch_with_seeded_round_robin_order(tmp_path, fez, mon
     recovered = campaign.recover_manifest(Path(manifest["manifest_path"]), runtime.service(fez))
     assert recovered["status"] == "completed"
     assert len(runtime.submitted) == 5  # Recovery never resubmits.
-    record = json.loads(Path(submitted["items"][0]["record_path"]).read_text())
+    record = json.loads(Path(submitted["items"][0]["record_path"]).read_text(encoding="utf-8"))
     assert record["batch_id"] == "batch-1"
     assert [r["run_index"] for r in record["individual_results"]] == [0, 1]
     assert record["individual_results"][0]["shots"] == 128
@@ -243,7 +244,7 @@ def test_submission_failure_is_journaled_and_not_retried(tmp_path, fez, monkeypa
     path = store.prepare("GHZ3", fez, shots=64)
     with pytest.raises(RuntimeError):
         store.submit(path, fez)
-    journal = json.loads(path.read_text())
+    journal = json.loads(path.read_text(encoding="utf-8"))
     assert journal["status"] == "submission_unknown"
     assert journal["submission_journal"][0]["job_id"] is None
     with pytest.raises(ValueError, match="fresh prepared"):
@@ -335,9 +336,9 @@ def test_rejected_batch_leaves_manifest_prepared_and_sends_nothing(
     monkeypatch.setattr(qiskit_ibm_runtime, "Batch", refuse)
     with pytest.raises(ibm_campaign.BatchUnavailable, match="no job was sent"):
         campaign.submit_manifest(path, fez)
-    assert json.loads(path.read_text())["status"] == "prepared"
+    assert json.loads(path.read_text(encoding="utf-8"))["status"] == "prepared"
     assert runtime.submitted == []
-    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text())
+    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text(encoding="utf-8"))
     assert record["status"] == "prepared" and record["submission_journal"] == []
     # Once IBM accepts a Batch again, the same manifest submits normally.
     monkeypatch.setattr(qiskit_ibm_runtime, "Batch", runtime.Batch)
@@ -378,7 +379,7 @@ def test_wait_returns_when_all_jobs_are_final(tmp_path, fez, monkeypatch, runtim
 
 def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch, runtime):
     campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
-    before = path.read_text()
+    before = path.read_text(encoding="utf-8")
 
     class Running:
         def in_final_state(self):
@@ -398,7 +399,7 @@ def test_wait_times_out_without_touching_the_manifest(tmp_path, fez, monkeypatch
             sleep=lambda seconds: None,
             log=lambda message: None,
         )
-    assert path.read_text() == before
+    assert path.read_text(encoding="utf-8") == before
 
 
 def test_wait_refuses_a_manifest_that_was_never_submitted(tmp_path, fez, monkeypatch, runtime):
@@ -423,7 +424,7 @@ def test_recalibration_notice_is_one_line_per_submission_not_per_record(
     err = capsys.readouterr().err
     assert err.count("IBM advanced its calibration timestamp") == 1
     assert "3 of 3 records" in err and "WARNING" not in err
-    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text())
+    record = json.loads(Path(manifest["items"][0]["record_path"]).read_text(encoding="utf-8"))
     assert record["submission_journal"][0]["recalibrated_before_submission"] is True
 
 
@@ -433,7 +434,9 @@ def test_job_tags_lead_with_the_algorithm_for_the_dashboard(tmp_path, fez, monke
     plan = _plan(tmp_path, window=2, items=[{"config": "GHZ3"}])
     manifest = campaign.prepare_plan(plan, runtime.service(fez))
     campaign.submit_manifest(Path(manifest["manifest_path"]), fez)
-    run_id = json.loads(Path(manifest["items"][0]["record_path"]).read_text())["run_id"]
+    run_id = json.loads(Path(manifest["items"][0]["record_path"]).read_text(encoding="utf-8"))[
+        "run_id"
+    ]
     first, second = runtime.submitted[0]["tags"], runtime.submitted[1]["tags"]
     assert first[0] == "ghz" and first[1] == "cfg:GHZ3"
     assert first[2:5] == ["campaign:test", "w2", "repeat-0"] and first[-1] == run_id
@@ -467,11 +470,13 @@ def test_usage_reports_batch_seconds_next_to_saved_job_seconds(tmp_path, fez, mo
 
     campaign, path = _submitted_manifest(tmp_path, fez, monkeypatch, runtime)
     campaign.recover_manifest(path, runtime.service(fez))
-    for record_path in [i["record_path"] for i in json.loads(path.read_text())["items"]]:
-        record = json.loads(Path(record_path).read_text())
+    for record_path in [
+        i["record_path"] for i in json.loads(path.read_text(encoding="utf-8"))["items"]
+    ]:
+        record = json.loads(Path(record_path).read_text(encoding="utf-8"))
         for entry in record["submission_journal"]:
             entry["execution_metrics"] = {"usage": {"quantum_seconds": 2}}
-        Path(record_path).write_text(json.dumps(record))
+        Path(record_path).write_text(json.dumps(record), encoding="utf-8")
 
     class FakeBatch:
         @staticmethod

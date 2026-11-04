@@ -41,15 +41,16 @@ class Runtime:
                     "jobs_planned": 1,
                     "items": [{"runs": 1, "job_ids": [key] if sent else []}],
                 }
-            )
+            ),
+            encoding="utf-8",
         )
-        return json.loads(self.paths[key].read_text())
+        return json.loads(self.paths[key].read_text(encoding="utf-8"))
 
     def backend(self, name):
         return name
 
     def submit_manifest(self, path, backend):
-        key = json.loads(path.read_text())["algorithm"]
+        key = json.loads(path.read_text(encoding="utf-8"))["algorithm"]
         assert key not in self.end
         self.events.append(("submit", key, self.tick))
         self.end[key] = self.tick + (4 if key == "ghz" else 1)
@@ -63,7 +64,7 @@ class Runtime:
         return SimpleNamespace(in_final_state=lambda: self.tick >= self.end[key])
 
     def recover_manifest(self, path, service):
-        key = json.loads(path.read_text())["algorithm"]
+        key = json.loads(path.read_text(encoding="utf-8"))["algorithm"]
         assert self.tick >= self.end[key]
         self.events.append(("recover", key, self.tick))
         return self.save(key, "completed")
@@ -75,7 +76,10 @@ def test_bound_and_refill_as_soon_as_a_batch_finishes(tmp_path, monkeypatch, lim
     S.submit_window(service.paths, limit, service)
     assert service.peak == limit
     assert [key for event, key, _ in service.events if event == "submit"] == list(M.RUNNERS)
-    assert all(json.loads(p.read_text())["status"] == "completed" for p in service.paths.values())
+    assert all(
+        json.loads(p.read_text(encoding="utf-8"))["status"] == "completed"
+        for p in service.paths.values()
+    )
     if limit == 2:
         assert ("submit", "vtp", 1) in service.events  # GHZ is still queued.
 
@@ -99,7 +103,7 @@ def test_unknown_partial_batch_blocks_new_submissions(tmp_path, monkeypatch):
     service = Runtime(tmp_path, monkeypatch)
     manifest = service.save("rv", "submitting")
     manifest["items"][0]["job_ids"] = []
-    service.paths["rv"].write_text(json.dumps(manifest))
+    service.paths["rv"].write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ValueError, match="partial submission"):
         S.submit_window(service.paths, 2, service)
     assert not service.events
@@ -117,7 +121,7 @@ def test_failed_open_survives_restart_without_duplicating_other_batch(tmp_path, 
     monkeypatch.setattr(service, "submit_manifest", refuse_second)
     with pytest.raises(RuntimeError, match="Batch refused"):
         S.submit_window(service.paths, 2, service)
-    assert json.loads(service.paths["bv"].read_text())["status"] == "prepared"
+    assert json.loads(service.paths["bv"].read_text(encoding="utf-8"))["status"] == "prepared"
     monkeypatch.setattr(service, "submit_manifest", submit)
     S.submit_window(service.paths, 2, service)
     assert service.peak == 2
@@ -132,7 +136,7 @@ def test_repeat_gets_own_budget_and_preserves_original(tmp_path):
         original = M.plan_path(key, 0).read_bytes()
         pilot.write_bytes(original)
         path = M.write_pilot_repeat(key, 2, tmp_path)
-        repeat = json.loads(path.read_text())
+        repeat = json.loads(path.read_text(encoding="utf-8"))
         assert path.stem == f"{key}-w0-r2" and repeat["window"] == 0
         assert repeat.pop("campaign_id") == M.CAMPAIGN_ID + "-pilot-r2"
         assert {**repeat, "campaign_id": M.CAMPAIGN_ID} == json.loads(original)
@@ -160,7 +164,10 @@ def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expecte
         manifests.append(str(path))
     # Intercept the uv boundary; the final exec arguments show what would run.
     uv = tmp_path / "uv"
-    uv.write_text('#!/bin/sh\nif [ "$2" = python ]; then cat >/dev/null; fi\nprintf "%s\\n" "$@"\n')
+    uv.write_text(
+        '#!/bin/sh\nif [ "$2" = python ]; then cat >/dev/null; fi\nprintf "%s\\n" "$@"\n',
+        encoding="utf-8",
+    )
     uv.chmod(0o755)
     proc = subprocess.run(
         [str(driver), "submit", "all", "0-r2", *option],
