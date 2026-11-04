@@ -7,6 +7,7 @@ Reads ``<algorithm>/data/qpu/v2/*.json`` (records written by
 result, and writes:
 
     dataset.csv         one row per completed job
+    references.csv      frozen accepted labels and ideal probabilities per run_id
     schema.json         column -> group, dtype, non-null count
     export_report.json  skipped records, warnings and counts
 
@@ -329,6 +330,23 @@ def export(
         )
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    references = []
+    if not frame.empty:
+        for path in frame["meta.record_path"].unique():
+            record_path = Path(path)
+            journal = json.loads(record_path.read_text(encoding="utf-8"))
+            prepared_path = record_path.parent / journal["artifact_directory"] / "prepared.json"
+            prepared = json.loads(prepared_path.read_text(encoding="utf-8"))
+            references.append(
+                (
+                    journal["run_id"],
+                    json.dumps(prepared["payload"].get("success_set"), sort_keys=True),
+                    json.dumps(prepared["reference"], sort_keys=True),
+                )
+            )
+    pd.DataFrame(references, columns=["run_id", "accepted_json", "ideal_json"]).to_csv(
+        out_dir / "references.csv", index=False
+    )
     frame.to_csv(out_dir / "dataset.csv", index=False)
     (out_dir / "schema.json").write_text(
         json.dumps(build_schema(frame), indent=2) + "\n", encoding="utf-8"

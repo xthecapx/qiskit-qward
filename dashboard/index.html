@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#123d3a" />
+    <title>Circuit boundaries · QWARD</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="vendor/echarts.min.js"></script>
+    <script defer src="snapshot.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <nav>
+      <div class="wrap nav-inner">
+        <strong><span class="mark" aria-hidden="true">∿</span> QWARD</strong
+        ><span>Hardware experiments</span
+        ><a href="https://xthecapx.github.io/qiskit-qward/">Documentation ↗</a>
+      </div>
+    </nav>
+    <main class="wrap">
+      <header>
+        <p class="eyebrow">IBM Quantum &nbsp; / &nbsp; Experiment explorer</p>
+        <h1>Circuit boundaries</h1>
+        <p class="intro">
+          How far can you take a raw circuit on this chip? Choose a task, find
+          its measured limit, and inspect the shots behind it.
+        </p>
+      </header>
+      <noscript
+        >This explorer requires JavaScript to read the tabulated
+        results.</noscript
+      >
+      <div id="error" role="alert" hidden></div>
+      <section class="filters" aria-label="Measurement scope">
+        <label>Chip<select id="backend"></select></label
+        ><label>Campaign window<select id="window"></select></label>
+        <label>Algorithm<select id="algorithm"></select></label
+        ><label>Circuit family<select id="family"></select></label>
+      </section>
+      <section class="surface">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 &nbsp; / &nbsp; Operating range</p>
+            <h2>Find a boundary</h2>
+          </div>
+          <small id="coverage"></small>
+        </div>
+        <div class="settings">
+          <label
+            >What do you need to know?<select id="question"></select
+          ></label>
+          <label id="target-label"
+            >Task target (0–1)
+            <input
+              id="target"
+              type="number"
+              min="0"
+              max="1"
+              step="any"
+              placeholder="Optional"
+          /></label>
+          <label
+            >Horizontal axis<select id="axis">
+              <option value="width">Logical qubits</option>
+              <option value="depth">Executed ISA depth</option>
+              <option value="bits">Measured bits</option>
+              <option value="gates">Two-qubit gates</option>
+            </select></label
+          >
+        </div>
+        <div class="analysis">
+          <article class="finding" aria-live="polite">
+            <p class="eyebrow">Measured result</p>
+            <h3 id="headline"></h3>
+            <p id="explain"></p>
+            <hr />
+            <b id="metric"></b>
+            <p id="meaning"></p>
+          </article>
+          <div>
+            <div
+              id="trend"
+              class="plot"
+              role="img"
+              aria-label="Selected metric by circuit setting"
+            ></div>
+            <p class="note">
+              Points are individual jobs. Select a point to inspect its
+              histogram.
+            </p>
+          </div>
+        </div>
+        <details>
+          <summary>Compare all settings in this sweep</summary>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Configuration</th>
+                  <th>Qubits</th>
+                  <th>ISA depth</th>
+                  <th>Job values</th>
+                  <th>Target result</th>
+                </tr>
+              </thead>
+              <tbody id="settings-table"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+      <section class="surface">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 &nbsp; / &nbsp; Run evidence</p>
+            <h2>Inspect the histogram</h2>
+          </div>
+        </div>
+        <div class="settings">
+          <label>Configuration<select id="config"></select></label
+          ><label>Repetition<select id="rep"></select></label
+          ><label
+            >Visible outcomes<select id="bins">
+              <option>8</option>
+              <option>16</option>
+              <option>32</option>
+            </select></label
+          >
+        </div>
+        <p id="run-context" class="note"></p>
+        <div class="numbers" id="numbers"></div>
+        <p id="hist-note"></p>
+        <div
+          id="hist"
+          role="img"
+          aria-label="Observed outcome probabilities with reference markers"
+        ></div>
+        <details>
+          <summary>View all outcome counts and reference values</summary>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Outcome</th>
+                  <th>Shots</th>
+                  <th>Observed</th>
+                  <th>Ideal</th>
+                  <th>Accepted</th>
+                </tr>
+              </thead>
+              <tbody id="outcomes"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+      <footer>
+        <span id="source">Reading the exported snapshot…</span
+        ><label><input type="checkbox" id="motion" /> Animate changes</label>
+      </footer>
+    </main>
+  </body>
+</html>
