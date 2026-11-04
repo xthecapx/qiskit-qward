@@ -101,7 +101,15 @@ def test_simulated_backends_are_refused_by_default(root, tmp_path):
         D.export(tmp_path / "out", root=root)
     report = D.export(tmp_path / "out", root=root, allow_fake=True)
     assert report["errors"] == [] and report["rows"] == 6
-    assert (tmp_path / "out" / "dataset.csv").exists()
+    jobs = pd.read_csv(tmp_path / "out" / "dataset.csv")
+    references = pd.read_csv(tmp_path / "out" / "references.csv").set_index("run_id")
+    assert references.index.is_unique
+    assert set(jobs["meta.run_id"]) == set(references.index)
+    ghz_id = jobs.loc[jobs["meta.config_id"] == "GHZ3", "meta.run_id"].iloc[0]
+    assert set(json.loads(references.loc[ghz_id, "accepted_json"])) == {"000", "111"}
+    assert json.loads(references.loc[ghz_id, "ideal_json"]) == pytest.approx(
+        {"000": 0.5, "111": 0.5}
+    )
     schema = json.loads((tmp_path / "out" / "schema.json").read_text())
     assert schema["rows"] == 6
     assert {c["group"] for c in schema["columns"]} <= set(D.GROUP_PREFIXES)
