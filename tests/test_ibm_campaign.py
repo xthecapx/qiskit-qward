@@ -511,3 +511,29 @@ def test_usage_skips_manifests_that_were_never_submitted(tmp_path, fez, monkeypa
         SimpleNamespace(usage=lambda: {"usage_consumed_seconds": 0}),
     )
     assert report["batches"] == [] and report["total_batch_usage_seconds"] == 0
+
+
+@pytest.mark.parametrize(
+    "saved", ["/old/ghz/data/qpu/v2/run.json", r"C:\old\ghz\data\qpu\v2\run.json"]
+)
+def test_status_reads_records_from_relocated_pilot(tmp_path, saved):
+    plans = tmp_path / "ghz" / "plans"
+    plans.mkdir(parents=True)
+    records = plans.parent / "data/qpu/v2"
+    records.mkdir(parents=True)
+    (records / "run.json").write_text('{"status":"completed"}', encoding="utf-8")
+    manifest = plans / "ghz-w0_manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "campaign_id": "pilot",
+                "status": "completed",
+                "jobs_planned": 1,
+                "items": [{"record_path": saved, "job_ids": ["job-1"]}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    status = ibm_campaign.Campaign.status(manifest)
+    assert status["records_by_status"] == {"completed": 1}
+    assert status["jobs_submitted"] == 1
