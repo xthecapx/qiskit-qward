@@ -23,8 +23,8 @@
         <p class="eyebrow">IBM Quantum &nbsp; / &nbsp; Experiment explorer</p>
         <h1>Circuit boundaries</h1>
         <p class="intro">
-          How far can you take a raw circuit on this chip? Choose a task, find
-          its measured limit, and inspect the shots behind it.
+          Choose an algorithm and a question to see which circuit sizes met your
+          target on this chip. Select a point to explore that job’s measurement outcomes.
         </p>
       </header>
       <noscript
@@ -49,30 +49,38 @@
           </div>
           <dialog id="plot-settings" aria-labelledby="settings-title">
             <form method="dialog">
-              <div class="section-head">
-                <h2 id="settings-title">Adjust plot</h2>
+              <h2 id="settings-title">Adjust plot</h2>
+              <div class="plot-setting-sections">
+                <fieldset>
+                  <legend>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v5l-4 2v-7z"/></svg>
+                    Jobs to include
+                  </legend>
+                  <label>Chip<select id="backend"></select></label>
+                  <label>Measurement period (UTC)<select id="window"></select></label>
+                  <label>Experiment group<select id="family"></select></label>
+                </fieldset>
+                <fieldset>
+                  <legend>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 3v17h17M8 15l4-5 4 2 4-6"/></svg>
+                    How to compare jobs
+                  </legend>
+                  <label>Horizontal axis<select id="axis">
+                    <option value="width">Logical qubits</option>
+                    <option value="depth">Executed ISA depth</option>
+                    <option value="bits">Measured bits</option>
+                    <option value="gates">Two-qubit gates</option>
+                  </select></label>
+                  <label><span id="target-label">Target</span>
+                    <input id="target" type="number" min="0" max="1" step="any" aria-describedby="target-help" placeholder="No target">
+                  </label>
+                  <p class="note" id="target-help"></p>
+                </fieldset>
+              </div>
+              <div class="settings-footer">
+                <span id="settings-coverage" class="note" role="status"></span>
                 <button class="view-button" type="submit">Done</button>
               </div>
-              <fieldset>
-                <legend>Which jobs to include</legend>
-                <label>Chip<select id="backend"></select></label>
-                <label>Measurement period (UTC)<select id="window"></select></label>
-                <label>Experiment group<select id="family"></select></label>
-                <p class="note">Use all experiments for the full algorithm, or choose a group to compare related circuits.</p>
-              </fieldset>
-              <fieldset>
-                <legend>How to compare them</legend>
-                <label>Plot against<select id="axis">
-                  <option value="width">Logical qubits</option>
-                  <option value="depth">Executed ISA depth</option>
-                  <option value="bits">Measured bits</option>
-                  <option value="gates">Two-qubit gates</option>
-                </select></label>
-                <label><span id="target-label">Target</span>
-                  <input id="target" type="number" min="0" max="1" step="any" aria-describedby="target-help" placeholder="Optional">
-                </label>
-                <p class="note" id="target-help"></p>
-              </fieldset>
             </form>
           </dialog>
           <div class="analysis">
@@ -185,8 +193,7 @@
         </div>
       </section>
       <footer>
-        <span id="source">Reading the exported snapshot…</span
-        ><label><input type="checkbox" id="motion" /> Animate changes</label>
+        <span id="source">Reading the exported snapshot…</span>
       </footer>
     </main>
   </body>
