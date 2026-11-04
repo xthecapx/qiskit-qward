@@ -12,6 +12,8 @@ QWARD is a Python library designed to assist in analyzing quantum circuits and t
 
 QWARD enables users to apply a range of metrics to quantum circuits, gather execution data, and analyze performance characteristics. This aids in understanding circuit behavior, complexity, and potential areas for optimization, whether working with simulated or real hardware backends.
 
+Explore measured circuit limits on IBM hardware in the `experiment dashboard <dashboard/index.html>`_.
+
 **Key Features:**
 
 - **Simple Unified API**: All metric classes use `get_metrics()` for consistent, type-safe access
