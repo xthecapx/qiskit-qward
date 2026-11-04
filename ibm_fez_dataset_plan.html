@@ -1,0 +1,948 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html">
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2025.12.19 -->
+        <title>Plan: Unified IBM pipeline and ibm_fez training dataset - Qward 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3ee1c6c6" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/qiskit-sphinx-theme.css?v=fc6d6d93" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #ffffff;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Qward 0.1.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">Qward 0.1.0</span>
+  
+</a>
+<form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart_guide.html">QWARD Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginners_guide.html">QWARD Beginner’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_docs.html">Technical Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">QWARD Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">QWARD Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization_guide.html">QWARD Visualization Guide</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API References</a><input aria-label="Toggle navigation of API References" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/scanner.html">Scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_base.html">Metrics Base &amp; Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_schemas.html">Metrics Schemas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_qiskit.html">Qiskit Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_complexity.html">Complexity Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_circuit_performance.html">Circuit Performance Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_utils.html">Metrics Utilities</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_element.html">Element Metrics (Gate-Level)</a><input aria-label="Toggle navigation of Element Metrics (Gate-Level)" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.element_metrics.ElementMetrics.html">qward.metrics.element_metrics.ElementMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_structural.html">Structural Metrics</a><input aria-label="Toggle navigation of Structural Metrics" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.structural_metrics.StructuralMetrics.html">qward.metrics.structural_metrics.StructuralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/metrics_behavioral.html">Behavioral Metrics (Execution Dynamics)</a><input aria-label="Toggle navigation of Behavioral Metrics (Execution Dynamics)" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/generated/qward.metrics.behavioral_metrics.BehavioralMetrics.html">qward.metrics.behavioral_metrics.BehavioralMetrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/metrics_quantum_specific.html">Quantum Specific Metrics (Magic / Coherence / Sensitivity)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_base.html">Visualization Base Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_strategies.html">Visualization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/visualization_unified.html">Unified Visualizer</a></li>
+</ul>
+</li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/ibm_fez_dataset_plan.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="plan-unified-ibm-pipeline-and-ibm-fez-training-dataset">
+<h1>Plan: Unified IBM pipeline and <code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code> training dataset<a class="headerlink" href="#plan-unified-ibm-pipeline-and-ibm-fez-training-dataset" title="Link to this heading">¶</a></h1>
+<p>Status legend: <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">]</span></code> not started · <code class="docutils literal notranslate"><span class="pre">[~]</span></code> in progress · <code class="docutils literal notranslate"><span class="pre">[x]</span></code> done.
+Update the <strong>Progress log</strong> at the bottom whenever a phase moves.</p>
+<section id="goal">
+<h2>Goal<a class="headerlink" href="#goal" title="Link to this heading">¶</a></h2>
+<p>Build a fresh, consistent training dataset on <strong><code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code></strong> for the thesis:
+every row is one QPU job whose pre-runtime features and post-runtime targets
+were computed by the same code, from the exact circuit that ran and the chip
+state when it ran.</p>
+<ul class="simple">
+<li><p><strong>Algorithms (thesis scope):</strong> Fourier-based (QFT, PE), oracle-based
+(Grover, BV), entanglement-based (vTP, GHZ).</p></li>
+<li><p><strong>Additional:</strong> coin toss (noise floor), random volumetric (control group),
+Shor (known-failure anchor).</p></li>
+<li><p><strong>Shots:</strong> 1,024 per job.</p></li>
+<li><p><strong>Optimization level:</strong> 3 only (fixed <code class="docutils literal notranslate"><span class="pre">seed_transpiler</span></code>, ISA frozen at prepare).</p></li>
+<li><p><strong>Repetitions:</strong> 2 runs per config per window, on the same frozen ISA circuit.</p></li>
+<li><p><strong>Windows:</strong> 3 calibration windows on different days, so 6 jobs per config.</p></li>
+<li><p><strong>Legacy data:</strong> existing runs are kept untouched as a separate legacy set.
+They are not recovered, rewritten or mixed with the new dataset.</p></li>
+<li><p><strong>New data location:</strong> <code class="docutils literal notranslate"><span class="pre">data/qpu/v2/</span></code> (schema-versioned).</p></li>
+<li><p>Rigetti and IonQ come later through the same plan format.</p></li>
+</ul>
+</section>
+<section id="feature-and-target-groups-recorded-per-job">
+<h2>Feature and target groups recorded per job<a class="headerlink" href="#feature-and-target-groups-recorded-per-job" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Group</p></th>
+<th class="head"><p>Contents</p></th>
+<th class="head"><p>Computed at</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A. Logical circuit</p></td>
+<td><p>QWARD pre-runtime metrics (Qiskit, Complexity, Structural, Behavioral, Element, QuantumSpecific*)</p></td>
+<td><p>prepare</p></td>
+</tr>
+<tr class="row-odd"><td><p>B. Transpiled circuit</p></td>
+<td><p>same metrics on the ISA circuit; layout, physical qubits</p></td>
+<td><p>prepare</p></td>
+</tr>
+<tr class="row-even"><td><p>C. Hardware at submission</p></td>
+<td><p>per-qubit/per-gate errors for used qubits, directional readout, T1/T2, idle time, device medians, IBM calibration timestamp</p></td>
+<td><p>prepare</p></td>
+</tr>
+<tr class="row-odd"><td><p>D. Hardware at execution</p></td>
+<td><p>same as C from <code class="docutils literal notranslate"><span class="pre">job.properties()</span></code></p></td>
+<td><p>recover</p></td>
+</tr>
+<tr class="row-even"><td><p>E. Baseline predictions</p></td>
+<td><p>M1 / M1-mixture / M2 error estimates (features, not targets)</p></td>
+<td><p>prepare</p></td>
+</tr>
+<tr class="row-odd"><td><p>F. Targets</p></td>
+<td><p>one shared <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code> pass against the ideal distribution (success, DSR, Hellinger, TVD) + <code class="docutils literal notranslate"><span class="pre">HistogramAssessment</span></code></p></td>
+<td><p>recover</p></td>
+</tr>
+<tr class="row-even"><td><p>G. Provenance</p></td>
+<td><p>run/job/batch/campaign IDs, window, code + package versions, transpiler seed, Runtime options, timestamps</p></td>
+<td><p>throughout</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>* QuantumSpecificMetrics measured cost on the logical circuit: 1.3 s (3 q),
+6 s (6 q), 74 s (8 q), 462 s (9 q). Compute once per config up to 8 qubits;
+above that, record as missing with reason <code class="docutils literal notranslate"><span class="pre">size_limit</span></code> (not zero).</p>
+<p>vTP S-configs are dynamic (<code class="docutils literal notranslate"><span class="pre">if_else</span></code>); M1/M2 reject dynamic circuits, so group
+E is recorded as missing for them. All other groups are computed.</p>
+<p><strong>Reference vs success set.</strong> Each record stores two things:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reference</span></code> stores the ideal noiseless output distribution. GHZ uses its
+two equally likely labels and BV uses the measured secret in Qiskit bit
+order, including above 12 measured bits. The generic statevector path
+supports up to 20 qubits and 12 measured bits. Dynamic circuits use
+noiseless Aer sampling (200k shots, <code class="docutils literal notranslate"><span class="pre">reference_exact:</span> <span class="pre">false</span></code>).
+Hellinger and TVD are computed against this distribution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">success_set</span></code>: the labels accepted by the runner’s <code class="docutils literal notranslate"><span class="pre">create_success_criteria</span></code>
+(for example PE accepts ±1 around the phase peak). <code class="docutils literal notranslate"><span class="pre">success_rate</span></code> and DSR
+use it. Baselines report <code class="docutils literal notranslate"><span class="pre">*_error</span></code> = predicted 1 − P(success set) and
+<code class="docutils literal notranslate"><span class="pre">*_tvd</span></code> = predicted TVD to the ideal, so each is comparable with its target.</p></li>
+</ul>
+<p><strong>Where the groups live in a record:</strong></p>
+<ul class="simple">
+<li><p>A, B, C, E: <code class="docutils literal notranslate"><span class="pre">artifacts/&lt;stem&gt;/prepared.json</span></code> → <code class="docutils literal notranslate"><span class="pre">payload.features</span></code></p></li>
+<li><p>D: journal → <code class="docutils literal notranslate"><span class="pre">submission_journal[i].hardware_at_execution</span></code> and
+<code class="docutils literal notranslate"><span class="pre">baselines_at_execution</span></code></p></li>
+<li><p>F: journal → <code class="docutils literal notranslate"><span class="pre">individual_results[i].targets</span></code>; the legacy <code class="docutils literal notranslate"><span class="pre">evaluate_result</span></code>
+fields are kept alongside</p></li>
+<li><p>G: journal and <code class="docutils literal notranslate"><span class="pre">prepared.json</span></code> top-level keys</p></li>
+</ul>
+</section>
+<section id="findings-that-motivate-the-redesign">
+<h2>Findings that motivate the redesign<a class="headerlink" href="#findings-that-motivate-the-redesign" title="Link to this heading">¶</a></h2>
+<p>Old pipeline (<code class="docutils literal notranslate"><span class="pre">ibm_experiment_base.py</span></code> + <code class="docutils literal notranslate"><span class="pre">executor.run_ibm</span></code>):</p>
+<ol class="arabic simple">
+<li><p>Files are written only if the run completes (<code class="docutils literal notranslate"><span class="pre">ibm_experiment_base.py:356</span></code>);
+timeouts lose job/batch IDs (hence hard-coded <code class="docutils literal notranslate"><span class="pre">get_timed_out_batches</span></code>).</p></li>
+<li><p>Gate-error characterization re-transpiles without a seed
+(<code class="docutils literal notranslate"><span class="pre">ibm_experiment_base.py:325</span></code>); on FakeFez, 4 transpiles gave 2–4 distinct
+layouts, so it may not describe the circuit that ran.</p></li>
+<li><p>Calibration is device medians from <code class="docutils literal notranslate"><span class="pre">backend.target</span></code>, captured before
+submission, timestamped <code class="docutils literal notranslate"><span class="pre">now()</span></code>; no per-qubit data.</p></li>
+<li><p>QWARD metrics are computed on the logical circuit only.</p></li>
+<li><p>Post-run targets differ per runner (<code class="docutils literal notranslate"><span class="pre">evaluate_result</span></code> in each of 11
+runners; none uses <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code>); Hellinger/TVD/DSR are added later
+by enrichment scripts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--recover</span></code> assigns optimization level by job order; update script covers
+only Grover/QFT; campaign state is tracked in shell-script comments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/thesis-dataset-plan.md</span></code> states per-job historical calibration is
+unavailable; <code class="docutils literal notranslate"><span class="pre">job.properties()</span></code> worked for all 10 <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez</span></code> jobs.</p></li>
+</ol>
+<p>Calibration campaign (<code class="docutils literal notranslate"><span class="pre">bv_calibration_ibm.py</span></code>) has the right lifecycle
+(freeze → submit → idempotent recover → run-time calibration) but bypasses
+the base class and has bugs (see Phase 1).</p>
+</section>
+<section id="circuit-matrix-within-hardware-limits">
+<h2>Circuit matrix (within hardware limits)<a class="headerlink" href="#circuit-matrix-within-hardware-limits" title="Link to this heading">¶</a></h2>
+<p>Measured on FakeFez (opt 2, seed 11; opt 2 and opt 3 gave the same 2Q count
+on 23 of 25 sampled configs, median ratio 1.0). Predicted error is M1; real
+<code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code> error was 1.5–3× higher in BV runs. Keep circuits between “almost
+always succeeds” and “pure noise”.</p>
+<p>Final matrix (source of truth: <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/campaign_matrix.py</span></code>;
+<code class="docutils literal notranslate"><span class="pre">--report</span></code> re-measures sizes locally). Sizes are the ISA at optimization level
+3, seed 11, on FakeFez calibration; “max M1 error” is the largest predicted
+error in the algorithm’s set (real <code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code> ran 1.5–3× higher in BV).</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Configs kept</p></th>
+<th class="head"><p>Dropped / anchor</p></th>
+<th class="head text-right"><p>Configs</p></th>
+<th class="head text-right"><p>Jobs/window</p></th>
+<th class="head text-right"><p>Jobs (3 windows)</p></th>
+<th class="head text-right"><p>Max 2Q</p></th>
+<th class="head text-right"><p>Max M1 err</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GHZ</p></td>
+<td><p>GHZ2–GHZ16</p></td>
+<td><p>GHZ17–20</p></td>
+<td class="text-right"><p>15</p></td>
+<td class="text-right"><p>30</p></td>
+<td class="text-right"><p>90</p></td>
+<td class="text-right"><p>15</p></td>
+<td class="text-right"><p>0.15</p></td>
+</tr>
+<tr class="row-odd"><td><p>BV</p></td>
+<td><p>ONES/ALT/SINGLE × BV2–BV14</p></td>
+<td><p>BV15+</p></td>
+<td class="text-right"><p>39</p></td>
+<td class="text-right"><p>78</p></td>
+<td class="text-right"><p>234</p></td>
+<td class="text-right"><p>38</p></td>
+<td class="text-right"><p>0.21</p></td>
+</tr>
+<tr class="row-even"><td><p>vTP</p></td>
+<td><p>V1–V5 static, S1–S5 dynamic × 3 payloads</p></td>
+<td><p>—</p></td>
+<td class="text-right"><p>30</p></td>
+<td class="text-right"><p>60</p></td>
+<td class="text-right"><p>180</p></td>
+<td class="text-right"><p>36</p></td>
+<td class="text-right"><p>0.14 (15 dynamic)</p></td>
+</tr>
+<tr class="row-odd"><td><p>QFT</p></td>
+<td><p>SR2–SR8; SP3–SP8 (≤ 9 q); PV4/PV6; IV4</p></td>
+<td><p>SR10–14, SP10/12</p></td>
+<td class="text-right"><p>27</p></td>
+<td class="text-right"><p>54</p></td>
+<td class="text-right"><p>162</p></td>
+<td class="text-right"><p>208</p></td>
+<td class="text-right"><p>0.53</p></td>
+</tr>
+<tr class="row-even"><td><p>PE</p></td>
+<td><p>T/S/Z × 2–8 counting qubits</p></td>
+<td><p>9–10 counting</p></td>
+<td class="text-right"><p>21</p></td>
+<td class="text-right"><p>42</p></td>
+<td class="text-right"><p>126</p></td>
+<td class="text-right"><p>112</p></td>
+<td class="text-right"><p>0.35</p></td>
+</tr>
+<tr class="row-odd"><td><p>Grover</p></td>
+<td><p>S2–S5, M3/M4, H3/H4, SYM/ASYM</p></td>
+<td><p>S6+; <strong>S5 = failure anchor</strong></p></td>
+<td class="text-right"><p>24</p></td>
+<td class="text-right"><p>48</p></td>
+<td class="text-right"><p>144</p></td>
+<td class="text-right"><p>530</p></td>
+<td class="text-right"><p>0.82</p></td>
+</tr>
+<tr class="row-even"><td><p>Random volumetric</p></td>
+<td><p>RV2–RV5 × 3 depths; RV6-D6, RV7-D7, RV8-D8</p></td>
+<td><p>RV9+</p></td>
+<td class="text-right"><p>15</p></td>
+<td class="text-right"><p>30</p></td>
+<td class="text-right"><p>90</p></td>
+<td class="text-right"><p>330</p></td>
+<td class="text-right"><p>0.71</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shor</p></td>
+<td><p>SHOR-N15-M3</p></td>
+<td><p>other N15 configs; <strong>M3 = failure anchor</strong></p></td>
+<td class="text-right"><p>1</p></td>
+<td class="text-right"><p>2</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>1388</p></td>
+<td class="text-right"><p>0.99</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total</strong></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td class="text-right"><p><strong>172</strong></p></td>
+<td class="text-right"><p><strong>344</strong></p></td>
+<td class="text-right"><p><strong>1,032</strong></p></td>
+<td class="text-right"><p></p></td>
+<td class="text-right"><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Coin toss is not part of the campaign: GHZ and random volumetric already cover
+the noise floor. Its runner stays available, and the 4 pilot jobs already run
+(CT3, CT3-B25) stay on disk but are filtered out of the export.</p>
+<p>Distribution of predicted M1 error across the 172 configs: 75 below 10%, 59 at
+10–30%, 20 at 30–60%, 2 at 60–90%, 1 above 90% (Shor), 15 dynamic (no
+prediction). The three high-error entries (Grover S5, Shor M3, RV8-D8) are
+deliberate anchors for where output turns into noise.</p>
+<p><strong>QPU time.</strong> Measured on the 34 pilot jobs (IBM <code class="docutils literal notranslate"><span class="pre">usage.quantum_seconds</span></code>,
+whole seconds, 1,024 shots): 32 jobs billed 2 s (ISA depth 4–438, circuit
+duration 0–14 µs), the two Shor jobs billed 3 s (depth 4,640, 136 µs). A
+Batch’s usage in the dashboard is the sum of its jobs (4 jobs = 8 s, Shor’s
+2 jobs = 6 s); the pilot used 62 s in total. The 250 µs rep delay dominates
+short circuits, so billing is almost flat in circuit size.
+<code class="docutils literal notranslate"><span class="pre">campaign_matrix.qpu_seconds</span></code> is fitted to those numbers (31 ns per layer plus
+1.7 s fixed per job) and predicts <strong>~12 min per window, ~35 min for all 1,032
+jobs</strong> (≈ 2,100 s of the account’s 10,800 s). The earlier “30 min” figure was
+this same total; the dashboard figure per Batch is 6–8 s because each Batch
+holds 2–4 jobs, not a whole window. <code class="docutils literal notranslate"><span class="pre">run_campaign.sh</span> <span class="pre">usage</span> <span class="pre">[window]</span></code> reads the
+real numbers from IBM next to the saved per-job values.</p>
+<p><strong>Dashboard tags.</strong> Every job carries <code class="docutils literal notranslate"><span class="pre">&lt;algorithm&gt;</span></code> first (<code class="docutils literal notranslate"><span class="pre">ghz</span></code>, <code class="docutils literal notranslate"><span class="pre">bv</span></code> →
+<code class="docutils literal notranslate"><span class="pre">bernstein-vazirani</span></code>, <code class="docutils literal notranslate"><span class="pre">phase-estimation</span></code>, …), then <code class="docutils literal notranslate"><span class="pre">cfg:&lt;config&gt;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">campaign:&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">w&lt;window&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">repeat-&lt;n&gt;</span></code> and the run ID. In the IBM
+dashboard, filter the Jobs table by the algorithm tag. Jobs submitted before
+this change carry only <code class="docutils literal notranslate"><span class="pre">&lt;run</span> <span class="pre">id&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">repeat-&lt;n&gt;</span></code>.</p>
+</section>
+<section id="phases">
+<h2>Phases<a class="headerlink" href="#phases" title="Link to this heading">¶</a></h2>
+<section id="phase-1-fix-calibration-campaign-bugs-no-qpu">
+<h3>Phase 1 — Fix calibration-campaign bugs (no QPU) ✅<a class="headerlink" href="#phase-1-fix-calibration-campaign-bugs-no-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Rename manifest recovery to <code class="docutils literal notranslate"><span class="pre">recover_manifest</span></code>; base
+<code class="docutils literal notranslate"><span class="pre">recover_batch(batch_id,</span> <span class="pre">...)</span></code> is no longer shadowed.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Align alpha: <code class="docutils literal notranslate"><span class="pre">prepare</span></code> and analysis share <code class="docutils literal notranslate"><span class="pre">CLAIMS_PER_RUN</span></code> (7);
+records store <code class="docutils literal notranslate"><span class="pre">claims_per_run</span></code>. Archived records keep their frozen alpha.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">prepare_batch</span></code>: manifest existence, <code class="docutils literal notranslate"><span class="pre">runs</span></code>, run budget and config IDs
+validated before any record is written.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">submit_batch</span></code>: per-(campaign, window) limits; one <code class="docutils literal notranslate"><span class="pre">_submitted_runs</span></code>
+helper replaces the duplicated scan.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> One <code class="docutils literal notranslate"><span class="pre">capture_calibration</span></code> per candidate in <code class="docutils literal notranslate"><span class="pre">rank_layouts</span></code>; one
+calibration read per Batch submission.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Tests for each fix (499 passing).</p></li>
+</ul>
+</section>
+<section id="phase-2-shared-lifecycle-qward-examples-papers-ibm-campaign-py-no-qpu">
+<h3>Phase 2 — Shared lifecycle <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/ibm_campaign.py</span></code> (no QPU) ✅<a class="headerlink" href="#phase-2-shared-lifecycle-qward-examples-papers-ibm-campaign-py-no-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Record/journal with hashes, atomic UTF-8 writes, JSON encoder
+(<code class="docutils literal notranslate"><span class="pre">RecordStore</span></code>, schema 2.0).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Prepare: transpile once with fixed seed (default opt 3, seed 11), store
+logical + ISA QPY, used-qubit calibration snapshot (device-wide record
+optional), config, reference, payload; status <code class="docutils literal notranslate"><span class="pre">prepared</span></code>. ALAP for static
+circuits; dynamic circuits (vTP S) transpiled unscheduled. Faulty
+qubits/edges rejected before archiving.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Submit: job mode for single records; one Batch per plan with seeded
+shuffle, run 1 of every config before run 2; IDs journaled immediately;
+<code class="docutils literal notranslate"><span class="pre">submission_unknown</span></code> on send failure, never retried.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Runtime-options hook <code class="docutils literal notranslate"><span class="pre">get_runtime_options(config)</span></code> merged onto defaults
+(replaces Shor monkey-patch once Shor is ported).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Recover by saved job ID, idempotent, never resubmits; skips completed
+jobs; refuses never-submitted records; <code class="docutils literal notranslate"><span class="pre">after_job</span></code> hook for run-time
+calibration (wired in Phase 3).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Multi-register counts joined like Aer (<code class="docutils literal notranslate"><span class="pre">&quot;last</span> <span class="pre">first&quot;</span></code>, space separated),
+verified against Aer.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Plans/manifests with windows and run budgets; offline <code class="docutils literal notranslate"><span class="pre">--plan-status</span></code>.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Compact CLI summaries.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Base CLI: <code class="docutils literal notranslate"><span class="pre">--prepare-plan/--submit-plan/--recover-plan/--plan-status</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--prepare-only</span></code> (with <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">--backend</span></code>), <code class="docutils literal notranslate"><span class="pre">--submit-record</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--recover-record</span></code>. New records go to <code class="docutils literal notranslate"><span class="pre">&lt;algo&gt;/data/qpu/v2/</span></code>.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Legacy <code class="docutils literal notranslate"><span class="pre">run()</span></code> and <code class="docutils literal notranslate"><span class="pre">--update</span></code>/<code class="docutils literal notranslate"><span class="pre">--recover</span></code> unchanged for existing data.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Dynamic-circuit-safe <code class="docutils literal notranslate"><span class="pre">circuit_hash(allow_dynamic=True)</span></code>; static hashes
+unchanged, so archived snapshots still verify.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_ibm_campaign.py</span></code> (9) with FakeFez + mocked Runtime;
+local Aer dry run of a 3-config GHZ plan end to end. 508 passing.</p></li>
+<li><p>Note: the BV calibration campaign still uses its own lifecycle; it moves
+onto <code class="docutils literal notranslate"><span class="pre">ibm_campaign</span></code> in Phase 4 (records stay readable).</p></li>
+</ul>
+</section>
+<section id="phase-3-shared-feature-target-extractor-no-qpu">
+<h3>Phase 3 — Shared feature/target extractor (no QPU) ✅<a class="headerlink" href="#phase-3-shared-feature-target-extractor-no-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/dataset_features.py</span></code>: groups A–F as functions;
+G comes from the record. A group that cannot be computed is
+<code class="docutils literal notranslate"><span class="pre">{&quot;available&quot;:</span> <span class="pre">false,</span> <span class="pre">&quot;reason&quot;:</span> <span class="pre">...}</span></code>, never zeros.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Group B on the executed circuit: <code class="docutils literal notranslate"><span class="pre">compact_isa</span></code> keeps active qubits in
+physical order and drops delays (QWARD metrics fail on the 156-qubit
+ISA with a <code class="docutils literal notranslate"><span class="pre">TranspileLayout</span></code>); gate depth and 2Q count preserved.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Runner contract in <code class="docutils literal notranslate"><span class="pre">IBMExperimentBase</span></code>: configs, circuit,
+<code class="docutils literal notranslate"><span class="pre">create_success_criteria</span></code>; <code class="docutils literal notranslate"><span class="pre">get_reference</span></code> defaults to the exact ideal
+distribution; optional <code class="docutils literal notranslate"><span class="pre">get_runtime_options</span></code>, <code class="docutils literal notranslate"><span class="pre">include_quantum_specific</span></code>.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> One shared <code class="docutils literal notranslate"><span class="pre">FidelityMetrics</span></code> + <code class="docutils literal notranslate"><span class="pre">HistogramAssessment</span></code> pass for targets;
+legacy <code class="docutils literal notranslate"><span class="pre">evaluate_result</span></code> fields kept additively. Multi-register labels
+flattened (FidelityMetrics returned 0 success with spaced labels).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> QuantumSpecific ≤ 8 qubits and static only; otherwise explicit reason.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Group E missing for dynamic circuits; <code class="docutils literal notranslate"><span class="pre">*_error</span></code> vs success set and
+<code class="docutils literal notranslate"><span class="pre">*_tvd</span></code> vs ideal; works for multi-target references.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Group D at recovery from <code class="docutils literal notranslate"><span class="pre">job.properties()</span></code> (calibration in effect when
+the job ran) plus baselines re-predicted from it.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Removed the Halstead <code class="docutils literal notranslate"><span class="pre">difficulty</span> <span class="pre">≤</span> <span class="pre">1000</span></code> / <code class="docutils literal notranslate"><span class="pre">effort</span> <span class="pre">≤</span> <span class="pre">1e8</span></code> caps in
+<code class="docutils literal notranslate"><span class="pre">StructuralMetricsSchema</span></code>; transpiled Shor exceeded them.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_dataset_features.py</span></code> (13); local Aer dry run of
+all 9 algorithms — every group present (vTP-S: QS and E missing by
+design). 521 passing.</p></li>
+</ul>
+</section>
+<section id="phase-4-port-runners-no-qpu">
+<h3>Phase 4 — Port runners (no QPU) ✅<a class="headerlink" href="#phase-4-port-runners-no-qpu" title="Link to this heading">¶</a></h3>
+<p>All runners inherit the lifecycle from <code class="docutils literal notranslate"><span class="pre">IBMExperimentBase</span></code>; each gets a
+FakeFez + noisy-Aer test (<code class="docutils literal notranslate"><span class="pre">tests/test_runner_ports.py</span></code>, 22 tests) that checks
+groups A–G are present.</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> GHZ, BV, QFT, PE, Grover, random volumetric, coin toss (biased
+distribution is the exact reference, not the success set)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> vTP static (V) and dynamic (S): dynamic is transpiled unscheduled;
+group E is missing by design; control-flow ops (<code class="docutils literal notranslate"><span class="pre">if_else</span></code>) have no IBM
+error and are counted separately (<code class="docutils literal notranslate"><span class="pre">uncalibrated_control_flow_ops</span></code>), not
+treated as missing calibration.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Shor: <code class="docutils literal notranslate"><span class="pre">get_runtime_options</span></code> returns DD (XpXm) + gate twirling, recorded
+in the frozen record; the lifecycle enforces the same QPU-safe guard as
+the legacy <code class="docutils literal notranslate"><span class="pre">run()</span></code> (simulator-only configs are refused). The executor
+monkey-patch stays only on the legacy path.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> BV calibration campaign: shares <code class="docutils literal notranslate"><span class="pre">write_json</span></code>/<code class="docutils literal notranslate"><span class="pre">json_value</span></code>/<code class="docutils literal notranslate"><span class="pre">now</span></code> with
+<code class="docutils literal notranslate"><span class="pre">ibm_campaign</span></code>; its own lifecycle (prediction-specific records, M1/M2
+assessment) stays for now and keeps reading <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez-1/2/3</span></code>.
+Fully merging it into <code class="docutils literal notranslate"><span class="pre">RecordStore</span></code> is deferred: it adds nothing to the
+dataset and risks the archived records.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> BV signal-background (27–29 qubits): no tractable ideal (more than 12
+measured bits), so <code class="docutils literal notranslate"><span class="pre">get_reference</span></code> returns <code class="docutils literal notranslate"><span class="pre">None</span></code>; targets and baselines
+are <code class="docutils literal notranslate"><span class="pre">{&quot;available&quot;:</span> <span class="pre">false,</span> <span class="pre">&quot;reason&quot;:</span> <span class="pre">&quot;no_reference&quot;}</span></code>. Not part of the
+ibm_fez matrix.</p></li>
+<li><p>Output: <code class="docutils literal notranslate"><span class="pre">ideal_reference</span></code> refuses circuits above 12 measured bits instead
+of enumerating them.</p></li>
+</ul>
+</section>
+<section id="phase-5-exporter-and-driver-no-qpu">
+<h3>Phase 5 — Exporter and driver (no QPU) ✅<a class="headerlink" href="#phase-5-exporter-and-driver-no-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/dataset_export.py</span></code>: one row per completed job,
+groups A–G flattened into prefixed columns (<code class="docutils literal notranslate"><span class="pre">meta</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code>–<code class="docutils literal notranslate"><span class="pre">f</span></code>,
+<code class="docutils literal notranslate"><span class="pre">e_exec</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>); ~450 columns. Also derives <code class="docutils literal notranslate"><span class="pre">f.observed_error</span></code> and
+<code class="docutils literal notranslate"><span class="pre">f.residual_vs_&lt;model&gt;</span></code>, and queue/run seconds from IBM timestamps.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Output: <code class="docutils literal notranslate"><span class="pre">dataset.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">schema.json</span></code> (column → group, dtype, non-null),
+<code class="docutils literal notranslate"><span class="pre">export_report.json</span></code> (skipped records, errors, warnings).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Validation fails the export (override: <code class="docutils literal notranslate"><span class="pre">--allow-incomplete</span></code>) on: no rows,
+duplicate job IDs, mixed/unexpected record schema, simulated backends
+(override: <code class="docutils literal notranslate"><span class="pre">--allow-fake</span></code>, tests only), unavailable group a/b/c/d/f, e
+missing without a documented reason, counts ≠ shots, coverage &lt; 1.
+Warnings: undocumented QuantumSpecific gaps, calibration changed between
+prepare and execution, sampled references.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Reads only <code class="docutils literal notranslate"><span class="pre">&lt;algo&gt;/data/qpu/v2/</span></code>; legacy files and the legacy CSV
+pipeline are untouched. Prepared-but-unsubmitted records are skipped and
+reported.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">docs/ibm_fez_dataset_schema.md</span></code>: column groups, documented reasons for
+missing values, how to compare predictions with targets, plan-file format.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/run_campaign.sh</span></code>: <code class="docutils literal notranslate"><span class="pre">prepare</span> <span class="pre">|</span> <span class="pre">submit</span> <span class="pre">|</span> <span class="pre">recover</span> <span class="pre">|</span>&#160;&#160;&#160;&#160; <span class="pre">status</span> <span class="pre">|</span> <span class="pre">export</span></code> per algorithm and window. Credentials come from <code class="docutils literal notranslate"><span class="pre">.env</span></code>
+or the environment (nothing on the command line); <code class="docutils literal notranslate"><span class="pre">submit</span></code> asks for
+confirmation and is the only action that sends jobs; <code class="docutils literal notranslate"><span class="pre">status</span></code> is offline.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_dataset_export.py</span></code> (10); 553 passing overall.</p></li>
+</ul>
+</section>
+<section id="phase-6-campaign-plan-files-no-qpu">
+<h3>Phase 6 — Campaign plan files (no QPU) ✅<a class="headerlink" href="#phase-6-campaign-plan-files-no-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/campaign_matrix.py</span></code> holds the selection as data,
+validates it against every runner’s config registry, and writes the
+plans: <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">-m</span> <span class="pre">qward.examples.papers.campaign_matrix</span> <span class="pre">--write</span></code>
+(refuses to overwrite a plan that already has a manifest).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> 32 plan files (8 algorithms × windows 0–3), <code class="docutils literal notranslate"><span class="pre">&lt;algo&gt;/plans/&lt;algo&gt;-w&lt;N&gt;.json</span></code>: campaign <code class="docutils literal notranslate"><span class="pre">fez-dataset-v2</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code>, 1,024 shots, optimization level 3, seed 11, 2 runs per config,
+distinct seeded order per plan, run budget = configs × 2.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> One Batch per algorithm per window; seeded shuffle of configs, run 1 of
+every config before run 2 (<code class="docutils literal notranslate"><span class="pre">job_order</span></code> in the manifest).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Job counts and QPU estimate per window: see the table above;
+<code class="docutils literal notranslate"><span class="pre">campaign_matrix</span> <span class="pre">--report</span></code> reproduces them locally.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">QuantumSpecificMetrics</span></code> seeded (<code class="docutils literal notranslate"><span class="pre">torch</span></code> seed 11, RNG state restored):
+it optimizes from random starts, so two computations of the same circuit
+differed. Features are now reproducible.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> QuantumSpecific eligibility in the current matrix: 123 configs (static,
+≤ 8 qubits). The original timing sweep took 23.8 min with a cold cache
+(60–80 s per 8-qubit circuit). The cache key includes the logical circuit,
+its expansion into primitive gates, seed, metric source and torch version.
+The cache lives under <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/data/quantum_specific_cache/</span></code>.
+<code class="docutils literal notranslate"><span class="pre">campaign_matrix</span> <span class="pre">--precompute-quantum-specific</span></code> fills it once (~24 min);
+afterwards every <code class="docutils literal notranslate"><span class="pre">prepare</span></code> is a cache hit and the three windows share
+the same values. Tests never touch the repository cache.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_campaign_matrix.py</span></code> (18): configs exist, sizes,
+anchors and cuts, files on disk equal the generator output, every plan
+passes <code class="docutils literal notranslate"><span class="pre">prepare_plan</span></code> validation, driver paths match.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>User approval of the matrix before any QPU use.</strong></p></li>
+</ul>
+</section>
+<section id="phase-7-pilot-qpu-run-export-clean">
+<h3>Phase 7 — Pilot (QPU) ✅ run, ✅ export clean<a class="headerlink" href="#phase-7-pilot-qpu-run-export-clean" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> 1 small + 1 mid config per algorithm, opt 3, 2 runs each; Shor anchor
+once. 30 jobs for the 8 campaign algorithms (the 4 coin-toss jobs run
+before it was dropped stay on disk, excluded from the export).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Prepared, submitted one Batch at a time, recovered; all 9 manifests
+<code class="docutils literal notranslate"><span class="pre">completed</span></code>, no job errors.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> Export of the real data: 30 rows, 0 errors. Warnings: 2 sampled
+references (the dynamic vTP config, by design) and 4 QuantumSpecific
+failures on PE-S6 and SP6-P4 (see Findings).</p></li>
+<li><p>Findings:</p>
+<ul>
+<li><p>IBM advanced its calibration timestamp 2–3 times between prepare and
+execution, but the values of the qubits used did not change in any of the
+17 records. The notice is now one line per submission, and group D has
+<code class="docutils literal notranslate"><span class="pre">changed_values</span></code> (compares what the circuit depends on); the export warns
+only when values change.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QuantumSpecificMetrics</span></code> gave NaN coherence on PE-S6 and SP6-P4:
+<code class="docutils literal notranslate"><span class="pre">torch.abs</span></code> backpropagates NaN through exactly-zero off-diagonals of
+structured unitaries (first at step 120 of 300). Fixed with an exact
+zero-safe absolute value; values elsewhere are unchanged.</p></li>
+<li><p>IBM limits active Batches. The driver tracks queued and running jobs and
+can resume from their manifest IDs.</p></li>
+</ul>
+</li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Re-run <code class="docutils literal notranslate"><span class="pre">prepare</span></code> for PE-S6 and SP6-P4 features if the pilot data is
+kept (their <code class="docutils literal notranslate"><span class="pre">a.quantum_specific</span></code> is unavailable in those 4 rows).</p></li>
+</ul>
+<p>To repeat the 30-job pilot, use a fresh label such as <code class="docutils literal notranslate"><span class="pre">0-r2</span></code>. It copies the
+original plans and order into campaign <code class="docutils literal notranslate"><span class="pre">fez-dataset-v2-pilot-r2</span></code>, window 0.
+The original pilot and the new repeat have separate manifests and run budgets.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">campaign</span><span class="o">=</span>qward/examples/papers/run_campaign.sh
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>prepare<span class="w"> </span>all<span class="w"> </span><span class="m">0</span>-r2
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>status<span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="m">0</span>-r2
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>submit<span class="w"> </span>all<span class="w"> </span><span class="m">0</span>-r2<span class="w"> </span>--max-batches<span class="w"> </span><span class="m">2</span>
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>usage<span class="w"> </span><span class="m">0</span>-r2
+</pre></div>
+</div>
+<p>Expect eight prepared manifests and 30 planned jobs before confirming submission.
+Reuse the same label to resume. A fresh repeat uses the next label, e.g. <code class="docutils literal notranslate"><span class="pre">0-r3</span></code>.
+After export, select this repeat by its <code class="docutils literal notranslate"><span class="pre">meta.campaign_id</span></code>.</p>
+</section>
+<section id="phase-8-full-campaign-qpu">
+<h3>Phase 8 — Full campaign (QPU)<a class="headerlink" href="#phase-8-full-campaign-qpu" title="Link to this heading">¶</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Window 1, all algorithms.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Window 2 (different day).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Window 3 (different day).</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Final export and data description.</p></li>
+</ul>
+<p>From the repository root, prepare window 1 shortly before submitting it.
+To move the QuantumSpecific compute time ahead of calibration capture, first
+run <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">-m</span> <span class="pre">qward.examples.papers.campaign_matrix</span> <span class="pre">--precompute-quantum-specific</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">campaign</span><span class="o">=</span>qward/examples/papers/run_campaign.sh
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>prepare<span class="w"> </span>all<span class="w"> </span><span class="m">1</span>
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>status<span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p>For a fresh window the status should show eight prepared manifests, 344 jobs
+planned in total and zero submitted. If preparation was interrupted, prepare
+the individual algorithms that still lack manifests.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>submit<span class="w"> </span>all<span class="w"> </span><span class="m">1</span>
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>status<span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="m">1</span>
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span>usage<span class="w"> </span><span class="m">1</span>
+<span class="s2">"</span><span class="nv">$campaign</span><span class="s2">"</span><span class="w"> </span><span class="nb">export</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">submit</span> <span class="pre">all</span></code> defaults to two active Batches in the selected window.
+Use <code class="docutils literal notranslate"><span class="pre">--max-batches</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code> or <code class="docutils literal notranslate"><span class="pre">3</span></code> to change the limit. Queued jobs occupy a
+slot until the Batch finishes and its results are recovered. On restart,
+previously submitted Batches count toward the limit. Other windows and
+independent submissions can also occupy IBM account slots.
+At completion expect eight completed manifests and 344 submitted jobs.
+The default export is <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/dataset_out/dataset.csv</span></code>.
+Filter to window 1 to check its coverage separately from the 30 retained pilot jobs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"qward/examples/papers/dataset_out/dataset.csv"</span><span class="p">)</span>
+<span class="n">w1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[(</span><span class="n">data</span><span class="p">[</span><span class="s2">"meta.backend_name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"ibm_fez"</span><span class="p">)</span>
+          <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"meta.campaign_id"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"fez-dataset-v2"</span><span class="p">)</span>
+          <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"meta.window"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="n">pairs</span> <span class="o">=</span> <span class="n">w1</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">"meta.algorithm"</span><span class="p">,</span> <span class="s2">"meta.config_id"</span><span class="p">])[</span><span class="s2">"meta.run_index"</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">w1</span><span class="p">)</span> <span class="o">==</span> <span class="n">w1</span><span class="p">[</span><span class="s2">"meta.job_id"</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">==</span> <span class="mi">344</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">172</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">indices</span> <span class="o">==</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">}</span> <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the monthly dashboard, filter by backend, campaign and window. Window 0
+is the pilot. In QFT <code class="docutils literal notranslate"><span class="pre">PV4-P8</span></code>, the ±1 tolerance accepts all 16 labels, so use
+TVD to measure performance. The SP and PV variants at (qubits, period) =
+(4, 2), (4, 4), (6, 4) and (6, 8) are identical logical circuits. Keep their
+job rows and group each pair together when estimating a size limit.</p>
+</section>
+</section>
+<section id="related-experiment-bv-calibration-prediction">
+<h2>Related experiment: BV calibration prediction<a class="headerlink" href="#related-experiment-bv-calibration-prediction" title="Link to this heading">¶</a></h2>
+<p>Separate research question (does calibration predict histogram error?).
+Details and findings: <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/bv/CALIBRATION_EXPERIMENT.md</span></code>.</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" checked="checked" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez-1</span></code> (2 jobs) and <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez-2</span></code> (8 jobs) completed.</p></li>
+<li><p>[~] <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez-3</span></code> window 1 submitted (Batch <code class="docutils literal notranslate"><span class="pre">7256acf4-41a9-4d4d-9932-c22e444a34df</span></code>),
+not yet recovered.</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <code class="docutils literal notranslate"><span class="pre">bv-ibm-fez-3</span></code> windows 2 and 3.</p></li>
+</ul>
+</section>
+<section id="decisions">
+<h2>Decisions<a class="headerlink" href="#decisions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Date</p></th>
+<th class="head"><p>Decision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Re-run all campaigns on <code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code> for a fresh dataset; legacy data kept separate.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>1,024 shots; 3 windows.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Optimization level 3 only. Opt 2 ≈ opt 3 (median 2Q ratio 1.0); opt 0 has ~1.9× more 2Q gates and mostly pushes circuits into noise. The level is constant, so the model learns from transpiled-circuit features (group B).</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>2 runs per config per window (6 per config) to measure within- and between-window variation.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>One Batch per algorithm per window, containing all of that algorithm’s configs; seeded shuffle, run 1 of every config before run 2.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Thesis scope: QFT, PE, Grover, BV, vTP, GHZ; also port coin toss, random volumetric, Shor.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Compute QuantumSpecificMetrics up to 8 qubits; mark missing above.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Circuits bounded to the informative error range (matrix above).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="progress-log">
+<h2>Progress log<a class="headerlink" href="#progress-log" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Date</p></th>
+<th class="head"><p>Update</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Plan written. Calibration feature committed (<code class="docutils literal notranslate"><span class="pre">5ebae5d</span></code>). Scaling simulator raw data removed (regenerable; README added).</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Switched to opt 3 only with 2 runs per config per window (~1,100 jobs).</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Batches organized per algorithm (one per algorithm per window).</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Phase 1 done: calibration-campaign bug fixes.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Phase 2 done: shared lifecycle <code class="docutils literal notranslate"><span class="pre">ibm_campaign.py</span></code> + base CLI flags.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Phase 3 done: feature/target groups A–G (<code class="docutils literal notranslate"><span class="pre">dataset_features.py</span></code>); exact ideal references.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Phase 4 done: all runners on the lifecycle, Shor options hook, 543 tests passing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Phase 5 done: <code class="docutils literal notranslate"><span class="pre">dataset_export.py</span></code>, schema doc, <code class="docutils literal notranslate"><span class="pre">run_campaign.sh</span></code>; 553 tests passing.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-10-29</p></td>
+<td><p>Phase 6 done; coin toss dropped (GHZ and RV cover the noise floor): 8 algorithms, 172 configs, 1,032 jobs.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2026-10-29</p></td>
+<td><p>Phase 7 pilot run on ibm_fez: 34 jobs, export clean; calibration notice, QuantumSpecific NaN and sequential Batch fixes.</p></td>
+</tr>
+<tr class="row-even"><td><p>2026-11-03</p></td>
+<td><p>Window 1 preflight: added wide GHZ/BV scoring and distinguished composite Grover oracles in the QuantumSpecific cache. All 172 configs retained.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Plan: Unified IBM pipeline and <code class="docutils literal notranslate"><span class="pre">ibm_fez</span></code> training dataset</a><ul>
+<li><a class="reference internal" href="#goal">Goal</a></li>
+<li><a class="reference internal" href="#feature-and-target-groups-recorded-per-job">Feature and target groups recorded per job</a></li>
+<li><a class="reference internal" href="#findings-that-motivate-the-redesign">Findings that motivate the redesign</a></li>
+<li><a class="reference internal" href="#circuit-matrix-within-hardware-limits">Circuit matrix (within hardware limits)</a></li>
+<li><a class="reference internal" href="#phases">Phases</a><ul>
+<li><a class="reference internal" href="#phase-1-fix-calibration-campaign-bugs-no-qpu">Phase 1 — Fix calibration-campaign bugs (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-2-shared-lifecycle-qward-examples-papers-ibm-campaign-py-no-qpu">Phase 2 — Shared lifecycle <code class="docutils literal notranslate"><span class="pre">qward/examples/papers/ibm_campaign.py</span></code> (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-3-shared-feature-target-extractor-no-qpu">Phase 3 — Shared feature/target extractor (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-4-port-runners-no-qpu">Phase 4 — Port runners (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-5-exporter-and-driver-no-qpu">Phase 5 — Exporter and driver (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-6-campaign-plan-files-no-qpu">Phase 6 — Campaign plan files (no QPU) ✅</a></li>
+<li><a class="reference internal" href="#phase-7-pilot-qpu-run-export-clean">Phase 7 — Pilot (QPU) ✅ run, ✅ export clean</a></li>
+<li><a class="reference internal" href="#phase-8-full-campaign-qpu">Phase 8 — Full campaign (QPU)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#related-experiment-bv-calibration-prediction">Related experiment: BV calibration prediction</a></li>
+<li><a class="reference internal" href="#decisions">Decisions</a></li>
+<li><a class="reference internal" href="#progress-log">Progress log</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+    <script src="_static/mermaid-init.js?v=05525452"></script>
+    </body>
+</html>
