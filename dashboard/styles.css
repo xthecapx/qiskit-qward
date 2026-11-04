@@ -194,7 +194,7 @@ footer {
 .finding p, .finding b { font-size: .86rem; line-height: 1.45; }
 .finding p { color: #deebe2; }
 .plot {
-  height: 285px;
+  height: 430px;
 }
 .note {
   line-height: 1.5;
@@ -283,17 +283,35 @@ a:focus-visible {
     flex-basis: 100%;
   }
   .plot {
-    height: 250px;
+    height: 340px;
   }
   header {
     padding-top: 22px;
   }
 }
 
+.explorer-path {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: .87rem;
+  font-weight: 650;
+}
+.explorer-path button, .job-value {
+  border: 0;
+  padding: 3px 0;
+  background: transparent;
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font: inherit;
+  cursor: pointer;
+}
+.job-value { margin-right: 12px; white-space: nowrap; }
 .plot-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   display: grid;
   grid-template-columns: minmax(9rem, 1fr) minmax(12rem, 2fr) auto;
   align-items: end;
@@ -308,7 +326,6 @@ button:focus-visible { outline: 3px solid #c17a23; outline-offset: 2px; }
 .plot-caption { padding: 18px 0 0; }
 .plot-caption h2 { font-size: clamp(1.25rem, 3vw, 1.65rem); }
 .plot-caption .note { margin-top: 3px; }
-.plot-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 #experiment-picker,
 #plot-settings {
   color: var(--ink);
@@ -399,3 +416,51 @@ button:focus-visible { outline: 3px solid #c17a23; outline-offset: 2px; }
 #experiment-results button span { color: var(--muted); font-size: .8rem; }
 #experiment-results button:hover, #experiment-results button[aria-current="true"] { background: #edf4ef; }
 #experiment-results button:focus-visible { outline-offset: -3px; }
+
+.plot-stage { position: relative; }
+#interval-lens {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  width: min(310px, 94%);
+  padding: 14px 16px;
+  border: 1px solid #91b2a8;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 5px 20px #143e3929;
+  font-variant-numeric: tabular-nums;
+}
+#interval-lens .eyebrow { margin-bottom: 3px; }
+#interval-lens [hidden] { display: none; }
+#lens-value { font-size: 1.2rem; color: var(--teal); }
+.lens-context {
+  display: grid; gap: 5px; margin: 9px 0 0; padding-top: 9px;
+  border-top: 1px solid var(--line); font-size: .8rem; line-height: 1.35;
+}
+.lens-context div { display: grid; grid-template-columns: 38% 1fr; column-gap: 8px; }
+.lens-context dt { color: var(--muted); }
+.lens-context dd { margin: 0; overflow-wrap: anywhere; }
+.lens-detail { display: flex; gap: 15px; align-items: stretch; margin: 10px 0; }
+.lens-whisker {
+  position: relative; width: 16px; flex: none; margin: 12px 0;
+  border-block: 2px solid var(--teal);
+  background: linear-gradient(var(--teal), var(--teal)) center / 2px 100% no-repeat;
+}
+.lens-whisker i {
+  position: absolute; left: 50%; top: var(--mean-position);
+  transform: translate(-50%, -50%); width: 10px; height: 10px;
+  border-radius: 50%; background: var(--teal);
+}
+.lens-detail dl { flex: 1; margin: 0; }
+.lens-detail dl div { display: flex; justify-content: space-between; align-items: center; min-height: 28px; gap: 6px; }
+.lens-detail dt { font-size: .8rem; }
+.lens-detail dd { margin: 0; font-size: .98rem; font-weight: 650; }
+.lens-estimate { color: var(--teal); }
+.lens-estimate dd { font-size: 1.15rem; }
+@media (prefers-reduced-motion: no-preference) {
+  #interval-lens:not([hidden]) { animation: interval-zoom-in 180ms ease-out; }
+  @keyframes interval-zoom-in {
+    from { transform: scale(.72); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+}
