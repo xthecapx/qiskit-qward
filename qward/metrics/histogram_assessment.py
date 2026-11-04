@@ -160,8 +160,8 @@ class HistogramAssessment(MetricCalculator):
     ``alpha`` is a per-assessment error allocation. Campaign code must allocate
     it over tests/intervals across executions. ``consistent`` means failure to
     detect mismatch; it does not certify the prediction model. Point references
-    use exact scalable binomial inference; general distributions are capped at
-    12 output bits to prevent accidental exponential allocations.
+    use exact binomial inference. Wide sparse references need intervals only
+    on the labels with positive ideal probability.
     """
 
     def __init__(
@@ -210,9 +210,18 @@ class HistogramAssessment(MetricCalculator):
             interval = binomial_interval(counts.get(target, 0), shots, alpha)
             bounds = (1 - interval[1], 1 - interval[0])
             method = "exact_clopper_pearson_deterministic_target"
+        elif width > 12:
+            # TVD(P, R) = sum(max(R[x] - P[x], 0)) on the support of R.
+            # Simultaneous intervals there cover the full TVD, even if all
+            # observed shots fall outside that support.
+            lower, upper = 0.0, 0.0
+            for key, p in reference.items():
+                lo, hi = binomial_interval(counts.get(key, 0), shots, alpha / len(reference))
+                lower += max(0.0, p - hi)
+                upper += max(0.0, p - lo)
+            bounds = (lower, min(1.0, upper))
+            method = "tvd_deficit_bounds_from_simultaneous_reference_support_intervals"
         else:
-            if width > 12:
-                raise ValueError("General distribution intervals are limited to 12 output bits")
             lower, upper = 0.0, 0.0
             for x in range(2**width):
                 key = f"{x:0{width}b}"

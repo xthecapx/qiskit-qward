@@ -28,6 +28,7 @@ class ErrorPredictionSchema(BaseModel):
     mixture_probabilities: Optional[Dict[str, float]] = None
     m2_polarization: Optional[float] = Field(None, ge=0, le=1)
     m2_success: Optional[float] = Field(None, ge=0, le=1)
+    m2_reference_mass: Optional[float] = Field(None, ge=0, le=1)
     m2_tvd: Optional[float] = Field(None, ge=0, le=1)
     m2_probabilities: Optional[Dict[str, float]] = None
     reference_probabilities: Dict[str, float]
