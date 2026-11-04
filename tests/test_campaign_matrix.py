@@ -50,7 +50,7 @@ def test_plan_files_on_disk_match_the_matrix():
         for window in (M.PILOT_WINDOW, *M.WINDOWS):
             path = M.plan_path(key, window)
             assert path.exists(), path
-            assert json.loads(path.read_text()) == M.plan_for(key, window)
+            assert json.loads(path.read_text(encoding="utf-8")) == M.plan_for(key, window)
 
 
 def test_plans_encode_the_agreed_settings():
@@ -74,7 +74,7 @@ def test_every_plan_passes_prepare_plan_validation(key, tmp_path, monkeypatch):
     plan["items"] = plan["items"][:1]  # Keep the test fast; validation is per item.
     plan["planned_executions"] = plan["runs"]
     path = tmp_path / f"{key}-w1.json"
-    path.write_text(json.dumps(plan))
+    path.write_text(json.dumps(plan), encoding="utf-8")
     backend = FakeFez()
     backend.refresh = lambda: None
     manifest = runner.campaign().prepare_plan(path, SimpleNamespace(backend=lambda name: backend))
@@ -92,7 +92,7 @@ def test_full_plan_is_valid_against_budget_and_duplicates(tmp_path):
 
 def test_driver_paths_match_matrix_paths():
     """run_campaign.sh looks for <dir>/plans/<algo>-w<N>.json; so does the matrix."""
-    script = (ROOT / "run_campaign.sh").read_text()
+    script = (ROOT / "run_campaign.sh").read_text(encoding="utf-8")
     for key, info in M.RUNNERS.items():
         assert f'"{key}"' in script or f" {key} " in script or key in script
         assert M.plan_path(key, 1) == ROOT / info["dir"] / "plans" / f"{key}-w1.json"
@@ -102,11 +102,12 @@ def test_driver_paths_match_matrix_paths():
 def test_driver_status_runs_offline_without_manifests():
     result = subprocess.run(
         [str(ROOT / "run_campaign.sh"), "status", "ghz"],
+        check=True,
         capture_output=True,
         text=True,
         timeout=120,
     )
-    assert result.returncode == 0 and "ALGO" in result.stdout
+    assert "ALGO" in result.stdout
 
 
 def test_qpu_time_model_is_monotone_and_bounded():
@@ -150,11 +151,13 @@ def test_driver_all_works_from_any_directory_and_path_style(cwd, tmp_path):
     for command in commands:
         result = subprocess.run(
             [command, "recover", "all", "9"],  # Window 9 never has manifests.
+            check=False,
             cwd=directory,
             capture_output=True,
             text=True,
             timeout=120,
         )
+        assert result.returncode == 2, (cwd, command, result.stderr)
         assert "No such file or directory" not in result.stderr, (cwd, command, result.stderr)
         assert "no manifest" in result.stderr  # Reached the per-algorithm step.
 
@@ -164,7 +167,7 @@ def test_coin_toss_is_not_part_of_the_campaign():
     assert "coin_toss" not in M.PILOT and "coin_toss" in M.EXCLUDED_ALGORITHMS
     for window in M.WINDOWS:
         assert not M.plan_path("ghz", window).with_name(f"coin_toss-w{window}.json").exists()
-    assert "coin_toss" not in (ROOT / "run_campaign.sh").read_text()
+    assert "coin_toss" not in (ROOT / "run_campaign.sh").read_text(encoding="utf-8")
 
 
 def test_order_seeds_are_stable_per_algorithm():
