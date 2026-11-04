@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#123d3a" />
-    <title>Circuit boundaries · QWARD</title>
+    <title>QPU Benchmark · QWARD</title>
     <link rel="stylesheet" href="styles.css" />
     <script defer src="vendor/echarts.min.js"></script>
     <script defer src="snapshot.js"></script>
@@ -20,8 +20,8 @@
     </nav>
     <main class="wrap">
       <header>
-        <p class="eyebrow">IBM Quantum &nbsp; / &nbsp; Experiment explorer</p>
-        <h1>Circuit boundaries</h1>
+        <p class="eyebrow">Experiment explorer</p>
+        <h1>QPU Benchmark</h1>
         <p class="intro">
           Choose an algorithm and a question to see which circuit sizes met your
           target on this chip. Select a point to explore that job’s measurement outcomes.
@@ -33,6 +33,11 @@
       >
       <div id="error" role="alert" hidden></div>
       <section class="surface" aria-label="Experiment explorer">
+        <div class="explorer-path" aria-label="Explorer location">
+          <span id="range-location" aria-current="page">Operating range</span>
+          <button type="button" id="range-return" hidden>Operating range</button>
+          <span id="detail-location" hidden><span aria-hidden="true"> / </span><span aria-current="page">Job histogram</span></span>
+        </div>
         <div id="plot-view">
           <div class="plot-toolbar" aria-label="Explore measurements">
             <label>Algorithm<select id="algorithm"></select></label>
@@ -43,7 +48,7 @@
             </button>
           </div>
           <div class="plot-caption">
-            <h2 id="plot-title">Operating range</h2>
+            <h2 id="plot-title" tabindex="-1">Operating range</h2>
             <p id="scope-caption" class="note"></p>
             <p class="note"><span id="coverage"></span><span id="target-caption"></span></p>
           </div>
@@ -85,16 +90,28 @@
           </dialog>
           <div class="analysis">
             <div>
-              <div
-                id="trend"
-                class="plot"
-                role="img"
-                aria-label="Selected metric by circuit setting"
-              ></div>
-              <div class="plot-foot">
-                <p class="note">Each point is one job. Select it to inspect its outcomes.</p>
-                <button type="button" class="view-button" id="open-histogram"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M8 17v-5m5 5V6m5 11v-8"/></svg>View job histogram</button>
+              <div class="plot-stage">
+                <div id="trend" class="plot" role="img" aria-label="Selected metric by circuit setting"></div>
+                <aside id="interval-lens" hidden aria-label="Job measurement details">
+                  <p class="eyebrow" id="lens-heading"></p>
+                  <strong id="lens-value" hidden></strong>
+                  <div class="lens-detail" id="lens-interval">
+                    <span class="lens-whisker" aria-hidden="true"><i></i></span>
+                    <dl>
+                      <div><dt>Upper bound</dt><dd id="lens-high"></dd></div>
+                      <div class="lens-estimate"><dt>Mean success</dt><dd id="lens-mean"></dd></div>
+                      <div><dt>Lower bound</dt><dd id="lens-low"></dd></div>
+                    </dl>
+                  </div>
+                  <dl class="lens-context">
+                    <div id="lens-group-row"><dt>Study</dt><dd id="lens-group"></dd></div>
+                    <div><dt>Circuit</dt><dd id="lens-circuit"></dd></div>
+                    <div><dt id="lens-axis"></dt><dd id="lens-axis-value"></dd></div>
+                    <div><dt>Repetition</dt><dd id="lens-rep"></dd></div>
+                  </dl>
+                </aside>
               </div>
+              <p class="note"><span id="point-guide"></span> Select a point or a job value in the table to open its histogram.</p>
             </div>
             <article class="finding" aria-label="Experiment overview">
               <div class="finding-tabs" role="tablist" aria-label="Experiment details">
@@ -137,13 +154,7 @@
           </details>
         </div>
         <div id="histogram-view" hidden>
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">02 &nbsp; / &nbsp; Run evidence</p>
-              <h2>Inspect the histogram</h2>
-            </div>
-            <button type="button" class="view-button" id="back-to-plot">← Back to main plot</button>
-          </div>
+          <h2 id="histogram-title" tabindex="-1">Measurement outcomes</h2>
           <div class="settings">
             <div class="experiment-field"><span id="experiment-label">Experiment</span><button id="choose-config" class="picker-trigger" type="button" aria-labelledby="experiment-label choose-config" aria-haspopup="dialog" aria-controls="experiment-picker"></button></div>
             <label>Repetition<select id="rep"></select></label

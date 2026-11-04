@@ -155,8 +155,49 @@ function result(group, key, threshold) {
 function cells(body, values) {
   const row = body.insertRow();
   for (const value of values) row.insertCell().textContent = value;
+  return row;
+}
+function showJobLens(point) {
+  const lens = el("interval-lens");
+  const [axisValue, value] = point.value;
+  const key = el("question").value;
+  const study = point.family
+    .replace(/^SP · period (\d+)$/, "Period detection at increasing widths (period $1)")
+    .replace(/^PV · period (\d+)$/, "Period variation at fixed width (period $1)")
+    .replace(/^SR · round trip$/, "Round-trip scaling");
+  el("lens-group-row").hidden = !study || study === point.config;
+  el("lens-group").textContent = study;
+  el("lens-circuit").textContent = point.description || names[el("algorithm").value] || el("algorithm").value;
+  const axis = el("axis").value;
+  el("lens-axis").textContent = axis === "width" ? "Total logical qubits" : axes[axis];
+  el("lens-axis-value").textContent = axisValue;
+  el("lens-rep").textContent = point.rep;
+  el("lens-interval").hidden = !point.interval;
+  el("lens-value").hidden = Boolean(point.interval);
+  if (point.interval) {
+    const [low, high] = point.interval;
+    el("lens-heading").textContent = "99% confidence interval";
+    el("lens-high").textContent = pct(high);
+    el("lens-mean").textContent = pct(value);
+    el("lens-low").textContent = pct(low);
+    const meanPosition = high > low ? (high - value) / (high - low) : 0.5;
+    lens.style.setProperty("--mean-position", `${100 * Math.max(0, Math.min(1, meanPosition))}%`);
+  } else {
+    el("lens-heading").textContent = questions[key][1];
+    el("lens-value").textContent = format(key, value);
+  }
+  lens.hidden = false;
+  const [x, y] = trend.convertToPixel({ gridIndex: 0 }, point.value);
+  const width = lens.offsetWidth, height = lens.offsetHeight;
+  const left = x + width + 16 <= trend.getWidth() ? x + 16 : x - width - 16;
+  const top = Math.max(0, Math.min(y - height / 2, trend.getHeight() - height));
+  const boundedLeft = Math.max(0, Math.min(left, trend.getWidth() - width));
+  lens.style.left = `${boundedLeft}px`;
+  lens.style.top = `${top}px`;
+  lens.style.transformOrigin = `${x - boundedLeft}px ${y - top}px`;
 }
 function renderSweep(selectBoundary = false) {
+  el("interval-lens").hidden = true;
   const key = el("question").value,
     threshold = target(),
     axis = el("axis").value;
@@ -219,27 +260,41 @@ function renderSweep(selectBoundary = false) {
     : ` · Target ${lower(key) ? "≤" : "≥"} ${format(key, threshold)}`;
   el("target-label").textContent = `${lower(key) ? "Maximum" : "Minimum"} ${metric.toLowerCase()}`;
   el("target-help").textContent = (key === "success" ? "Enter a fraction, e.g. 0.5 for 50%." : "Enter a value from 0 to 1.") + " Leave blank to explore without a cutoff.";
+  const showIntervals = key === "success";
+  el("point-guide").textContent = showIntervals
+    ? "Each point is one job’s accepted-shot fraction. Hover to magnify its mean and 99% confidence bounds."
+    : "Each point is one job.";
   const body = el("settings-table");
   body.replaceChildren();
-  configs.forEach((g, i) =>
-    cells(body, [
-      g[0].config,
-      g[0].family,
-      g[0].width,
-      unique(g.map((j) => j.depth)).join(", "),
-      g.map((j) => format(key, j[key])).join(" / "),
-      states[i],
-    ]),
-  );
+  configs.forEach((group, i) => {
+    const row = cells(body, [
+      group[0].config, group[0].family, group[0].width,
+      unique(group.map(job => job.depth)).join(", "),
+    ]);
+    const values = row.insertCell();
+    for (const job of group) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "job-value";
+      button.textContent = format(key, job[key]);
+      button.setAttribute("aria-label", `${job.config}, repetition ${job.rep}, ${button.textContent}. Open histogram`);
+      button.onclick = () => openJob(job, button);
+      values.append(button);
+    }
+    row.insertCell().textContent = states[i];
+  });
   const dots = jobs
     .filter((j) => j[key] != null)
     .map((j) => ({
       value: [j[axis], j[key]],
       name: `${j.config} · job ${j.rep}`,
       family: j.family,
-      description: j.description,
+      description: j.countingQubits != null && j.width === j.countingQubits + 1
+        ? `${j.countingQubits} counting qubits + 1 ancilla`
+        : j.description,
       config: j.config,
       rep: j.rep,
+      interval: showIntervals ? j.successInterval : null,
     }));
   const sweepAxis = first.designDepth !== null ? "depth" : "width";
   const shade =
@@ -257,12 +312,7 @@ function renderSweep(selectBoundary = false) {
     animation: !reducedMotion.matches,
     animationDurationUpdate: 350,
     grid: { left: 58, right: 18, top: 36, bottom: 52 },
-    tooltip: {
-      trigger: "item",
-      renderMode: "richText",
-      formatter: (p) =>
-        `${p.name}\n${p.data.description}\nGroup · ${p.data.family}\n${questions[key][1]}  ${format(key, p.value[1])}\n${axes[axis]}  ${p.value[0]}`,
-    },
+    tooltip: { show: false },
     xAxis: {
       type: "value",
       min: Math.max(0, Math.min(...axisValues) - 1),
@@ -279,7 +329,7 @@ function renderSweep(selectBoundary = false) {
       nameTextStyle: { align: "left" },
       min: 0,
       max: 1,
-      interval: 0.25,
+      interval: showIntervals ? 0.1 : 0.25,
       axisLabel: {
         formatter: (v) =>
           key === "success" ? Math.round(v * 100) + "%" : String(v),
@@ -289,8 +339,10 @@ function renderSweep(selectBoundary = false) {
       {
         name: questions[key][1],
         type: "scatter",
-        symbolSize: 11,
+        symbolSize: showIntervals ? 7 : 11,
+        z: 3,
         itemStyle: { color: "#087363" },
+        emphasis: { scale: false, itemStyle: { color: "#c44d16", opacity: 1 } },
         data: dots,
         markArea: {
           silent: true,
@@ -528,6 +580,25 @@ function selectFindingTab(selected) {
   }
 }
 
+let returnFocus, rangeScroll;
+function setJobView(open) {
+  el("plot-view").hidden = open;
+  el("range-location").hidden = open;
+  el("histogram-view").hidden = !open;
+  el("range-return").hidden = !open;
+  el("detail-location").hidden = !open;
+  el("interval-lens").hidden = true;
+}
+function openJob(job, opener) {
+  returnFocus = opener;
+  rangeScroll = window.scrollY;
+  setJobView(true);
+  el("histogram-title").textContent = el("algorithm").selectedOptions[0].text + " measurement outcomes";
+  selectedConfig = job.config;
+  repetitions(String(job.rep));
+  el("histogram-title").focus({ preventScroll: true });
+  el("range-return").scrollIntoView({ block: "nearest" });
+}
 function init() {
   el("adjust-plot").onclick = () => el("plot-settings").showModal();
   const tabs = [...document.querySelectorAll(".finding-tabs button")];
@@ -582,27 +653,19 @@ function init() {
   };
   el("rep").onchange = renderRun;
   el("bins").onchange = renderRun;
-  function showHistogram(point) {
-    el("plot-view").hidden = true;
-    el("histogram-view").hidden = false;
-    if (point) {
-      selectedConfig = point.config;
-      repetitions(String(point.rep));
-    } else {
-      renderRun();
-    }
-    el("back-to-plot").focus();
-  }
-  el("open-histogram").onclick = () => showHistogram();
-  el("back-to-plot").onclick = () => {
-    el("histogram-view").hidden = true;
-    el("plot-view").hidden = false;
-    trend.resize();
-    el("open-histogram").focus();
-  };
-  trend.on("click", (p) => {
-    if (p.data?.config) showHistogram(p.data);
+  trend.on("mouseover", { seriesType: "scatter" }, ({ data }) => {
+    showJobLens(data);
   });
+  trend.on("mouseout", { seriesType: "scatter" }, () => {
+    el("interval-lens").hidden = true;
+  });
+  el("range-return").onclick = () => {
+    setJobView(false);
+    trend.resize();
+    returnFocus.focus({ preventScroll: true });
+    window.scrollTo({ top: rangeScroll, behavior: "instant" });
+  };
+  trend.on("click", { seriesType: "scatter" }, ({ data }) => openJob(data, el("plot-title")));
   new ResizeObserver(() => {
     if (el("histogram-view").hidden) trend.resize();
     else hist?.resize();
