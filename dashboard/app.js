@@ -60,6 +60,7 @@ const windowKey = (j) => JSON.stringify([j.campaign, j.window]);
 const format = (key, value) => (key === "success" ? pct(value) : score(value));
 const lower = (key) => ["coarse", "tvd"].includes(key);
 const compareText = (a, b) => a.localeCompare(b, "en", { numeric: true });
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 let windowJobs, jobs, configs, selectedConfig, trend, hist;
 const chartTheme = {
   textStyle: { fontFamily: "system-ui, sans-serif", color: "#34554e" },
@@ -133,6 +134,7 @@ function sweep() {
     );
   el("coverage").textContent =
     `${configs.length} experiment${configs.length === 1 ? "" : "s"} · ${jobs.length} jobs`;
+  el("settings-coverage").textContent = el("coverage").textContent;
   renderSweep(true);
 }
 function target() {
@@ -252,7 +254,7 @@ function renderSweep(selectBoundary = false) {
   const axisValues = unique(jobs.map((j) => j[axis]));
   trend.setOption({
     ...chartTheme,
-    animation: el("motion").checked,
+    animation: !reducedMotion.matches,
     animationDurationUpdate: 350,
     grid: { left: 58, right: 18, top: 36, bottom: 52 },
     tooltip: {
@@ -462,7 +464,7 @@ function renderRun() {
   hist.resize();
   hist.setOption({
     ...chartTheme,
-    animation: el("motion").checked,
+    animation: !reducedMotion.matches,
     animationDurationUpdate: 350,
     grid: { left: 10, right: 20, top: 12, bottom: 36, containLabel: true },
     tooltip: {
@@ -544,8 +546,6 @@ function init() {
       tabs[nextIndex].focus();
     };
   });
-  el("motion").checked = !matchMedia("(prefers-reduced-motion: reduce)")
-    .matches;
   trend = echarts.init(el("trend"), null, { renderer: "svg" });
   options("backend", unique(snapshot.jobs.map((j) => j.backend)), "ibm_fez");
   options(
@@ -582,7 +582,6 @@ function init() {
   };
   el("rep").onchange = renderRun;
   el("bins").onchange = renderRun;
-  el("motion").onchange = () => el("histogram-view").hidden ? renderSweep() : renderRun();
   function showHistogram(point) {
     el("plot-view").hidden = true;
     el("histogram-view").hidden = false;
