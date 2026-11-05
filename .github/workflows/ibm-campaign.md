@@ -4,7 +4,7 @@
 
 ## Activate the November 5 test
 
-1. Commit the workflow, `scripts/ibm_campaign_ci.py`, the checkpoint change in `campaign_submit.py`, tests, and documentation; push/merge them into `main` **before November 5, 2026, 10:00 a.m. America/Bogota**. Scheduled workflows must exist on the default branch.
+1. Commit the workflow, `scripts/ibm_campaign_ci.py`, the checkpoint change in `campaign_submit.py`, tests, and documentation; push/merge them into `main` **before November 5, 2026, 11:45 a.m. America/Bogota**. Scheduled workflows must exist on the default branch.
 2. Under repository **Settings → Secrets and variables → Actions → Secrets**, add:
    - `IBM_QUANTUM_TOKEN`: the IBM API token for this campaign.
    - `IBM_QUANTUM_INSTANCE`: the same IBM instance/CRN used for the local windows.
@@ -15,7 +15,7 @@
 4. Under **Settings → Actions → General → Workflow permissions**, enable **Allow GitHub Actions to create and approve pull requests**. The workflow requests `contents: write` and `pull-requests: write`.
 5. In Actions, choose **Collect IBM campaign results → Run workflow**, branch `main`, mode `validate`, campaign date `2026-11-05`. This checks the plan and job count without IBM calls, branch creation, or spending QPU credits. It does not verify secret validity or IBM connectivity.
 
-The cron is `0 15 * * *`: **15:00 UTC = 10:00 a.m. Bogotá**. Its date guard allows scheduled execution only on `IBM_CAMPAIGN_DATE`, defaulting to November 5. Later daily triggers exit without IBM calls. GitHub can delay a scheduled run; 10:00 is the requested workflow trigger, not a guaranteed QPU start. Dependency installation, preparation, and the IBM queue follow it.
+The cron is `45 16 * * *`: **16:45 UTC = 11:45 a.m. Bogotá**. Its date guard allows scheduled execution only on `IBM_CAMPAIGN_DATE`, defaulting to November 5. Later daily triggers exit without IBM calls. GitHub can delay a scheduled run; 11:45 is the requested workflow trigger, not a guaranteed QPU start. Dependency installation, preparation, and the IBM queue follow it.
 
 If the files reach `main` after the scheduled slot, use **Run workflow → mode `run` → campaign date `2026-11-05`**, or choose a future date. The workflow runs only on `main`; opening the setup as a PR alone does not activate the schedule.
 
