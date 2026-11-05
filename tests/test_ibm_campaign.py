@@ -160,6 +160,33 @@ def test_dynamic_circuit_is_prepared_unscheduled(tmp_path, fez, monkeypatch):
     assert any(i.operation.name == "if_else" for i in circuits["isa.qpy"].data)
 
 
+def test_explicit_batch_lifetime_is_sent_and_journaled(tmp_path, fez, monkeypatch, runtime):
+    import qiskit_ibm_runtime
+
+    campaign = _experiment(GHZIBMExperiment, tmp_path, monkeypatch).campaign()
+    manifest = campaign.prepare_plan(
+        _plan(tmp_path, items=[{"config": "GHZ3"}]), runtime.service(fez)
+    )
+    requested = []
+
+    def batch_with_lifetime(*, backend, max_time):
+        requested.append(max_time)
+        return runtime.Batch(backend=backend)
+
+    monkeypatch.setattr(qiskit_ibm_runtime, "Batch", batch_with_lifetime)
+    result = campaign.submit_manifest(Path(manifest["manifest_path"]), fez, batch_max_time=3600)
+    assert requested == [3600]
+    assert result["requested_batch_max_time_seconds"] == 3600
+    assert len(runtime.submitted) == 2
+
+
+@pytest.mark.parametrize("limit", [0, -1, True, "1h"])
+def test_invalid_batch_lifetime_rejected_before_submission(tmp_path, monkeypatch, limit):
+    campaign = _experiment(GHZIBMExperiment, tmp_path, monkeypatch).campaign()
+    with pytest.raises(ValueError, match="positive number of seconds"):
+        campaign.submit_manifest(tmp_path / "not-created.json", None, batch_max_time=limit)
+
+
 def test_plan_submits_one_batch_with_seeded_round_robin_order(tmp_path, fez, monkeypatch, runtime):
     experiment = _experiment(GHZIBMExperiment, tmp_path, monkeypatch)
     campaign = experiment.campaign()
@@ -552,3 +579,40 @@ def test_status_reads_records_from_relocated_pilot(tmp_path, saved):
     status = ibm_campaign.Campaign.status(manifest)
     assert status["records_by_status"] == {"completed": 1}
     assert status["jobs_submitted"] == 1
+
+
+def test_partitioned_batches_share_records_and_preserve_budget(tmp_path, fez, monkeypatch, runtime):
+    """Actual lifecycle enforces the original algorithm budget across child batches."""
+    from qward.examples.papers.campaign_parts import split_manifest, manifest_parts, sync_parents
+
+    campaign = _experiment(GHZIBMExperiment, tmp_path, monkeypatch).campaign()
+    plan = _plan(tmp_path, items=[{"config": "GHZ2"}, {"config": "GHZ3"}, {"config": "GHZ4"}])
+    parent = Path(campaign.prepare_plan(plan, runtime.service(fez))["manifest_path"])
+    split_manifest(parent, 2)
+    parts = manifest_parts({"ghz": parent})
+    assert len(parts) == 3
+    for path in parts.values():
+        campaign.submit_manifest(path, fez)
+        campaign.recover_manifest(path, runtime.service(fez))
+    sync_parents({"ghz": parent})
+    result = json.loads(parent.read_text(encoding="utf-8"))
+    assert result["status"] == "completed"
+    assert len(runtime.submitted) == 6
+    assert len(result["batch_ids"]) == 3
+    with pytest.raises(ValueError, match="fresh prepared"):
+        campaign.submit_manifest(next(iter(parts.values())), fez)
+
+
+def test_recovery_skips_pending_jobs_without_blocking_or_resubmitting(
+    tmp_path, fez, monkeypatch, runtime
+):
+    campaign = _experiment(GHZIBMExperiment, tmp_path, monkeypatch).campaign()
+    plan = _plan(tmp_path, items=[{"config": "GHZ2"}])
+    path = Path(campaign.prepare_plan(plan, runtime.service(fez))["manifest_path"])
+    campaign.submit_manifest(path, fez)
+    pending = SimpleNamespace(job=lambda job_id: SimpleNamespace(in_final_state=lambda: False))
+    result = campaign.recover_manifest(path, pending, skip_pending=True)
+    assert result["status"] == "incomplete"
+    assert len(runtime.submitted) == 2
+    assert campaign.recover_manifest(path, runtime.service(fez))["status"] == "completed"
+    assert len(runtime.submitted) == 2

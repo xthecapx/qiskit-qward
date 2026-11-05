@@ -30,7 +30,16 @@ def submitted_ids(manifest):
     return deque(ids)
 
 
-def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoint=None):
+def submit_window(
+    paths,
+    max_batches,
+    service=None,
+    *,
+    poll_seconds=30,
+    checkpoint=None,
+    recover_results=True,
+    batch_max_time=None,
+):
     """Count resumed Batches first, then reuse slots as their IBM jobs finish."""
     if max_batches not in (1, 2, 3):
         raise ValueError("max_batches must be 1, 2 or 3")
@@ -54,7 +63,7 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoi
             print(f"{key}: tracking existing Batch {manifest['batch_id']}", flush=True)
         else:
             raise ValueError(f"{path}: unexpected manifest status {status}")
-        campaigns[key] = load_runner(key).campaign()
+        campaigns[key] = load_runner(key.split(":", 1)[0]).campaign()
 
     if len(window_keys) != 1:
         raise ValueError("Manifests must belong to the same backend, campaign and window")
@@ -65,7 +74,10 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoi
             key, backend = pending.popleft()
             print(f"{key}: opening Batch", flush=True)
             with stage(f"{key}: submit Batch"):
-                manifest = campaigns[key].submit_manifest(paths[key], service.backend(backend))
+                options = {} if batch_max_time is None else {"batch_max_time": batch_max_time}
+                manifest = campaigns[key].submit_manifest(
+                    paths[key], service.backend(backend), **options
+                )
             if checkpoint is not None:
                 checkpoint()
             active[key] = submitted_ids(manifest)
@@ -82,13 +94,17 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoi
                     f"{len(ids)} jobs not yet confirmed terminal, {len(active)} active Batches"
                 )
             else:
-                result = campaigns[key].recover_manifest(paths[key], service)
-                if result["status"] != "completed":
-                    raise RuntimeError(f"{key}: recovery incomplete; inspect {paths[key]}")
+                if recover_results:
+                    result = campaigns[key].recover_manifest(paths[key], service)
+                    if result["status"] != "completed":
+                        raise RuntimeError(f"{key}: recovery incomplete; inspect {paths[key]}")
                 del active[key]
                 if checkpoint is not None:
                     checkpoint()
-                print(f"{key}: recovered", flush=True)
+                print(
+                    f"{key}: {'recovered' if recover_results else 'terminal; collect in recovery step'}",
+                    flush=True,
+                )
         if active and (not pending or len(active) >= max_batches):
             time.sleep(poll_seconds)
 

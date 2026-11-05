@@ -1,5 +1,5 @@
 name: Collect IBM campaign results
-run-name: IBM Fez ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-05' }} · ${{ inputs.mode || 'run' }}
+run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.mode || 'run' }}
 
 on:
   schedule:
@@ -7,41 +7,66 @@ on:
     - cron: '45 16 * * *'
   workflow_dispatch:
     inputs:
+      backend:
+        description: IBM chip (172 configurations and 344 jobs on the selected chip)
+        type: choice
+        options: [ibm_fez, ibm_kingston, ibm_marrakesh]
+        default: ibm_fez
       campaign_date:
         description: Collection date YYYY-MM-DD (full profile, 344 jobs)
         type: string
         required: true
-        default: '2026-11-05'
+        default: '2026-11-06'
       mode:
-        description: Run submits jobs once; recover only retrieves existing submissions
+        description: Run starts a new collection; resume sends untouched batches; recover only reads
         type: choice
-        options: [validate, run, recover]
+        options: [validate, run, resume, recover]
         default: validate
       max_batches:
         description: Maximum active IBM batches
         type: choice
         options: ['1', '2', '3']
         default: '3'
+      max_jobs_per_batch:
+        description: Maximum jobs per Batch (keeps both repetitions together)
+        type: choice
+        options: ['6', '10', '14']
+        default: '10'
+      batch_max_time:
+        description: Requested Batch lifetime in seconds (subject to IBM instance limits)
+        type: choice
+        options: ['600', '1800', '3600']
+        default: '3600'
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
+  # Shared across chips to respect the account-wide Batch limit.
   group: ibm-fez-campaign
   cancel-in-progress: false
 
 env:
-  CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-05' }}
+  CAMPAIGN_BACKEND: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }}
+  CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
   CAMPAIGN_MODE: ${{ inputs.mode || 'run' }}
   MAX_BATCHES: ${{ inputs.max_batches || '3' }}
-  SCHEDULE_DATE: ${{ vars.IBM_CAMPAIGN_DATE || '2026-11-05' }}
+  MAX_JOBS_PER_BATCH: ${{ inputs.max_jobs_per_batch || '10' }}
+  BATCH_MAX_TIME: ${{ inputs.batch_max_time || '3600' }}
+  SCHEDULE_DATE: ${{ vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
 
 jobs:
   collect:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 330
+    env:
+      IBM_QUANTUM_TOKEN: ${{ secrets.IBM_QUANTUM_TOKEN }}
+      IBM_QUANTUM_INSTANCE: ${{ secrets.IBM_QUANTUM_INSTANCE }}
+      IBM_QUANTUM_CHANNEL: ${{ vars.IBM_QUANTUM_CHANNEL || 'ibm_quantum_platform' }}
+      PYTHONUNBUFFERED: '1'
+      CAMPAIGN_CHECKPOINT: '1'
+      CAMPAIGN_PROGRESS: '1'
     steps:
       - name: Check scheduled date
         id: gate
@@ -61,12 +86,20 @@ jobs:
         if: steps.gate.outputs.enabled == 'true'
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            requirements.qward.txt
+            setup.py
+            pyproject.toml
+            .github/workflows/ibm-campaign.yml
       - name: Validate bounded workload
+        id: campaign
         if: steps.gate.outputs.enabled == 'true'
         run: |
-          python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE"
+          python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-batches "$MAX_BATCHES" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH" --batch-max-time "$BATCH_MAX_TIME"
+          python scripts/ibm_campaign_ci.py identity --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" >> "$GITHUB_OUTPUT"
           [[ "$MAX_BATCHES" =~ ^[123]$ ]]
-          [[ "$CAMPAIGN_MODE" =~ ^(validate|run|recover)$ ]]
+          [[ "$CAMPAIGN_MODE" =~ ^(validate|run|resume|recover)$ ]]
       - name: Check IBM credentials
         if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
         env:
@@ -79,88 +112,99 @@ jobs:
         id: claim
         if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
         run: |
-          branch="codex/ibm-fez-${CAMPAIGN_DATE}"
-          marker=".github/campaign-runs/${CAMPAIGN_DATE}.json"
+          branch="${{ steps.campaign.outputs.branch }}"
+          marker="${{ steps.campaign.outputs.marker }}"
+          export CAMPAIGN_MARKER="$marker"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if [[ "$CAMPAIGN_MODE" == recover ]]; then
+          if [[ "$CAMPAIGN_MODE" == recover || "$CAMPAIGN_MODE" == resume ]]; then
             git fetch origin "$branch"
             git switch -c "$branch" FETCH_HEAD
+            # Run current orchestration while preserving every result and manifest on the branch.
+            git restore --source="$GITHUB_SHA" --worktree -- scripts/ibm_campaign_ci.py dashboard/build.py qward/examples/papers/dataset_export.py qward/examples/papers/campaign_parts.py qward/examples/papers/campaign_submit.py qward/examples/papers/ibm_campaign.py qward/examples/papers/ibm_experiment_base.py qward/examples/papers/dataset_features.py
           else
             if [[ -e "$marker" ]] || git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-              echo 'This campaign date is already claimed. Use recover or inspect the existing results PR.'
+              echo 'This backend and campaign date are already claimed. Use resume for untouched batches or recover for result retrieval; inspect the existing results branch.'
               exit 1
             fi
             git switch -c "$branch"
             mkdir -p .github/campaign-runs
-            python -c 'import json,os; from pathlib import Path; Path(".github/campaign-runs/"+os.environ["CAMPAIGN_DATE"]+".json").write_text(json.dumps({"date":os.environ["CAMPAIGN_DATE"],"workflow_run":os.environ["GITHUB_RUN_ID"],"status":"claimed"})+"\n")'
+            python -c 'import json,os; from pathlib import Path; Path(os.environ["CAMPAIGN_MARKER"]).write_text(json.dumps({"backend":os.environ["CAMPAIGN_BACKEND"],"date":os.environ["CAMPAIGN_DATE"],"workflow_run":os.environ["GITHUB_RUN_ID"],"status":"claimed"})+"\n")'
             git add "$marker"
-            git commit -m "chore(experiments): reserve IBM Fez campaign $CAMPAIGN_DATE"
+            git commit -m "chore(experiments): reserve $CAMPAIGN_BACKEND campaign $CAMPAIGN_DATE"
             git push --set-upstream origin "$branch"
           fi
+      - name: Restore logical metric cache
+        id: metrics-cache
+        if: steps.claim.outcome == 'success'
+        uses: actions/cache/restore@v5
+        with:
+          path: qward/examples/papers/data/quantum_specific_cache
+          key: qward-logical-metrics-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            qward-logical-metrics-v1-${{ runner.os }}-${{ runner.arch }}-
       - name: Install experiment dependencies
+        id: install
         if: steps.claim.outcome == 'success'
         run: |
           python -m pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -e .
-      - name: Prepare, submit and recover the campaign
-        id: collect
-        if: steps.claim.outcome == 'success'
-        timeout-minutes: 240
-        env:
-          IBM_QUANTUM_TOKEN: ${{ secrets.IBM_QUANTUM_TOKEN }}
-          IBM_QUANTUM_INSTANCE: ${{ secrets.IBM_QUANTUM_INSTANCE }}
-          IBM_QUANTUM_CHANNEL: ${{ vars.IBM_QUANTUM_CHANNEL || 'ibm_quantum_platform' }}
-          PYTHONUNBUFFERED: '1'
-          CAMPAIGN_CHECKPOINT: '1'
-          CAMPAIGN_PROGRESS: '1'
-        run: python scripts/ibm_campaign_ci.py "$CAMPAIGN_MODE" --date "$CAMPAIGN_DATE" --max-batches "$MAX_BATCHES"
+          python -m pip install -e . qiskit==2.6.2 qiskit-aer==0.18.2 qiskit-ibm-runtime==0.51.0
+      - name: Prepare circuits and partition batches
+        id: prepare
+        if: steps.install.outcome == 'success' && env.CAMPAIGN_MODE != 'recover'
+        timeout-minutes: 120
+        run: python scripts/ibm_campaign_ci.py prepare --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH"
+      - name: Submit untouched batches and monitor IBM jobs
+        id: submit
+        if: steps.prepare.outcome == 'success'
+        timeout-minutes: 150
+        run: python scripts/ibm_campaign_ci.py submit --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-batches "$MAX_BATCHES" --batch-max-time "$BATCH_MAX_TIME"
+      - name: Recover results with read-only retries
+        id: recover
+        if: always() && !cancelled() && steps.install.outcome == 'success' && (env.CAMPAIGN_MODE == 'recover' || env.CAMPAIGN_MODE == 'resume' || steps.submit.outcome != 'skipped')
+        timeout-minutes: 45
+        run: python scripts/ibm_campaign_ci.py recover --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND"
       - name: Export completed results and validate dashboard
         id: export
-        if: steps.collect.outcome == 'success'
+        if: always() && !cancelled() && steps.recover.outcome == 'success'
         run: |
-          python -m qward.examples.papers.dataset_export --backend ibm_fez --out qward/examples/papers/dataset_out
+          python -m qward.examples.papers.dataset_export --out qward/examples/papers/dataset_out
           python dashboard/build.py
       - name: Preserve journals and prepared circuits, including interrupted runs
         if: always() && steps.claim.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: ibm-fez-${{ env.CAMPAIGN_DATE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ env.CAMPAIGN_BACKEND }}-${{ env.CAMPAIGN_DATE }}-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 90
           path: |
-            qward/examples/papers/*/plans/*-d${{ env.CAMPAIGN_DATE }}_manifest.json
+            qward/examples/papers/*/plans/*-d${{ env.CAMPAIGN_DATE }}*.json
             qward/examples/papers/*/data/qpu/v2/
             qward/examples/papers/dataset_out/
-      - name: Save results and open a review PR
+            qward/examples/papers/data/quantum_specific_cache/
+      - name: Save logical metric cache for future campaigns
+        if: always() && steps.install.outcome == 'success' && steps.claim.outcome == 'success'
+        uses: actions/cache/save@v5
+        with:
+          path: qward/examples/papers/data/quantum_specific_cache
+          key: ${{ steps.metrics-cache.outputs.cache-primary-key }}
+      - name: Save results branch and report next steps
         if: always() && steps.claim.outcome == 'success'
         env:
-          GH_TOKEN: ${{ github.token }}
           EXPORT_OUTCOME: ${{ steps.export.outcome }}
         run: |
-          branch="codex/ibm-fez-${CAMPAIGN_DATE}"
+          branch="${{ steps.campaign.outputs.branch }}"
           git add -- .github/campaign-runs
           git add -- 'qward/examples/papers/*/plans/*.json' 'qward/examples/papers/*/data/qpu/v2/*.json' 'qward/examples/papers/*/data/qpu/v2/artifacts/*/*.json' 'qward/examples/papers/*/data/qpu/v2/artifacts/*/*.qpy' 'qward/examples/papers/data/quantum_specific_cache/*.json' 'qward/examples/papers/dataset_out/*'
           if ! git diff --cached --quiet; then
-            git commit -m "data(experiments): collect IBM Fez campaign $CAMPAIGN_DATE"
+            git commit -m "data(experiments): collect $CAMPAIGN_BACKEND campaign $CAMPAIGN_DATE"
           fi
           git push origin "$branch"
-          body="$RUNNER_TEMP/campaign-pr.md"
-          if [[ "$EXPORT_OUTCOME" == success ]]; then
-            printf 'Collected full IBM Fez campaign %s: 172 configurations, 344 jobs, 1,024 shots each.\n\nUpdated experiment records, calibration tables and dashboard inputs. The static dashboard build passed. Review and merge into main to publish the results.\n' "$CAMPAIGN_DATE" > "$body"
-            draft=()
-          else
-            printf 'Campaign %s needs recovery or investigation. Saved available manifests, job IDs and prepared circuits. Do not merge as a completed dataset.\n\nUse the workflow recover mode to retrieve existing jobs; it submits no new jobs. Partially submitted batches require manual reconciliation.\n' "$CAMPAIGN_DATE" > "$body"
-            draft=(--draft)
-          fi
-          printf '\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$body"
-          pr=$(gh pr list --head "$branch" --base main --state open --json number --jq '.[0].number // empty')
-          if [[ -n "$pr" ]]; then
-            gh pr edit "$pr" --body-file "$body"
+          {
+            printf '## IBM campaign %s / %s\n\n' "$CAMPAIGN_BACKEND" "$CAMPAIGN_DATE"
+            printf 'Saved results: [%s](%s/%s/tree/%s). No PR was created.\n\n' "$branch" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$branch"
             if [[ "$EXPORT_OUTCOME" == success ]]; then
-              gh pr ready "$pr" || true
+              printf 'All 344 jobs recovered. Export and dashboard build passed. Review the branch and merge the results manually.\n'
             else
-              gh pr ready "$pr" --undo || true
+              printf 'Collection is incomplete. Use **recover** to retrieve existing jobs, or **resume** to prepare missing algorithms and submit only untouched batches. Failed jobs are never replaced automatically. Ambiguous partial submissions need manual reconciliation.\n'
             fi
-          else
-            gh pr create --head "$branch" --base main --title "data(experiments): IBM Fez campaign $CAMPAIGN_DATE results" --body-file "$body" "${draft[@]}"
-          fi
+          } >> "$GITHUB_STEP_SUMMARY"

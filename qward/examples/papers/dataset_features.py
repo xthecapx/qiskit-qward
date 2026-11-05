@@ -224,17 +224,24 @@ def _qward(circuit: QuantumCircuit) -> Dict[str, Any]:
     return metrics
 
 
-def _quantum_specific_key(circuit: QuantumCircuit) -> str:
-    """Cache key: logical circuit, seed, and the metric's own source code."""
+def _quantum_specific_key(circuit: QuantumCircuit, *, torch_version=None) -> str:
+    """Key CPU metric values by circuit, seed, source and Torch release.
+
+    The metric explicitly uses CPU. Treat the plain and +cpu wheels of the
+    same release as compatible for reuse of saved values; keep other build
+    suffixes distinct. An explicit version allows reading legacy +cpu keys.
+    """
     import torch  # pylint: disable=import-outside-toplevel
     from qward.metrics import quantum_specific_metrics  # pylint: disable=import-outside-toplevel
 
+    if torch_version is None:
+        torch_version = str(torch.__version__).removesuffix("+cpu")
     source = hashlib.sha256(inspect.getsource(quantum_specific_metrics).encode()).hexdigest()
     # Named composite gates can wrap different oracles. Include their actual operations.
     expanded = transpile(circuit, basis_gates=["u", "cx"], optimization_level=0, seed_transpiler=11)
     payload = (
         f"{circuit_hash(circuit)}|{circuit_hash(expanded)}|{QUANTUM_SPECIFIC_SEED}|"
-        f"{source}|torch{torch.__version__}"
+        f"{source}|torch{torch_version}"
     )
     return hashlib.sha256(payload.encode()).hexdigest()[:32]
 
@@ -261,9 +268,19 @@ def quantum_specific(circuit: QuantumCircuit, *, cache_dir: Any = _DEFAULT_CACHE
     entry = None
     if cache_dir is not None:
         entry = Path(cache_dir) / f"{_quantum_specific_key(circuit)}.json"
-        if entry.exists():
-            report(f"Quantum-specific metrics: cache HIT ({circuit.num_qubits} qubits)")
-            return {**json.loads(entry.read_text(encoding="utf-8")), "cached": True}
+        cached_entry = entry
+        if not entry.exists():
+            import torch  # pylint: disable=import-outside-toplevel
+
+            # Preserve reuse of caches produced by the original cloud workflow.
+            legacy = _quantum_specific_key(circuit, torch_version=str(torch.__version__))
+            cached_entry = Path(cache_dir) / f"{legacy}.json"
+        if cached_entry.exists():
+            report(
+                f"Quantum-specific metrics: cache HIT ({circuit.num_qubits} qubits, "
+                f"{cached_entry.name})"
+            )
+            return {**json.loads(cached_entry.read_text(encoding="utf-8")), "cached": True}
         report(f"Quantum-specific metrics: cache MISS ({circuit.num_qubits} qubits)")
     else:
         report("Quantum-specific metrics: cache disabled")
