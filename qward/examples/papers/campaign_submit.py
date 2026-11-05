@@ -9,6 +9,7 @@ from collections import deque
 from pathlib import Path
 
 from qward.examples.papers.campaign_matrix import RUNNERS, load_runner
+from qward.examples.papers.campaign_progress import report, stage
 from qward.examples.papers.ibm_campaign import service_from_env
 from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
 
@@ -63,7 +64,8 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoi
         while pending and len(active) < max_batches:
             key, backend = pending.popleft()
             print(f"{key}: opening Batch", flush=True)
-            manifest = campaigns[key].submit_manifest(paths[key], service.backend(backend))
+            with stage(f"{key}: submit Batch"):
+                manifest = campaigns[key].submit_manifest(paths[key], service.backend(backend))
             if checkpoint is not None:
                 checkpoint()
             active[key] = submitted_ids(manifest)
@@ -74,7 +76,12 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoi
             # IDs can be discarded here; recovery uses the durable manifest.
             while ids and service.job(ids[0]).in_final_state():
                 ids.popleft()
-            if not ids:
+            if ids:
+                report(
+                    f"{key}: waiting on IBM job {ids[0]}; "
+                    f"{len(ids)} jobs not yet confirmed terminal, {len(active)} active Batches"
+                )
+            else:
                 result = campaigns[key].recover_manifest(paths[key], service)
                 if result["status"] != "completed":
                     raise RuntimeError(f"{key}: recovery incomplete; inspect {paths[key]}")
