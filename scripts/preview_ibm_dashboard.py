@@ -299,7 +299,10 @@ def histogram_preview(window):
 
 
 def main():
-    frame = pd.read_csv(PAPERS / "dataset_out/dataset.csv")
+    frame = pd.concat(
+        [pd.read_csv(path) for path in sorted((PAPERS / "dataset_out").glob("dataset-*.csv"))],
+        ignore_index=True,
+    )
     window = frame[
         (frame["meta.backend_name"] == "ibm_fez")
         & (frame["meta.campaign_id"] == "fez-dataset-v2")

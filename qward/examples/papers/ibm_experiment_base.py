@@ -1714,6 +1714,12 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         lifecycle = parser.add_argument_group("campaign lifecycle (records saved before submit)")
         lifecycle.add_argument("--prepare-plan", type=Path, metavar="PLAN_JSON")
         lifecycle.add_argument("--submit-plan", type=Path, metavar="MANIFEST_JSON")
+        lifecycle.add_argument(
+            "--batch-max-time",
+            type=int,
+            default=None,
+            help="With --submit-plan: request a Batch lifetime in seconds (IBM plan limits apply)",
+        )
         lifecycle.add_argument("--recover-plan", type=Path, metavar="MANIFEST_JSON")
         lifecycle.add_argument(
             "--wait-plan",
@@ -1783,7 +1789,9 @@ class IBMExperimentBase(ABC, Generic[ConfigT]):
         if parsed.submit_plan:
             manifest = json.loads(parsed.submit_plan.read_text())
             return campaign.submit_manifest(
-                parsed.submit_plan, service().backend(manifest["backend_name"])
+                parsed.submit_plan,
+                service().backend(manifest["backend_name"]),
+                batch_max_time=parsed.batch_max_time,
             )
         if parsed.recover_plan:
             return campaign.recover_manifest(parsed.recover_plan, service())

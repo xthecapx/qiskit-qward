@@ -101,7 +101,10 @@ def test_simulated_backends_are_refused_by_default(root, tmp_path):
         D.export(tmp_path / "out", root=root)
     report = D.export(tmp_path / "out", root=root, allow_fake=True)
     assert report["errors"] == [] and report["rows"] == 6
-    jobs = pd.read_csv(tmp_path / "out" / "dataset.csv")
+    jobs = pd.concat(
+        [pd.read_csv(path) for path in sorted((tmp_path / "out").glob("dataset-*.csv"))],
+        ignore_index=True,
+    )
     references = pd.read_csv(tmp_path / "out" / "references.csv").set_index("run_id")
     assert references.index.is_unique
     assert set(jobs["meta.run_id"]) == set(references.index)
@@ -127,6 +130,32 @@ def test_backend_filter(root, tmp_path):
     assert report["rows"] == 0
     kept = D.export(tmp_path / "all", root=root, backend="fake_fez", allow_fake=True)
     assert kept["rows"] == 6
+
+
+def test_unfiltered_export_keeps_three_chips_and_matching_calibrations(root, tmp_path):
+    """Simulated records from three chips survive export into dashboard inputs."""
+    from dashboard.build import load_tables
+
+    copied = tmp_path / "multi_chip"
+    shutil.copytree(root, copied)
+    backends = {"fake_fez", "fake_kingston", "fake_marrakesh"}
+    journals = D.discover(copied)
+    assert len(journals) == 3
+    for path, backend in zip(journals, sorted(backends)):
+        journal = json.loads(path.read_text(encoding="utf-8"))
+        journal["backend_name"] = backend
+        path.write_text(json.dumps(journal), encoding="utf-8")
+        prepared_path = path.parent / journal["artifact_directory"] / "prepared.json"
+        prepared = json.loads(prepared_path.read_text(encoding="utf-8"))
+        prepared["backend_name"] = backend
+        prepared_path.write_text(json.dumps(prepared), encoding="utf-8")
+    out = tmp_path / "tables"
+    report = D.export(out, root=copied, allow_fake=True)
+    assert report["rows"] == 6
+    snapshot = load_tables(out)
+    assert {job["backend"] for job in snapshot["jobs"]} == backends
+    for job in snapshot["jobs"]:
+        assert snapshot["calibrations"][job["ref"]]["backend"] == job["backend"]
 
 
 def _mutated(root, tmp_path, mutate):
@@ -220,4 +249,57 @@ def test_excluded_algorithms_never_enter_the_dataset(root, tmp_path, fez, monkey
     assert any("COIN_TOSS" in p.read_text() for p in D.discover(copy))
     report = D.export(tmp_path / "out", root=copy, allow_fake=True)
     assert report["rows"] == 6 and report["excluded_rows"] == 1
-    assert "COIN_TOSS" not in set(pd.read_csv(tmp_path / "out" / "dataset.csv")["meta.algorithm"])
+    assert "COIN_TOSS" not in set(
+        pd.concat(
+            [pd.read_csv(path) for path in sorted((tmp_path / "out").glob("dataset-*.csv"))],
+            ignore_index=True,
+        )["meta.algorithm"]
+    )
+
+
+def test_split_dataset_round_trip_and_reexport_removes_stale_files(tmp_path):
+    """CSV boundaries preserve multiline/Unicode fields and do not duplicate rows."""
+    from dashboard.build import dataset_rows
+
+    frame = pd.DataFrame({"id": range(12), "value": ['line one\n"líne two", ✓'] * 12})
+    (tmp_path / "dataset.csv").write_text("old export", encoding="utf-8")
+    D.write_dataset_parts(frame, tmp_path, max_bytes=120)
+    manifest = json.loads((tmp_path / "dataset_manifest.json").read_text(encoding="utf-8"))
+    assert len(manifest["parts"]) > 1
+    assert all(p["bytes"] <= 120 for p in manifest["parts"])
+    expected = [{"id": str(i), "value": frame.iloc[i]["value"]} for i in range(12)]
+    assert list(dataset_rows(tmp_path)) == expected
+    assert not (tmp_path / "dataset.csv").exists()
+    D.write_dataset_parts(frame.iloc[:1], tmp_path, max_bytes=120)
+    assert len(list(tmp_path.glob("dataset-*.csv"))) == 1
+    assert list(dataset_rows(tmp_path)) == expected[:1]
+
+
+def test_dataset_parts_missing_or_changed_are_refused(tmp_path):
+    from dashboard.build import dataset_rows
+
+    frame = pd.DataFrame({"id": range(12), "value": ["some text"] * 12})
+    D.write_dataset_parts(frame, tmp_path, max_bytes=70)
+    path = tmp_path / "dataset-002.csv"
+    saved = path.read_bytes()
+    path.unlink()
+    with pytest.raises(FileNotFoundError):
+        list(dataset_rows(tmp_path))
+    path.write_bytes(saved + b"truncated")
+    with pytest.raises(ValueError, match="size mismatch"):
+        list(dataset_rows(tmp_path))
+    path.write_bytes(saved)
+    manifest_path = tmp_path / "dataset_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["parts"][0]["rows"] += 1
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="row count mismatch"):
+        list(dataset_rows(tmp_path))
+
+
+def test_dataset_part_cannot_split_a_single_large_row(tmp_path):
+    D.write_dataset_parts(pd.DataFrame({"value": ["original"]}), tmp_path)
+    saved = (tmp_path / "dataset-001.csv").read_bytes()
+    with pytest.raises(ValueError, match="row exceeds"):
+        D.write_dataset_parts(pd.DataFrame({"value": ["x" * 100]}), tmp_path, max_bytes=50)
+    assert (tmp_path / "dataset-001.csv").read_bytes() == saved

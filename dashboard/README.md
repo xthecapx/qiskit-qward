@@ -50,9 +50,12 @@ The input directory must contain these files from the **same export**:
 
 | File | Contents |
 | --- | --- |
-| `dataset.csv` | One row per completed job: circuit information, counts, metrics, timing, and execution calibration summaries |
+| `dataset-001.csv`, `dataset-002.csv`, … | One row per completed job: circuit information, counts, metrics, timing, and execution calibration summaries |
+| `dataset_manifest.json` | Ordered CSV parts, byte sizes, and per-part/total row counts |
 | `references.csv` | Frozen accepted labels and ideal probabilities, joined by `run_id` |
 | `calibrations.csv` | Used-qubit preparation properties, unique gate operations, and ordered measurement-to-classical-bit mappings, joined by `run_id` |
+
+Exports split the dataset into files of at most 20 MB, repeating the column header in each part and keeping every job row intact. The builder reads every part named in the manifest and refuses missing parts, inconsistent headers, or mismatched sizes/counts. It also supports a legacy `dataset.csv` when no manifest exists. Re-exporting removes the old monolithic CSV and obsolete parts.
 
 Older exports without `calibrations.csv` still display the success dashboard and show a calibration availability message. If a calibration table is supplied, its joins must match the jobs and chip. The builder also checks job uniqueness, shot totals, accepted-set sizes, and ideal probability totals. Correct or re-export inconsistent inputs rather than combining files from different exports.
 
@@ -128,7 +131,7 @@ The workflow builds on pushes and pull requests targeting `main` or `stable/**`,
 
 The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The docs workflow builds from those committed tables.
 
-The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) can collect the full research profile using a collection date, preserve recovery checkpoints, and open a results PR against `main`. Its first scheduled test is November 5, 2026 at 11:45 a.m. Bogotá (16:45 UTC), after the setup is merged and repository secrets are configured. Merge the results PR to publish the new measurements. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
+The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) collects the full research profile on `ibm_fez`, `ibm_kingston`, or `ibm_marrakesh` using a backend and collection date. Prepare, submit, recover, and export have separate logs; smaller batches and recovery retries preserve existing job IDs. It saves a results branch without creating a PR. Review and merge the results manually to publish new measurements. The next date-gated test defaults to November 6, 2026 at 11:45 a.m. Bogotá (16:45 UTC); update the repository's `IBM_CAMPAIGN_DATE` variable if already set. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
 
 ## Troubleshooting
 
@@ -136,7 +139,7 @@ The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) can c
 | --- | --- |
 | Old layout or old results | Rebuild, confirm you are serving `dashboard/dist`, and refresh the browser; use a hard refresh if assets are cached. |
 | Address already in use | Stop the previous preview with Ctrl+C, or select another local port. |
-| Missing `dataset.csv` or `references.csv` | Use the default committed export, or pass the correct directory with `--tables`. |
+| Missing CSV parts, `dataset_manifest.json`, or `references.csv` | Use the default committed export, or pass the correct directory with `--tables`. |
 | Calibration unavailable | Check that the matching `calibrations.csv` was exported and included before rebuilding. Detailed data is limited to the preparation snapshots actually captured. |
 | Invalid reference, calibration, or shot-total error | Re-export the tables together and inspect `export_report.json`; do not manually force mismatched joins. |
 | Export cannot find a preparation artifact | Restore the local journal's associated artifact directory. Viewing an existing tabulated export does not require these raw records. |

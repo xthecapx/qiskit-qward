@@ -6,7 +6,8 @@ Reads ``<algorithm>/data/qpu/v2/*.json`` (records written by
 ``ibm_campaign``), flattens feature groups A-G into columns, validates the
 result, and writes:
 
-    dataset.csv         one row per completed job
+    dataset-NNN.csv     one row per completed job, split below 20 MB per file
+    dataset_manifest.json ordered parts and row counts
     references.csv      frozen accepted labels and ideal probabilities per run_id
     calibrations.csv    used-qubit preparation calibration and bit mappings per run_id
     schema.json         column -> group, dtype, non-null count
@@ -29,10 +30,13 @@ the problems in the report.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import math
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import pandas as pd
@@ -295,6 +299,51 @@ def build_frame(paths: Iterable[Path]) -> Tuple[pd.DataFrame, List[Dict[str, str
     return frame[ordered], skipped
 
 
+def write_dataset_parts(frame, out_dir, *, max_bytes=20_000_000):
+    """Write complete CSV rows with a repeated header and a bounded file size."""
+    csv.field_size_limit(64 * 1024 * 1024)
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, lineterminator="\n")
+
+    def encode(row):
+        buffer.seek(0)
+        buffer.truncate()
+        writer.writerow(row)
+        return buffer.getvalue().encode("utf-8")
+
+    rows = csv.reader(io.StringIO(frame.to_csv(index=False, lineterminator="\n")))
+    header = encode(next(rows))
+    parts, content, count = [], bytearray(header), 0
+    with TemporaryDirectory(dir=out_dir) as scratch:
+
+        def save():
+            name = f"dataset-{len(parts) + 1:03d}.csv"
+            Path(scratch, name).write_bytes(content)
+            parts.append({"file": name, "rows": count, "bytes": len(content)})
+
+        for row in rows:
+            encoded = encode(row)
+            if len(header) + len(encoded) > max_bytes:
+                raise ValueError("A dataset row exceeds the CSV part size limit")
+            if count and len(content) + len(encoded) > max_bytes:
+                save()
+                content, count = bytearray(header), 0
+            content.extend(encoded)
+            count += 1
+        save()
+        for part in parts:
+            Path(scratch, part["file"]).replace(out_dir / part["file"])
+        manifest = {"schema_version": "1.0", "rows": len(frame), "parts": parts}
+        (out_dir / "dataset_manifest.json").write_text(
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+        )
+    keep = {part["file"] for part in parts}
+    for old in out_dir.glob("dataset-*.csv"):
+        if old.name not in keep:
+            old.unlink()
+    (out_dir / "dataset.csv").unlink(missing_ok=True)
+
+
 def export(
     out_dir: Path,
     *,
@@ -351,7 +400,7 @@ def export(
     pd.DataFrame(references, columns=["run_id", "accepted_json", "ideal_json"]).to_csv(
         out_dir / "references.csv", index=False
     )
-    frame.to_csv(out_dir / "dataset.csv", index=False)
+    write_dataset_parts(frame, out_dir)
     write_calibrations(out_dir / "calibrations.csv", calibrations)
     (out_dir / "schema.json").write_text(
         json.dumps(build_schema(frame), indent=2) + "\n", encoding="utf-8"

@@ -238,7 +238,7 @@ groups A–G are present.
       groups A–G flattened into prefixed columns (`meta`, `config`, `a`–`f`,
       `e_exec`, `g`); ~450 columns. Also derives `f.observed_error` and
       `f.residual_vs_<model>`, and queue/run seconds from IBM timestamps.
-- [x] Output: `dataset.csv`, `schema.json` (column → group, dtype, non-null),
+- [x] Output: `dataset-*.csv`, `dataset_manifest.json`, `schema.json` (column → group, dtype, non-null),
       `export_report.json` (skipped records, errors, warnings).
 - [x] Validation fails the export (override: `--allow-incomplete`) on: no rows,
       duplicate job IDs, mixed/unexpected record schema, simulated backends
@@ -358,13 +358,17 @@ slot until the Batch finishes and its results are recovered. On restart,
 previously submitted Batches count toward the limit. Other windows and
 independent submissions can also occupy IBM account slots.
 At completion expect eight completed manifests and 344 submitted jobs.
-The default export is `qward/examples/papers/dataset_out/dataset.csv`.
+The default export is `qward/examples/papers/dataset_out/dataset-*.csv`, with ordered parts listed in `dataset_manifest.json` (at most 20 MB per file).
 Filter to window 1 to check its coverage separately from the 30 retained pilot jobs.
 
 ```python
+import json
+from pathlib import Path
 import pandas as pd
 
-data = pd.read_csv("qward/examples/papers/dataset_out/dataset.csv")
+folder = Path("qward/examples/papers/dataset_out")
+manifest = json.loads((folder / "dataset_manifest.json").read_text())
+data = pd.concat([pd.read_csv(folder / part["file"]) for part in manifest["parts"]], ignore_index=True)
 w1 = data[(data["meta.backend_name"] == "ibm_fez")
           & (data["meta.campaign_id"] == "fez-dataset-v2")
           & (data["meta.window"] == 1)]

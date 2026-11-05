@@ -4,7 +4,7 @@ This directory contains a number of workflows for use with [GitHub Actions](http
 
 ## IBM campaign collection (`ibm-campaign.yml`)
 
-Collects the full IBM Fez profile with a date-based campaign identity or by manual dispatch, checkpoints submission state, exports dashboard tables, and opens a results PR against `main`. See the [setup, schedule, credentials, and recovery guide](ibm-campaign.md). Manual `validate` mode checks the workload without contacting IBM. The initial date-gated test is November 5, 2026 at 11:45 a.m. Bogotá; reduced monthly collection is a separate follow-up.
+Collects the full IBM profile on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. See the [setup, schedule, credentials, and recovery guide](ibm-campaign.md). Manual `validate` is offline; `resume` submits only untouched batches and `recover` only retrieves results. The next date-gated test defaults to November 6, 2026 at 11:45 a.m. Bogotá (update `IBM_CAMPAIGN_DATE` if already set). Reduced monthly collection is a separate follow-up.
 
 ## Styles check (`lint.yml`)
 

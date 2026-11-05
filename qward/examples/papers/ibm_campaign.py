@@ -463,7 +463,9 @@ class RecordStore:
 
     # -- recover ------------------------------------------------------------
 
-    def recover(self, record_path: Path, service: Any) -> Dict[str, Any]:
+    def recover(
+        self, record_path: Path, service: Any, *, skip_pending: bool = False
+    ) -> Dict[str, Any]:
         """Retrieve saved job IDs, evaluate, and update the record. Never resubmits."""
         record_path = Path(record_path)
         journal, prepared, circuits = self.load(record_path)
@@ -480,6 +482,10 @@ class RecordStore:
                 continue
             try:
                 job = service.job(job_id)
+                if skip_pending and not job.in_final_state():
+                    incomplete = True
+                    report(f"{job_id}: still pending on IBM; retrieve in a later pass")
+                    continue
                 pub = job.result(timeout=self.timeout)[0]
                 counts = extract_counts(pub)
             except Exception as exc:  # pylint: disable=broad-except
@@ -652,10 +658,18 @@ class Campaign:
         write_json(manifest_path, manifest)
         return {**manifest, "manifest_path": str(manifest_path)}
 
-    def submit_manifest(self, manifest_path: Path, backend: Any) -> Dict[str, Any]:
+    def submit_manifest(
+        self, manifest_path: Path, backend: Any, *, batch_max_time: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Validate every record, then submit all jobs in one Runtime Batch."""
         from qiskit_ibm_runtime import Batch, SamplerV2  # pylint: disable=import-outside-toplevel
 
+        if batch_max_time is not None and (
+            isinstance(batch_max_time, bool)
+            or not isinstance(batch_max_time, int)
+            or batch_max_time <= 0
+        ):
+            raise ValueError("batch_max_time must be a positive number of seconds")
         manifest_path = Path(manifest_path)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "prepared":
@@ -680,7 +694,8 @@ class Campaign:
             [self.store.calibration_flag(prepared, current) for _, prepared, _ in loaded],
         )
         try:
-            batch_cm = Batch(backend=backend)
+            options = {} if batch_max_time is None else {"max_time": batch_max_time}
+            batch_cm = Batch(backend=backend, **options)
         except Exception as exc:  # pylint: disable=broad-except
             # IBM refused to open the Batch (for example too many active ones):
             # nothing was sent, so the manifest stays prepared and can be retried.
@@ -689,6 +704,7 @@ class Campaign:
                 f"prepared: {exc}"
             ) from exc
         manifest["status"] = "submitting"
+        manifest["requested_batch_max_time_seconds"] = batch_max_time
         write_json(manifest_path, manifest)
         with batch_cm as batch:
             manifest["batch_id"] = batch.session_id
@@ -762,7 +778,9 @@ class Campaign:
                 )
             sleep(poll_seconds)
 
-    def recover_manifest(self, manifest_path: Path, service: Any) -> Dict[str, Any]:
+    def recover_manifest(
+        self, manifest_path: Path, service: Any, *, skip_pending: bool = False
+    ) -> Dict[str, Any]:
         """Recover every record of a submitted manifest; never resubmits."""
         manifest_path = Path(manifest_path)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -774,7 +792,9 @@ class Campaign:
                 f"{manifest['algorithm']}: recover {index}/{len(manifest['items'])} "
                 f"{item['config']}"
             ):
-                record = self.store.recover(manifest_record_path(manifest_path, item), service)
+                record = self.store.recover(
+                    manifest_record_path(manifest_path, item), service, skip_pending=skip_pending
+                )
             records.append(record)
             report(f"{item['config']}: recovery status {record['status']}")
         done = all(r["status"] == "completed" for r in records)
