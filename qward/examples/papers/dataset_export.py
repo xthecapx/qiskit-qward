@@ -8,6 +8,7 @@ result, and writes:
 
     dataset.csv         one row per completed job
     references.csv      frozen accepted labels and ideal probabilities per run_id
+    calibrations.csv    used-qubit preparation calibration and bit mappings per run_id
     schema.json         column -> group, dtype, non-null count
     export_report.json  skipped records, warnings and counts
 
@@ -37,6 +38,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 import pandas as pd
 
 from qward.examples.papers.ibm_campaign import RECORD_SCHEMA_VERSION
+from qward.examples.papers.calibration_tables import calibration_record, write_calibrations
 
 PAPERS = Path(__file__).resolve().parent
 DATASET_SCHEMA_VERSION = "1.0"
@@ -331,12 +333,14 @@ def export(
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     references = []
+    calibrations = []
     if not frame.empty:
         for path in frame["meta.record_path"].unique():
             record_path = Path(path)
             journal = json.loads(record_path.read_text(encoding="utf-8"))
             prepared_path = record_path.parent / journal["artifact_directory"] / "prepared.json"
             prepared = json.loads(prepared_path.read_text(encoding="utf-8"))
+            calibrations.append(calibration_record(prepared))
             references.append(
                 (
                     journal["run_id"],
@@ -348,6 +352,7 @@ def export(
         out_dir / "references.csv", index=False
     )
     frame.to_csv(out_dir / "dataset.csv", index=False)
+    write_calibrations(out_dir / "calibrations.csv", calibrations)
     (out_dir / "schema.json").write_text(
         json.dumps(build_schema(frame), indent=2) + "\n", encoding="utf-8"
     )
