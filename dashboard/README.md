@@ -128,7 +128,7 @@ The workflow builds on pushes and pull requests targeting `main` or `stable/**`,
 
 The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The docs workflow builds from those committed tables.
 
-The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) can collect the full research profile using a collection date, preserve recovery checkpoints, and open a results PR against `main`. Its first scheduled test is November 5, 2026 at 10:00 a.m. Bogotá (15:00 UTC), after the setup is merged and repository secrets are configured. Merge the results PR to publish the new measurements. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
+The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) can collect the full research profile using a collection date, preserve recovery checkpoints, and open a results PR against `main`. Its first scheduled test is November 5, 2026 at 11:45 a.m. Bogotá (16:45 UTC), after the setup is merged and repository secrets are configured. Merge the results PR to publish the new measurements. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
 
 ## Troubleshooting
 
