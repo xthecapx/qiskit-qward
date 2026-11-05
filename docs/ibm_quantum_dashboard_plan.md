@@ -8,7 +8,7 @@ The dashboard now lives in the independent top-level `dashboard/` project. Its s
 
 The validated snapshot contains 404 unique jobs on `ibm_fez`. It includes the original 30-job pilot, the 30-job pilot repeat, and the 344-job first campaign window. Window 1 covers 172 configurations, two repetitions per configuration, 1,024 shots per job, optimization level 3, and transpiler seed 11. Its billed QPU usage is 692 seconds. The combined exporter reports zero errors, zero skipped records, and 48 warnings. Of those warnings, 34 concern sampled references, 10 concern calibration changes in the pilot repeat, and four concern QuantumSpecific failures in the original pilot.
 
-The source is `qward/examples/papers/dataset_out/dataset.csv` and its export report. Preserve campaign, window, and backend identity throughout filtering and aggregation. Future figures must disclose their selected snapshot and last measurement date.
+The source is the CSV parts listed in `qward/examples/papers/dataset_out/dataset_manifest.json` and its export report. Preserve campaign, window, and backend identity throughout filtering and aggregation. Future figures must disclose their selected snapshot and last measurement date.
 
 ## Landing page · How far can I use this raw circuit?
 

@@ -1,6 +1,6 @@
 # ibm_fez dataset: columns and plan files
 
-`dataset.csv` has one row per completed QPU job. It is produced by
+`dataset-*.csv` contains one row per completed QPU job, split into files of at most 20 MB. `dataset_manifest.json` lists the ordered parts and their row counts/byte sizes. Each part repeats the same header; concatenate them for analysis. They are produced by
 
 ```bash
 qward/examples/papers/run_campaign.sh export OUT_DIR
