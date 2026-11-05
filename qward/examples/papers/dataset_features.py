@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 
 from qward.examples.papers.experiment_helpers import calculate_qward_metrics
+from qward.examples.papers.campaign_progress import report, stage
 from qward.metrics import BackendCalibrationCollector, QuantumSpecificMetrics
 from qward.metrics.circuit_error_prediction import (
     CONTROL_FLOW,
@@ -250,8 +251,10 @@ def quantum_specific(circuit: QuantumCircuit, *, cache_dir: Any = _DEFAULT_CACHE
     original cost.
     """
     if is_dynamic(circuit):
+        report("Quantum-specific metrics: skipped (dynamic circuit)")
         return missing("dynamic_circuit")
     if circuit.num_qubits > QUANTUM_SPECIFIC_MAX_QUBITS:
+        report(f"Quantum-specific metrics: skipped ({circuit.num_qubits} qubits exceeds limit)")
         return missing(f"size_limit>{QUANTUM_SPECIFIC_MAX_QUBITS}_qubits")
     if cache_dir is _DEFAULT_CACHE:
         cache_dir = QUANTUM_SPECIFIC_CACHE  # Read at call time so tests can redirect it.
@@ -259,7 +262,11 @@ def quantum_specific(circuit: QuantumCircuit, *, cache_dir: Any = _DEFAULT_CACHE
     if cache_dir is not None:
         entry = Path(cache_dir) / f"{_quantum_specific_key(circuit)}.json"
         if entry.exists():
+            report(f"Quantum-specific metrics: cache HIT ({circuit.num_qubits} qubits)")
             return {**json.loads(entry.read_text(encoding="utf-8")), "cached": True}
+        report(f"Quantum-specific metrics: cache MISS ({circuit.num_qubits} qubits)")
+    else:
+        report("Quantum-specific metrics: cache disabled")
 
     def compute():
         # The metric optimizes from random starts; seed it so one circuit always
@@ -279,7 +286,10 @@ def quantum_specific(circuit: QuantumCircuit, *, cache_dir: Any = _DEFAULT_CACHE
             "compute_seconds": round(time.perf_counter() - start, 3),
         }
 
-    result = _safe(compute)
+    with stage(f"Quantum-specific metrics, {circuit.num_qubits} qubits"):
+        result = _safe(compute)
+    if not result.get("available"):
+        report(f"Quantum-specific metrics unavailable: {result.get('reason')}")
     if entry is not None and result.get("available"):
         entry.parent.mkdir(parents=True, exist_ok=True)
         entry.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

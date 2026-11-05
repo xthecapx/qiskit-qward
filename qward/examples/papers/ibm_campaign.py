@@ -47,6 +47,7 @@ from uuid import uuid4
 
 from qiskit import QuantumCircuit, qpy
 from qiskit.transpiler import generate_preset_pass_manager
+from qward.examples.papers.campaign_progress import report, stage
 
 from qward.metrics.circuit_error_prediction import (
     capture_calibration,
@@ -253,6 +254,7 @@ class RecordStore:
         item = self.hooks.build(config_id)
         logical = item.circuit
         dynamic = is_dynamic(logical)
+        report(f"{config_id}: transpiling {logical.num_qubits} logical qubits")
         pm = generate_preset_pass_manager(
             backend=backend,
             optimization_level=optimization_level,
@@ -261,6 +263,7 @@ class RecordStore:
             scheduling_method=None if dynamic else "alap",
         )
         isa = pm.run(logical)
+        report(f"{config_id}: transpiled, ISA depth {isa.depth()}; capturing calibration")
         if callable(getattr(backend, "check_faulty", None)):
             backend.check_faulty(isa)  # Raises before anything is archived.
         snapshot = capture_calibration(
@@ -268,7 +271,9 @@ class RecordStore:
         )
         payload = dict(item.payload)
         if self.hooks.before_freeze is not None:
+            report(f"{config_id}: calculating circuit metrics and error predictions")
             payload.update(self.hooks.before_freeze(item, isa, snapshot))
+        report(f"{config_id}: saving prepared circuits and metadata")
         run_id = uuid4().hex
         stem = (
             f"{config_id}_IBM_{backend.name}_"
@@ -596,21 +601,24 @@ class Campaign:
         planned = plan.get("planned_executions", sum(runs))
         if sum(runs) > planned:
             raise ValueError("Plan runs exceed its planned_executions budget")
-        backend = service.backend(plan["backend"])
-        if callable(getattr(backend, "refresh", None)):
-            backend.refresh()
+        with stage(f"{self.store.hooks.algorithm}: load backend and refresh calibration"):
+            backend = service.backend(plan["backend"])
+            if callable(getattr(backend, "refresh", None)):
+                backend.refresh()
         entries = []
-        for item, item_runs in zip(items, runs):
-            path = self.store.prepare(
-                item["config"],
-                backend,
-                shots=plan.get("shots", 1024),
-                optimization_level=plan.get("optimization_level", 3),
-                seed_transpiler=plan.get("seed_transpiler", 11),
-                campaign_id=plan["campaign_id"],
-                window=plan.get("window", 1),
-                planned_executions=planned,
-            )
+        for index, (item, item_runs) in enumerate(zip(items, runs), 1):
+            label = f"{self.store.hooks.algorithm}: prepare {index}/{len(items)} {item['config']}"
+            with stage(label):
+                path = self.store.prepare(
+                    item["config"],
+                    backend,
+                    shots=plan.get("shots", 1024),
+                    optimization_level=plan.get("optimization_level", 3),
+                    seed_transpiler=plan.get("seed_transpiler", 11),
+                    campaign_id=plan["campaign_id"],
+                    window=plan.get("window", 1),
+                    planned_executions=planned,
+                )
             _, prepared, circuits = self.store.load(path)
             isa = circuits["isa.qpy"]
             entries.append(
@@ -686,8 +694,12 @@ class Campaign:
             manifest["batch_id"] = batch.session_id
             write_json(manifest_path, manifest)
             samplers = {}
-            for item_index, run_index in manifest["job_order"]:
+            for number, (item_index, run_index) in enumerate(manifest["job_order"], 1):
                 item = manifest["items"][item_index]
+                report(
+                    f"{manifest['algorithm']}: submitting job {number}/{manifest['jobs_planned']} "
+                    f"({item['config']}, repetition {run_index + 1})"
+                )
                 journal, prepared, circuits = loaded[item_index]
                 key = json.dumps(prepared["runtime_options"], sort_keys=True)
                 if key not in samplers:
@@ -702,6 +714,7 @@ class Campaign:
                 )
                 item["job_ids"].append(job_id)
                 write_json(manifest_path, manifest)
+                report(f"{manifest['algorithm']}: job {number} saved, IBM ID {job_id}")
         manifest.update(status="submitted", submitted_at=now())
         write_json(manifest_path, manifest)
         return manifest
@@ -755,10 +768,15 @@ class Campaign:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest["status"] == "prepared" or not manifest.get("batch_id"):
             raise ValueError("Manifest was never submitted; submit it first")
-        records = [
-            self.store.recover(manifest_record_path(manifest_path, i), service)
-            for i in manifest["items"]
-        ]
+        records = []
+        for index, item in enumerate(manifest["items"], 1):
+            with stage(
+                f"{manifest['algorithm']}: recover {index}/{len(manifest['items'])} "
+                f"{item['config']}"
+            ):
+                record = self.store.recover(manifest_record_path(manifest_path, item), service)
+            records.append(record)
+            report(f"{item['config']}: recovery status {record['status']}")
         done = all(r["status"] == "completed" for r in records)
         manifest["status"] = "completed" if done else "incomplete"
         write_json(manifest_path, manifest)

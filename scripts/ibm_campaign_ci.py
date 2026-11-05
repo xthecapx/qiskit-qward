@@ -6,6 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 from datetime import date
+from importlib.metadata import PackageNotFoundError, version
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / "qward/examples/papers"
@@ -127,26 +128,43 @@ def execute(campaign_date, mode, max_batches):
     from qward.examples.papers.campaign_submit import submit_window
     from qward.examples.papers.ibm_campaign import service_from_env
     from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
+    from qward.examples.papers.campaign_progress import report, stage
 
-    service = service_from_env(**resolve_ibm_credentials())
+    report(f"Campaign {campaign_date}: mode={mode}, max active Batches={max_batches}")
+    for package in ("qiskit", "qiskit-ibm-runtime", "torch"):
+        try:
+            installed = version(package)
+        except PackageNotFoundError:
+            installed = "not installed"
+        report(f"Environment: {package} {installed}")
+    with stage("Connect to IBM Runtime"):
+        service = service_from_env(**resolve_ibm_credentials())
     if mode == "run":
         paths = plans(campaign_date, create=True)
-        for key, path in paths.items():
+        report("Preparing all 172 configurations before submission; no QPU jobs sent yet")
+        for index, (key, path) in enumerate(paths.items(), 1):
+            report(f"Algorithm {index}/{len(paths)}: {key} preparation started")
             load_runner(key).campaign().prepare_plan(path, service)
-        checkpoint()
+            report(f"Algorithm {index}/{len(paths)}: {key} preparation completed")
+        with stage("Push preparation checkpoint"):
+            checkpoint()
+        report("Preparation complete: submitting and collecting 344 jobs")
         submit_window(state, max_batches, service, checkpoint=checkpoint)
     else:
         for key, path in state.items():
             if not path.exists():
+                report(f"{key}: no manifest; nothing to recover")
                 continue
             manifest = json.loads(path.read_text(encoding="utf-8"))
             if manifest["status"] in ("prepared", "completed"):
+                report(f"{key}: {manifest['status']}; skipping recovery")
                 continue
             campaign = load_runner(key).campaign()
             campaign.wait_manifest(path, service, max_seconds=3600)
             campaign.recover_manifest(path, service)
             checkpoint()
     execute(campaign_date, "complete", max_batches)
+    report(f"Campaign {campaign_date}: verified all 344 jobs completed")
 
 
 if __name__ == "__main__":
