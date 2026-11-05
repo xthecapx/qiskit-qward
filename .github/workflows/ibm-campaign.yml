@@ -1,0 +1,165 @@
+name: Collect IBM campaign results
+run-name: IBM Fez ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-05' }} · ${{ inputs.mode || 'run' }}
+
+on:
+  schedule:
+    # 10:00 America/Bogota (UTC-5). The date guard below makes this a one-date test.
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+    inputs:
+      campaign_date:
+        description: Collection date YYYY-MM-DD (full profile, 344 jobs)
+        type: string
+        required: true
+        default: '2026-11-05'
+      mode:
+        description: Run submits jobs once; recover only retrieves existing submissions
+        type: choice
+        options: [validate, run, recover]
+        default: validate
+      max_batches:
+        description: Maximum active IBM batches
+        type: choice
+        options: ['1', '2', '3']
+        default: '3'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ibm-fez-campaign
+  cancel-in-progress: false
+
+env:
+  CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-05' }}
+  CAMPAIGN_MODE: ${{ inputs.mode || 'run' }}
+  MAX_BATCHES: ${{ inputs.max_batches || '3' }}
+  SCHEDULE_DATE: ${{ vars.IBM_CAMPAIGN_DATE || '2026-11-05' }}
+
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Check scheduled date
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" != schedule || "$(TZ=America/Bogota date +%F)" == "$SCHEDULE_DATE" ]]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Scheduled test date does not match today; no IBM calls.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/checkout@v6
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          python-version: '3.11'
+      - name: Validate bounded workload
+        if: steps.gate.outputs.enabled == 'true'
+        run: |
+          python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE"
+          [[ "$MAX_BATCHES" =~ ^[123]$ ]]
+          [[ "$CAMPAIGN_MODE" =~ ^(validate|run|recover)$ ]]
+      - name: Check IBM credentials
+        if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
+        env:
+          IBM_QUANTUM_TOKEN: ${{ secrets.IBM_QUANTUM_TOKEN }}
+          IBM_QUANTUM_INSTANCE: ${{ secrets.IBM_QUANTUM_INSTANCE }}
+        run: |
+          test -n "$IBM_QUANTUM_TOKEN" || { echo 'Missing IBM_QUANTUM_TOKEN secret'; exit 1; }
+          test -n "$IBM_QUANTUM_INSTANCE" || { echo 'Missing IBM_QUANTUM_INSTANCE secret'; exit 1; }
+      - name: Claim result branch before spending QPU credits
+        id: claim
+        if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
+        run: |
+          branch="codex/ibm-fez-${CAMPAIGN_DATE}"
+          marker=".github/campaign-runs/${CAMPAIGN_DATE}.json"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [[ "$CAMPAIGN_MODE" == recover ]]; then
+            git fetch origin "$branch"
+            git switch -c "$branch" FETCH_HEAD
+          else
+            if [[ -e "$marker" ]] || git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+              echo 'This campaign date is already claimed. Use recover or inspect the existing results PR.'
+              exit 1
+            fi
+            git switch -c "$branch"
+            mkdir -p .github/campaign-runs
+            python -c 'import json,os; from pathlib import Path; Path(".github/campaign-runs/"+os.environ["CAMPAIGN_DATE"]+".json").write_text(json.dumps({"date":os.environ["CAMPAIGN_DATE"],"workflow_run":os.environ["GITHUB_RUN_ID"],"status":"claimed"})+"\n")'
+            git add "$marker"
+            git commit -m "chore(experiments): reserve IBM Fez campaign $CAMPAIGN_DATE"
+            git push --set-upstream origin "$branch"
+          fi
+      - name: Install experiment dependencies
+        if: steps.claim.outcome == 'success'
+        run: |
+          python -m pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e .
+      - name: Prepare, submit and recover the campaign
+        id: collect
+        if: steps.claim.outcome == 'success'
+        timeout-minutes: 240
+        env:
+          IBM_QUANTUM_TOKEN: ${{ secrets.IBM_QUANTUM_TOKEN }}
+          IBM_QUANTUM_INSTANCE: ${{ secrets.IBM_QUANTUM_INSTANCE }}
+          IBM_QUANTUM_CHANNEL: ${{ vars.IBM_QUANTUM_CHANNEL || 'ibm_quantum_platform' }}
+          PYTHONUNBUFFERED: '1'
+          CAMPAIGN_CHECKPOINT: '1'
+        run: python scripts/ibm_campaign_ci.py "$CAMPAIGN_MODE" --date "$CAMPAIGN_DATE" --max-batches "$MAX_BATCHES"
+      - name: Export completed results and validate dashboard
+        id: export
+        if: steps.collect.outcome == 'success'
+        run: |
+          python -m qward.examples.papers.dataset_export --backend ibm_fez --out qward/examples/papers/dataset_out
+          python dashboard/build.py
+      - name: Preserve journals and prepared circuits, including interrupted runs
+        if: always() && steps.claim.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ibm-fez-${{ env.CAMPAIGN_DATE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 90
+          path: |
+            qward/examples/papers/*/plans/*-d${{ env.CAMPAIGN_DATE }}_manifest.json
+            qward/examples/papers/*/data/qpu/v2/
+            qward/examples/papers/dataset_out/
+      - name: Save results and open a review PR
+        if: always() && steps.claim.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPORT_OUTCOME: ${{ steps.export.outcome }}
+        run: |
+          branch="codex/ibm-fez-${CAMPAIGN_DATE}"
+          git add -- .github/campaign-runs
+          git add -- 'qward/examples/papers/*/plans/*.json' 'qward/examples/papers/*/data/qpu/v2/*.json' 'qward/examples/papers/*/data/qpu/v2/artifacts/*/*.json' 'qward/examples/papers/*/data/qpu/v2/artifacts/*/*.qpy' 'qward/examples/papers/data/quantum_specific_cache/*.json' 'qward/examples/papers/dataset_out/*'
+          if ! git diff --cached --quiet; then
+            git commit -m "data(experiments): collect IBM Fez campaign $CAMPAIGN_DATE"
+          fi
+          git push origin "$branch"
+          body="$RUNNER_TEMP/campaign-pr.md"
+          if [[ "$EXPORT_OUTCOME" == success ]]; then
+            printf 'Collected full IBM Fez campaign %s: 172 configurations, 344 jobs, 1,024 shots each.\n\nUpdated experiment records, calibration tables and dashboard inputs. The static dashboard build passed. Review and merge into main to publish the results.\n' "$CAMPAIGN_DATE" > "$body"
+            draft=()
+          else
+            printf 'Campaign %s needs recovery or investigation. Saved available manifests, job IDs and prepared circuits. Do not merge as a completed dataset.\n\nUse the workflow recover mode to retrieve existing jobs; it submits no new jobs. Partially submitted batches require manual reconciliation.\n' "$CAMPAIGN_DATE" > "$body"
+            draft=(--draft)
+          fi
+          printf '\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$body"
+          pr=$(gh pr list --head "$branch" --base main --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$pr" ]]; then
+            gh pr edit "$pr" --body-file "$body"
+            if [[ "$EXPORT_OUTCOME" == success ]]; then
+              gh pr ready "$pr" || true
+            else
+              gh pr ready "$pr" --undo || true
+            fi
+          else
+            gh pr create --head "$branch" --base main --title "data(experiments): IBM Fez campaign $CAMPAIGN_DATE results" --body-file "$body" "${draft[@]}"
+          fi

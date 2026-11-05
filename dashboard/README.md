@@ -126,7 +126,9 @@ python dashboard/build.py --out docs/_build/html/dashboard
 
 The workflow builds on pushes and pull requests targeting `main` or `stable/**`, and supports manual dispatch. Its deploy step runs only when the workflow's ref is `main`. It publishes the combined documentation output through `peaceiris/actions-gh-pages` using `GITHUB_TOKEN`; the repository's Pages configuration must serve the published branch.
 
-The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The existing workflow builds from those committed tables. It does not refresh measurements, submit IBM experiments, or run a monthly collection schedule.
+The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The docs workflow builds from those committed tables.
+
+The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) can collect the full research profile using a collection date, preserve recovery checkpoints, and open a results PR against `main`. Its first scheduled test is November 5, 2026 at 10:00 a.m. Bogotá (15:00 UTC), after the setup is merged and repository secrets are configured. Merge the results PR to publish the new measurements. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
 
 ## Troubleshooting
 

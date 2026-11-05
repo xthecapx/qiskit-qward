@@ -29,7 +29,7 @@ def submitted_ids(manifest):
     return deque(ids)
 
 
-def submit_window(paths, max_batches, service=None, *, poll_seconds=30):
+def submit_window(paths, max_batches, service=None, *, poll_seconds=30, checkpoint=None):
     """Count resumed Batches first, then reuse slots as their IBM jobs finish."""
     if max_batches not in (1, 2, 3):
         raise ValueError("max_batches must be 1, 2 or 3")
@@ -64,6 +64,8 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30):
             key, backend = pending.popleft()
             print(f"{key}: opening Batch", flush=True)
             manifest = campaigns[key].submit_manifest(paths[key], service.backend(backend))
+            if checkpoint is not None:
+                checkpoint()
             active[key] = submitted_ids(manifest)
             print(f"{key}: tracking {manifest['batch_id']} ({len(active)} active)", flush=True)
 
@@ -77,6 +79,8 @@ def submit_window(paths, max_batches, service=None, *, poll_seconds=30):
                 if result["status"] != "completed":
                     raise RuntimeError(f"{key}: recovery incomplete; inspect {paths[key]}")
                 del active[key]
+                if checkpoint is not None:
+                    checkpoint()
                 print(f"{key}: recovered", flush=True)
         if active and (not pending or len(active) >= max_batches):
             time.sleep(poll_seconds)

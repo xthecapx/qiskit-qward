@@ -2,6 +2,10 @@
 
 This directory contains a number of workflows for use with [GitHub Actions](https://docs.github.com/actions).  They specify what standards should be expected for development of this software, including pull requests.  These workflows are designed to work out of the box for any research software prototype, especially those based on [Qiskit](https://qiskit.org/).
 
+## IBM campaign collection (`ibm-campaign.yml`)
+
+Collects the full IBM Fez profile with a date-based campaign identity or by manual dispatch, checkpoints submission state, exports dashboard tables, and opens a results PR against `main`. See the [setup, schedule, credentials, and recovery guide](ibm-campaign.md). Manual `validate` mode checks the workload without contacting IBM. The initial date-gated test is November 5, 2026 at 10:00 a.m. Bogotá; reduced monthly collection is a separate follow-up.
+
 ## Styles check (`lint.yml`)
 
 This workflow checks that the code is formatted properly and follows the style guide by installing tox and running the [lint environment](/tests/#lint-environment) (`tox -elint`).
