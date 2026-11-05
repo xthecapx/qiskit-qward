@@ -66,6 +66,40 @@ const chartTheme = {
   textStyle: { fontFamily: "system-ui, sans-serif", color: "#34554e" },
 };
 
+const metadataIcons = {
+  chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4"/>',
+  shots: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>',
+  bits: '<rect x="3" y="5" width="7" height="14" rx="2"/><path d="M16 8l2-2v12m-3 0h6"/>',
+  depth: '<path d="M3 6h18M3 12h18M3 18h18"/><rect x="6" y="3" width="4" height="6" rx="1"/><rect x="14" y="9" width="4" height="6" rx="1"/><rect x="6" y="15" width="4" height="6" rx="1"/>',
+  runs: '<path d="M20 7a9 9 0 0 0-15-2L2 8m0-6v6h6m-4 9a9 9 0 0 0 15 2l3-3m0 6v-6h-6"/>',
+  qubits: '<circle cx="5" cy="12" r="3"/><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8 10 7-4m-7 8 7 4"/>',
+  experiment: '<path d="M4 3h10l6 6v12H4zM14 3v6h6M8 13h8m-8 4h5"/>',
+  date: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18m-13 4h2m4 0h2"/>',
+  group: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+};
+
+function renderMetadata(id, entries) {
+  el(id).replaceChildren(...entries.map(([icon, label, value]) => {
+    const item = document.createElement("div");
+    const term = document.createElement("dt"), detail = document.createElement("dd");
+    term.innerHTML = `<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">${metadataIcons[icon]}</svg>`;
+    term.append(document.createTextNode(label));
+    detail.textContent = value;
+    item.append(term, detail);
+    return item;
+  }));
+}
+
+function jobMetadata(job) {
+  return [
+    ["chip", "Chip", job.backend],
+    ["shots", "Shots", job.shots.toLocaleString()],
+    ["bits", "Measured bits", job.bits],
+    ["depth", "ISA depth", job.depth],
+    ["experiment", "Experiment", job.config],
+  ];
+}
+
 function options(id, values, preferred, label = (v) => v) {
   const select = el(id),
     previous = select.value;
@@ -91,11 +125,17 @@ function scope() {
   );
   options("window", ordered, null, id => {
     const dates = times.get(id);
-    if (!dates.length) return `Date unavailable · window ${windows.get(id)[0].window}`;
+    if (!dates.length) return "Date unavailable";
     const start = dates[0], end = dates.at(-1);
-    const stamp = value => value.slice(0, 16).replace("T", " ");
-    const finish = start.slice(0, 10) === end.slice(0, 10) ? end.slice(11, 16) : stamp(end);
-    return `${stamp(start)}–${finish} · window ${windows.get(id)[0].window}`;
+    const date = value => new Date(value).toLocaleDateString("en-US", {
+      month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
+    });
+    const time = value => new Date(value).toLocaleTimeString("en-GB", {
+      hour: "2-digit", minute: "2-digit", timeZone: "UTC", hourCycle: "h23",
+    });
+    const stamp = value => `${date(value)} · ${time(value)}`;
+    const finish = date(start) === date(end) ? time(end) : stamp(end);
+    return `${stamp(start)}–${finish}`;
   });
   windowJobs = windows.get(el("window").value);
   options(
@@ -251,10 +291,11 @@ function renderSweep(selectBoundary = false) {
   el("meaning").textContent = questions[key][2];
   const metric = questions[key][1];
   el("plot-title").textContent = `${metric} by ${axes[axis].toLowerCase()}`;
-  el("scope-caption").textContent = [
-    el("backend").value, el("window").selectedOptions[0].text + " (UTC)",
-    el("family").selectedOptions[0].text,
-  ].join(" · ");
+  renderMetadata("scope-caption", [
+    ["chip", "Chip", el("backend").value],
+    ["date", "Measurement period · UTC", el("window").selectedOptions[0].text],
+    ["group", "Experiments", el("family").selectedOptions[0].text],
+  ]);
   el("target-caption").textContent = threshold == null
     ? " · No target set"
     : ` · Target ${lower(key) ? "≤" : "≥"} ${format(key, threshold)}`;
@@ -369,19 +410,48 @@ function renderExperimentChoices() {
   const matches = configs.map(([job]) => job).filter(job => {
     const text = [job.config, job.family, job.description].join(" ").toLowerCase();
     return words.every(word => text.includes(word));
-  });
-  el("match-count").textContent = matches.length
-    ? `${matches.length} of ${configs.length} experiments`
-    : "No matching experiments. Try another ID, group or description.";
-  el("experiment-results").replaceChildren(...matches.map(job => {
+  }).sort((a, b) => Number(b.config === selectedConfig) - Number(a.config === selectedConfig));
+  el("picker-scope").textContent = `${names[jobs[0].algorithm] || jobs[0].algorithm} · ${jobs[0].backend}`;
+  el("match-count").textContent = `${matches.length} of ${configs.length} experiments`;
+  el("picker-empty").hidden = matches.length > 0;
+  el("experiment-results").replaceChildren(...matches.map((job, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.setAttribute("aria-current", String(job.config === selectedConfig));
+    const selected = job.config === selectedConfig;
+    button.setAttribute("aria-current", String(selected));
+    const heading = document.createElement("span");
+    heading.className = "experiment-choice-heading";
     const name = document.createElement("strong");
-    name.textContent = job.config;
+    name.textContent = job.description || job.config;
+    heading.append(name);
+    if (selected) {
+      const badge = document.createElement("span");
+      badge.className = "experiment-selected";
+      badge.textContent = "✓ Selected";
+      heading.append(badge);
+    }
     const detail = document.createElement("span");
-    detail.textContent = [job.family, job.description].filter(Boolean).join(" · ");
-    button.append(name, detail);
+    detail.className = "experiment-choice-context";
+    detail.textContent = unique([job.family, job.config].filter(Boolean)).join(" · ");
+    const metadata = document.createElement("span");
+    metadata.className = "experiment-choice-metadata";
+    const runCount = configs.find(group => group[0].config === job.config).length;
+    for (const [icon, text] of [
+      ["qubits", job.countingQubits != null ? `${job.width} qubits (${job.countingQubits} counting + ${job.width - job.countingQubits} auxiliary)` : `${job.width} logical qubits`],
+      ["depth", `ISA depth ${job.depth}`],
+      ["runs", `${runCount} recorded run${runCount === 1 ? "" : "s"}`],
+    ]) {
+      const item = document.createElement("span");
+      item.innerHTML = `<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">${metadataIcons[icon]}</svg>`;
+      item.append(document.createTextNode(text));
+      metadata.append(item);
+    }
+    button.append(heading, detail, metadata);
+    button.onkeydown = event => {
+      const buttons = el("experiment-results").children;
+      if (event.key === "ArrowDown") { event.preventDefault(); buttons[(index + 1) % buttons.length].focus(); }
+      if (event.key === "ArrowUp") { event.preventDefault(); index ? buttons[index - 1].focus() : el("experiment-search").focus(); }
+    };
     button.onclick = () => {
       selectedConfig = job.config;
       repetitions();
@@ -389,15 +459,20 @@ function renderExperimentChoices() {
     };
     return button;
   }));
+  el("experiment-results").scrollTop = 0;
 }
 function repetitions(preferred) {
   const group = configs.find((g) => g[0].config === selectedConfig);
-  el("choose-config").textContent = selectedConfig;
+  el("choose-config").textContent = group[0].description || selectedConfig;
   options(
     "rep",
     group.map((j) => String(j.rep)),
     preferred,
-    (v) => "Job " + v,
+    (v) => {
+      const job = group.find(j => String(j.rep) === v);
+      const date = job.finishedAt ? job.finishedAt.slice(0, 19).replace("T", " ") + " UTC" : "Time unavailable";
+      return `Run ${v} · ${date}`;
+    },
   );
   renderRun();
 }
@@ -439,6 +514,7 @@ function renderRun() {
   }
   el("selected-label").textContent = `${job.config} · job ${job.rep}`;
   el("selected-result").textContent = `${questions[key][1]} ${format(key, value)}${decision}`;
+  renderMetadata("selected-context", jobMetadata(job));
   if (el("histogram-view").hidden) return;
   const probability = (label) => (counts[label] || 0) / job.shots;
   const reference = (label) =>
@@ -470,8 +546,8 @@ function renderRun() {
       ? rest.reduce((n, v) => n + reference(v), 0)
       : reference(k),
   );
-  el("run-context").textContent =
-    `${job.description} · ${job.shots.toLocaleString()} shots · ${job.bits} measured bits · ISA depth ${job.depth} · ${job.finishedAt.slice(0, 16).replace("T", " ")} UTC`;
+  renderMetadata("run-context", jobMetadata(job));
+  el("bins-help").textContent = `${selected.length} individual bitstring${selected.length === 1 ? "" : "s"} shown${rest.length ? `; ${rest.length.toLocaleString()} more grouped as “Other outcomes”` : "; no outcomes grouped"}. ${blind ? "Largest observed counts are shown first." : "Expected outcomes and largest observed counts are prioritized."} This changes only the chart; all shots contribute to the metrics.`;
   const numbers = el("numbers");
   numbers.replaceChildren();
   for (const [name, value] of [
@@ -510,6 +586,7 @@ function renderRun() {
   ]
     .filter(Boolean)
     .join(" ");
+  el("hist-chart-title").textContent = blind || !hasRef ? "Observed outcomes" : "Observed and expected outcomes";
   const height = Math.max(240, display.length * 26 + 65);
   el("hist").style.height = height + "px";
   if (!hist) hist = echarts.init(el("hist"), null, { renderer: "svg" });
@@ -644,11 +721,17 @@ function init() {
     el("experiment-search").focus();
   };
   el("close-picker").onclick = () => el("experiment-picker").close();
+  el("reset-experiment-search").onclick = () => {
+    el("experiment-search").value = "";
+    renderExperimentChoices();
+    el("experiment-search").focus();
+  };
   el("experiment-search").oninput = renderExperimentChoices;
   el("experiment-search").onkeydown = event => {
     const first = el("experiment-results").firstElementChild;
     if (!first) return;
     if (event.key === "ArrowDown") { event.preventDefault(); first.focus(); }
+    if (event.key === "ArrowUp") { event.preventDefault(); el("experiment-results").lastElementChild.focus(); }
     if (event.key === "Enter") { event.preventDefault(); first.click(); }
   };
   el("rep").onchange = renderRun;
