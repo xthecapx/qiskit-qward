@@ -9,6 +9,7 @@
     <script defer src="vendor/echarts.min.js"></script>
     <script defer src="snapshot.js"></script>
     <script defer src="app.js"></script>
+    <script defer src="calibration.js"></script>
   </head>
   <body>
     <nav>
@@ -26,6 +27,7 @@
           Choose an algorithm and a question to see which circuit sizes met your
           target on this chip. Select a point to explore that job’s measurement outcomes.
         </p>
+        <button type="button" id="open-calibration" class="view-button calibration-entry">Chip calibration history <span aria-hidden="true">↗</span></button>
       </header>
       <noscript
         >This explorer requires JavaScript to read the tabulated
@@ -37,6 +39,8 @@
           <span id="range-location" aria-current="page">Operating range</span>
           <button type="button" id="range-return" hidden>Operating range</button>
           <span id="detail-location" hidden><span aria-hidden="true"> / </span><span aria-current="page">Job histogram</span></span>
+          <span id="calibration-parent" hidden><span aria-hidden="true"> / </span><button type="button" id="histogram-return">Job histogram</button></span>
+          <span id="calibration-location" aria-current="page" hidden> / Calibration</span>
         </div>
         <div id="plot-view">
           <div class="plot-toolbar" aria-label="Explore measurements">
@@ -49,7 +53,7 @@
           </div>
           <div class="plot-caption">
             <h2 id="plot-title" tabindex="-1">Operating range</h2>
-            <p id="scope-caption" class="note"></p>
+            <dl id="scope-caption" class="context-metadata" aria-label="Plot context"></dl>
             <p class="note"><span id="coverage"></span><span id="target-caption"></span></p>
           </div>
           <dialog id="plot-settings" aria-labelledby="settings-title">
@@ -131,6 +135,7 @@
                 <h3 id="selected-label"></h3>
                 <b id="selected-result"></b>
                 <p id="experiment-description"></p>
+                <dl id="selected-context" class="context-metadata" aria-label="Selected run details"></dl>
               </div>
             </article>
           </div>
@@ -155,35 +160,38 @@
         </div>
         <div id="histogram-view" hidden>
           <h2 id="histogram-title" tabindex="-1">Measurement outcomes</h2>
-          <div class="settings">
+          <p class="histogram-intro">Compare the measured bitstrings with the answers this experiment expects.</p>
+          <div class="settings histogram-selection">
             <div class="experiment-field"><span id="experiment-label">Experiment</span><button id="choose-config" class="picker-trigger" type="button" aria-labelledby="experiment-label choose-config" aria-haspopup="dialog" aria-controls="experiment-picker"></button></div>
-            <label>Repetition<select id="rep"></select></label
-            ><label
-              >Outcomes to show<select id="bins">
-                <option>8</option>
-                <option>16</option>
-                <option>32</option>
-              </select></label
-            >
+            <div class="run-field"><label>Recorded run<select id="rep" aria-describedby="run-help"></select></label><p id="run-help" class="field-help">One run is one IBM job executing this circuit repeatedly.</p></div>
           </div>
           <dialog id="experiment-picker" aria-labelledby="picker-title">
-            <div class="section-head">
-              <h2 id="picker-title">Choose an experiment</h2>
-              <button type="button" class="view-button" id="close-picker">Close</button>
+            <div class="section-head picker-heading">
+              <div><p class="eyebrow" id="picker-scope"></p><h2 id="picker-title">Choose an experiment</h2></div>
+              <button type="button" class="picker-close" id="close-picker" aria-label="Close experiment picker"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
             </div>
-            <label for="experiment-search">Search by ID, group or description</label>
-            <input id="experiment-search" type="search" autocomplete="off" autofocus aria-controls="experiment-results">
+            <p class="note picker-intro">Choose a circuit to inspect its measured outcomes. Results follow your operating-range filters.</p>
+            <label for="experiment-search">Find an experiment</label>
+            <div class="picker-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="experiment-search" type="search" placeholder="Search description, group or ID…" autocomplete="off" autofocus aria-controls="experiment-results" aria-describedby="match-count"></div>
             <p id="match-count" class="note" role="status"></p>
-            <div id="experiment-results"></div>
+            <div id="experiment-results" role="group" aria-label="Matching experiments"></div>
+            <div id="picker-empty" hidden><strong>No experiments found</strong><p>Try a shorter description, group name or experiment ID.</p><button type="button" id="reset-experiment-search" class="view-button">Clear search</button></div>
+            <div class="picker-footer"><span>Select a circuit to view its recorded runs.</span><span class="picker-key-hint">↑ ↓ Navigate · Enter Open · Esc Close</span></div>
           </dialog>
-          <p id="run-context" class="note"></p>
+          <dl id="run-context" class="context-metadata" aria-label="Run details"></dl>
           <div class="numbers" id="numbers"></div>
+          <div class="histogram-chart-heading">
+            <h3 id="hist-chart-title">Observed and expected outcomes</h3>
+            <label>Chart detail<select id="bins" aria-describedby="bins-help"><option value="8">Compact · up to 8 bitstrings</option><option value="16">Standard · up to 16 bitstrings</option><option value="32">Expanded · up to 32 bitstrings</option></select></label>
+          </div>
           <p id="hist-note"></p>
           <div
             id="hist"
             role="img"
             aria-label="Observed outcome probabilities with reference markers"
           ></div>
+          <p id="bins-help" class="note"></p>
+          <div class="hardware-context"><div><span class="hardware-context-label">Behind this run</span><p id="job-calibration-help" class="note">See how these histogram bits map to physical qubits and their calibration. Opens the chip explorer scoped to this run.</p></div><button type="button" id="job-calibration" class="text-action" aria-describedby="job-calibration-help">Inspect run calibration <span aria-hidden="true">→</span></button></div>
           <details>
             <summary>View all outcome counts and reference values</summary>
             <div class="scroll">
@@ -201,6 +209,45 @@
               </table>
             </div>
           </details>
+        </div>
+        <div id="calibration-view" hidden>
+          <div class="section-head"><div><p class="eyebrow">Hardware context</p><h2 id="calibration-title" tabindex="-1">Calibration history</h2></div><button type="button" id="close-calibration" class="view-button">Back to operating range</button></div>
+          <p id="calibration-context" class="note"></p>
+          <div class="calibration-controls">
+            <label>Chip<select id="cal-chip"></select></label>
+            <label>Calibration snapshot (UTC)<select id="cal-date"></select></label>
+            <label>Explore<select id="cal-mode"><option value="readout">Readout errors</option><option value="single">Single-qubit gate errors</option><option value="pair">Two-qubit gate errors</option><option value="t1">T1 · relaxation time</option><option value="t2">T2 · coherence time</option></select></label>
+            <label id="cal-gate-field" hidden>Operation<select id="cal-gate"></select></label>
+          </div>
+          <p id="cal-empty" role="status" hidden>No detailed calibration snapshots are available. Export calibrations.csv and rebuild to explore this chip.</p>
+          <div id="cal-content">
+            <div class="calibration-layout">
+              <div class="calibration-map-panel">
+                <div class="section-head"><h3>Where on the chip?</h3><span id="cal-coverage" class="note"></span></div>
+                <p class="note">Observed connectivity · schematic, not physical chip geometry. Select a qubit or connection. Drag to pan; scroll to zoom.</p>
+                <div id="cal-map" role="img" aria-label="Recorded qubit and gate calibration schematic"></div>
+                <div class="cal-scale"><span id="cal-scale-low"></span><span class="cal-gradient" aria-hidden="true"></span><span id="cal-scale-high"></span><span class="note">Gray: unavailable</span></div>
+                <p id="cal-scope-note" class="note"></p>
+              </div>
+              <aside class="calibration-detail">
+                <label>Find a qubit or connection<input type="search" id="cal-search" placeholder="Search, e.g. Q24" autocomplete="off"></label>
+                <label>Component<select id="cal-component"></select></label>
+                <p id="cal-component-empty" class="note" hidden>No matching components.</p>
+                <h3 id="cal-component-title"></h3>
+                <div id="cal-drawing" aria-hidden="true"></div>
+                <div id="cal-value" class="calibration-value"></div>
+                <p id="cal-explanation"></p>
+                <dl id="cal-directional" class="calibration-facts"></dl>
+                <p id="cal-bit-mapping" class="note"></p>
+              </aside>
+            </div>
+            <div class="calibration-history">
+              <div class="section-head"><div><p class="eyebrow">Through time</p><h3 id="cal-history-title">Recorded history</h3></div><button type="button" id="cal-expand-history" class="view-button" hidden>Explore this component’s history</button></div>
+              <p id="cal-history-note" class="note"></p>
+              <div id="cal-history" role="img" aria-label="Historical calibration values for the selected component"></div>
+            </div>
+            <details><summary>Data sources and interpretation</summary><p class="note">The map and component history use saved preparation snapshots. Only components used by the collected circuits are available; this is not a complete chip survey. Dynamic control-flow bodies were not expanded in the saved snapshots. Repeated references to the same value at the same calibration timestamp are counted once. Conflicting values are marked unavailable rather than averaged. Gate estimates, readout errors and coherence times describe different properties; they do not explain an individual histogram outcome on their own. A calibration timestamp identifies the backend snapshot, not necessarily the measurement time of each property.</p><p id="cal-execution" class="note"></p><p class="note">History shows recorded observations without interpolation or confidence intervals. No per-component calibration uncertainty was saved.</p></details>
+          </div>
         </div>
       </section>
       <footer>

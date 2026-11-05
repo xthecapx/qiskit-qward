@@ -105,6 +105,10 @@ def test_simulated_backends_are_refused_by_default(root, tmp_path):
     references = pd.read_csv(tmp_path / "out" / "references.csv").set_index("run_id")
     assert references.index.is_unique
     assert set(jobs["meta.run_id"]) == set(references.index)
+    calibrations = pd.read_csv(tmp_path / "out" / "calibrations.csv").set_index("run_id")
+    assert calibrations.index.is_unique
+    assert set(calibrations.index) == set(references.index)
+    assert set(calibrations["source"]) == {"prepare_snapshot"}
     ghz_id = jobs.loc[jobs["meta.config_id"] == "GHZ3", "meta.run_id"].iloc[0]
     assert set(json.loads(references.loc[ghz_id, "accepted_json"])) == {"000", "111"}
     assert json.loads(references.loc[ghz_id, "ideal_json"]) == pytest.approx(

@@ -39,6 +39,17 @@ dashboards = visualizer.create_dashboard(save=True)
 
 ## 📚 Documentation
 
+### QPU Benchmark dashboard
+
+Explore the collected experiment results, job histograms, and QPU calibration history in the standalone static dashboard:
+
+```sh
+python3 dashboard/build.py
+python3 -m http.server 8774 --bind 127.0.0.1 --directory dashboard/dist
+```
+
+Open **http://127.0.0.1:8774/**. See the [dashboard README](dashboard/README.md) for prerequisites, data exports, development checks, GitHub Pages deployment, and troubleshooting. Building the dashboard from the committed tables requires only Python's standard library; no IBM credentials are needed.
+
 ### For Users
 - **[Project Overview](docs/project_overview.md)** - Learn about QWARD's goals and capabilities
 - **[Installation Guide](INSTALL.md)** - Get QWARD up and running

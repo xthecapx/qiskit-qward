@@ -112,6 +112,20 @@ def load_tables(directory):
                 "rank": row["f.histogram_assessment.rank_status"],
                 "alpha": row["f.histogram_assessment.alpha"],
                 "rankP": row["f.histogram_assessment.rank_pvalue"],
+                "executionCalibration": {
+                    "at": row.get("d.calibrated_at"),
+                    "source": row.get("d.source"),
+                    "values": {
+                        key: float(row[f"d.{column}.mean"]) if row.get(f"d.{column}.mean") else None
+                        for key, column in (
+                            ("readout", "readout_error"),
+                            ("single", "one_qubit_gate_error"),
+                            ("pair", "two_qubit_gate_error"),
+                            ("t1", "t1_us"),
+                            ("t2", "t2_us"),
+                        )
+                    },
+                },
             }
             if job["algorithm"] == "QFT" and row.get("config.test_mode") == "period_detection":
                 job["countingQubits"] = int(float(row["config.num_qubits"]))
@@ -124,13 +138,39 @@ def load_tables(directory):
             jobs.append(job)
     if not jobs:
         raise ValueError("The dashboard needs at least one completed job")
-    return {"jobs": jobs, "refs": {job["ref"]: refs[job["ref"]] for job in jobs}}
+    calibrations = {}
+    path = directory / "calibrations.csv"
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as stream:
+            for row in csv.DictReader(stream):
+                key = row["run_id"]
+                if key in calibrations or key not in refs:
+                    raise ValueError(f"Invalid calibration reference: {key}")
+                calibrations[key] = {
+                    "backend": row["backend"],
+                    "at": row["calibrated_at"],
+                    "collectedAt": row["collected_at"],
+                    "source": row["source"],
+                    "qubits": json.loads(row["qubits_json"]),
+                    "operations": json.loads(row["operations_json"]),
+                    "measurements": json.loads(row["measurements_json"]),
+                }
+        for job in jobs:
+            if job["ref"] not in calibrations:
+                raise ValueError(f"Missing calibration reference: {job['ref']}")
+            if calibrations[job["ref"]]["backend"] != job["backend"]:
+                raise ValueError("Calibration chip does not match job")
+    return {
+        "jobs": jobs,
+        "refs": {job["ref"]: refs[job["ref"]] for job in jobs},
+        "calibrations": calibrations,
+    }
 
 
 def build(tables, output):
     snapshot = json.dumps(load_tables(tables), separators=(",", ":"), allow_nan=False)
     output.mkdir(parents=True, exist_ok=True)
-    for name in ("index.html", "styles.css", "app.js"):
+    for name in ("index.html", "styles.css", "app.js", "calibration.js"):
         shutil.copyfile(PROJECT / name, output / name)
     shutil.copytree(PROJECT / "vendor", output / "vendor", dirs_exist_ok=True)
     (output / "snapshot.js").write_text(f"const snapshot = {snapshot};\n", encoding="utf-8")
