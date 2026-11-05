@@ -1,70 +1,182 @@
-# Automated IBM Fez campaign
+# Automated IBM campaigns
 
-`ibm-campaign.yml` runs the reviewed full experiment profile for a collection date and opens a results PR against `main`. It does not merge the PR. Each full collection is 172 configurations, 344 jobs, and 1,024 shots per job. The default is at most three active IBM batches. This first test is the full research campaign; the smaller monthly dashboard campaign is a follow-up design.
+`ibm-campaign.yml` collects the reviewed full research profile on one selected IBM
+chip: **172 configurations, 344 jobs, 1,024 shots per job**. It saves checkpoints
+and results to a branch. **It does not create, update, or merge a pull request.**
+Review the branch and merge the results manually to publish the dashboard.
+The reduced monthly dashboard profile is a separate follow-up; this workflow
+must not be scheduled monthly unchanged.
 
-## Activate the November 5 test
+## November 6 test and setup
 
-1. Commit the workflow, `scripts/ibm_campaign_ci.py`, the checkpoint change in `campaign_submit.py`, tests, and documentation; push/merge them into `main` **before November 5, 2026, 11:45 a.m. America/Bogota**. Scheduled workflows must exist on the default branch.
-2. Under repository **Settings → Secrets and variables → Actions → Secrets**, add:
-   - `IBM_QUANTUM_TOKEN`: the IBM API token for this campaign.
-   - `IBM_QUANTUM_INSTANCE`: the same IBM instance/CRN used for the local windows.
-   These are secrets, not plain repository variables. Do not commit `.env`.
-3. Under **Variables**, set (or keep the workflow defaults):
-   - `IBM_CAMPAIGN_DATE`: `2026-11-05` (Bogotá calendar date).
-   - `IBM_QUANTUM_CHANNEL`: `ibm_quantum_platform`.
-4. Under **Settings → Actions → General → Workflow permissions**, enable **Allow GitHub Actions to create and approve pull requests**. The workflow requests `contents: write` and `pull-requests: write`.
-5. In Actions, choose **Collect IBM campaign results → Run workflow**, branch `main`, mode `validate`, campaign date `2026-11-05`. This checks the plan and job count without IBM calls, branch creation, or spending QPU credits. It does not verify secret validity or IBM connectivity.
+Merge the workflow and orchestration changes into `main` before the scheduled
+slot. The date guard defaults to **November 6, 2026**, at **11:45 a.m. Bogotá**
+(`45 16 * * *`, 16:45 UTC). GitHub may delay scheduled execution; this is the
+requested trigger time, not a guaranteed QPU start time.
 
-The cron is `45 16 * * *`: **16:45 UTC = 11:45 a.m. Bogotá**. Its date guard allows scheduled execution only on `IBM_CAMPAIGN_DATE`, defaulting to November 5. Later daily triggers exit without IBM calls. GitHub can delay a scheduled run; 11:45 is the requested workflow trigger, not a guaranteed QPU start. Dependency installation, preparation, and the IBM queue follow it.
+Under **Settings → Secrets and variables → Actions** configure:
 
-If the files reach `main` after the scheduled slot, use **Run workflow → mode `run` → campaign date `2026-11-05`**, or choose a future date. The workflow runs only on `main`; opening the setup as a PR alone does not activate the schedule.
+| Type | Name | Value |
+| --- | --- | --- |
+| Secret | `IBM_QUANTUM_TOKEN` | Your IBM token |
+| Secret | `IBM_QUANTUM_INSTANCE` | The instance/CRN used locally |
+| Variable | `IBM_QUANTUM_CHANNEL` | `ibm_quantum_platform` |
+| Variable | `IBM_CAMPAIGN_DATE` | `2026-11-06` for tomorrow's test |
+| Variable | `IBM_CAMPAIGN_BACKEND` | `ibm_fez` (default), `ibm_kingston`, or `ibm_marrakesh` |
 
-## Lifecycle and credit protection
+**Update an existing `IBM_CAMPAIGN_DATE=2026-11-05` variable**: repository variables
+override the new default. Scheduled runs on other dates exit without IBM calls.
+Do not put IBM credentials in plain variables or commit `.env`. The workflow
+needs `contents: write`; permission to create PRs is no longer required.
 
-- All cloud collections share one GitHub concurrency group with cancellation disabled.
-- The workflow validates the backend, campaign, window, shots, plan budgets, and 344-job total before contacting IBM.
-- Before preparing or submitting, it pushes a permanent claim on `codex/ibm-fez-2026-11-05` (using the chosen ISO date). Existing claims or result branches block fresh `run` attempts, including reruns of a workflow.
-- Fresh runs also refuse existing manifests. Do not run the same campaign date locally while the cloud workflow owns it; a local runner cannot participate in GitHub's lock.
-- Preparation uses the same local plans and metrics cache. CPU PyTorch is installed explicitly. A different PyTorch build/version can cause a cache miss; the first cloud preparation can therefore take longer. Newly computed cache entries are checkpointed.
-- The collection step enables `CAMPAIGN_PROGRESS=1`: UTC timestamps, algorithm/configuration progress, preparation phases, metric cache hits/misses, submission counts and IBM job IDs, and recovery progress. Operations with heartbeat logging report elapsed time every 30 seconds. A heartbeat confirms the logging thread is alive, not that the calculation or IBM request is advancing; look for completed configurations and stage transitions. Logging uses stderr and leaves JSON output intact. Enable the same diagnostics locally by prefixing a command with `CAMPAIGN_PROGRESS=1`.
-- The runner pushes records after preparation, after each batch submission, and after each batch recovery. A failed checkpoint stops further submissions.
-- The collection step has a four-hour timeout, leaving time in the job for backup and PR creation. A timeout does not cancel already submitted IBM jobs.
-- Available manifests, prepared circuits, journals and tables are uploaded as an Actions artifact with 90-day retention, including on failure. The final step also commits remaining local state to the results branch. A forcibly terminated runner can still lose writes since its last pushed checkpoint; inspect IBM before resolving an incomplete batch.
-- Successful collections require every manifest to be completed with the expected unique job IDs. They export `dataset.csv`, `references.csv`, and `calibrations.csv`, validate the static dashboard build, and open a ready-for-review PR. The tables include earlier periods as well.
-- Failures open or update a draft results PR containing the available state. Read the workflow logs before merging anything. Missing PR permission can prevent PR creation even when the branch and artifact were saved.
+In **Actions → Collect IBM campaign results → Run workflow**, select `main`,
+the backend and collection date, and one of these modes:
 
-The marker remains after merging the results. Keep it: it prevents rerunning a completed collection even if its results branch is deleted. These checks bound job count; IBM's actual billed seconds still depend on execution. Review per-job usage in the journals/export and use the existing `python -m qward.examples.papers.ghz.ghz_ibm --plan-usage qward/examples/papers/*/plans/*-d2026-11-05_manifest.json` command after checking out the results branch for the provider's billing report.
+| Mode | Behavior |
+| --- | --- |
+| `validate` | Checks the full profile and limits offline. No IBM calls or branch writes. |
+| `run` | Claims a new backend/date, prepares circuits, submits jobs, recovers and exports. Refuses an existing claim. |
+| `resume` | Checks out the existing results branch, preserves prepared circuits and existing jobs, prepares missing algorithms, and submits only wholly untouched batches. |
+| `recover` | Checks out the existing branch and retrieves saved job IDs only. Does not prepare or submit. |
 
-## Recover an interrupted run
+The token/instance must have access to the selected chip. Offline validation does
+not verify access or backend availability. Each selected chip runs the same full
+profile; selecting Kingston or Marrakesh does not run all three chips.
 
-In Actions, manually dispatch the same campaign date with mode **`recover`**. It checks out that date's results branch, waits for and retrieves existing submissions, then exports and updates the same PR if the collection is complete. Recovery never prepares a new circuit or submits another job. Missing or merely prepared batches remain incomplete, so they cannot silently trigger fresh spending.
+## Separate stages and smaller batches
 
-A partial batch, a missing submission ID, or a preparation failure needs manual inspection. Download the latest artifact and compare its journals against the results branch and IBM's jobs before deciding how to resume. Do not delete a claim to force a retry while any submission may already exist. If the workflow failed before any IBM call, the claim can be removed only after verifying that no jobs were sent.
+The Actions page exposes independent **Prepare**, **Submit**, **Recover**, and
+**Export** steps, with separate logs and timeouts:
 
-After recovery, approve any requested PR workflow runs, review the results, and merge manually into `main`. The normal docs workflow then publishes the dashboard. GitHub documents that PRs created with `GITHUB_TOKEN` may require a user with write access to approve their workflow runs. No extra personal access token is needed for this workflow.
+1. **Prepare** (120 minutes): refresh calibration, transpile all circuits, reuse
+   compatible logical metrics, and partition fresh manifests. Push a checkpoint
+   after each algorithm. Existing prepared/submitted manifests are preserved.
+2. **Submit** (150 minutes): submit untouched batches and poll IBM until slots
+   become available. The default is three concurrent batches with **at most ten
+   jobs per batch**, keeping both repetitions of a configuration together.
+   This produces **37 batches overall, including five for PE**. Submission does
+   not download results. Push a checkpoint after each submitted batch.
+3. **Recover** (45 minutes): retrieve results across every submitted batch, with
+   up to three retrieval passes and five seconds between incomplete passes.
+   Completed records are skipped; pending jobs are left for a later recovery.
+   A failed batch does not prevent collecting the remaining batches. Recovery
+   also runs after a submission-step failure, when dependencies are available.
+4. **Export**: only after all 344 unique planned jobs are complete, refresh the
+   full dataset across periods and chips and validate the static dashboard.
 
-## Next collection at another time
+You can select **6, 10, or 14 jobs per batch**, **1–3 concurrent batches**, and a
+requested batch lifetime of **600, 1800, or 3600 seconds**. The default lifetime
+is **3600 seconds**. IBM enforces the instance's limits; a rejected batch opening
+sends no jobs. Smaller batches reduce exposure to lifetime expiry but do not
+promise completion under every queue or backend condition. Batch limits are
+fixed when preparation creates the partition; resume preserves that partition
+rather than changing an existing experiment's job allocation.
 
-Set `IBM_CAMPAIGN_DATE` to the desired Bogotá date. No window counter is needed. Change the cron for the desired time and merge it before that slot. Bogotá is UTC−5: for example, 14:30 Bogotá is `30 19 * * *`. Or manually dispatch `campaign_date=2026-11-06`, `mode=run` at your chosen time.
+The November 5 original PE batch had a 600-second lifetime and closed ten minutes
+after starting, with only 46 seconds of billed QPU usage. Batch lifetime and billed
+QPU time are different. IBM documents that queued jobs fail when the lifetime is
+reached, while running jobs finish. See [IBM batch lifetime documentation](https://quantum.cloud.ibm.com/docs/en/guides/run-jobs-batch).
 
-The ISO date identifies the collection, independently of when a delayed workflow or recovery finishes. Plans are named `<algorithm>-dYYYY-MM-DD.json`, the campaign ID is `fez-dataset-v2-YYYY-MM-DD`, and the branch and claim also use that date. The old numeric `window` field is retained as `YYYYMMDD` for schema compatibility. Existing window 0/1/2/3 plans and results remain unchanged; the dated workflow uses the reviewed window-2 configuration set as its full-profile template.
+Child manifests (`*_manifest_part01.json`, etc.) reference the original prepared
+records; no extra configurations or repetitions are added. Parent manifests keep
+all job IDs and summarize child completion and batch IDs. Within each partition,
+submission preserves the reviewed seeded order. The two repetitions now occur
+within smaller batches, so their timing differs from earlier one-batch-per-algorithm
+collections; use recorded timestamps when comparing variation across periods.
+For a partitioned collection, use the CI entry point to submit/recover; the legacy
+single-manifest CLI is not a driver for parent manifests with `parts`.
 
-Merge each completed results PR before starting the next date so the next export includes the latest data. Recovery always uses the original collection date, even on a later day. The date is an identity, not automatic advancement: a new date requests another full collection. `IBM_CAMPAIGN_WINDOW` is no longer used. Do not run the legacy numbered equivalent locally in parallel with a dated collection.
+## Retry and credit protection
 
-## Monthly dashboard follow-up
+- One account-wide GitHub concurrency group, with cancellation disabled, covers
+  all chips. Do not run the same backend/date locally while Actions owns it.
+- A permanent marker and result branch claim the backend/date **before** QPU work.
+  A fresh `run` refuses an existing claim. Keep markers after merging results.
+- Resume counts already submitted batches before opening new ones. Completed,
+  failed, and cancelled jobs keep their original IDs. **Failed jobs are never
+  replaced automatically.** Retrying retrieval does not spend another job's credits.
+- A partially submitted batch, a missing ID, or an ambiguous submission blocks
+  new submissions. Inspect IBM and the journal before reconciling it manually.
+  Resume only sends a whole batch with no previous submission intent or IDs;
+  it does not fill gaps in a partially submitted batch.
+- Recovery reads all known submissions even after submission fails. Remaining
+  missing, failed, pending, or unsubmitted jobs keep the collection incomplete;
+  it cannot be exported as a completed campaign.
+- A checkpoint push failure stops further submissions. The final cleanup step
+  attempts to save remaining records to the branch even after failure. A timeout
+  does not cancel IBM jobs. A forcibly terminated runner may lose writes since
+  its last durable checkpoint; inspect IBM before resolving ambiguous state.
+- Plans, parent and child manifests, records, circuit artifacts, logical cache,
+  and export tables are uploaded as an artifact with 90-day retention, including
+  interrupted runs. Branch and artifact backups do not depend on PR permissions.
 
-Do not change this full-profile workflow to monthly execution as-is. Define a dedicated reduced profile first, using the observed algorithm boundaries to select representative easy, near-boundary, and failing configurations. Preserve repeated runs so variation remains visible. Agree on a maximum configurations/jobs budget, shots, and a QPU-seconds monitoring policy.
+The workflow summary links the result branch and reports completion or the need
+for resume/recovery. Use the **same backend and original collection date** for
+both, even when recovering on a later day. Do not delete a claim to bypass the
+submission guards. Review the updated export report before merging results into
+`main`; the normal docs/dashboard workflow publishes the static site afterward.
 
-That profile should have its own dated campaign identity and checkpoint branch per month, a monthly schedule, and the same export → validation → results PR process. The next two dated research collections will help choose the reduced set; this workflow intentionally does not automatically repeat the 344-job research campaign every month.
+## Cache and environment
 
-## Offline checks
+Compatible logical-metric values from prior campaigns are reused. Plain and
+`+cpu` PyTorch wheels of the same release share a key because these metrics run
+on CPU. Different releases, other build suffixes, circuit hashes, seeds, or metric
+source invalidate the key. Legacy cloud keys remain readable. This does not claim
+that recomputing on different machines is bit-for-bit identical. Transpilation and
+calibration are always refreshed for a new backend/date.
+
+Actions restores/saves the logical cache independently of branch merging, including
+failed collections. Committed entries remain the fallback; new entries also go to
+checkpoints and artifacts. Python 3.11 and CPU PyTorch 2.8.0 remain in use, with pip
+download caching. Qiskit 2.6.2, Aer 0.18.2, and Runtime 0.51.0 are pinned to match the
+local QPY-compatible environment. Installation does not yet consume `uv.lock`.
+
+`CAMPAIGN_PROGRESS=1` enables UTC timestamps, per-configuration progress, cache
+hits/misses, job IDs, and 30-second heartbeats for long operations. A heartbeat
+shows that logging is alive, not that the remote operation is advancing.
+`CAMPAIGN_CHECKPOINT=1` enables Git checkpoints and is set by Actions; leave it
+unset for local inspection unless you deliberately want Git pushes.
+
+## Identities, billing, and local commands
+
+Fez uses `codex/ibm-fez-YYYY-MM-DD`, `<algorithm>-dYYYY-MM-DD.json`, and campaign ID
+`fez-dataset-v2-YYYY-MM-DD`. Other chips include their name in the plan/marker paths
+as well: for example `pe-kingston-d2026-11-06.json`. The legacy numeric `window`
+field remains `YYYYMMDD`. Old numbered plans remain untouched; the reviewed
+window-2 configuration set is the full-profile template.
+
+Offline validation and targeted tests:
 
 ```sh
-python scripts/ibm_campaign_ci.py validate --date 2026-11-05
-python scripts/ibm_campaign_ci.py validate --date 2026-11-06
-python -m pytest tests/test_ibm_campaign_ci.py tests/test_campaign_submit.py -q
+python scripts/ibm_campaign_ci.py validate --date 2026-11-06 --backend ibm_fez
+python -m pytest tests/test_ibm_campaign_ci.py tests/test_campaign_submit.py tests/test_ibm_campaign.py -q
 ```
 
-The `run` and `recover` modes contact IBM. Use them locally only when deliberately managing the corresponding collection. `CAMPAIGN_CHECKPOINT=1` enables Git pushes and is set only by the workflow; the ordinary local campaign driver remains unchanged unless a checkpoint callback is explicitly supplied.
+Local equivalents for a deliberately managed new collection (these contact IBM):
 
-References: [scheduled workflow behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule), [repository Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository), [GITHUB_TOKEN workflow triggers](https://docs.github.com/en/actions/concepts/security/github_token).
+```sh
+python scripts/ibm_campaign_ci.py prepare --date 2026-11-06 --backend ibm_fez --max-jobs-per-batch 10
+python scripts/ibm_campaign_ci.py submit --date 2026-11-06 --backend ibm_fez --max-batches 3 --batch-max-time 3600
+python scripts/ibm_campaign_ci.py recover --date 2026-11-06 --backend ibm_fez
+```
+
+For billing, pass **child manifests** for split algorithms and the **parent** for
+an unsplit algorithm (Shor by default) to the existing `--plan-usage` command.
+A split parent has `batch_ids` rather than one billable `batch_id`; do not count
+both parent and children. Saved per-job usage remains available in raw journals.
+
+A deliberate replacement of failed jobs requires manual review and extra credits.
+Preserve the old attempt outside `data/qpu/v2` before creating a replacement. The
+November 5 original PE attempt is retained at
+`phase_estimation/archive/2026-11-05-pe-attempt-1/`, including 23 successes and 19
+failures; the active dataset contains its full 42-job replacement. The algorithm
+CLI supports `--submit-plan MANIFEST --batch-max-time 3600` for an explicitly
+prepared unsplit replacement.
+
+Change `IBM_CAMPAIGN_DATE` for the next date and merge each completed collection
+before starting another so exports include the latest results. The date does not
+automatically advance. A future monthly profile should select easy, near-boundary,
+and failing configurations, retain repetitions, and define a smaller job budget
+before enabling recurrence.
+
+References: [GitHub scheduled workflow behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).

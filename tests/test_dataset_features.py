@@ -309,6 +309,48 @@ def test_cache_distinguishes_grover_oracle_definitions():
     assert key("SYM-1") != key("ASYM-1")
 
 
+@pytest.mark.parametrize("saved_version", ["2.8.0", "2.8.0+cpu"])
+def test_cpu_runner_reuses_prior_metrics_without_computation(tmp_path, monkeypatch, saved_version):
+    """Both yesterday's plain-wheel cache and legacy cloud cache remain usable."""
+    import torch
+
+    circuit = QuantumCircuit(2)
+    circuit.h(0)
+    key = F._quantum_specific_key(circuit, torch_version=saved_version)
+    saved = {"available": True, "magic": 0.25, "compute_seconds": 42.0}
+    (tmp_path / f"{key}.json").write_text(json.dumps(saved), encoding="utf-8")
+    monkeypatch.setattr(torch, "__version__", "2.8.0+cpu")
+
+    def unexpected_compute(_circuit):
+        pytest.fail("A compatible saved metric must not be recomputed")
+
+    monkeypatch.setattr(F, "QuantumSpecificMetrics", unexpected_compute)
+    assert F.quantum_specific(circuit, cache_dir=tmp_path) == {**saved, "cached": True}
+
+
+def test_portable_cache_still_invalidates_changed_inputs(monkeypatch):
+    """Only the CPU packaging suffix is ignored, not releases or metric inputs."""
+    import torch
+
+    circuit = QuantumCircuit(2)
+    monkeypatch.setattr(torch, "__version__", "2.8.0")
+    original = F._quantum_specific_key(circuit)
+    monkeypatch.setattr(torch, "__version__", "2.8.0+cpu")
+    assert F._quantum_specific_key(circuit) == original
+    for version in ("2.9.0+cpu", "2.8.0+cu128"):
+        monkeypatch.setattr(torch, "__version__", version)
+        assert F._quantum_specific_key(circuit) != original
+    monkeypatch.setattr(torch, "__version__", "2.8.0")
+    with monkeypatch.context() as patch:
+        patch.setattr(F, "QUANTUM_SPECIFIC_SEED", 12)
+        assert F._quantum_specific_key(circuit) != original
+    with monkeypatch.context() as patch:
+        patch.setattr(F.inspect, "getsource", lambda _module: "changed metric implementation")
+        assert F._quantum_specific_key(circuit) != original
+    circuit.h(0)
+    assert F._quantum_specific_key(circuit) != original
+
+
 @pytest.mark.parametrize("config_id", ["GHZ16", "BV14-SINGLE"])
 def test_wide_campaign_scores_known_labels(fez, tmp_path, config_id):
     from qward.examples.papers.bv.bv_ibm import BVIBMExperiment

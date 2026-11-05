@@ -58,6 +58,43 @@ def success_interval(accepted_shots, shots):
     ]
 
 
+def dataset_rows(directory):
+    """Read ordered CSV parts, validating their headers and declared row counts."""
+    manifest_path = directory / "dataset_manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        parts = manifest["parts"]
+        names = [part["file"] for part in parts]
+        if (
+            manifest.get("schema_version") != "1.0"
+            or not names
+            or len(set(names)) != len(names)
+            or any(not re.fullmatch(r"dataset-\d{3,}\.csv", name) for name in names)
+        ):
+            raise ValueError("Invalid dataset manifest")
+    else:
+        manifest, parts = None, [{"file": "dataset.csv"}]
+    total, header = 0, None
+    for part in parts:
+        path = directory / part["file"]
+        if "bytes" in part and path.stat().st_size != part["bytes"]:
+            raise ValueError(f"Dataset part size mismatch: {path.name}")
+        with path.open(encoding="utf-8", newline="") as stream:
+            reader = csv.DictReader(stream)
+            if header is not None and reader.fieldnames != header:
+                raise ValueError(f"Dataset part header mismatch: {path.name}")
+            header = reader.fieldnames
+            count = 0
+            for row in reader:
+                count += 1
+                yield row
+        if "rows" in part and count != part["rows"]:
+            raise ValueError(f"Dataset part row count mismatch: {path.name}")
+        total += count
+    if manifest is not None and total != manifest["rows"]:
+        raise ValueError("Dataset manifest total row count mismatch")
+
+
 def load_tables(directory):
     """Project only public fields. The renderer never needs the original job journals."""
     csv.field_size_limit(64 * 1024 * 1024)
@@ -73,69 +110,68 @@ def load_tables(directory):
             }
     jobs = []
     seen = set()
-    with (directory / "dataset.csv").open(encoding="utf-8", newline="") as stream:
-        for row in csv.DictReader(stream):
-            key = row["meta.job_id"]
-            ref = row["meta.run_id"]
-            counts = json.loads(row["f.counts_json"])
-            shots = int(row["meta.shots"])
-            if key in seen or sum(counts.values()) != shots or shots <= 0 or ref not in refs:
-                raise ValueError(f"Invalid job or reference join for {key}")
-            seen.add(key)
-            target = refs[ref]
-            if len(target["accepted"] or []) != int(row["g.success_set_size"]):
-                raise ValueError(f"Accepted-label count mismatch for {key}")
-            ideal = target["ideal"]
-            if ideal and not math.isclose(sum(ideal.values()), 1, abs_tol=1e-6):
-                raise ValueError(f"Ideal probabilities do not sum to one for {key}")
-            ranked = sorted(counts.values(), reverse=True) + [0]
-            job = {
-                "backend": row["meta.backend_name"],
-                "campaign": row["meta.campaign_id"],
-                "window": row["meta.window"],
-                "algorithm": row["meta.algorithm"],
-                "family": family(row),
-                "config": row["meta.config_id"],
-                "description": row["config.description"],
-                "width": int(row["a.num_qubits"]),
-                "bits": int(row["a.num_clbits"]),
-                "depth": int(row["b.depth"]),
-                "gates": int(row["b.two_qubit_gates"]),
-                "designDepth": float(row["config.depth"]) if row["config.depth"] else None,
-                "shots": shots,
-                "rep": int(row["meta.run_index"]) + 1,
-                "ref": ref,
-                "finishedAt": row["g.finished_at"],
-                "exact": row["g.reference_exact"] == "True",
-                "counts": counts,
-                "contrast": (ranked[0] - ranked[1]) / (ranked[0] + ranked[1]),
-                "rank": row["f.histogram_assessment.rank_status"],
-                "alpha": row["f.histogram_assessment.alpha"],
-                "rankP": row["f.histogram_assessment.rank_pvalue"],
-                "executionCalibration": {
-                    "at": row.get("d.calibrated_at"),
-                    "source": row.get("d.source"),
-                    "values": {
-                        key: float(row[f"d.{column}.mean"]) if row.get(f"d.{column}.mean") else None
-                        for key, column in (
-                            ("readout", "readout_error"),
-                            ("single", "one_qubit_gate_error"),
-                            ("pair", "two_qubit_gate_error"),
-                            ("t1", "t1_us"),
-                            ("t2", "t2_us"),
-                        )
-                    },
+    for row in dataset_rows(directory):
+        key = row["meta.job_id"]
+        ref = row["meta.run_id"]
+        counts = json.loads(row["f.counts_json"])
+        shots = int(row["meta.shots"])
+        if key in seen or sum(counts.values()) != shots or shots <= 0 or ref not in refs:
+            raise ValueError(f"Invalid job or reference join for {key}")
+        seen.add(key)
+        target = refs[ref]
+        if len(target["accepted"] or []) != int(row["g.success_set_size"]):
+            raise ValueError(f"Accepted-label count mismatch for {key}")
+        ideal = target["ideal"]
+        if ideal and not math.isclose(sum(ideal.values()), 1, abs_tol=1e-6):
+            raise ValueError(f"Ideal probabilities do not sum to one for {key}")
+        ranked = sorted(counts.values(), reverse=True) + [0]
+        job = {
+            "backend": row["meta.backend_name"],
+            "campaign": row["meta.campaign_id"],
+            "window": row["meta.window"],
+            "algorithm": row["meta.algorithm"],
+            "family": family(row),
+            "config": row["meta.config_id"],
+            "description": row["config.description"],
+            "width": int(row["a.num_qubits"]),
+            "bits": int(row["a.num_clbits"]),
+            "depth": int(row["b.depth"]),
+            "gates": int(row["b.two_qubit_gates"]),
+            "designDepth": float(row["config.depth"]) if row.get("config.depth") else None,
+            "shots": shots,
+            "rep": int(row["meta.run_index"]) + 1,
+            "ref": ref,
+            "finishedAt": row["g.finished_at"],
+            "exact": row["g.reference_exact"] == "True",
+            "counts": counts,
+            "contrast": (ranked[0] - ranked[1]) / (ranked[0] + ranked[1]),
+            "rank": row["f.histogram_assessment.rank_status"],
+            "alpha": row["f.histogram_assessment.alpha"],
+            "rankP": row["f.histogram_assessment.rank_pvalue"],
+            "executionCalibration": {
+                "at": row.get("d.calibrated_at"),
+                "source": row.get("d.source"),
+                "values": {
+                    key: float(row[f"d.{column}.mean"]) if row.get(f"d.{column}.mean") else None
+                    for key, column in (
+                        ("readout", "readout_error"),
+                        ("single", "one_qubit_gate_error"),
+                        ("pair", "two_qubit_gate_error"),
+                        ("t1", "t1_us"),
+                        ("t2", "t2_us"),
+                    )
                 },
-            }
-            if job["algorithm"] == "QFT" and row.get("config.test_mode") == "period_detection":
-                job["countingQubits"] = int(float(row["config.num_qubits"]))
-            for name, column in METRICS.items():
-                value = row[f"f.fidelity.{column}"]
-                job[name] = float(value) if value else None
-            if target["accepted"] is not None and job["success"] is not None:
-                accepted_shots = sum(counts.get(label, 0) for label in target["accepted"])
-                job["successInterval"] = success_interval(accepted_shots, shots)
-            jobs.append(job)
+            },
+        }
+        if job["algorithm"] == "QFT" and row.get("config.test_mode") == "period_detection":
+            job["countingQubits"] = int(float(row["config.num_qubits"]))
+        for name, column in METRICS.items():
+            value = row[f"f.fidelity.{column}"]
+            job[name] = float(value) if value else None
+        if target["accepted"] is not None and job["success"] is not None:
+            accepted_shots = sum(counts.get(label, 0) for label in target["accepted"])
+            job["successInterval"] = success_interval(accepted_shots, shots)
+        jobs.append(job)
     if not jobs:
         raise ValueError("The dashboard needs at least one completed job")
     calibrations = {}
