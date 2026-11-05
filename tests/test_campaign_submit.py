@@ -212,3 +212,25 @@ def test_shell_passes_limit_and_exact_repeat_manifests(tmp_path, option, expecte
         str(expected),
         *manifests,
     ]
+
+
+def test_checkpoint_after_every_submitted_and_recovered_batch(tmp_path, monkeypatch):
+    service = Runtime(tmp_path, monkeypatch)
+    checkpoints = []
+    S.submit_window(
+        service.paths, 3, service, checkpoint=lambda: checkpoints.append(service.events[-1][:2])
+    )
+    assert checkpoints == [event[:2] for event in service.events]
+    assert len(checkpoints) == 16
+
+
+def test_failed_checkpoint_stops_further_submissions(tmp_path, monkeypatch):
+    service = Runtime(tmp_path, monkeypatch)
+
+    def unavailable():
+        raise RuntimeError("Checkpoint storage unavailable")
+
+    with pytest.raises(RuntimeError, match="Checkpoint storage"):
+        S.submit_window(service.paths, 3, service, checkpoint=unavailable)
+    assert [event[:2] for event in service.events] == [("submit", "ghz")]
+    assert json.loads(service.paths["ghz"].read_text(encoding="utf-8"))["status"] == "submitted"
