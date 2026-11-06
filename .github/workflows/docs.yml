@@ -29,6 +29,8 @@ jobs:
       - name: Build docs
         run: |
           uvx tox -edocs
+      - name: Check dashboard period filters and job selection
+        run: node --test dashboard/tests/periods.test.cjs
       - name: Build standalone experiment dashboard from the exported tables
         run: python dashboard/build.py --out docs/_build/html/dashboard
       - name: Copy slides into docs output
