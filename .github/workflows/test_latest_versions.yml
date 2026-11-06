@@ -1,16 +1,29 @@
 name: Latest version tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
       - 'stable/**'
-  pull_request:
-    branches:
-      - main
-      - 'stable/**'
-  schedule:
-    - cron: '0 1 * * *'
+    paths:
+      - 'qward/**/*.py'
+      - 'qward/VERSION.txt'
+      - 'tests/**'
+      - '!tests/**/*.md'
+      # These templates and the driver are read directly by the campaign tests.
+      - 'qward/examples/papers/*/plans/*-w*.json'
+      - 'qward/examples/papers/shor/plans/shor-growth-profile.json'
+      - 'qward/examples/papers/run_campaign.sh'
+      - 'scripts/ibm_campaign_ci.py'
+      # Export/calibration integration tests import the Python dashboard builder.
+      - 'dashboard/build.py'
+      - 'setup.py'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - 'requirements.qward.txt'
+      - 'tox.ini'
+      - '.github/workflows/test_latest_versions.yml'
 
 jobs:
   tests:
