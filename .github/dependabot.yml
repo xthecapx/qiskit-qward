@@ -8,6 +8,18 @@ updates:
     directory: "/dashboard"
     schedule:
       interval: "weekly"
+    # Same rule as the pinned versions: only take releases at least two weeks old.
+    cooldown:
+      default-days: 14
     groups:
+      # Minor and patch updates arrive together; each major gets its own PR.
       dashboard:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # Stay on the CI Node major (22).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Blocked until svelte-check accepts it (peer: ^5 || ^6).
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
