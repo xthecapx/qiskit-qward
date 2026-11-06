@@ -11,6 +11,7 @@ on:
       - 'dashboard/**'
       - '!dashboard/README.md'
       - '!dashboard/dist/**'
+      - '!dashboard/tests/e2e/**'
       # API pages import library code, but do not import the research examples.
       - 'qward/**/*.py'
       - '!qward/examples/**'
@@ -43,10 +44,21 @@ jobs:
       - name: Build docs
         run: |
           uvx tox -edocs
-      - name: Check dashboard period filters and job selection
-        run: node --test dashboard/tests/periods.test.cjs
-      - name: Build standalone experiment dashboard from the exported tables
-        run: python dashboard/build.py --out docs/_build/html/dashboard
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Install dashboard dependencies
+        run: npm ci --prefix dashboard
+      - name: Validate exported tables into dashboard data
+        run: python dashboard/build.py
+      - name: Type-check and unit-test the dashboard
+        run: |
+          npm run check --prefix dashboard
+          npm test --prefix dashboard
+      - name: Build the static dashboard into the docs site
+        run: npm run build --prefix dashboard -- --outDir ../docs/_build/html/dashboard
       - name: Copy slides into docs output
         run: |
           cp -r docs/slides ./docs/_build/html/slides

@@ -18,6 +18,7 @@ from the Actions tab. Manual dispatch is not restricted by changed paths.
 | Latest version tests | Library/example Python, tests, campaign test inputs, package/test configuration | No | Yes | Yes |
 | Code coverage | Same suite inputs as tests, plus `.coveragerc` | No | Yes | Yes |
 | Documentation and dashboard | Docs, dashboard sources, exported tables, library API Python, docs/package configuration | No | Yes | Yes |
+| Dashboard checks | Dashboard sources (except README), exported tables, its workflow | Yes | No | Yes |
 | IBM campaign collection | Explicit dispatch only | No | No | Yes, select `main` |
 
 Each filtered workflow also watches its own YAML file. Editing one workflow does
@@ -30,7 +31,8 @@ The less obvious dependencies are intentional:
   `scripts/ibm_campaign_ci.py` are direct test inputs.
 - `tests/test_dataset_export.py` and `tests/test_calibration_tables.py` exercise
   `dashboard/build.py`, so changing that builder runs tests and coverage. Changing
-  only dashboard HTML, JavaScript, CSS, or vendor assets does not.
+  only the dashboard's Svelte/TypeScript sources or npm dependencies does not; those
+  are covered by the dashboard checks on pull requests and by the docs build.
 - Sphinx imports the library for API pages. Library Python changes rebuild docs;
   research example Python changes do not. The dashboard reads the committed
   `qward/examples/papers/dataset_out/` tables, not raw QPU records, caches, or
@@ -41,7 +43,7 @@ The less obvious dependencies are intentional:
   trigger the applicable workflows. `requirements.docs.txt` affects only docs.
   These workflows do not consume `uv.lock`; updating it alone triggers none.
 
-For example, a dashboard CSS-only merge runs the docs/dashboard publisher; a
+For example, a dashboard CSS-only PR runs the dashboard checks and, once merged, the docs/dashboard publisher; a
 documentation Markdown-only merge runs the docs builder; an ecosystem JSON-only
 change runs only its JSON check. README edits, research reports, and raw experiment
 results do not start the Python test matrix.
@@ -52,6 +54,10 @@ publishing still runs on `v*` tag pushes or manual dispatch.
 ## IBM campaign collection (`ibm-campaign.yml`)
 
 Selects legacy full (344 jobs), Shor growth (39 jobs), or expanded full (381 jobs) on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. This workflow is manual-only. See the [setup, credentials, and recovery guide](ibm-campaign.md). The default `validate` mode is offline; select `run` explicitly to start a collection, `resume` to submit only untouched batches, or `recover` to retrieve existing results. Set the collection date in the dispatch form for each new campaign.
+
+## Dashboard checks (`dashboard.yml`)
+
+Pull-request gate for the Svelte dashboard: `npm ci`, `python build.py` (table validation), `svelte-check`, Vitest unit tests, the Vite production build, and the Playwright browser flows in `dashboard/tests/e2e/`. It does not deploy; publishing happens in `docs.yml` after merge. Playwright artifacts are uploaded on failure.
 
 ## Styles check (`lint.yml`)
 
