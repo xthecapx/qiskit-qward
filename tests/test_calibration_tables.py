@@ -144,7 +144,7 @@ def test_dashboard_rejects_incorrect_calibration_join(dashboard_tables, prepared
 
 
 def test_dashboard_writes_versioned_json_for_the_web_app(dashboard_tables, tmp_path):
-    loader, directory = dashboard_tables
+    _, directory = dashboard_tables
     module = runpy.run_path(str(Path(__file__).resolve().parents[1] / "dashboard/build.py"))
     out = tmp_path / "data"
     module["build"](directory, out)
