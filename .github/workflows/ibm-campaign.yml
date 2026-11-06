@@ -126,7 +126,7 @@ jobs:
       - name: Restore logical metric cache
         id: metrics-cache
         if: steps.claim.outcome == 'success'
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: qward/examples/papers/data/quantum_specific_cache
           key: qward-logical-metrics-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -172,7 +172,7 @@ jobs:
             qward/examples/papers/data/quantum_specific_cache/
       - name: Save logical metric cache for future campaigns
         if: always() && steps.install.outcome == 'success' && steps.claim.outcome == 'success'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: qward/examples/papers/data/quantum_specific_cache
           key: ${{ steps.metrics-cache.outputs.cache-primary-key }}
