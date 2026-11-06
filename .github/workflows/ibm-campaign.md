@@ -1,11 +1,11 @@
-# Automated IBM campaigns
+# Manual IBM campaigns
 
 ## Shor growth extension (November 6 default)
 
 The profile selector now defaults to **`full-shor-growth`**, with **184 configurations
 and 381 jobs**. Profile **`shor-growth`** selects only the 13 Shor configurations /
 39 jobs; **`full`** retains the original 172 configurations / 344 jobs described below.
-Set repository variable `IBM_CAMPAIGN_PROFILE=full-shor-growth` for tomorrow.
+Choose the profile in the manual workflow dispatch form.
 Each profile has a separate identity/branch/claim; use the original profile when
 resuming or recovering. Older Fez collections require `full`.
 
@@ -21,15 +21,14 @@ The remaining sections describe the original **`full`** profile unless stated ot
 chip: **172 configurations, 344 jobs, 1,024 shots per job**. It saves checkpoints
 and results to a branch. **It does not create, update, or merge a pull request.**
 Review the branch and merge the results manually to publish the dashboard.
-The reduced monthly dashboard profile is a separate follow-up; this workflow
-must not be scheduled monthly unchanged.
+The reduced monthly dashboard profile is a separate follow-up.
 
-## November 6 test and setup
+## Manual collection and setup
 
-Merge the workflow and orchestration changes into `main` before the scheduled
-slot. The date guard defaults to **November 6, 2026**, at **11:45 a.m. Bogotá**
-(`45 16 * * *`, 16:45 UTC). GitHub may delay scheduled execution; this is the
-requested trigger time, not a guaranteed QPU start time.
+Merge the workflow and orchestration changes into `main` before dispatching.
+The workflow runs only through **Run workflow**; it has no cron, push, or pull
+request trigger and no date gate. Select the collection date explicitly for each
+new campaign; the form's default date does not automatically advance.
 
 Under **Settings → Secrets and variables → Actions** configure:
 
@@ -38,16 +37,13 @@ Under **Settings → Secrets and variables → Actions** configure:
 | Secret | `IBM_QUANTUM_TOKEN` | Your IBM token |
 | Secret | `IBM_QUANTUM_INSTANCE` | The instance/CRN used locally |
 | Variable | `IBM_QUANTUM_CHANNEL` | `ibm_quantum_platform` |
-| Variable | `IBM_CAMPAIGN_DATE` | `2026-11-06` for tomorrow's test |
-| Variable | `IBM_CAMPAIGN_BACKEND` | `ibm_fez` (default), `ibm_kingston`, or `ibm_marrakesh` |
 
-**Update an existing `IBM_CAMPAIGN_DATE=2026-11-05` variable**: repository variables
-override the new default. Scheduled runs on other dates exit without IBM calls.
 Do not put IBM credentials in plain variables or commit `.env`. The workflow
 needs `contents: write`; permission to create PRs is no longer required.
 
 In **Actions → Collect IBM campaign results → Run workflow**, select `main`,
-the backend and collection date, and one of these modes:
+the profile, backend and collection date, and one of these modes. The default
+mode is `validate`; select `run` explicitly to submit a new experiment:
 
 | Mode | Behavior |
 | --- | --- |
@@ -190,10 +186,9 @@ failures; the active dataset contains its full 42-job replacement. The algorithm
 CLI supports `--submit-plan MANIFEST --batch-max-time 3600` for an explicitly
 prepared unsplit replacement.
 
-Change `IBM_CAMPAIGN_DATE` for the next date and merge each completed collection
-before starting another so exports include the latest results. The date does not
-automatically advance. A future monthly profile should select easy, near-boundary,
-and failing configurations, retain repetitions, and define a smaller job budget
-before enabling recurrence.
+Change the collection date in the dispatch form for each new campaign and merge
+each completed collection before starting another so exports include the latest
+results. A future reduced profile should select easy, near-boundary, and failing
+configurations, retain repetitions, and define a smaller job budget.
 
-References: [GitHub scheduled workflow behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+References: [Manually running a GitHub workflow](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
