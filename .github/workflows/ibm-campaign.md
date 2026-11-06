@@ -1,5 +1,22 @@
 # Automated IBM campaigns
 
+## Shor growth extension (November 6 default)
+
+The profile selector now defaults to **`full-shor-growth`**, with **184 configurations
+and 381 jobs**. Profile **`shor-growth`** selects only the 13 Shor configurations /
+39 jobs; **`full`** retains the original 172 configurations / 344 jobs described below.
+Set repository variable `IBM_CAMPAIGN_PROFILE=full-shor-growth` for tomorrow.
+Each profile has a separate identity/branch/claim; use the original profile when
+resuming or recovering. Older Fez collections require `full`.
+
+See [the local Shor run guide](../../docs/shor_growth_local_run.md) for tonight's
+separate 39-job campaign, exact commands, and the three families. The expanded
+full profile uses 41 batches by default (five for Shor); the legacy profile uses 37.
+All safety, checkpoint, and read-only retrieval rules below apply to each profile's
+own planned job total. Never run both full profiles for the same date accidentally.
+
+The remaining sections describe the original **`full`** profile unless stated otherwise.
+
 `ibm-campaign.yml` collects the reviewed full research profile on one selected IBM
 chip: **172 configurations, 344 jobs, 1,024 shots per job**. It saves checkpoints
 and results to a branch. **It does not create, update, or merge a pull request.**

@@ -1,5 +1,5 @@
 name: Collect IBM campaign results
-run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.mode || 'run' }}
+run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }} · ${{ inputs.mode || 'run' }}
 
 on:
   schedule:
@@ -7,13 +7,18 @@ on:
     - cron: '45 16 * * *'
   workflow_dispatch:
     inputs:
+      profile:
+        description: Full legacy (344 jobs), Shor growth (39), or full with Shor growth (381)
+        type: choice
+        options: [full-shor-growth, full, shor-growth]
+        default: full-shor-growth
       backend:
-        description: IBM chip (172 configurations and 344 jobs on the selected chip)
+        description: IBM chip for the selected campaign profile
         type: choice
         options: [ibm_fez, ibm_kingston, ibm_marrakesh]
         default: ibm_fez
       campaign_date:
-        description: Collection date YYYY-MM-DD (full profile, 344 jobs)
+        description: Collection date YYYY-MM-DD
         type: string
         required: true
         default: '2026-11-06'
@@ -47,6 +52,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  CAMPAIGN_PROFILE: ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }}
   CAMPAIGN_BACKEND: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }}
   CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
   CAMPAIGN_MODE: ${{ inputs.mode || 'run' }}
@@ -96,8 +102,8 @@ jobs:
         id: campaign
         if: steps.gate.outputs.enabled == 'true'
         run: |
-          python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-batches "$MAX_BATCHES" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH" --batch-max-time "$BATCH_MAX_TIME"
-          python scripts/ibm_campaign_ci.py identity --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" >> "$GITHUB_OUTPUT"
+          python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" --max-batches "$MAX_BATCHES" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH" --batch-max-time "$BATCH_MAX_TIME"
+          python scripts/ibm_campaign_ci.py identity --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" >> "$GITHUB_OUTPUT"
           [[ "$MAX_BATCHES" =~ ^[123]$ ]]
           [[ "$CAMPAIGN_MODE" =~ ^(validate|run|resume|recover)$ ]]
       - name: Check IBM credentials
@@ -121,7 +127,7 @@ jobs:
             git fetch origin "$branch"
             git switch -c "$branch" FETCH_HEAD
             # Run current orchestration while preserving every result and manifest on the branch.
-            git restore --source="$GITHUB_SHA" --worktree -- scripts/ibm_campaign_ci.py dashboard/build.py qward/examples/papers/dataset_export.py qward/examples/papers/campaign_parts.py qward/examples/papers/campaign_submit.py qward/examples/papers/ibm_campaign.py qward/examples/papers/ibm_experiment_base.py qward/examples/papers/dataset_features.py
+            git restore --source="$GITHUB_SHA" --worktree -- scripts/ibm_campaign_ci.py dashboard/build.py qward/examples/papers/dataset_export.py qward/examples/papers/campaign_parts.py qward/examples/papers/campaign_submit.py qward/examples/papers/ibm_campaign.py qward/examples/papers/ibm_experiment_base.py qward/examples/papers/dataset_features.py qward/examples/papers/shor/shor_configs.py qward/examples/papers/shor/plans/shor-growth-profile.json
           else
             if [[ -e "$marker" ]] || git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
               echo 'This backend and campaign date are already claimed. Use resume for untouched batches or recover for result retrieval; inspect the existing results branch.'
@@ -153,17 +159,17 @@ jobs:
         id: prepare
         if: steps.install.outcome == 'success' && env.CAMPAIGN_MODE != 'recover'
         timeout-minutes: 120
-        run: python scripts/ibm_campaign_ci.py prepare --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH"
+        run: python scripts/ibm_campaign_ci.py prepare --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH"
       - name: Submit untouched batches and monitor IBM jobs
         id: submit
         if: steps.prepare.outcome == 'success'
         timeout-minutes: 150
-        run: python scripts/ibm_campaign_ci.py submit --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --max-batches "$MAX_BATCHES" --batch-max-time "$BATCH_MAX_TIME"
+        run: python scripts/ibm_campaign_ci.py submit --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" --max-batches "$MAX_BATCHES" --batch-max-time "$BATCH_MAX_TIME"
       - name: Recover results with read-only retries
         id: recover
         if: always() && !cancelled() && steps.install.outcome == 'success' && (env.CAMPAIGN_MODE == 'recover' || env.CAMPAIGN_MODE == 'resume' || steps.submit.outcome != 'skipped')
         timeout-minutes: 45
-        run: python scripts/ibm_campaign_ci.py recover --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND"
+        run: python scripts/ibm_campaign_ci.py recover --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE"
       - name: Export completed results and validate dashboard
         id: export
         if: always() && !cancelled() && steps.recover.outcome == 'success'
@@ -190,6 +196,7 @@ jobs:
       - name: Save results branch and report next steps
         if: always() && steps.claim.outcome == 'success'
         env:
+          EXPECTED_JOBS: ${{ steps.campaign.outputs.jobs }}
           EXPORT_OUTCOME: ${{ steps.export.outcome }}
         run: |
           branch="${{ steps.campaign.outputs.branch }}"
@@ -203,7 +210,7 @@ jobs:
             printf '## IBM campaign %s / %s\n\n' "$CAMPAIGN_BACKEND" "$CAMPAIGN_DATE"
             printf 'Saved results: [%s](%s/%s/tree/%s). No PR was created.\n\n' "$branch" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$branch"
             if [[ "$EXPORT_OUTCOME" == success ]]; then
-              printf 'All 344 jobs recovered. Export and dashboard build passed. Review the branch and merge the results manually.\n'
+              printf 'All %s jobs recovered. Export and dashboard build passed. Review the branch and merge the results manually.\n' "$EXPECTED_JOBS"
             else
               printf 'Collection is incomplete. Use **recover** to retrieve existing jobs, or **resume** to prepare missing algorithms and submit only untouched batches. Failed jobs are never replaced automatically. Ambiguous partial submissions need manual reconciliation.\n'
             fi
