@@ -25,6 +25,8 @@ METRICS = {
 def family(row):
     """Group only comparable configurations into a sweep. Keep other cases individual."""
     algorithm, config = row["meta.algorithm"], row["meta.config_id"]
+    if algorithm == "SHOR":
+        return f"N={int(float(row['config.N']))} · a={int(float(row['config.a']))} · {row['config.strategy']}"
     if algorithm == "GHZ":
         return "GHZ states"
     if algorithm == "BERNSTEIN-VAZIRANI":

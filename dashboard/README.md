@@ -59,7 +59,7 @@ Exports split the dataset into files of at most 20 MB, repeating the column head
 
 Older exports without `calibrations.csv` still display the success dashboard and show a calibration availability message. If a calibration table is supplied, its joins must match the jobs and chip. The builder also checks job uniqueness, shot totals, accepted-set sizes, and ideal probability totals. Correct or re-export inconsistent inputs rather than combining files from different exports.
 
-The site publishes selected scientific fields. Raw journal paths, account details, batch IDs, and IBM job IDs are omitted. Measurement periods show the first and last job completion times in UTC, using month names; campaign window numbers are retained internally for grouping but hidden in the period labels. The page initially selects the latest measured period and QFT when available.
+The site publishes selected scientific fields. Raw journal paths, account details, batch IDs, and IBM job IDs are omitted. Measurement periods show the first and last job completion times in UTC, using month names; campaign window numbers are retained internally for grouping but hidden in the period labels. The page initially selects all periods for the chosen chip and QFT when available. Adjust plot → Periods (UTC) restricts the view to an individual collection.
 
 ## Updating the measurements
 
@@ -106,6 +106,7 @@ If Node.js is available, check JavaScript syntax without installing packages:
 
 ```sh
 node --check dashboard/app.js
+node --test dashboard/tests/periods.test.cjs
 node --check dashboard/calibration.js
 ```
 
@@ -147,7 +148,7 @@ The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) colle
 
 ## Reading the results
 
-The default 0.5 success requirement is an editable demonstration. The graph initially shows every experiment for the selected algorithm and measurement period. Each success-rate point is one job’s accepted shots divided by its total shots. Hovering over a point highlights the job and opens a magnified view of its two-sided 99% Wilson interval based on the exact shot counts. Compare separate points for variation across repetitions. The target classification uses the observed rates. Hover a point for its interval, experiment, group and repetition. The combined summary counts experiments meeting the target. Choose a group to inspect its boundary. Boundaries describe observed jobs within a chip, campaign, window and circuit family. A setting needs at least two jobs and agreement across all its observed repetitions. Missing metrics, reversals and disagreements are shown in the sweep table. The two sides of a bracket identify tested configurations. The axis selector changes their plotted coordinate.
+The default 0.5 success requirement is an editable demonstration. The graph initially shows every recorded job for the selected algorithm and chip across all periods. Select an individual collection in Adjust plot → Periods (UTC) to restrict it. Each success-rate point is one job’s accepted shots divided by its total shots. Hovering over a point highlights the job and opens a magnified view of its two-sided 99% Wilson interval based on the exact shot counts. Compare separate points for variation across repetitions. The target classification uses the observed rates. Hover a point for its interval, experiment, group, repetition and measurement date. Histogram run choices use a unique record/repetition identity, so runs numbered alike in different collections remain separately selectable. The combined summary counts experiments meeting the target. Choose a group to inspect its boundary. Boundaries describe observed jobs within the chosen chip, periods and circuit family; when all periods are selected, agreement is assessed across every included job. A setting needs at least two jobs and agreement across all its observed repetitions. Missing metrics, reversals and disagreements are shown in the sweep table. The two sides of a bracket identify tested configurations. The axis selector changes their plotted coordinate.
 
 Choose a question to select its supporting quantity. DSR compares the average accepted peak to the largest competing outcome. The counts-only question uses top-two contrast and the recorded rank test. Coarse TVD uses the campaign’s equal accepted-answer weights. Selecting an experiment or repetition updates its description, accepted outcomes and measured result against the active target. In the histogram, open Experiment to search the current plot’s experiments by configuration ID, group, or description. Select a result to change jobs; Escape keeps the current selection. The histogram exposes every recorded or expected outcome in its accompanying table, including zero-count expected labels. The chart combines omitted outcomes into a single probability-preserving bin.
 
