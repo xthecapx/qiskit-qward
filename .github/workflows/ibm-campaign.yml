@@ -1,10 +1,7 @@
 name: Collect IBM campaign results
-run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }} · ${{ inputs.mode || 'run' }}
+run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }} · ${{ inputs.mode || 'validate' }}
 
 on:
-  schedule:
-    # 11:45 America/Bogota (UTC-5). The date guard below makes this a one-date test.
-    - cron: '45 16 * * *'
   workflow_dispatch:
     inputs:
       profile:
@@ -55,11 +52,10 @@ env:
   CAMPAIGN_PROFILE: ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }}
   CAMPAIGN_BACKEND: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }}
   CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
-  CAMPAIGN_MODE: ${{ inputs.mode || 'run' }}
+  CAMPAIGN_MODE: ${{ inputs.mode || 'validate' }}
   MAX_BATCHES: ${{ inputs.max_batches || '3' }}
   MAX_JOBS_PER_BATCH: ${{ inputs.max_jobs_per_batch || '10' }}
   BATCH_MAX_TIME: ${{ inputs.batch_max_time || '3600' }}
-  SCHEDULE_DATE: ${{ vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
 
 jobs:
   collect:
@@ -74,22 +70,10 @@ jobs:
       CAMPAIGN_CHECKPOINT: '1'
       CAMPAIGN_PROGRESS: '1'
     steps:
-      - name: Check scheduled date
-        id: gate
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [[ "$EVENT_NAME" != schedule || "$(TZ=America/Bogota date +%F)" == "$SCHEDULE_DATE" ]]; then
-            echo 'enabled=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'Scheduled test date does not match today; no IBM calls.' >> "$GITHUB_STEP_SUMMARY"
-          fi
       - uses: actions/checkout@v6
-        if: steps.gate.outputs.enabled == 'true'
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v6
-        if: steps.gate.outputs.enabled == 'true'
         with:
           python-version: '3.11'
           cache: pip
@@ -100,14 +84,13 @@ jobs:
             .github/workflows/ibm-campaign.yml
       - name: Validate bounded workload
         id: campaign
-        if: steps.gate.outputs.enabled == 'true'
         run: |
           python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" --max-batches "$MAX_BATCHES" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH" --batch-max-time "$BATCH_MAX_TIME"
           python scripts/ibm_campaign_ci.py identity --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" >> "$GITHUB_OUTPUT"
           [[ "$MAX_BATCHES" =~ ^[123]$ ]]
           [[ "$CAMPAIGN_MODE" =~ ^(validate|run|resume|recover)$ ]]
       - name: Check IBM credentials
-        if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
+        if: env.CAMPAIGN_MODE != 'validate'
         env:
           IBM_QUANTUM_TOKEN: ${{ secrets.IBM_QUANTUM_TOKEN }}
           IBM_QUANTUM_INSTANCE: ${{ secrets.IBM_QUANTUM_INSTANCE }}
@@ -116,7 +99,7 @@ jobs:
           test -n "$IBM_QUANTUM_INSTANCE" || { echo 'Missing IBM_QUANTUM_INSTANCE secret'; exit 1; }
       - name: Claim result branch before spending QPU credits
         id: claim
-        if: steps.gate.outputs.enabled == 'true' && env.CAMPAIGN_MODE != 'validate'
+        if: env.CAMPAIGN_MODE != 'validate'
         run: |
           branch="${{ steps.campaign.outputs.branch }}"
           marker="${{ steps.campaign.outputs.marker }}"

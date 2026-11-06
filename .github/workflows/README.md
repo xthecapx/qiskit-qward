@@ -2,9 +2,29 @@
 
 This directory contains a number of workflows for use with [GitHub Actions](https://docs.github.com/actions).  They specify what standards should be expected for development of this software, including pull requests.  These workflows are designed to work out of the box for any research software prototype, especially those based on [Qiskit](https://qiskit.org/).
 
+## When workflows run
+
+No workflows run on a schedule. Pull requests keep style and ecosystem JSON checks,
+plus a citation preview when `CITATION.bib` or its workflow changes. Full tests,
+coverage, and documentation/dashboard builds run after pushes to `main` or
+`stable/**` (including merges), or manually from the Actions tab.
+
+| Workflow | Pull request | Push to `main` / `stable/**` | Manual |
+| --- | --- | --- | --- |
+| Styles check | Yes | Yes | No |
+| Ecosystem JSON check | Yes | Yes | No |
+| Citation preview | Matching paths on `main` | Matching paths on `main` | No |
+| Latest version tests | No | Yes | Yes |
+| Code coverage | No | Yes | Yes |
+| Documentation and dashboard | No | Yes | Yes |
+| IBM campaign collection | No | No | Yes, select `main` |
+
+Release tagging still runs when `qward/VERSION.txt` changes on `main`. Package
+publishing still runs on `v*` tag pushes or manual dispatch.
+
 ## IBM campaign collection (`ibm-campaign.yml`)
 
-Selects legacy full (344 jobs), Shor growth (39 jobs), or expanded full (381 jobs; November 6 default) on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. See the [setup, schedule, credentials, and recovery guide](ibm-campaign.md). Manual `validate` is offline; `resume` submits only untouched batches and `recover` only retrieves results. The next date-gated test defaults to November 6, 2026 at 11:45 a.m. Bogotá (update `IBM_CAMPAIGN_DATE` if already set). Reduced monthly collection is a separate follow-up.
+Selects legacy full (344 jobs), Shor growth (39 jobs), or expanded full (381 jobs) on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. This workflow is manual-only. See the [setup, credentials, and recovery guide](ibm-campaign.md). The default `validate` mode is offline; select `run` explicitly to start a collection, `resume` to submit only untouched batches, or `recover` to retrieve existing results. Set the collection date in the dispatch form for each new campaign.
 
 ## Styles check (`lint.yml`)
 
@@ -12,7 +32,7 @@ This workflow checks that the code is formatted properly and follows the style g
 
 ## Latest version tests (`test_latest_versions.yml`)
 
-This workflow installs the latest version of tox and runs [the current repository's tests](/tests/#test-py-environments) under each supported Python version on Linux and under a single Python version on macOS and Windows.  This is the primary testing workflow.  It runs for all code changes and additionally once per day, to ensure tests continue to pass as new versions of dependencies are released.
+This workflow installs the latest version of tox and runs [the current repository's tests](/tests/#test-py-environments) under each supported Python version on Linux and under a single Python version on macOS and Windows. This is the primary testing workflow. It runs on pushes to `main` and `stable/**`, or manually. It does not run on pull requests or a timer.
 
 <!-- ## Development version tests (`test_development_versions.yml`)
 
@@ -26,7 +46,13 @@ Under the hood, this workflow uses a regular expression to change each `>=` and 
 
 ## Code coverage (`coverage.yml`)
 
-This workflow tests the [coverage environment](/tests/#coverage-environment) on a single version of Python by installing tox and running `tox -ecoverage`.
+This workflow tests the [coverage environment](/tests/#coverage-environment) on a single version of Python by installing tox and running `tox -ecoverage`. It runs on pushes to `main` and `stable/**`, or manually, rather than on pull requests.
+
+## Documentation and dashboard (`docs.yml`)
+
+Builds the Sphinx documentation and experiment dashboard on pushes to `main` and
+`stable/**`, or manually. Only `main` deploys the output to GitHub Pages. Pull
+requests do not run this build.
 
 ## Citation preview (`citation.yml`)
 
