@@ -128,11 +128,11 @@ After rebuilding, check these flows in the browser:
 python dashboard/build.py --out docs/_build/html/dashboard
 ```
 
-The workflow builds on pushes and pull requests targeting `main` or `stable/**`, and supports manual dispatch. Its deploy step runs only when the workflow's ref is `main`. It publishes the combined documentation output through `peaceiris/actions-gh-pages` using `GITHUB_TOKEN`; the repository's Pages configuration must serve the published branch.
+The workflow builds on relevant pushes to `main` or `stable/**`, and supports manual dispatch. It does not run on pull requests. Dashboard sources, exported tables, documentation, library API code, and build dependencies trigger the combined site build; dashboard README edits and raw QPU records do not. Its deploy step runs only when the workflow's ref is `main`. It publishes the combined documentation output through `peaceiris/actions-gh-pages` using `GITHUB_TOKEN`; the repository's Pages configuration must serve the published branch. See the [workflow dependency guide](../.github/workflows/README.md#when-workflows-run) for the full trigger map.
 
 The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The docs workflow builds from those committed tables.
 
-The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) collects the full research profile on `ibm_fez`, `ibm_kingston`, or `ibm_marrakesh` using a backend and collection date. Prepare, submit, recover, and export have separate logs; smaller batches and recovery retries preserve existing job IDs. It saves a results branch without creating a PR. Review and merge the results manually to publish new measurements. The next date-gated test defaults to November 6, 2026 at 11:45 a.m. Bogotá (16:45 UTC); update the repository's `IBM_CAMPAIGN_DATE` variable if already set. A reduced monthly campaign is planned separately; the full 344-job window is not automatically repeated monthly.
+The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) collects the selected research profile on `ibm_fez`, `ibm_kingston`, or `ibm_marrakesh` using a backend and collection date. Prepare, submit, recover, and export have separate logs; smaller batches and recovery retries preserve existing job IDs. It saves a results branch without creating a PR. Review and merge the results manually to publish new measurements. The workflow is manual-only: select `main`, the profile, backend, collection date, and `run` mode to start a new campaign. The default `validate` mode stays offline.
 
 ## Troubleshooting
 

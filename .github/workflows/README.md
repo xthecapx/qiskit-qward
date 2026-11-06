@@ -4,20 +4,47 @@ This directory contains a number of workflows for use with [GitHub Actions](http
 
 ## When workflows run
 
-No workflows run on a schedule. Pull requests keep style and ecosystem JSON checks,
-plus a citation preview when `CITATION.bib` or its workflow changes. Full tests,
-coverage, and documentation/dashboard builds run after pushes to `main` or
-`stable/**` (including merges), or manually from the Actions tab.
+No workflows run on a schedule. Automatic runs require both a matching branch
+and a matching changed path. Pull requests keep relevant style, ecosystem JSON,
+and citation checks. Full tests, coverage, and documentation/dashboard builds run
+only after relevant pushes to `main` or `stable/**` (including merges), or manually
+from the Actions tab. Manual dispatch is not restricted by changed paths.
 
-| Workflow | Pull request | Push to `main` / `stable/**` | Manual |
-| --- | --- | --- | --- |
-| Styles check | Yes | Yes | No |
-| Ecosystem JSON check | Yes | Yes | No |
-| Citation preview | Matching paths on `main` | Matching paths on `main` | No |
-| Latest version tests | No | Yes | Yes |
-| Code coverage | No | Yes | Yes |
-| Documentation and dashboard | No | Yes | Yes |
-| IBM campaign collection | No | No | Yes, select `main` |
+| Workflow | Relevant changes | Pull request | Push to `main` / `stable/**` | Manual |
+| --- | --- | --- | --- | --- |
+| Styles check | Python files anywhere; lint/package configuration and core dependencies | Yes | Yes | No |
+| Ecosystem JSON check | `ecosystem.json`, `tox.ini`, its workflow | Yes | Yes | No |
+| Citation preview | `CITATION.bib`, its workflow | On `main` | On `main` | No |
+| Latest version tests | Library/example Python, tests, campaign test inputs, package/test configuration | No | Yes | Yes |
+| Code coverage | Same suite inputs as tests, plus `.coveragerc` | No | Yes | Yes |
+| Documentation and dashboard | Docs, dashboard sources, exported tables, library API Python, docs/package configuration | No | Yes | Yes |
+| IBM campaign collection | Explicit dispatch only | No | No | Yes, select `main` |
+
+Each filtered workflow also watches its own YAML file. Editing one workflow does
+not trigger the others unless another changed file matches their filters.
+
+The less obvious dependencies are intentional:
+
+- The test suite covers research examples as well as the library. Campaign window
+  templates (`*/plans/*-w*.json`), the Shor growth profile, `run_campaign.sh`, and
+  `scripts/ibm_campaign_ci.py` are direct test inputs.
+- `tests/test_dataset_export.py` and `tests/test_calibration_tables.py` exercise
+  `dashboard/build.py`, so changing that builder runs tests and coverage. Changing
+  only dashboard HTML, JavaScript, CSS, or vendor assets does not.
+- Sphinx imports the library for API pages. Library Python changes rebuild docs;
+  research example Python changes do not. The dashboard reads the committed
+  `qward/examples/papers/dataset_out/` tables, not raw QPU records, caches, or
+  date-specific campaign plans. Updating those raw files alone does not rebuild
+  the site; merging updated exports does.
+- `setup.py`, `pyproject.toml`, `MANIFEST.in`, `qward/VERSION.txt`,
+  `requirements.qward.txt`, and `tox.ini` affect multiple environments, so they
+  trigger the applicable workflows. `requirements.docs.txt` affects only docs.
+  These workflows do not consume `uv.lock`; updating it alone triggers none.
+
+For example, a dashboard CSS-only merge runs the docs/dashboard publisher; a
+documentation Markdown-only merge runs the docs builder; an ecosystem JSON-only
+change runs only its JSON check. README edits, research reports, and raw experiment
+results do not start the Python test matrix.
 
 Release tagging still runs when `qward/VERSION.txt` changes on `main`. Package
 publishing still runs on `v*` tag pushes or manual dispatch.
@@ -28,11 +55,11 @@ Selects legacy full (344 jobs), Shor growth (39 jobs), or expanded full (381 job
 
 ## Styles check (`lint.yml`)
 
-This workflow checks that the code is formatted properly and follows the style guide by installing tox and running the [lint environment](/tests/#lint-environment) (`tox -elint`).
+This workflow checks that the code is formatted properly and follows the style guide by installing tox and running the [lint environment](/tests/#lint-environment) (`tox -elint`). It watches Python files throughout the repository because Black runs on `.`; Pylint and mypy have narrower library/test scopes. Non-Python dashboard assets, Markdown, notebooks, and result tables do not trigger it.
 
 ## Latest version tests (`test_latest_versions.yml`)
 
-This workflow installs the latest version of tox and runs [the current repository's tests](/tests/#test-py-environments) under each supported Python version on Linux and under a single Python version on macOS and Windows. This is the primary testing workflow. It runs on pushes to `main` and `stable/**`, or manually. It does not run on pull requests or a timer.
+This workflow installs the latest version of tox and runs [the current repository's tests](/tests/#test-py-environments) under each supported Python version on Linux and under a single Python version on macOS and Windows. This is the primary testing workflow. It runs on relevant pushes to `main` and `stable/**`, or manually. It does not run on pull requests or a timer.
 
 <!-- ## Development version tests (`test_development_versions.yml`)
 
@@ -46,13 +73,15 @@ Under the hood, this workflow uses a regular expression to change each `>=` and 
 
 ## Code coverage (`coverage.yml`)
 
-This workflow tests the [coverage environment](/tests/#coverage-environment) on a single version of Python by installing tox and running `tox -ecoverage`. It runs on pushes to `main` and `stable/**`, or manually, rather than on pull requests.
+This workflow tests the [coverage environment](/tests/#coverage-environment) on a single version of Python by installing tox and running `tox -ecoverage`. It runs on relevant pushes to `main` and `stable/**`, or manually, rather than on pull requests. Its suite path filters stay aligned with the latest-version tests.
 
 ## Documentation and dashboard (`docs.yml`)
 
-Builds the Sphinx documentation and experiment dashboard on pushes to `main` and
-`stable/**`, or manually. Only `main` deploys the output to GitHub Pages. Pull
-requests do not run this build.
+Builds the Sphinx documentation and experiment dashboard on relevant pushes to
+`main` and `stable/**`, or manually. Dashboard assets and exported tables rebuild
+the combined site because docs and dashboard share one GitHub Pages deployment.
+`dashboard/README.md` and generated `dashboard/dist/` output are excluded. Only
+`main` deploys the output to GitHub Pages. Pull requests do not run this build.
 
 ## Citation preview (`citation.yml`)
 
