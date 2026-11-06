@@ -1,6 +1,6 @@
 # QPU Benchmark · QWARD dashboard
 
-A static explorer for experiment results and historical QPU calibration, built with **Svelte 5, TypeScript and Vite**, with tree-shaken Apache ECharts 5.6. There is no backend: a Python step validates the exported tables into JSON, and Vite produces a static site for local use or GitHub Pages at `/qiskit-qward/dashboard/`.
+A static explorer for experiment results and historical QPU calibration, built with **Svelte 5, TypeScript and Vite**, with tree-shaken Apache ECharts 6. There is no backend: a Python step validates the exported tables into JSON, and Vite produces a static site for local use or GitHub Pages at `/qiskit-qward/dashboard/`.
 
 ## Quick start
 

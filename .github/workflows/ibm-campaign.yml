@@ -70,10 +70,10 @@ jobs:
       CAMPAIGN_CHECKPOINT: '1'
       CAMPAIGN_PROGRESS: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: pip
@@ -126,7 +126,7 @@ jobs:
       - name: Restore logical metric cache
         id: metrics-cache
         if: steps.claim.outcome == 'success'
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: qward/examples/papers/data/quantum_specific_cache
           key: qward-logical-metrics-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -161,7 +161,7 @@ jobs:
           python dashboard/build.py
       - name: Preserve journals and prepared circuits, including interrupted runs
         if: always() && steps.claim.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.CAMPAIGN_BACKEND }}-${{ env.CAMPAIGN_DATE }}-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 90
@@ -172,7 +172,7 @@ jobs:
             qward/examples/papers/data/quantum_specific_cache/
       - name: Save logical metric cache for future campaigns
         if: always() && steps.install.outcome == 'success' && steps.claim.outcome == 'success'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: qward/examples/papers/data/quantum_specific_cache
           key: ${{ steps.metrics-cache.outputs.cache-primary-key }}
