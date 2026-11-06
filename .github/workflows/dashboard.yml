@@ -1,0 +1,49 @@
+name: Dashboard checks
+
+# Pull-request gate for the static dashboard. Publishing stays in docs.yml.
+on:
+  pull_request:
+    paths:
+      - 'dashboard/**'
+      - '!dashboard/README.md'
+      - 'qward/examples/papers/dataset_out/**'
+      - '.github/workflows/dashboard.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: dashboard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - name: Validate exported tables into dashboard data
+        run: python build.py
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser flows
+        run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: dashboard/test-results/
+          retention-days: 7
