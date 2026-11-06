@@ -11,6 +11,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / "qward/examples/papers"
+PROFILES = ("full", "shor-growth", "full-shor-growth")
 BACKENDS = ("ibm_fez", "ibm_kingston", "ibm_marrakesh")
 DIRECTORIES = {
     "ghz": "ghz",
@@ -62,8 +63,10 @@ def campaign_day(value):
     return parsed
 
 
-def templates():
+def templates(profile="full"):
     """Use the reviewed full window-2 selection as an immutable profile."""
+    if profile not in PROFILES:
+        raise ValueError(f"Unknown campaign profile: {profile}")
     plans_by_key = {}
     for key, directory in DIRECTORIES.items():
         path = PAPERS / directory / "plans" / f"{key}-w2.json"
@@ -80,15 +83,46 @@ def templates():
         plans_by_key[key] = plan
     if sum(p["planned_executions"] for p in plans_by_key.values()) != 344:
         raise ValueError("Expected 344 jobs; review the campaign before running")
+    if profile != "full":
+        growth = json.loads(
+            (PAPERS / "shor/plans/shor-growth-profile.json").read_text(encoding="utf-8")
+        )
+        configs = [item["config"] for item in growth["items"]]
+        if (
+            growth["name"] != "shor-growth-v1"
+            or growth["runs"] != 3
+            or growth["shots"] != 1024
+            or growth["planned_executions"] != 39
+            or len(configs) != 13
+            or len(set(configs)) != 13
+        ):
+            raise ValueError("Unexpected Shor growth workload")
+        plans_by_key["shor"] = {
+            **plans_by_key["shor"],
+            "items": growth["items"],
+            "runs": 3,
+            "planned_executions": 39,
+        }
+        if profile == "shor-growth":
+            return {"shor": plans_by_key["shor"]}
     return plans_by_key
 
 
-def identity(campaign_date, backend="ibm_fez"):
+def identity(campaign_date, backend="ibm_fez", profile="full"):
     """Keep existing Fez identities stable while isolating other chips."""
     day = campaign_day(campaign_date).isoformat()
     if backend not in BACKENDS:
         raise ValueError(f"Unsupported backend: {backend}")
+    if profile not in PROFILES:
+        raise ValueError(f"Unknown campaign profile: {profile}")
     chip = backend.removeprefix("ibm_")
+    if profile != "full":
+        return {
+            "branch": f"codex/ibm-{chip}-{profile}-{day}",
+            "marker": f".github/campaign-runs/{chip}-{profile}-{day}.json",
+            "plan_suffix": f"{chip}-{profile}-d{day}",
+            "campaign_id": f"{chip}-{profile}-v1-{day}",
+        }
     return {
         "branch": f"codex/ibm-{chip}-{day}",
         "marker": f".github/campaign-runs/{day if chip == 'fez' else chip + '-' + day}.json",
@@ -97,16 +131,16 @@ def identity(campaign_date, backend="ibm_fez"):
     }
 
 
-def plans(campaign_date, *, create=False, backend="ibm_fez"):
+def plans(campaign_date, *, create=False, backend="ibm_fez", profile="full"):
     """Derive dated plans; preserve existing numbered plans and all prior records.
 
     The legacy window field stays numeric for compatibility, using YYYYMMDD.
     Identity and duplicate protection are based on the full ISO date.
     """
     day = campaign_day(campaign_date)
-    collection = identity(campaign_date, backend)
+    collection = identity(campaign_date, backend, profile)
     paths = {}
-    for index, (key, template) in enumerate(templates().items()):
+    for index, (key, template) in enumerate(templates(profile).items()):
         path = PAPERS / DIRECTORIES[key] / "plans" / f"{key}-{collection['plan_suffix']}.json"
         expected = {
             **template,
@@ -120,6 +154,8 @@ def plans(campaign_date, *, create=False, backend="ibm_fez"):
                 else f"Full IBM profile on {backend} collected for {day.isoformat()}."
             ),
         }
+        if profile != "full":
+            expected["purpose"] = f"{profile} v1 on {backend}, collection {day.isoformat()}"
         if path.exists():
             if json.loads(path.read_text(encoding="utf-8")) != expected:
                 raise ValueError(f"Existing dated plan differs from the full profile: {path}")
@@ -200,25 +236,31 @@ def execute(
     *,
     max_jobs_per_batch=10,
     batch_max_time=3600,
+    profile="full",
 ):
     """Run independent stages; resume only untouched batches, never failed jobs."""
-    modes = ("identity", "validate", "run", "prepare", "submit", "recover", "complete")
+    modes = ("identity", "validate", "plan", "run", "prepare", "submit", "recover", "complete")
     if mode not in modes:
         raise ValueError(f"Unknown campaign mode: {mode}")
     if max_batches not in (1, 2, 3) or max_jobs_per_batch not in (6, 10, 14):
         raise ValueError("Expected 1-3 active batches and 6, 10 or 14 jobs per batch")
     if batch_max_time not in (600, 1800, 3600):
         raise ValueError("Batch lifetime must be 600, 1800 or 3600 seconds")
-    collection = identity(campaign_date, backend)
+    collection = identity(campaign_date, backend, profile)
+    workload = templates(profile)
+    config_count = sum(len(plan["items"]) for plan in workload.values())
+    job_count = sum(plan["planned_executions"] for plan in workload.values())
     if mode == "identity":
         for key, value in collection.items():
             print(f"{key}={value}")
+        print(f"configurations={config_count}")
+        print(f"jobs={job_count}")
         return
-    paths = plans(campaign_date, backend=backend)
+    paths = plans(campaign_date, create=(mode == "plan"), backend=backend, profile=profile)
     state = manifests(paths)
-    if mode == "validate":
+    if mode in ("validate", "plan"):
         print(
-            f"Campaign {campaign_date}: 172 configurations, 344 jobs, 1024 shots each on {backend}; "
+            f"Campaign {campaign_date}: {config_count} configurations, {job_count} jobs, 1024 shots each on {backend}; "
             f"up to {max_batches} active batches, {max_jobs_per_batch} jobs/batch, "
             f"requested lifetime {batch_max_time}s"
         )
@@ -258,8 +300,10 @@ def execute(
     with stage("Connect to IBM Runtime"):
         service = service_from_env(**resolve_ibm_credentials())
     if mode in ("run", "prepare"):
-        paths = plans(campaign_date, create=True, backend=backend)
-        report("Preparing all 172 configurations before submission; no QPU jobs sent yet")
+        paths = plans(campaign_date, create=True, backend=backend, profile=profile)
+        report(
+            f"Preparing all {config_count} configurations before submission; no QPU jobs sent yet"
+        )
         for index, (key, path) in enumerate(paths.items(), 1):
             if state[key].exists():
                 report(f"{key}: preserving existing preparation and submission state")
@@ -269,7 +313,9 @@ def execute(
             split_manifest(state[key], max_jobs_per_batch)
             manifest_parts({key: state[key]})
             checkpoint()
-        report(f"Preparation complete: {len(manifest_parts(state))} batches, 344 planned jobs")
+        report(
+            f"Preparation complete: {len(manifest_parts(state))} batches, {job_count} planned jobs"
+        )
     if mode in ("run", "submit"):
         try:
             submit_window(
@@ -286,19 +332,21 @@ def execute(
     if mode in ("run", "recover"):
         recover_batches(state, service)
         verify_complete(paths, state)
-        report(f"Campaign {backend}/{campaign_date}: verified all 344 jobs completed")
+        report(f"Campaign {backend}/{campaign_date}: verified all {job_count} jobs completed")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "mode", choices=("identity", "validate", "run", "prepare", "submit", "recover", "complete")
+        "mode",
+        choices=("identity", "validate", "plan", "run", "prepare", "submit", "recover", "complete"),
     )
     parser.add_argument("--date", required=True, help="Collection date in YYYY-MM-DD (Bogotá)")
     parser.add_argument("--max-batches", type=int, choices=(1, 2, 3), default=3)
     parser.add_argument("--backend", choices=BACKENDS, default="ibm_fez")
     parser.add_argument("--max-jobs-per-batch", type=int, choices=(6, 10, 14), default=10)
     parser.add_argument("--batch-max-time", type=int, choices=(600, 1800, 3600), default=3600)
+    parser.add_argument("--profile", choices=PROFILES, default="full")
     args = parser.parse_args()
     execute(
         args.date,
@@ -307,4 +355,5 @@ if __name__ == "__main__":
         backend=args.backend,
         max_jobs_per_batch=args.max_jobs_per_batch,
         batch_max_time=args.batch_max_time,
+        profile=args.profile,
     )

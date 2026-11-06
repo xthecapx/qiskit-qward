@@ -105,6 +105,25 @@ QPU_CONFIGS: List[ExperimentConfig] = [
     ),
 ]
 
+# Supplemental growth sweep. Preserve the historical a=7 configuration IDs.
+QPU_CONFIGS += [
+    ExperimentConfig("SHOR-N15-M5", 15, 7, 5, "swap_network", 4, "N=15 a=7 m=5", True),
+    *[
+        ExperimentConfig(
+            f"SHOR-N15-A{base}-M{counting}",
+            15,
+            base,
+            counting,
+            "swap_network",
+            order,
+            f"N=15 a={base} m={counting} order-finding growth sweep",
+            True,
+        )
+        for base, order, widths in ((4, 2, range(2, 7)), (2, 4, range(3, 7)))
+        for counting in widths
+    ],
+]
+
 # Simulator-only extras
 SIM_CONFIGS: List[ExperimentConfig] = [
     ExperimentConfig("SHOR-N15-A2-SIM", 15, 2, 8, "permutation", 4, "sim N=15 a=2"),

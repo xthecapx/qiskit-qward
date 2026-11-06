@@ -23,6 +23,11 @@ def ci(tmp_path):
     for directory in module.DIRECTORIES.values():
         target = tmp_path / directory / "plans"
         target.mkdir(parents=True)
+        if directory == "shor":
+            shutil.copyfile(
+                module.PAPERS / "shor/plans/shor-growth-profile.json",
+                target / "shor-growth-profile.json",
+            )
         for path in (module.PAPERS / directory / "plans").glob("*-w[23].json"):
             shutil.copyfile(path, target / path.name)
     module.PAPERS = tmp_path
@@ -351,3 +356,61 @@ def test_resume_after_checkpoint_failure_only_submits_remaining_parts(
     assert len(cloud_runtime.sent) == 37
     assert json.loads(first.read_text(encoding="utf-8"))["items"] == saved_ids
     assert len(cloud_runtime.prepared) == 8
+
+
+@pytest.mark.parametrize(
+    "profile,configs,jobs", [("shor-growth", 13, 39), ("full-shor-growth", 184, 381)]
+)
+def test_shor_growth_profile_isolated_from_legacy_and_completed_offline(
+    ci, cloud_runtime, profile, configs, jobs
+):
+    from qward.examples.papers.campaign_parts import manifest_parts
+    from qward.examples.papers.shor.shor_configs import get_config
+
+    legacy = ci.identity("2026-11-05")
+    proposed = ci.identity("2026-11-05", profile=profile)
+    assert all(legacy[field] != proposed[field] for field in legacy)
+    plans = ci.plans("2026-11-05", create=True, profile=profile)
+    contents = [json.loads(p.read_text(encoding="utf-8")) for p in plans.values()]
+    assert sum(len(p["items"]) for p in contents) == configs
+    assert sum(p["planned_executions"] for p in contents) == jobs
+    shor = json.loads(plans["shor"].read_text(encoding="utf-8"))
+    assert shor["runs"] == 3 and shor["shots"] == 1024
+    selected = [get_config(i["config"]) for i in shor["items"]]
+    assert min(c.num_qubits for c in selected) == 6
+    assert max(c.num_qubits for c in selected) == 10
+    assert {c.a for c in selected} == {2, 4, 7}
+    assert all(c.for_qpu and c.strategy == "swap_network" for c in selected)
+    ci.execute("2026-11-05", "prepare", 3, profile=profile)
+    parts = manifest_parts(ci.manifests(plans))
+    assert len([key for key in parts if key.startswith("shor:")]) == 5
+    ci.execute("2026-11-05", "submit", 3, profile=profile)
+    ci.execute("2026-11-05", "recover", 3, profile=profile)
+    ci.execute("2026-11-05", "complete", 3, profile=profile)
+    assert not ci.manifests(ci.plans("2026-11-05"))["shor"].exists()
+
+
+def test_shor_growth_ideal_targets_and_dashboard_families():
+    from qward.examples.papers.shor.shor_configs import get_config
+    from qward.examples.papers.shor.shor_ibm import ShorIBMExperiment
+    from qward.examples.papers.dataset_features import ideal_reference
+    from dashboard.build import family
+
+    profile = load_ci().templates("shor-growth")["shor"]
+    runner = ShorIBMExperiment()
+    families = set()
+    for item in profile["items"]:
+        config = get_config(item["config"])
+        reference = ideal_reference(runner.create_circuit(config))
+        success = runner.create_success_criteria(config)
+        assert sum(p for label, p in reference.items() if success(label)) == pytest.approx(0.5)
+        assert config.classical_random_prob < 0.5
+        row = {
+            "meta.algorithm": "SHOR",
+            "meta.config_id": config.config_id,
+            "config.N": str(config.N),
+            "config.a": str(config.a),
+            "config.strategy": config.strategy,
+        }
+        families.add(family(row))
+    assert len(families) == 3

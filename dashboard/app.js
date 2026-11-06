@@ -57,6 +57,11 @@ const questions = {
   ],
 };
 const windowKey = (j) => JSON.stringify([j.campaign, j.window]);
+const jobKey = (j) => JSON.stringify([j.ref, j.rep]);
+const jobTime = (j) => j.finishedAt ? new Date(j.finishedAt).toLocaleString("en-GB", {
+  day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+  second: "2-digit", timeZone: "UTC", hourCycle: "h23",
+}) + " UTC" : "Time unavailable";
 const format = (key, value) => (key === "success" ? pct(value) : score(value));
 const lower = (key) => ["coarse", "tvd"].includes(key);
 const compareText = (a, b) => a.localeCompare(b, "en", { numeric: true });
@@ -97,6 +102,7 @@ function jobMetadata(job) {
     ["bits", "Measured bits", job.bits],
     ["depth", "ISA depth", job.depth],
     ["experiment", "Experiment", job.config],
+    ["date", "Measured at", jobTime(job)],
   ];
 }
 
@@ -123,7 +129,8 @@ function scope() {
   const ordered = [...windows.keys()].sort((a, b) =>
     (times.get(b).at(-1) || "").localeCompare(times.get(a).at(-1) || ""),
   );
-  options("window", ordered, null, id => {
+  options("window", ["", ...ordered], null, id => {
+    if (id === "") return "All periods";
     const dates = times.get(id);
     if (!dates.length) return "Date unavailable";
     const start = dates[0], end = dates.at(-1);
@@ -137,7 +144,7 @@ function scope() {
     const finish = date(start) === date(end) ? time(end) : stamp(end);
     return `${stamp(start)}–${finish}`;
   });
-  windowJobs = windows.get(el("window").value);
+  windowJobs = el("window").value === "" ? backend : windows.get(el("window").value);
   options(
     "algorithm",
     unique(windowJobs.map((j) => j.algorithm)).sort(),
@@ -165,7 +172,7 @@ function sweep() {
   );
   configs = unique(jobs.map((j) => j.config))
     .map((id) =>
-      jobs.filter((j) => j.config === id).sort((a, b) => a.rep - b.rep),
+      jobs.filter((j) => j.config === id).sort((a, b) => (a.finishedAt || "").localeCompare(b.finishedAt || "") || a.rep - b.rep),
     )
     .sort(
       (a, b) =>
@@ -174,7 +181,7 @@ function sweep() {
     );
   el("coverage").textContent =
     `${configs.length} experiment${configs.length === 1 ? "" : "s"} · ${jobs.length} jobs`;
-  el("settings-coverage").textContent = el("coverage").textContent;
+  el("settings-coverage").textContent = `${el("coverage").textContent} · ${unique(jobs.map(windowKey)).length} collection(s)`;
   renderSweep(true);
 }
 function target() {
@@ -212,6 +219,7 @@ function showJobLens(point) {
   el("lens-axis").textContent = axis === "width" ? "Total logical qubits" : axes[axis];
   el("lens-axis-value").textContent = axisValue;
   el("lens-rep").textContent = point.rep;
+  el("lens-time").textContent = jobTime(point);
   el("lens-interval").hidden = !point.interval;
   el("lens-value").hidden = Boolean(point.interval);
   if (point.interval) {
@@ -258,7 +266,7 @@ function renderSweep(selectBoundary = false) {
   } else if (combined) {
     const passed = states.filter((state) => state === "Meets").length;
     title = `${passed} of ${configs.length} experiments met the target`;
-    detail = "Each experiment is assessed across its repetitions. Choose a group of related experiments to inspect its measured boundary.";
+    detail = "Each experiment is assessed across all jobs in the selected periods. Choose a group of related experiments to inspect its measured boundary.";
   } else if (configs.length === 1) {
     title = "One setting tested";
     detail = `${first.config} · ${states[0]}. More settings are needed to locate a boundary.`;
@@ -293,7 +301,7 @@ function renderSweep(selectBoundary = false) {
   el("plot-title").textContent = `${metric} by ${axes[axis].toLowerCase()}`;
   renderMetadata("scope-caption", [
     ["chip", "Chip", el("backend").value],
-    ["date", "Measurement period · UTC", el("window").selectedOptions[0].text],
+    ["date", "Periods", el("window").selectedOptions[0].text],
     ["group", "Experiments", el("family").selectedOptions[0].text],
   ]);
   el("target-caption").textContent = threshold == null
@@ -305,6 +313,7 @@ function renderSweep(selectBoundary = false) {
   el("point-guide").textContent = showIntervals
     ? "Each point is one job’s accepted-shot fraction. Hover to magnify its mean and 99% confidence bounds."
     : "Each point is one job.";
+  el("point-guide").textContent += ` Showing ${unique(jobs.map(windowKey)).length} collection(s); dates are in UTC. Values are individual jobs, not averages.`;
   const body = el("settings-table");
   body.replaceChildren();
   configs.forEach((group, i) => {
@@ -318,7 +327,8 @@ function renderSweep(selectBoundary = false) {
       button.type = "button";
       button.className = "job-value";
       button.textContent = format(key, job[key]);
-      button.setAttribute("aria-label", `${job.config}, repetition ${job.rep}, ${button.textContent}. Open histogram`);
+      button.setAttribute("aria-label", `${job.config}, repetition ${job.rep}, ${jobTime(job)}, ${button.textContent}. Open histogram`);
+      button.title = `Run ${job.rep} · ${jobTime(job)}`;
       button.onclick = () => openJob(job, button);
       values.append(button);
     }
@@ -335,6 +345,10 @@ function renderSweep(selectBoundary = false) {
         : j.description,
       config: j.config,
       rep: j.rep,
+      ref: j.ref,
+      finishedAt: j.finishedAt,
+      campaign: j.campaign,
+      window: j.window,
       interval: showIntervals ? j.successInterval : null,
     }));
   const sweepAxis = first.designDepth !== null ? "depth" : "width";
@@ -466,20 +480,20 @@ function repetitions(preferred) {
   el("choose-config").textContent = group[0].description || selectedConfig;
   options(
     "rep",
-    group.map((j) => String(j.rep)),
+    group.map(jobKey),
     preferred,
     (v) => {
-      const job = group.find(j => String(j.rep) === v);
-      const date = job.finishedAt ? job.finishedAt.slice(0, 19).replace("T", " ") + " UTC" : "Time unavailable";
-      return `Run ${v} · ${date}`;
+      const job = group.find(j => jobKey(j) === v);
+      return `Run ${job.rep} · ${jobTime(job)}`;
     },
   );
   renderRun();
 }
+function selectedJob() {
+  return jobs.find(j => j.config === selectedConfig && jobKey(j) === el("rep").value);
+}
 function renderRun() {
-  const job = jobs.find(
-    (j) => j.config === selectedConfig && String(j.rep) === el("rep").value,
-  );
+  const job = selectedJob();
   const { accepted, ideal } = snapshot.refs[job.ref];
   const allowed = new Set(accepted),
     counts = job.counts;
@@ -672,7 +686,7 @@ function openJob(job, opener) {
   setJobView(true);
   el("histogram-title").textContent = el("algorithm").selectedOptions[0].text + " measurement outcomes";
   selectedConfig = job.config;
-  repetitions(String(job.rep));
+  repetitions(jobKey(job));
   el("histogram-title").focus({ preventScroll: true });
   el("range-return").scrollIntoView({ block: "nearest" });
 }
