@@ -6,6 +6,24 @@ on:
     branches:
       - main
       - 'stable/**'
+    paths:
+      - 'docs/**'
+      - 'dashboard/**'
+      - '!dashboard/README.md'
+      - '!dashboard/dist/**'
+      # API pages import library code, but do not import the research examples.
+      - 'qward/**/*.py'
+      - '!qward/examples/**'
+      - 'qward/VERSION.txt'
+      # The dashboard builds from exported tables, not raw QPU journals or plans.
+      - 'qward/examples/papers/dataset_out/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - 'requirements.qward.txt'
+      - 'requirements.docs.txt'
+      - 'tox.ini'
+      - '.github/workflows/docs.yml'
 
 jobs:
   build_and_deploy_docs:
