@@ -1,52 +1,55 @@
 # QPU Benchmark · QWARD dashboard
 
-A standalone, static explorer for experiment results and historical QPU calibration. It uses HTML, CSS, vanilla JavaScript, and locally bundled Apache ECharts 5.6.0. It runs without a backend, Node package installation, or IBM credentials. The Python build reads exported tables and produces a self-contained site for local use or GitHub Pages.
+A static explorer for experiment results and historical QPU calibration, built with **Svelte 5, TypeScript and Vite**, with tree-shaken Apache ECharts 5.6. There is no backend: a Python step validates the exported tables into JSON, and Vite produces a static site for local use or GitHub Pages at `/qiskit-qward/dashboard/`.
 
 ## Quick start
 
-Run these commands from the **repository root**, using Python 3.11 or later (matching the project's supported minimum):
+From the **repository root**, with Python 3.11+ and Node.js 22.12+:
 
 ```sh
-python3 dashboard/build.py
-python3 -m http.server 8774 --bind 127.0.0.1 --directory dashboard/dist
+npm ci --prefix dashboard          # once, or after package-lock.json changes
+python3 dashboard/build.py         # validate tables → dashboard/public/data/*.json
+npm run dev --prefix dashboard     # http://localhost:5173 with live reload
 ```
 
-Open **http://127.0.0.1:8774/** in a browser. Keep the server terminal open; press **Ctrl+C** there to stop it. If port 8774 is occupied, use another port in both the command and URL.
-
-The default build uses the committed tables in `qward/examples/papers/dataset_out/`. Python's standard library is sufficient to build and serve the dashboard; you do not need to install QWARD to view these results. A modern browser is required. You can also open `dashboard/dist/index.html` directly in a browser that permits local files; all scripts, charts, and data are bundled locally.
-
-After editing source files or updating the tables, run the build again and refresh the browser. The server serves files as they change, but **there is no automatic rebuild or browser reload**.
-
-## Project layout
-
-| Path | Purpose |
-| --- | --- |
-| `dashboard/index.html` | Page structure, dialogs, and navigation |
-| `dashboard/styles.css` | Responsive layout, metadata icons styling, and visual states |
-| `dashboard/app.js` | Operating-range plot, histogram, and experiment picker |
-| `dashboard/calibration.js` | Chip and run-specific calibration explorer |
-| `dashboard/build.py` | Standard-library table validation and static site generation |
-| `dashboard/vendor/` | Bundled ECharts, license, and notices |
-| `dashboard/dist/` | Generated local site; ignored by Git |
-| `qward/examples/papers/dataset_out/` | Exported input tables and export reports |
-| `qward/examples/papers/dataset_export.py` | Offline exporter for completed experiment records |
-| `qward/examples/papers/calibration_tables.py` | Preparation calibration and bit-mapping export |
-
-Edit the source files in `dashboard/`, not copies in `dashboard/dist/`. The generated `snapshot.js` contains the public data used by the page and is regenerated on every build.
-
-## Build options
+For the production build, as deployed:
 
 ```sh
-python3 dashboard/build.py --help
-
-# Build from a different set of exported tables.
-python3 dashboard/build.py --tables /path/to/export --out /path/to/site
-
-# Build into the documentation site's deployment directory, as CI does.
-python3 dashboard/build.py --out docs/_build/html/dashboard
+npm run build --prefix dashboard   # → dashboard/dist/
+npm run preview --prefix dashboard # http://127.0.0.1:8774/
 ```
 
-The input directory must contain these files from the **same export**:
+The page fetches its data, so it must be served over HTTP; opening `dist/index.html` from disk does not work. Rerun `build.py` after the exported tables change; the dev server reloads source edits automatically.
+
+## Architecture
+
+```
+build.py (stdlib)            Validated tables → public/data/index.json (jobs + references)
+                                              → public/data/calibrations.json (loaded on demand)
+src/lib/data/                Types mirroring build.py output, schema-checked fetch
+src/lib/domain/              Pure logic: scope/periods, sweep verdicts and boundary,
+                             histogram binning, calibration merge/schematic, formatting
+src/lib/stats/               Pure statistics (Wilson interval); add new estimators here
+src/lib/state/               Explorer + CalibrationState (Svelte runes), URL hash sync
+src/lib/ui/                  Select, Dialog, Tabs, Metadata, Icon
+src/lib/charts/              EChart wrapper (init, resize, dispose, reduced motion) + palette
+src/views/{range,job,calibration}/   One folder per screen
+tests/unit/                  Vitest for domain/stats/state (no DOM)
+tests/e2e/                   Playwright for the browser flows below
+```
+
+Rules that keep the code consistent as features are added:
+
+- **Calculations stay in `lib/domain` and `lib/stats`.** They are plain TypeScript with unit tests. Components only display results.
+- **State lives in `Explorer`.** Choices the user makes are stored as-is, and the effective values are `$derived`. If a choice is unavailable in the current scope, the view falls back to a default and keeps the choice for later. Views never read the DOM to get state.
+- **Charts go through `EChart.svelte`.** A new chart type is registered once in `lib/charts/echarts.ts`, which keeps the bundle tree-shaken.
+- **Heavy or publication statistics are computed in Python at build time** and shipped as data. The browser computes only what reacts to interaction (thresholds, filters, interval levels), so the numbers on the page match the thesis.
+- **The URL hash holds the view state.** Every view can be shared and reloaded as a link, e.g. `#a=GROVER&q=dsr&v=job&c=S4-1&r=<ref>:2`. Add new state fields in `lib/state/url.ts`.
+- **Change data shapes in three places:** `build.py`, `src/lib/data/types.ts`, and `SCHEMA_VERSION` (bump it in both files). The page refuses data with a mismatched schema version.
+
+## Data inputs
+
+`build.py --tables DIR --data-out DIR` reads, by default, `qward/examples/papers/dataset_out/`. The tables must all come from the **same export**:
 
 | File | Contents |
 | --- | --- |
@@ -55,11 +58,9 @@ The input directory must contain these files from the **same export**:
 | `references.csv` | Frozen accepted labels and ideal probabilities, joined by `run_id` |
 | `calibrations.csv` | Used-qubit preparation properties, unique gate operations, and ordered measurement-to-classical-bit mappings, joined by `run_id` |
 
-Exports split the dataset into files of at most 20 MB, repeating the column header in each part and keeping every job row intact. The builder reads every part named in the manifest and refuses missing parts, inconsistent headers, or mismatched sizes/counts. It also supports a legacy `dataset.csv` when no manifest exists. Re-exporting removes the old monolithic CSV and obsolete parts.
+Exports split the dataset into files of at most 20 MB each. Every part repeats the column header, and no job row is split across parts. The builder reads every part named in the manifest. It refuses missing parts, inconsistent headers, and sizes or counts that don't match the manifest. A legacy `dataset.csv` is accepted when no manifest exists. It also checks that jobs are unique, that counts sum to the shot total, that accepted-set sizes match, that ideal probabilities sum to 1, and that calibration joins match their jobs and chip. Older exports without `calibrations.csv` still build; the calibration view then shows a message that calibration data is unavailable.
 
-Older exports without `calibrations.csv` still display the success dashboard and show a calibration availability message. If a calibration table is supplied, its joins must match the jobs and chip. The builder also checks job uniqueness, shot totals, accepted-set sizes, and ideal probability totals. Correct or re-export inconsistent inputs rather than combining files from different exports.
-
-The site publishes selected scientific fields. Raw journal paths, account details, batch IDs, and IBM job IDs are omitted. Measurement periods show the first and last job completion times in UTC, using month names; campaign window numbers are retained internally for grouping but hidden in the period labels. The page initially selects all periods for the chosen chip and QFT when available. Adjust plot → Periods (UTC) restricts the view to an individual collection.
+Only selected scientific fields are published. Raw journal paths, account details, batch IDs, and IBM job IDs are left out.
 
 ## Updating the measurements
 
@@ -79,7 +80,7 @@ Once completed jobs have been recovered to the local experiment records, export 
 python -m qward.examples.papers.dataset_export \
   --backend ibm_fez \
   --out qward/examples/papers/dataset_out
-python dashboard/build.py
+python3 dashboard/build.py
 ```
 
 If you use the campaign wrapper and have `uv` installed, the equivalent export command is:
@@ -88,58 +89,78 @@ If you use the campaign wrapper and have `uv` installed, the equivalent export c
 ./qward/examples/papers/run_campaign.sh export
 ```
 
-Export reads local journals and their `artifacts/.../prepared.json` files; it does not submit jobs or query IBM. Review `dataset_out/export_report.json` for errors and warnings. Keep all three tables together when committing updated data, then rebuild and refresh the preview. The wrapper exports completed records across periods; it is not restricted to one campaign window.
+Export reads local journals and their `artifacts/.../prepared.json` files; it does not submit jobs or query IBM. Review `dataset_out/export_report.json` for errors and warnings. Keep all three tables together when committing updated data, then rerun `python3 dashboard/build.py`. The wrapper exports completed records across periods; it is not restricted to one campaign window.
 
 For collecting and recovering new QPU results, follow the [IBM Fez experiment plan](../docs/ibm_fez_dataset_plan.md) and the [campaign driver](../qward/examples/papers/run_campaign.sh). Those operations have their own IBM credentials and usage requirements. They are separate from running the dashboard.
 
 ## Verification during development
 
-The following checks do not submit IBM jobs. Run the Python checks in the development environment above:
+None of these submit IBM jobs. One-time setup, from the repository root:
 
 ```sh
-python dashboard/build.py
-python -m pytest tests/test_calibration_tables.py tests/test_dataset_export.py -q
-python -m black --check .
+npm ci --prefix dashboard
+npx --prefix dashboard playwright install chromium   # browser for the e2e tests
 ```
 
-If Node.js is available, check JavaScript syntax without installing packages:
+Full check before pushing. These are the same steps CI runs:
 
 ```sh
-node --check dashboard/app.js
-node --test dashboard/tests/periods.test.cjs
-node --check dashboard/calibration.js
+cd dashboard
+python3 build.py      # validate tables → public/data/*.json
+npm run check         # svelte-check / TypeScript, warnings fail
+npm test              # Vitest unit tests for domain, stats and URL state
+npm run build         # production build → dist/
+npm run e2e           # Playwright browser flows against dist/
+cd ..
+uv run -m pytest tests/test_calibration_tables.py tests/test_dataset_export.py -q
+uvx black --check dashboard/build.py tests/
 ```
 
-For the full repository lint job, use `uvx tox -elint` with Python 3.11 available, as configured in [tox.ini](../tox.ini). The targeted tests cover export behavior, calibration identities and joins, missing calibration sidecars, and the distinction between preparation and execution data. They do not replace browser checks.
+To reproduce the GitHub Pages layout, serve the build under the same subpath:
 
-After rebuilding, check these flows in the browser:
+```sh
+mkdir -p /tmp/pages/qiskit-qward
+npm run build --prefix dashboard -- --outDir /tmp/pages/qiskit-qward/dashboard
+python3 -m http.server 8790 --bind 127.0.0.1 --directory /tmp/pages
+# open http://127.0.0.1:8790/qiskit-qward/dashboard/
+```
 
-1. Change the algorithm, question, and measurement period; select a plot point to open its histogram.
-2. Search the experiment picker, select a result with the mouse or keyboard, and verify the recorded run and histogram update. Escape should keep the previous selection.
-3. Change Chart detail and confirm omitted bitstrings are grouped while the metrics remain unchanged.
-4. Open Inspect run calibration, select components and properties, expand to chip history, and return to the same histogram run and chart settings.
-5. Open Chip calibration history independently; check dates, search, unavailable values, and layout at narrow screen widths.
+`tests/e2e/flows.spec.ts` automates these flows. Any UI change should keep them passing:
+
+1. Change the algorithm, question, and measurement period; open a job's histogram and return.
+2. Search the experiment picker and select a result by keyboard. Escape keeps the previous selection and returns focus.
+3. Change Chart detail and confirm omitted bitstrings are grouped while the metrics and the full table stay unchanged.
+4. Open Inspect run calibration, change the property, expand to chip history, and return to the same run and chart settings.
+5. Open Chip calibration history on its own, search components, and check there is no horizontal scroll at phone width.
 
 ## GitHub Pages deployment
 
-[`.github/workflows/docs.yml`](../.github/workflows/docs.yml) builds the Sphinx documentation, then runs:
+The deployment strategy is the same as before. [`.github/workflows/docs.yml`](../.github/workflows/docs.yml) builds the Sphinx docs, then:
 
 ```sh
-python dashboard/build.py --out docs/_build/html/dashboard
+npm ci --prefix dashboard
+python dashboard/build.py
+npm run check --prefix dashboard && npm test --prefix dashboard
+npm run build --prefix dashboard -- --outDir ../docs/_build/html/dashboard
 ```
 
-The workflow builds on relevant pushes to `main` or `stable/**`, and supports manual dispatch. It does not run on pull requests. Dashboard sources, exported tables, documentation, library API code, and build dependencies trigger the combined site build; dashboard README edits and raw QPU records do not. Its deploy step runs only when the workflow's ref is `main`. It publishes the combined documentation output through `peaceiris/actions-gh-pages` using `GITHUB_TOKEN`; the repository's Pages configuration must serve the published branch. See the [workflow dependency guide](../.github/workflows/README.md#when-workflows-run) for the full trigger map.
+It runs on relevant pushes to `main` or `stable/**` and on manual dispatch. A failed check or build stops the workflow before deployment. It deploys with `peaceiris/actions-gh-pages` only from `main`. A manual dispatch from another branch runs every build step but skips the deploy, which makes it a safe dry run. Vite's `base: "./"` keeps every asset path relative, so the same build works at **`/qiskit-qward/dashboard/`** and locally.
 
-The dashboard's deployment path is **`/qiskit-qward/dashboard/`**, alongside the documentation. Commit dashboard sources and the exported tables; do not commit the generated `dashboard/dist/` directory. The docs workflow builds from those committed tables.
+On pull requests, [`.github/workflows/dashboard.yml`](../.github/workflows/dashboard.yml) runs the same checks plus the Playwright flows, but only when dashboard sources or exported tables change. See the [workflow dependency guide](../.github/workflows/README.md#when-workflows-run).
 
-The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) collects the selected research profile on `ibm_fez`, `ibm_kingston`, or `ibm_marrakesh` using a backend and collection date. Prepare, submit, recover, and export have separate logs; smaller batches and recovery retries preserve existing job IDs. It saves a results branch without creating a PR. Review and merge the results manually to publish new measurements. The workflow is manual-only: select `main`, the profile, backend, collection date, and `run` mode to start a new campaign. The default `validate` mode stays offline.
+Commit dashboard sources, `package-lock.json` and the exported tables. Do not commit `dist/` or `public/data/`; both are generated. Dependabot updates npm dependencies weekly as one grouped PR.
+
+The separate [IBM campaign workflow](../.github/workflows/ibm-campaign.md) collects new measurements and validates them with `python dashboard/build.py`. It needs Python only, not Node. Its results branch is merged manually to publish.
 
 ## Troubleshooting
 
 | Symptom | What to check |
 | --- | --- |
-| Old layout or old results | Rebuild, confirm you are serving `dashboard/dist`, and refresh the browser; use a hard refresh if assets are cached. |
-| Address already in use | Stop the previous preview with Ctrl+C, or select another local port. |
+| "The experiment data could not be loaded" | Run `python3 dashboard/build.py` before `npm run dev`/`build`, and serve over HTTP rather than opening the file directly. |
+| Schema version error in the page | `build.py` and `src/lib/data/types.ts` disagree; bump `SCHEMA_VERSION` in both and rebuild. |
+| Old results | Rerun `build.py`; with `preview`, also rerun `npm run build`. |
+| Address already in use | Stop the previous server with Ctrl+C, or pass `--port`. |
+| `npm install` fails with `Cannot read properties of null (reading 'edgesOut')` | Known npm 10 resolver bug for fresh installs; use `npm ci`, or `npx npm@11 install` when changing dependencies. |
 | Missing CSV parts, `dataset_manifest.json`, or `references.csv` | Use the default committed export, or pass the correct directory with `--tables`. |
 | Calibration unavailable | Check that the matching `calibrations.csv` was exported and included before rebuilding. Detailed data is limited to the preparation snapshots actually captured. |
 | Invalid reference, calibration, or shot-total error | Re-export the tables together and inspect `export_report.json`; do not manually force mismatched joins. |
