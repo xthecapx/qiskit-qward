@@ -1,11 +1,10 @@
-"""Build a self-contained, static experiment dashboard from the campaign tables."""
+"""Validate the exported campaign tables and write the dashboard's public JSON data."""
 
 import argparse
 import csv
 import json
 import math
 import re
-import shutil
 from pathlib import Path
 from statistics import NormalDist
 
@@ -205,19 +204,48 @@ def load_tables(directory):
     }
 
 
+SCHEMA_VERSION = 1
+
+
+def write_json(path, payload):
+    """Write compact, deterministic JSON. NaN is rejected so the browser never parses invalid data."""
+    path.write_text(
+        json.dumps(payload, separators=(",", ":"), allow_nan=False, sort_keys=True),
+        encoding="utf-8",
+    )
+
+
 def build(tables, output):
-    snapshot = json.dumps(load_tables(tables), separators=(",", ":"), allow_nan=False)
+    """Validate the tables and write the public data files that the Vite app fetches.
+
+    ``index.json`` holds jobs and references. Calibrations are split into
+    ``calibrations.json`` and only fetched when the calibration explorer opens.
+    """
+    data = load_tables(tables)
     output.mkdir(parents=True, exist_ok=True)
-    for name in ("index.html", "styles.css", "app.js", "calibration.js"):
-        shutil.copyfile(PROJECT / name, output / name)
-    shutil.copytree(PROJECT / "vendor", output / "vendor", dirs_exist_ok=True)
-    (output / "snapshot.js").write_text(f"const snapshot = {snapshot};\n", encoding="utf-8")
+    write_json(
+        output / "index.json",
+        {"schemaVersion": SCHEMA_VERSION, "jobs": data["jobs"], "refs": data["refs"]},
+    )
+    write_json(
+        output / "calibrations.json",
+        {"schemaVersion": SCHEMA_VERSION, "calibrations": data["calibrations"]},
+    )
+    return data
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tables", type=Path, default=TABLES)
-    parser.add_argument("--out", type=Path, default=PROJECT / "dist")
+    parser.add_argument(
+        "--data-out",
+        type=Path,
+        default=PROJECT / "public/data",
+        help="Directory for the validated JSON consumed by the Vite build (default: public/data)",
+    )
     args = parser.parse_args()
-    build(args.tables, args.out)
-    print(f"Dashboard ready at {(args.out / 'index.html').resolve()}")
+    summary = build(args.tables, args.data_out)
+    print(
+        f"Validated {len(summary['jobs'])} jobs and {len(summary['calibrations'])} calibration "
+        f"records. Data written to {args.data_out.resolve()}"
+    )

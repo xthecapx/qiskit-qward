@@ -141,3 +141,16 @@ def test_dashboard_rejects_incorrect_calibration_join(dashboard_tables, prepared
     write_calibrations(directory / "calibrations.csv", [calibration_record(prepared)])
     with pytest.raises(ValueError, match="Calibration chip|Invalid calibration reference"):
         loader(directory)
+
+
+def test_dashboard_writes_versioned_json_for_the_web_app(dashboard_tables, tmp_path):
+    loader, directory = dashboard_tables
+    module = runpy.run_path(str(Path(__file__).resolve().parents[1] / "dashboard/build.py"))
+    out = tmp_path / "data"
+    module["build"](directory, out)
+    index = json.loads((out / "index.json").read_text(encoding="utf-8"))
+    calibrations = json.loads((out / "calibrations.json").read_text(encoding="utf-8"))
+    assert index["schemaVersion"] == calibrations["schemaVersion"] == module["SCHEMA_VERSION"]
+    assert [job["ref"] for job in index["jobs"]] == list(index["refs"])
+    assert set(calibrations["calibrations"]) == set(index["refs"])
+    assert "job_id" not in (out / "index.json").read_text(encoding="utf-8")
