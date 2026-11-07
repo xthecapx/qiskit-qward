@@ -275,6 +275,17 @@ HAMMING_CONFIGS = [
         marked_states=["1111"],
         description="4 qubits, Hamming weight 4 (all ones)",
     ),
+    # S5-1 is the historical weight-two anchor (01100). Together these cover weights 0–5.
+    *[
+        ExperimentConfig(
+            config_id=f"H5-{weight}",
+            experiment_type="hamming",
+            num_qubits=5,
+            marked_states=["0" * (5 - weight) + "1" * weight],
+            description=f"5 qubits, single marked state of Hamming weight {weight}",
+        )
+        for weight in (0, 1, 3, 4, 5)
+    ],
 ]
 
 
