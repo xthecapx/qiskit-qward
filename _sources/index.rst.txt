@@ -35,6 +35,7 @@ Explore measured circuit limits on IBM hardware in the `experiment dashboard <da
   Tutorials <tutorials/index>
   User Guide <how_tos/index>
   API References <apidocs/index>
+  Algorithm groups by success decay <scalability_regression>
 
 .. Hiding - Indices and tables
    :ref:`genindex`
