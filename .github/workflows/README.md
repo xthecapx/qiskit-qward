@@ -53,7 +53,7 @@ publishing still runs on `v*` tag pushes or manual dispatch.
 
 ## IBM campaign collection (`ibm-campaign.yml`)
 
-Selects legacy full (344 jobs), Shor growth (39 jobs), or expanded full (381 jobs) on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. This workflow is manual-only. See the [setup, credentials, and recovery guide](ibm-campaign.md). The default `validate` mode is offline; select `run` explicitly to start a collection, `resume` to submit only untouched batches, or `recover` to retrieve existing results. Set the collection date in the dispatch form for each new campaign.
+Selects the full Grover/BV growth window (391 jobs), the Grover/BV-only window (68 jobs), or a historical profile (344, 39 or 381 jobs) on Fez, Kingston, or Marrakesh with a backend/date identity. Separate prepare, submit, recover, and export steps use bounded batches, durable checkpoints, and read-only recovery retries. Results stay on a branch; no PR is created. This workflow is manual-only. See the [setup, credentials, and recovery guide](ibm-campaign.md). The default `validate` mode is offline; select `run` explicitly to start a collection, `resume` to submit only untouched batches, or `recover` to retrieve existing results. Set the collection date in the dispatch form for each new campaign.
 
 ## Dashboard checks (`dashboard.yml`)
 
