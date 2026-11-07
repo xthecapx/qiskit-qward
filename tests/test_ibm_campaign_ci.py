@@ -473,3 +473,24 @@ def test_oracle_growth_window(ci, cloud_runtime, backend, profile, configs, jobs
     assert not ci.manifests(ci.plans(day, backend=backend, profile="full-shor-growth"))[
         "grover"
     ].exists()
+
+
+@pytest.mark.parametrize("backend", ["ibm_fez", "ibm_kingston", "ibm_marrakesh"])
+def test_public_full_has_every_extension_and_keeps_expanded_identity(ci, cloud_runtime, backend):
+    day = "2026-11-08"
+    assert ci.PUBLIC_PROFILES == ("full", "oracle-growth", "shor-growth")
+    assert ci.templates("full") == ci.templates("full-oracle-growth")
+    assert ci.identity(day, backend, "full") == ci.identity(day, backend, "full-oracle-growth")
+    paths = ci.plans(day, create=True, backend=backend, profile="full")
+    assert paths == ci.plans(day, backend=backend, profile="full-oracle-growth")
+    total = sum(json.loads(path.read_text())["planned_executions"] for path in paths.values())
+    assert total == 391 and set(paths) == set(ci.DIRECTORIES)
+    assert sum(p["planned_executions"] for p in ci.templates("legacy-full").values()) == 344
+    ci.execute(day, "prepare", 3, backend=backend, profile="full")
+    ci.execute(day, "submit", 3, backend=backend, profile="full")
+    ci.execute(day, "recover", 3, backend=backend, profile="full")
+    ci.execute(day, "complete", 3, backend=backend, profile="full-oracle-growth")
+    assert (
+        ci.identity("2026-11-05", profile="legacy-full")["campaign_id"]
+        == "fez-dataset-v2-2026-11-05"
+    )
