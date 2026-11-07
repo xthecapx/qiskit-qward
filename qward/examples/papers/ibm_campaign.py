@@ -89,7 +89,7 @@ def json_value(value: Any) -> Any:
     if type(value).__name__ == "UnsetType":
         return "server_default_unknown_at_submission"
     # Runtime metadata includes ExecutionSpans and other structured objects.
-    from qiskit_ibm_runtime.utils.json import (
+    from qiskit_ibm_runtime import (
         RuntimeEncoder,
     )  # pylint: disable=import-outside-toplevel
 
