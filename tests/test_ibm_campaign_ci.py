@@ -215,6 +215,8 @@ def cloud_runtime(ci, monkeypatch):
                     "config": i["config"],
                     "runs": i.get("runs", plan["runs"]),
                     "record_path": i["config"] + ".json",
+                    "isa_depth": 31,
+                    "isa_two_qubit_gates": 7,
                     "job_ids": [],
                 }
                 for i in plan["items"]
@@ -414,3 +416,60 @@ def test_shor_growth_ideal_targets_and_dashboard_families():
         }
         families.add(family(row))
     assert len(families) == 3
+
+
+@pytest.mark.parametrize("backend", ["ibm_fez", "ibm_kingston", "ibm_marrakesh"])
+@pytest.mark.parametrize(
+    "profile,configs,jobs", [("oracle-growth", 34, 68), ("full-oracle-growth", 189, 391)]
+)
+def test_oracle_growth_window(ci, cloud_runtime, backend, profile, configs, jobs, capsys):
+    from qward.examples.papers.grover.grover_configs import get_config
+    from qward.examples.papers.bv.bv_configs import get_config as get_bv
+
+    day = "2026-11-07"
+    paths = ci.plans(day, create=True, backend=backend, profile=profile)
+    plans = {key: json.loads(path.read_text()) for key, path in paths.items()}
+    assert sum(len(plan["items"]) for plan in plans.values()) == configs
+    assert sum(plan["planned_executions"] for plan in plans.values()) == jobs
+    assert all(
+        plan["backend"] == backend
+        and plan["window"] == 20261107
+        and plan["shots"] == 1024
+        and plan["optimization_level"] == 3
+        and plan["seed_transpiler"] == 11
+        for plan in plans.values()
+    )
+    assert all(
+        plan["campaign_id"] == ci.identity(day, backend, profile)["campaign_id"]
+        for plan in plans.values()
+    )
+    if profile == "full-oracle-growth":
+        previous = ci.templates("full-shor-growth")
+        assert plans.keys() == previous.keys()
+        for key, plan in previous.items():
+            assert plans[key]["items"][: len(plan["items"])] == plan["items"]
+            assert plans[key]["runs"] == plan["runs"]
+    else:
+        assert set(plans) == {"grover", "bv"}
+        assert {get_bv(item["config"]).num_qubits + 1 for item in plans["bv"]["items"]} == {3, 4, 5}
+        assert {get_config(item["config"]).num_qubits for item in plans["grover"]["items"]} == {
+            3,
+            4,
+            5,
+        }
+    five = [
+        get_config(item["config"])
+        for item in plans["grover"]["items"]
+        if get_config(item["config"]).num_qubits == 5
+    ]
+    assert len(five) == 6 and all(c.num_marked == 1 and c.theoretical_iterations == 4 for c in five)
+    assert {c.marked_states[0].count("1") for c in five} == set(range(6))
+    assert {c.config_id for c in five if c.marked_states == ["01100"]} == {"S5-1"}
+    ci.execute(day, "prepare", 3, backend=backend, profile=profile)
+    assert "exact shared levels:" in capsys.readouterr().out
+    ci.execute(day, "submit", 3, backend=backend, profile=profile)
+    ci.execute(day, "recover", 3, backend=backend, profile=profile)
+    ci.execute(day, "complete", 3, backend=backend, profile=profile)
+    assert not ci.manifests(ci.plans(day, backend=backend, profile="full-shor-growth"))[
+        "grover"
+    ].exists()

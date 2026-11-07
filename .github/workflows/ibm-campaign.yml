@@ -1,14 +1,14 @@
 name: Collect IBM campaign results
-run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }} · ${{ inputs.mode || 'validate' }}
+run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-07' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-oracle-growth' }} · ${{ inputs.mode || 'validate' }}
 
 on:
   workflow_dispatch:
     inputs:
       profile:
-        description: Full legacy (344 jobs), Shor growth (39), or full with Shor growth (381)
+        description: Full with Grover/BV extension (391 jobs), Grover/BV only (68), or a prior profile
         type: choice
-        options: [full-shor-growth, full, shor-growth]
-        default: full-shor-growth
+        options: [full-oracle-growth, oracle-growth, full-shor-growth, full, shor-growth]
+        default: full-oracle-growth
       backend:
         description: IBM chip for the selected campaign profile
         type: choice
@@ -18,7 +18,7 @@ on:
         description: Collection date YYYY-MM-DD
         type: string
         required: true
-        default: '2026-11-06'
+        default: '2026-11-07'
       mode:
         description: Run starts a new collection; resume sends untouched batches; recover only reads
         type: choice
@@ -49,9 +49,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CAMPAIGN_PROFILE: ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-shor-growth' }}
+  CAMPAIGN_PROFILE: ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-oracle-growth' }}
   CAMPAIGN_BACKEND: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }}
-  CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-06' }}
+  CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-07' }}
   CAMPAIGN_MODE: ${{ inputs.mode || 'validate' }}
   MAX_BATCHES: ${{ inputs.max_batches || '3' }}
   MAX_JOBS_PER_BATCH: ${{ inputs.max_jobs_per_batch || '10' }}
@@ -110,7 +110,7 @@ jobs:
             git fetch origin "$branch"
             git switch -c "$branch" FETCH_HEAD
             # Run current orchestration while preserving every result and manifest on the branch.
-            git restore --source="$GITHUB_SHA" --worktree -- scripts/ibm_campaign_ci.py dashboard/build.py qward/examples/papers/dataset_export.py qward/examples/papers/campaign_parts.py qward/examples/papers/campaign_submit.py qward/examples/papers/ibm_campaign.py qward/examples/papers/ibm_experiment_base.py qward/examples/papers/dataset_features.py qward/examples/papers/shor/shor_configs.py qward/examples/papers/shor/plans/shor-growth-profile.json
+            git restore --source="$GITHUB_SHA" --worktree -- scripts/ibm_campaign_ci.py dashboard/build.py qward/examples/papers/dataset_export.py qward/examples/papers/campaign_parts.py qward/examples/papers/campaign_submit.py qward/examples/papers/ibm_campaign.py qward/examples/papers/ibm_experiment_base.py qward/examples/papers/dataset_features.py qward/examples/papers/grover/grover_configs.py qward/examples/papers/shor/shor_configs.py qward/examples/papers/shor/plans/shor-growth-profile.json
           else
             if [[ -e "$marker" ]] || git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
               echo 'This backend and campaign date are already claimed. Use resume for untouched batches or recover for result retrieval; inspect the existing results branch.'

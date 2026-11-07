@@ -11,7 +11,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / "qward/examples/papers"
-PROFILES = ("full", "shor-growth", "full-shor-growth")
+PROFILES = ("full", "shor-growth", "full-shor-growth", "oracle-growth", "full-oracle-growth")
 BACKENDS = ("ibm_fez", "ibm_kingston", "ibm_marrakesh")
 DIRECTORIES = {
     "ghz": "ghz",
@@ -83,7 +83,7 @@ def templates(profile="full"):
         plans_by_key[key] = plan
     if sum(p["planned_executions"] for p in plans_by_key.values()) != 344:
         raise ValueError("Expected 344 jobs; review the campaign before running")
-    if profile != "full":
+    if profile in ("shor-growth", "full-shor-growth", "full-oracle-growth"):
         growth = json.loads(
             (PAPERS / "shor/plans/shor-growth-profile.json").read_text(encoding="utf-8")
         )
@@ -105,6 +105,27 @@ def templates(profile="full"):
         }
         if profile == "shor-growth":
             return {"shor": plans_by_key["shor"]}
+    if profile in ("oracle-growth", "full-oracle-growth"):
+        grover = [item["config"] for item in plans_by_key["grover"]["items"]]
+        grover.extend(f"H5-{weight}" for weight in (0, 1, 3, 4, 5))
+        bv = [item["config"] for item in plans_by_key["bv"]["items"]]
+        if profile == "oracle-growth":
+            # Repeat every historical Grover configuration at total widths 3–5.
+            grover = [config for config in grover if not config.startswith("S2-")]
+            # BV has an ancilla, so two to four data qubits give the same total widths.
+            bv = [config for config in bv if config.startswith(("BV2-", "BV3-", "BV4-"))]
+            plans_by_key = {key: plans_by_key[key] for key in ("bv", "grover")}
+        for key, configs in (("grover", grover), ("bv", bv)):
+            plan = plans_by_key[key]
+            if len(set(configs)) != len(configs) or plan["runs"] != 2:
+                raise ValueError(f"Unexpected {profile} workload for {key}")
+            plan.update(
+                items=[{"config": config} for config in configs],
+                planned_executions=2 * len(configs),
+            )
+        jobs = sum(p["planned_executions"] for p in plans_by_key.values())
+        if jobs != (68 if profile == "oracle-growth" else 391):
+            raise ValueError(f"Unexpected job count for {profile}: {jobs}")
     return plans_by_key
 
 
@@ -170,6 +191,32 @@ def plans(campaign_date, *, create=False, backend="ibm_fez", profile="full"):
 def manifests(paths):
     """Companion state files, shared with the local campaign driver."""
     return {key: path.with_name(path.stem + "_manifest.json") for key, path in paths.items()}
+
+
+def oracle_overlap(state):
+    """Summarize matched widths and compiled costs from this chip's frozen circuits."""
+    from qward.examples.papers.bv.bv_configs import get_config as bv_config
+    from qward.examples.papers.grover.grover_configs import get_config as grover_config
+
+    by_width = {width: {"grover": [], "bv": []} for width in (3, 4, 5)}
+    for key in ("grover", "bv"):
+        for item in json.loads(state[key].read_text(encoding="utf-8"))["items"]:
+            config = item["config"]
+            width = (
+                grover_config(config).num_qubits
+                if key == "grover"
+                else bv_config(config).num_qubits + 1
+            )
+            if width in by_width:
+                by_width[width][key].append(item)
+    for width, algorithms in by_width.items():
+        for metric in ("isa_two_qubit_gates", "isa_depth"):
+            grover, bv = ({item[metric] for item in algorithms[key]} for key in ("grover", "bv"))
+            print(
+                f"Prepared width {width}, {metric}: Grover {min(grover)}–{max(grover)}, "
+                f"BV {min(bv)}–{max(bv)}, exact shared levels: {sorted(grover & bv)}",
+                flush=True,
+            )
 
 
 def recover_batches(state, service, *, attempts=3, retry_seconds=5):
@@ -316,6 +363,8 @@ def execute(
         report(
             f"Preparation complete: {len(manifest_parts(state))} batches, {job_count} planned jobs"
         )
+        if profile in ("oracle-growth", "full-oracle-growth"):
+            oracle_overlap(state)
     if mode in ("run", "submit"):
         try:
             submit_window(

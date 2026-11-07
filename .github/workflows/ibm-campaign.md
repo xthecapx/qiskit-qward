@@ -1,19 +1,38 @@
 # Manual IBM campaigns
 
-## Shor growth extension (November 6 default)
+## November 7 window and repetitions on other chips
 
-The profile selector now defaults to **`full-shor-growth`**, with **184 configurations
-and 381 jobs**. Profile **`shor-growth`** selects only the 13 Shor configurations /
-39 jobs; **`full`** retains the original 172 configurations / 344 jobs described below.
-Choose the profile in the manual workflow dispatch form.
-Each profile has a separate identity/branch/claim; use the original profile when
-resuming or recovering. Older Fez collections require `full`.
+| Manual profile | Configurations | Jobs per chip and date | Selection |
+| --- | ---: | ---: | --- |
+| `full-oracle-growth` (default) | 189 | 391 | The existing eight-algorithm Shor-growth window plus five new Grover instances |
+| `oracle-growth` | 34 | 68 | The same 25 Grover and 9 BV configurations at matched total widths 3, 4 and 5 |
+| `full-shor-growth` / `shor-growth` / `full` | 184 / 13 / 172 | 381 / 39 / 344 | Original selections for comparison and recovery |
 
-See [the local Shor run guide](../../docs/shor_growth_local_run.md) for tonight's
-separate 39-job campaign, exact commands, and the three families. The expanded
-full profile uses 41 batches by default (five for Shor); the legacy profile uses 37.
-All safety, checkpoint, and read-only retrieval rules below apply to each profile's
-own planned job total. Never run both full profiles for the same date accidentally.
+The full profile includes the focused workload. Select one per chip/window. Both profiles keep the historical five-qubit Grover anchor `S5-1` (01100) and add 00000, 00001, 00111, 01111 and 11111. Each has one marked state and four Grover iterations. BV repeats the ONES, ALT and SINGLE secrets at two through four data qubits, plus one ancilla. Each Grover/BV config gets two separate 1,024-shot jobs, optimization level 3 and transpiler seed 11. The full profile retains the previous Shor settings.
+
+**Run on November 7, 2026.** Once this workflow is on `main`, open **Actions → Collect IBM campaign results → Run workflow**. Choose `full-oracle-growth`, date `2026-11-07`, the target backend and `run`. For example:
+
+```sh
+gh workflow run ibm-campaign.yml --ref main -f profile=full-oracle-growth -f campaign_date=2026-11-07 -f backend=ibm_fez -f mode=run
+```
+
+Use the same profile for `ibm_kingston` or `ibm_marrakesh`, dispatching the next chip after the current collection finishes (the workflow shares an account-wide concurrency group). Repeat on another collection date to give each chip at least two periods. Examine each backend separately. The prepare step lists the actual transpiled Grover/BV gate and depth ranges and their exact shared levels at each width. Width-matched circuits can still have very different compiled costs. For a controlled single-marked-state analysis, use the same selection rule at every width and retain the original S3/S4/S5 anchors for comparison with earlier windows.
+
+The offline test compiled all 34 oracle configurations on FakeFez, FakeKingston and FakeMarrakesh. At width five these snapshots yielded 517 two-qubit gates for each Grover circuit and 1–7 for BV. The new instances test variation across marked strings at fixed width and iteration count. Record the live prepared counts for any claim about gate-cost overlap.
+
+**Local execution from the updated checkout.** The dated runner can use the new profile before it is available on GitHub. With the project environment activated and IBM credentials configured, use the following on the collection date. Inspect the overlap printed by `prepare` before proceeding to `submit`.
+
+```sh
+set -- --date 2026-11-07 --backend ibm_fez --profile full-oracle-growth
+python scripts/ibm_campaign_ci.py validate "$@"  # offline
+python scripts/ibm_campaign_ci.py prepare "$@"   # freeze circuits on the selected target
+python scripts/ibm_campaign_ci.py submit "$@"
+python scripts/ibm_campaign_ci.py recover "$@"
+python -m qward.examples.papers.dataset_export --out qward/examples/papers/dataset_out
+python dashboard/build.py
+```
+
+Use the same backend, profile and date to resume or recover. Each combination has its own result branch, plans, manifests and budget. Actions exports completed records and builds the dashboard after successful recovery. The [Shor guide](../../docs/shor_growth_local_run.md) covers previous growth collections.
 
 The remaining sections describe the original **`full`** profile unless stated otherwise.
 
