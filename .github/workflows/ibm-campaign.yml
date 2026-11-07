@@ -1,14 +1,19 @@
 name: Collect IBM campaign results
-run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-07' }} · ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-oracle-growth' }} · ${{ inputs.mode || 'validate' }}
+run-name: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }} ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-07' }} · ${{ inputs.recovery_profile || inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full' }} · ${{ inputs.mode || 'validate' }}
 
 on:
   workflow_dispatch:
     inputs:
       profile:
-        description: Full with Grover/BV extension (391 jobs), Grover/BV only (68), or a prior profile
+        description: Full (391 jobs), Grover/BV only (68), or Shor only (39)
         type: choice
-        options: [full-oracle-growth, oracle-growth, full-shor-growth, full, shor-growth]
-        default: full-oracle-growth
+        options: [full, oracle-growth, shor-growth]
+        default: full
+      recovery_profile:
+        description: "Resume/recover only. Earlier full=legacy-full; or full-shor-growth/full-oracle-growth"
+        type: string
+        required: false
+        default: ''
       backend:
         description: IBM chip for the selected campaign profile
         type: choice
@@ -49,7 +54,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CAMPAIGN_PROFILE: ${{ inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full-oracle-growth' }}
+  RECOVERY_PROFILE: ${{ inputs.recovery_profile }}
+  CAMPAIGN_PROFILE: ${{ inputs.recovery_profile || inputs.profile || vars.IBM_CAMPAIGN_PROFILE || 'full' }}
   CAMPAIGN_BACKEND: ${{ inputs.backend || vars.IBM_CAMPAIGN_BACKEND || 'ibm_fez' }}
   CAMPAIGN_DATE: ${{ inputs.campaign_date || vars.IBM_CAMPAIGN_DATE || '2026-11-07' }}
   CAMPAIGN_MODE: ${{ inputs.mode || 'validate' }}
@@ -87,6 +93,10 @@ jobs:
         run: |
           python scripts/ibm_campaign_ci.py validate --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" --max-batches "$MAX_BATCHES" --max-jobs-per-batch "$MAX_JOBS_PER_BATCH" --batch-max-time "$BATCH_MAX_TIME"
           python scripts/ibm_campaign_ci.py identity --date "$CAMPAIGN_DATE" --backend "$CAMPAIGN_BACKEND" --profile "$CAMPAIGN_PROFILE" >> "$GITHUB_OUTPUT"
+          if [[ -n "$RECOVERY_PROFILE" && "$CAMPAIGN_MODE" != resume && "$CAMPAIGN_MODE" != recover ]]; then
+            echo 'recovery_profile is only for resume or recover'
+            exit 1
+          fi
           [[ "$MAX_BATCHES" =~ ^[123]$ ]]
           [[ "$CAMPAIGN_MODE" =~ ^(validate|run|resume|recover)$ ]]
       - name: Check IBM credentials

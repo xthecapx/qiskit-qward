@@ -11,7 +11,10 @@ from importlib.metadata import PackageNotFoundError, version
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / "qward/examples/papers"
-PROFILES = ("full", "shor-growth", "full-shor-growth", "oracle-growth", "full-oracle-growth")
+PUBLIC_PROFILES = ("full", "oracle-growth", "shor-growth")
+HISTORICAL_PROFILES = ("legacy-full", "full-shor-growth", "full-oracle-growth")
+PROFILES = PUBLIC_PROFILES + HISTORICAL_PROFILES
+# Existing Python callers keep the legacy defaults; the CLI explicitly defaults to current full.
 BACKENDS = ("ibm_fez", "ibm_kingston", "ibm_marrakesh")
 DIRECTORIES = {
     "ghz": "ghz",
@@ -63,10 +66,12 @@ def campaign_day(value):
     return parsed
 
 
-def templates(profile="full"):
-    """Use the reviewed full window-2 selection as an immutable profile."""
+def templates(profile="legacy-full"):
+    """Build versioned workloads from the reviewed legacy window-2 selection."""
     if profile not in PROFILES:
         raise ValueError(f"Unknown campaign profile: {profile}")
+    if profile == "full":
+        profile = "full-oracle-growth"
     plans_by_key = {}
     for key, directory in DIRECTORIES.items():
         path = PAPERS / directory / "plans" / f"{key}-w2.json"
@@ -129,15 +134,17 @@ def templates(profile="full"):
     return plans_by_key
 
 
-def identity(campaign_date, backend="ibm_fez", profile="full"):
+def identity(campaign_date, backend="ibm_fez", profile="legacy-full"):
     """Keep existing Fez identities stable while isolating other chips."""
     day = campaign_day(campaign_date).isoformat()
     if backend not in BACKENDS:
         raise ValueError(f"Unsupported backend: {backend}")
     if profile not in PROFILES:
         raise ValueError(f"Unknown campaign profile: {profile}")
+    if profile == "full":
+        profile = "full-oracle-growth"
     chip = backend.removeprefix("ibm_")
-    if profile != "full":
+    if profile != "legacy-full":
         return {
             "branch": f"codex/ibm-{chip}-{profile}-{day}",
             "marker": f".github/campaign-runs/{chip}-{profile}-{day}.json",
@@ -152,13 +159,15 @@ def identity(campaign_date, backend="ibm_fez", profile="full"):
     }
 
 
-def plans(campaign_date, *, create=False, backend="ibm_fez", profile="full"):
+def plans(campaign_date, *, create=False, backend="ibm_fez", profile="legacy-full"):
     """Derive dated plans; preserve existing numbered plans and all prior records.
 
     The legacy window field stays numeric for compatibility, using YYYYMMDD.
     Identity and duplicate protection are based on the full ISO date.
     """
     day = campaign_day(campaign_date)
+    if profile == "full":
+        profile = "full-oracle-growth"
     collection = identity(campaign_date, backend, profile)
     paths = {}
     for index, (key, template) in enumerate(templates(profile).items()):
@@ -175,7 +184,7 @@ def plans(campaign_date, *, create=False, backend="ibm_fez", profile="full"):
                 else f"Full IBM profile on {backend} collected for {day.isoformat()}."
             ),
         }
-        if profile != "full":
+        if profile != "legacy-full":
             expected["purpose"] = f"{profile} v1 on {backend}, collection {day.isoformat()}"
         if path.exists():
             if json.loads(path.read_text(encoding="utf-8")) != expected:
@@ -283,12 +292,14 @@ def execute(
     *,
     max_jobs_per_batch=10,
     batch_max_time=3600,
-    profile="full",
+    profile="legacy-full",
 ):
     """Run independent stages; resume only untouched batches, never failed jobs."""
     modes = ("identity", "validate", "plan", "run", "prepare", "submit", "recover", "complete")
     if mode not in modes:
         raise ValueError(f"Unknown campaign mode: {mode}")
+    if profile == "full":
+        profile = "full-oracle-growth"
     if max_batches not in (1, 2, 3) or max_jobs_per_batch not in (6, 10, 14):
         raise ValueError("Expected 1-3 active batches and 6, 10 or 14 jobs per batch")
     if batch_max_time not in (600, 1800, 3600):
