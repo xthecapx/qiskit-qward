@@ -259,7 +259,8 @@ def cloud_runtime(ci, monkeypatch):
 
     runner = lambda key: SimpleNamespace(campaign=Campaign)
     service = SimpleNamespace(
-        backend=lambda name: name, job=lambda job_id: SimpleNamespace(in_final_state=lambda: True)
+        backend=lambda name: name,
+        job=lambda job_id: SimpleNamespace(in_final_state=lambda: True, status=lambda: "DONE"),
     )
     monkeypatch.setattr(campaign_matrix, "load_runner", runner)
     monkeypatch.setattr(campaign_submit, "load_runner", runner)
