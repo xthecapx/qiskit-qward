@@ -18,7 +18,7 @@
 </script>
 
 <label
-  >{label}<select {...rest} onchange={change}>
+  >{label}<select aria-label={label} {...rest} onchange={change}>
     {#each options as option, index (option)}
       <option value={index} selected={option === value}>{format(option)}</option>
     {/each}

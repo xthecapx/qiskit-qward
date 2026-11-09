@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import re
@@ -223,9 +224,30 @@ def build(tables, output):
     """
     data = load_tables(tables)
     output.mkdir(parents=True, exist_ok=True)
+    decay_reports = {}
+    manifest = Path(tables) / "dataset_manifest.json"
+    if manifest.is_file():
+        digest = hashlib.sha256(manifest.read_bytes()).hexdigest()
+        for path in sorted((PROJECT / "experiments/decay").glob("*.json")):
+            snapshot = json.loads(path.read_text(encoding="utf-8"))
+            if snapshot["manifestHash"] != digest:
+                continue
+            if any(
+                hashlib.sha256((Path(tables) / name).read_bytes()).hexdigest() != expected
+                for name, expected in snapshot["inputs"].items()
+            ):
+                continue
+            filename = f"decay-{path.stem}-{digest[:12]}.json"
+            write_json(output / filename, snapshot)
+            decay_reports[snapshot["backend"]] = filename
     write_json(
         output / "index.json",
-        {"schemaVersion": SCHEMA_VERSION, "jobs": data["jobs"], "refs": data["refs"]},
+        {
+            "schemaVersion": SCHEMA_VERSION,
+            "jobs": data["jobs"],
+            "refs": data["refs"],
+            "decayReports": decay_reports,
+        },
     )
     write_json(
         output / "calibrations.json",

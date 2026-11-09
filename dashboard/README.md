@@ -186,3 +186,19 @@ Detailed values come from **preparation snapshots**, not execution-time per-elem
 - Try the histogram → calibration → histogram path first: is the relationship between observed outcomes and hardware context clear without implying causation?
 - Decide whether comparing two saved dates side by side is more useful than a component-by-date heatmap once more monthly samples exist.
 - Preserve detailed execution-time snapshots in future collection. That would let the component view show the actual execution calibration rather than preparation details alongside execution summaries.
+
+### Compare decay
+
+The Compare decay tab loads the selected chip’s fitted lines and grouping results on demand.
+The dashboard build includes an experiment snapshot when its manifest, reference table and CSV
+parts match the analysis input hashes. A chip without a matching report shows an availability message.
+To refresh the snapshot after exporting new jobs, run from the repository root:
+
+```sh
+python -m qward.examples.papers.scalability_regression --decay-only --backend ibm_fez --out report/fez
+python dashboard/export_decay.py report/fez/decay
+python dashboard/build.py
+```
+
+The heatmap and table use the same complete-linkage assignments and period fits as the offline
+analysis. URLs preserve the selected pair, resource and outcome, for example `#section=decay`.
