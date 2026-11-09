@@ -1,5 +1,5 @@
 /** Tree-shaken ECharts: register only the charts and components the dashboard draws. */
-import { BarChart, GraphChart, ScatterChart } from "echarts/charts";
+import { LineChart, BarChart, GraphChart, ScatterChart } from "echarts/charts";
 import {
   GridComponent,
   MarkAreaComponent,
@@ -10,6 +10,7 @@ import * as echarts from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
 
 echarts.use([
+  LineChart,
   BarChart,
   GraphChart,
   ScatterChart,

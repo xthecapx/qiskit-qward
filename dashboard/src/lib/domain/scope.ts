@@ -14,6 +14,7 @@ export const ALL_GROUPS = "";
 export interface Period {
   id: string;
   label: string;
+  dateLabel: string;
   jobs: Job[];
 }
 
@@ -56,7 +57,11 @@ export function periods(jobs: Job[], backend: string): Period[] {
       return { id, rows, times };
     })
     .sort((a, b) => (b.times.at(-1) ?? "").localeCompare(a.times.at(-1) ?? ""))
-    .map(({ id, rows, times }) => ({ id, label: periodLabel(times), jobs: rows }));
+    .map(({ id, rows, times }) => {
+      const first = times.length ? shortDate(times[0]) : "Date unavailable";
+      const last = times.length ? shortDate(times[times.length - 1]) : first;
+      return { id, label: periodLabel(times), dateLabel: first === last ? first : `${first} – ${last}`, jobs: rows };
+    });
 }
 
 export function inPeriod(jobs: Job[], backend: string, period: string): Job[] {

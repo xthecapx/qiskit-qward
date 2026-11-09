@@ -138,3 +138,26 @@ test("deep links restore the histogram view", async ({ page }) => {
   await expect(page.locator("#histogram-title")).toBeVisible();
   expect(new URL(url).hash).toContain("v=job");
 });
+
+test("compare decay shows matched fits, shares selections and restores range settings @narrow", async ({ page }) => {
+  const errors = await openApp(page);
+  await page.getByLabel("Algorithm", {exact:true}).selectOption({label:"Grover"});
+  await page.getByRole("tab", {name:"Compare decay"}).click();
+  const panel = page.getByRole("region", {name:"Decay comparison"});
+  await expect(panel.locator(".panels svg").first()).toBeVisible();
+  await expect(panel.getByRole("heading", {name:"QFT and Phase estimation"})).toBeVisible();
+  expect(await panel.locator(".panels article").count()).toBeGreaterThanOrEqual(3);
+  await expect(panel.locator(".stat strong")).toHaveText(/\d+\.\d{2} pp/);
+  await panel.getByLabel("Resource",{exact:true}).selectOption({label:"Total logical qubits"});
+  await panel.getByRole("button",{name:"Grover / Bernstein–Vazirani",exact:true}).first().click();
+  await expect(panel.getByRole("heading",{name:"Grover and Bernstein–Vazirani"})).toBeVisible();
+  await panel.getByLabel("Outcome",{exact:true}).selectOption({label:"Hellinger fidelity"});
+  await page.reload();
+  await expect(panel.getByRole("heading",{name:"Grover and Bernstein–Vazirani"})).toBeVisible();
+  await expect(panel.locator(".note").first()).toContainText("Hellinger fidelity");
+  await panel.getByLabel("Resource",{exact:true}).selectOption({label:"Logical two-qubit gates"});
+  await expect(panel.getByText(/No period has the required/)).toBeVisible();
+  await page.getByRole("tab",{name:"Operating range"}).click();
+  await expect(page.getByLabel("Algorithm",{exact:true}).locator("option:checked")).toHaveText("Grover");
+  expect(errors).toEqual([]);
+});
