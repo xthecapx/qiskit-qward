@@ -39,8 +39,9 @@ def submit_window(
     checkpoint=None,
     recover_results=True,
     batch_max_time=None,
+    refresh_service=None,
 ):
-    """Count resumed Batches first, then reuse slots as their IBM jobs finish."""
+    """Track existing batches first. With a client factory, drain each wave before reconnecting."""
     if max_batches not in (1, 2, 3):
         raise ValueError("max_batches must be 1, 2 or 3")
     pending, active = deque(), {}
@@ -70,7 +71,8 @@ def submit_window(
     if campaigns and service is None:
         service = service_from_env(**resolve_ibm_credentials())
     while pending or active:
-        while pending and len(active) < max_batches:
+        can_open = refresh_service is None or not active
+        while can_open and pending and len(active) < max_batches:
             key, backend = pending.popleft()
             print(f"{key}: opening Batch", flush=True)
             with stage(f"{key}: submit Batch"):
@@ -86,8 +88,21 @@ def submit_window(
         for key, ids in list(active.items()):
             # A single unfinished job keeps this Batch in its slot. Finished
             # IDs can be discarded here; recovery uses the durable manifest.
-            while ids and service.job(ids[0]).in_final_state():
-                ids.popleft()
+            if refresh_service is not None:
+                for job_id in tuple(ids):
+                    job = service.job(job_id)
+                    status = job.status()
+                    status = getattr(status, "name", status)
+                    if status in ("ERROR", "CANCELLED", "CANCELED"):
+                        raise RuntimeError(
+                            f"{key}: IBM job {job_id} is {status}: {job.error_message()}. "
+                            "Submission stopped; recover the recorded job IDs."
+                        )
+                    if status == "DONE":
+                        ids.remove(job_id)
+            else:
+                while ids and service.job(ids[0]).in_final_state():
+                    ids.popleft()
             if ids:
                 report(
                     f"{key}: waiting on IBM job {ids[0]}; "
@@ -105,7 +120,13 @@ def submit_window(
                     f"{key}: {'recovered' if recover_results else 'terminal; collect in recovery step'}",
                     flush=True,
                 )
-        if active and (not pending or len(active) >= max_batches):
+        if refresh_service is not None and pending and not active:
+            report(
+                "Wave terminal. Waiting 120 seconds before connecting a fresh IBM Runtime client."
+            )
+            time.sleep(120)
+            service = refresh_service()
+        elif active and (refresh_service is not None or not pending or len(active) >= max_batches):
             time.sleep(poll_seconds)
 
 
