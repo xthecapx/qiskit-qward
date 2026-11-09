@@ -61,13 +61,39 @@ class Runtime:
         self.tick += 1
 
     def job(self, key):
-        return SimpleNamespace(in_final_state=lambda: self.tick >= self.end[key])
+        return SimpleNamespace(
+            in_final_state=lambda: self.tick >= self.end[key],
+            status=lambda: "DONE" if self.tick >= self.end[key] else "QUEUED",
+        )
 
     def recover_manifest(self, path, service):
         key = json.loads(path.read_text(encoding="utf-8"))["algorithm"]
         assert self.tick >= self.end[key]
         self.events.append(("recover", key, self.tick))
         return self.save(key, "completed")
+
+
+@pytest.mark.parametrize("failure", ["ERROR", "CANCELLED"])
+def test_wave_stops_when_a_later_job_fails_while_first_is_queued(tmp_path, monkeypatch, failure):
+    runtime = Runtime(tmp_path, monkeypatch)
+    saved = runtime.save("grover", "submitted")
+    saved["jobs_planned"] = 2
+    saved["items"] = [{"runs": 2, "job_ids": ["waiting", "broken"]}]
+    runtime.paths["grover"].write_text(json.dumps(saved))
+    monkeypatch.setattr(
+        runtime,
+        "job",
+        lambda key: SimpleNamespace(
+            status=lambda: "QUEUED" if key == "waiting" else failure,
+            error_message=lambda: "Session has been closed",
+        ),
+    )
+    with pytest.raises(RuntimeError, match=f"broken is {failure}"):
+        S.submit_window(
+            runtime.paths, 1, runtime, refresh_service=lambda: runtime, recover_results=False
+        )
+    assert not runtime.events
+    assert json.loads(runtime.paths["bv"].read_text())["status"] == "prepared"
 
 
 @pytest.mark.parametrize("limit", [1, 2, 3])
