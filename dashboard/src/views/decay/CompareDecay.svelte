@@ -25,11 +25,24 @@
   const outcomes=$derived(Object.keys(data?.panels[metric]??{}));
   const outcome=$derived(outcomes.includes(choices.outcome)?choices.outcome:outcomes[0]);
   const cells=$derived(data?.panels[metric]?.[outcome]??[]);
-  const cell=$derived(cells.find(c=>key(c)===choices.pair)??cells[0]);
+  const rankedPairs = $derived(cells.map(c => ({
+    id: key(c),
+    name: pairLabel(key(c)),
+    gap: c.grouped === null ? null : c.gap,
+  })).sort((a, b) => {
+    if (a.gap === b.gap) return a.name.localeCompare(b.name, "en");
+    if (a.gap === null) return 1;
+    if (b.gap === null) return -1;
+    return a.gap - b.gap;
+  }));
+  const cell=$derived(cells.find(c=>key(c)===choices.pair)??cells.find(c=>key(c)===rankedPairs[0]?.id));
   const periods=$derived(Object.entries(cell?.periods??{}));
   const axes=$derived(bounds(periods.map(p=>p[1])));
   const ids=$derived(data?.algorithms??[]);
   const unit=$derived(outcome==="success"?"pp":"points");
+  const pairOptions = $derived(new Map(rankedPairs.map(({id, name, gap}) => [
+    id, name + " · " + (gap === null ? "Insufficient overlap" : fixed(gap) + " " + unit),
+  ])));
   const ylabel=$derived(outcome==="success"?"Success rate (%)":(targets[outcome]+" × 100"));
   function change(v:Partial<Choices>){onchange({...choices,...v});}
   function pairLabel(k:string){return k.split("/").map(algorithmName).join(" / ");}
@@ -45,7 +58,7 @@
   <div class="settings controls">
     <Select label="Chip" value={explorer.backend} options={explorer.backends} onchange={(b)=>explorer.setBackend(b)}/>
     {#if cell}
-      <Select label="Algorithm pair" value={key(cell)} options={cells.map(key)} format={pairLabel} onchange={pair=>change({pair})}/>
+      <Select label="Algorithm pair" value={key(cell)} options={[...pairOptions.keys()]} format={id=>pairOptions.get(id)??pairLabel(id)} onchange={pair=>change({pair})}/>
       <Select label="Resource" value={metric} options={metrics} format={v=>resources[v]??v} onchange={resource=>change({resource})}/>
       <Select label="Outcome" value={outcome} options={outcomes} format={v=>targets[v]??v} onchange={outcome=>change({outcome})}/>
     {/if}
