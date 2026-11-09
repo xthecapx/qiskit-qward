@@ -76,11 +76,10 @@ class Runtime:
 @pytest.mark.parametrize("failure", ["ERROR", "CANCELLED"])
 def test_wave_stops_when_a_later_job_fails_while_first_is_queued(tmp_path, monkeypatch, failure):
     runtime = Runtime(tmp_path, monkeypatch)
-    first, second = list(runtime.paths)[:2]
-    saved = runtime.save(first, "submitted")
+    saved = runtime.save("grover", "submitted")
     saved["jobs_planned"] = 2
     saved["items"] = [{"runs": 2, "job_ids": ["waiting", "broken"]}]
-    runtime.paths[first].write_text(json.dumps(saved))
+    runtime.paths["grover"].write_text(json.dumps(saved))
     monkeypatch.setattr(
         runtime,
         "job",
@@ -94,7 +93,7 @@ def test_wave_stops_when_a_later_job_fails_while_first_is_queued(tmp_path, monke
             runtime.paths, 1, runtime, refresh_service=lambda: runtime, recover_results=False
         )
     assert not runtime.events
-    assert json.loads(runtime.paths[second].read_text())["status"] == "prepared"
+    assert json.loads(runtime.paths["bv"].read_text())["status"] == "prepared"
 
 
 @pytest.mark.parametrize("limit", [1, 2, 3])
