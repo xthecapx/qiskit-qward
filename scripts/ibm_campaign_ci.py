@@ -14,6 +14,17 @@ PAPERS = ROOT / "qward/examples/papers"
 PUBLIC_PROFILES = ("full", "oracle-growth", "shor-growth")
 HISTORICAL_PROFILES = ("legacy-full", "full-shor-growth", "full-oracle-growth")
 PROFILES = PUBLIC_PROFILES + HISTORICAL_PROFILES
+MODES = (
+    "identity",
+    "validate",
+    "plan",
+    "run",
+    "prepare",
+    "submit",
+    "submit-only",
+    "recover",
+    "complete",
+)
 # Existing Python callers keep the legacy defaults; the CLI explicitly defaults to current full.
 BACKENDS = ("ibm_fez", "ibm_kingston", "ibm_marrakesh")
 DIRECTORIES = {
@@ -261,7 +272,7 @@ def recover_batches(state, service, *, attempts=3, retry_seconds=5):
             time.sleep(retry_seconds)
 
 
-def verify_complete(paths, state):
+def verify_complete(paths, state, *, require_results=True):
     """Require the complete, unique planned submission set across the collection."""
     from qward.examples.papers.campaign_parts import sync_parents
 
@@ -274,7 +285,7 @@ def verify_complete(paths, state):
         expected = json.loads(paths[key].read_text(encoding="utf-8"))["planned_executions"]
         ids = [job for item in manifest["items"] for job in item["job_ids"]]
         if (
-            manifest["status"] != "completed"
+            (require_results and manifest["status"] != "completed")
             or len(ids) != expected
             or len(set(ids)) != expected
             or not all(ids)
@@ -295,12 +306,13 @@ def execute(
     profile="legacy-full",
 ):
     """Run independent stages; resume only untouched batches, never failed jobs."""
-    modes = ("identity", "validate", "plan", "run", "prepare", "submit", "recover", "complete")
-    if mode not in modes:
+    if mode not in MODES:
         raise ValueError(f"Unknown campaign mode: {mode}")
     if profile == "full":
         profile = "full-oracle-growth"
-    if max_batches not in (1, 2, 3) or max_jobs_per_batch not in (6, 10, 14):
+    if max_batches is None and mode != "submit-only":
+        max_batches = 3
+    if max_batches not in (None, 1, 2, 3) or max_jobs_per_batch not in (6, 10, 14):
         raise ValueError("Expected 1-3 active batches and 6, 10 or 14 jobs per batch")
     if batch_max_time not in (600, 1800, 3600):
         raise ValueError("Batch lifetime must be 600, 1800 or 3600 seconds")
@@ -338,17 +350,18 @@ def execute(
     if mode == "complete":
         verify_complete(paths, state)
         return
-    if mode == "submit" and not all(path.exists() for path in state.values()):
+    if mode in ("submit", "submit-only") and not all(path.exists() for path in state.values()):
         raise ValueError("Prepare every algorithm before submitting any jobs")
 
     from qward.examples.papers.campaign_matrix import load_runner
     from qward.examples.papers.campaign_parts import manifest_parts, split_manifest, sync_parents
-    from qward.examples.papers.campaign_submit import submit_window
+    from qward.examples.papers.campaign_submit import lock_plan, submit_window
     from qward.examples.papers.ibm_campaign import service_from_env
     from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
     from qward.examples.papers.campaign_progress import report, stage
 
-    report(f"Campaign {backend}/{campaign_date}: mode={mode}, max active Batches={max_batches}")
+    limit = max_batches if max_batches is not None else "IBM admission limit"
+    report(f"Campaign {backend}/{campaign_date}: mode={mode}, max active Batches={limit}")
     for package in ("qiskit", "qiskit-ibm-runtime", "torch"):
         try:
             installed = version(package)
@@ -376,19 +389,35 @@ def execute(
         )
         if profile in ("oracle-growth", "full-oracle-growth"):
             oracle_overlap(state)
-    if mode in ("run", "submit"):
-        try:
-            submit_window(
-                manifest_parts(state),
-                max_batches,
-                service,
-                checkpoint=checkpoint,
-                recover_results=False,
-                batch_max_time=batch_max_time,
-            )
-        finally:
-            sync_parents(state)
-            checkpoint()
+    if mode in ("run", "submit", "submit-only"):
+        with next(iter(paths.values())).open("rb") as lock:
+            lock_plan(lock)
+            parts = manifest_parts(state)
+            if mode == "submit-only":
+                for path in parts.values():
+                    if json.loads(path.read_text())["jobs_planned"] > max_jobs_per_batch:
+                        raise ValueError(
+                            f"{path} exceeds the selected jobs per Batch; check preparation"
+                        )
+            try:
+                submit_window(
+                    parts,
+                    max_batches,
+                    service,
+                    checkpoint=checkpoint,
+                    recover_results=False,
+                    batch_max_time=batch_max_time,
+                    submit_only=mode == "submit-only",
+                )
+            finally:
+                sync_parents(state)
+                checkpoint()
+            if mode == "submit-only":
+                verify_complete(paths, state, require_results=False)
+                print(
+                    f"Submission complete: {job_count} distinct IBM job IDs saved. Recover later.",
+                    flush=True,
+                )
     if mode in ("run", "recover"):
         recover_batches(state, service)
         verify_complete(paths, state)
@@ -399,10 +428,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "mode",
-        choices=("identity", "validate", "plan", "run", "prepare", "submit", "recover", "complete"),
+        choices=MODES,
     )
     parser.add_argument("--date", required=True, help="Collection date in YYYY-MM-DD (Bogotá)")
-    parser.add_argument("--max-batches", type=int, choices=(1, 2, 3), default=3)
+    parser.add_argument(
+        "--max-batches",
+        type=int,
+        choices=(1, 2, 3),
+        help="Local active Batch cap. Defaults to uncapped for submit-only and 3 otherwise.",
+    )
     parser.add_argument("--backend", choices=BACKENDS, default="ibm_fez")
     parser.add_argument("--max-jobs-per-batch", type=int, choices=(6, 10, 14), default=10)
     parser.add_argument("--batch-max-time", type=int, choices=(600, 1800, 3600), default=3600)

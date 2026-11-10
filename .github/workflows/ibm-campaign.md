@@ -34,6 +34,30 @@ python dashboard/build.py
 
 Use the same backend, profile and date to resume or recover. For older runs, set the optional `recovery_profile` override to `legacy-full` for the former 344-job `full`, `full-shor-growth` for 381 jobs, or `full-oracle-growth` for 391 jobs. This override applies only to resume/recover. The CLI accepts these historical names with `--profile`. New `full` runs share the identity of `full-oracle-growth`, including any existing same-chip/date reservation. Each combination has its own result branch, plans, manifests and budget. Actions exports completed records and builds the dashboard after successful recovery. The [Shor guide](../../docs/shor_growth_local_run.md) covers previous growth collections.
 
+### Local submission with overnight recovery
+
+For Kingston's first full window, run `prepare` with `--max-jobs-per-batch 6` once.
+After preparation finishes, these commands submit the campaign and retrieve it later.
+
+```sh
+CAMPAIGN_PROGRESS=1 caffeinate -i .venv/bin/python -m scripts.ibm_campaign_ci submit-only \
+  --backend ibm_kingston --profile full --date 2026-11-09 --max-jobs-per-batch 6
+
+# On the next day, keep the original collection date.
+.venv/bin/python -m scripts.ibm_campaign_ci recover --backend ibm_kingston --profile full --date 2026-11-09
+```
+
+`caffeinate -i` keeps an open Mac awake during submission. The driver assigns intact
+algorithm Batches to three groups by planned job count and records the group in each
+submitted Batch manifest. This window has 22 Batches in each group, with 132, 129
+and 130 jobs respectively. By default, `submit-only` offers all prepared Batches to IBM consecutively without
+waiting for execution. IBM can refuse a Batch opening. If that happens, the
+untouched part stays prepared and the same command can resume it later.
+An explicit `--max-batches 3` makes the local driver wait for free slots. Once it verifies all 391 distinct
+IBM job IDs on disk, the laptop can shut down. Recovery uses the saved IDs and can
+be run again if jobs are pending. All groups share the collection date and window.
+Use each recovered job's execution timestamps to identify when Kingston ran it.
+
 The remaining sections describe the historical **`legacy-full`** profile unless stated otherwise.
 
 `ibm-campaign.yml` collects the reviewed full research profile on one selected IBM

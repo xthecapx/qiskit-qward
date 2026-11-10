@@ -298,6 +298,22 @@ def test_separate_stages_preserve_all_jobs_and_resume_without_duplicates(ci, clo
     assert len(cloud_runtime.recovered) == 37
 
 
+def test_full_submit_only_keeps_batches_and_recovers_later(ci, cloud_runtime, capsys):
+    options = {"backend": "ibm_kingston", "profile": "full", "max_jobs_per_batch": 6}
+    day = "2026-11-09"
+    ci.execute(day, "prepare", 3, **options)
+    ci.execute(day, "submit-only", None, **options)
+    assert "391 distinct IBM job IDs saved" in capsys.readouterr().out
+    batches = [json.loads(path.read_text()) for path in cloud_runtime.sent]
+    groups = [batch["submission_group"] for batch in batches]
+    assert groups == sorted(groups) and set(groups) == {1, 2, 3}
+    assert all(batch["jobs_planned"] <= 6 and batch["window"] == 20261109 for batch in batches)
+    assert not cloud_runtime.recovered
+    ci.execute(day, "submit-only", None, **options)
+    ci.execute(day, "recover", 3, **options)
+    assert len(batches) == len(cloud_runtime.recovered) == len(cloud_runtime.sent)
+
+
 def test_recovery_retries_reads_continues_other_parts_and_never_replaces_jobs(ci, cloud_runtime):
     ci.execute("2026-11-06", "prepare", 3)
     ci.execute("2026-11-06", "submit", 3)
