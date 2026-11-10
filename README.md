@@ -39,6 +39,12 @@ dashboards = visualizer.create_dashboard(save=True)
 
 ## 📚 Documentation
 
+### Thesis experiments
+
+See the [thesis workspace](thesis/README.md) for the IBM/Rigetti experiment catalog,
+local collection and data-generation commands, dashboard data ownership, and a
+portable snapshot tool for a future thesis repository or collaborator handoff.
+
 ### QPU Benchmark dashboard
 
 Explore the collected experiment results, job histograms, and QPU calibration history in the standalone static dashboard:
