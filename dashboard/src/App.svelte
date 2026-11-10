@@ -13,12 +13,12 @@
   import CompareDecay from "./views/decay/CompareDecay.svelte";
 
   let section = $state("range");
-  let decay = $state({ pair: "QFT/PHASE-ESTIMATION", resource: "a.ComplexityMetrics.gate_based_metrics.two_qubit_count", outcome: "success" });
+  let decay = $state({ matrix: "similarity", pair: "QFT/PHASE-ESTIMATION", resource: "a.ComplexityMetrics.gate_based_metrics.two_qubit_count", outcome: "success" });
   let reports = $state<Record<string,string>>({});
   function readChoices() {
     const url = parseHash(location.hash);
     section = url.section === "decay" ? "decay" : "range";
-    decay = {pair: url.pair || "QFT/PHASE-ESTIMATION", resource: url.resource || "a.ComplexityMetrics.gate_based_metrics.two_qubit_count", outcome: url.outcome || "success"};
+    decay = {matrix: url.matrix === "direction" ? "direction" : "similarity", pair: url.pair || "QFT/PHASE-ESTIMATION", resource: url.resource || "a.ComplexityMetrics.gate_based_metrics.two_qubit_count", outcome: url.outcome || "success"};
   }
 
   let explorer = $state<Explorer>();

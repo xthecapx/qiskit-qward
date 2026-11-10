@@ -161,3 +161,25 @@ test("compare decay shows matched fits, shares selections and restores range set
   await expect(page.getByLabel("Algorithm",{exact:true}).locator("option:checked")).toHaveText("Grover");
   expect(errors).toEqual([]);
 });
+
+test("direction compares column loss to row loss and preserves the question on reload @narrow", async ({page}) => {
+  const errors = await openApp(page, "#section=decay&b=ibm_kingston&resource=a.num_qubits&outcome=success&pair=QFT%2FPHASE-ESTIMATION");
+  const panel = page.getByRole("region", {name:"Decay comparison"});
+  await expect(panel.locator("#matrix-guide")).toContainText("Which algorithm pairs show similar changes");
+  await panel.getByLabel("Matrix view").selectOption({label:"Direction"});
+  await expect(panel.locator("#matrix-guide")).toContainText("larger fitted decrease in success rate");
+  const forward = panel.getByRole("button", {name:/^QFT to PE:/});
+  const reverse = panel.getByRole("button", {name:/^PE to QFT:/});
+  const shown = Number(await forward.innerText());
+  expect(Number.isFinite(shown)).toBeTruthy();
+  expect(Number(await reverse.innerText()) + shown).toBeCloseTo(0);
+  await reverse.click();
+  await expect(panel.locator(".stat span")).toContainText("QFT relative to PE");
+  await expect(panel.locator(".stat strong")).toContainText((await reverse.getAttribute("aria-label"))!.split(": ")[1]);
+  await page.reload();
+  await expect(reverse).toHaveAttribute("aria-pressed", "true");
+  await expect(panel.locator(".panels svg").first()).toBeVisible();
+  await panel.getByLabel("Matrix view").selectOption({label:"Similarity"});
+  await expect(panel.locator(".stat span")).toHaveText("Median gap in fitted change");
+  expect(errors).toEqual([]);
+});

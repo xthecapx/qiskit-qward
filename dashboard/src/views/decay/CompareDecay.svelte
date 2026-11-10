@@ -3,8 +3,8 @@
   import Select from "../../lib/ui/Select.svelte";
   import { algorithmName } from "../../lib/domain/catalog";
   import type { Explorer } from "../../lib/state/explorer.svelte";
-  import { bounds, chart, fixed, key, resources, roles, short, targets, type Snapshot } from "./model";
-  type Choices={pair:string;resource:string;outcome:string};
+  import { bounds, chart, extraLoss, fixed, key, medianLoss, signed, resources, roles, short, targets, type Snapshot } from "./model";
+  type Choices={matrix:string;pair:string;resource:string;outcome:string};
   let {explorer,reports,choices,onchange}:{explorer:Explorer;reports:Record<string,string>;choices:Choices;onchange:(v:Choices)=>void}=$props();
   let data=$state<Snapshot>();
   let error=$state("");
@@ -25,23 +25,32 @@
   const outcomes=$derived(Object.keys(data?.panels[metric]??{}));
   const outcome=$derived(outcomes.includes(choices.outcome)?choices.outcome:outcomes[0]);
   const cells=$derived(data?.panels[metric]?.[outcome]??[]);
+  const directional = $derived(choices.matrix === "direction");
+  const signedGaps = $derived(new Map(cells.map(c => [key(c), medianLoss(c)])));
   const rankedPairs = $derived(cells.map(c => ({
     id: key(c),
     name: pairLabel(key(c)),
-    gap: c.grouped === null ? null : c.gap,
+    gap: !directional && c.grouped === null ? null : c.gap,
   })).sort((a, b) => {
     if (a.gap === b.gap) return a.name.localeCompare(b.name, "en");
     if (a.gap === null) return 1;
     if (b.gap === null) return -1;
     return a.gap - b.gap;
   }));
-  const cell=$derived(cells.find(c=>key(c)===choices.pair)??cells.find(c=>key(c)===rankedPairs[0]?.id));
+  const cell=$derived(cells.find(c=>key(c)===choices.pair || c.b+"/"+c.a===choices.pair)??cells.find(c=>key(c)===rankedPairs[0]?.id));
   const periods=$derived(Object.entries(cell?.periods??{}));
+  const reversed = $derived(!!cell && choices.pair === cell.b+"/"+cell.a);
+  const row = $derived(cell && reversed ? cell.b : cell?.a ?? "");
+  const column = $derived(cell && reversed ? cell.a : cell?.b ?? "");
+  function directionValue(c: typeof cells[number], rowId: string) {
+    const value = signedGaps.get(key(c));
+    return value == null ? null : rowId === c.a ? value : -value;
+  }
   const axes=$derived(bounds(periods.map(p=>p[1])));
   const ids=$derived(data?.algorithms??[]);
   const unit=$derived(outcome==="success"?"pp":"points");
   const pairOptions = $derived(new Map(rankedPairs.map(({id, name, gap}) => [
-    id, name + " · " + (gap === null ? "Insufficient overlap" : fixed(gap) + " " + unit),
+    id, directional ? name : name + " · " + (gap === null ? "Insufficient overlap" : fixed(gap) + " " + unit),
   ])));
   const ylabel=$derived(outcome==="success"?"Success rate (%)":(targets[outcome]+" × 100"));
   function change(v:Partial<Choices>){onchange({...choices,...v});}
@@ -69,10 +78,12 @@
   {:else if cell}
     <div class="heading"><div><p class="eyebrow">{roles[cell.role]??cell.role}</p>
       <h2>{algorithmName(cell.a)} and {algorithmName(cell.b)}</h2>
-      <p class="note">{targets[outcome]} by {resources[metric]?.toLowerCase()??metric} · {explorer.backend}</p></div>
-      <div class="stat"><strong>{fixed(cell.gap)} {unit}</strong><span>Median gap in fitted change</span></div>
+      <p class="note">How does {targets[outcome]} change for these two algorithms across shared values of {resources[metric].toLowerCase()} in each window on {explorer.backend}?</p></div>
+      <div class="stat"><strong>{directional ? signed(directionValue(cell,row)) : fixed(cell.gap)} {unit}</strong><span>{directional ? `Median extra loss of ${short(column)} relative to ${short(row)}` : "Median gap in fitted change"}</span></div>
     </div>
-    <p class="verdict">{cell.grouped===true?"Grouped together":cell.grouped===false?"In separate clusters":"Insufficient overlap for clustering"} · {data.tolerance}-{unit} tolerance · {periods.length} eligible {periods.length===1?"period":"periods"}</p>
+    {#if directional}
+      <p class="verdict">{periods.length} eligible {periods.length === 1 ? "window" : "windows"}. {#if periods.length}{short(column)} had a lower fitted change than {short(row)} in {periods.filter(([,v])=>extraLoss(v,reversed)>0).length} of {periods.length}.{/if}</p>
+    {:else}<p class="verdict">{cell.grouped===true?"Grouped together":cell.grouped===false?"In separate clusters":"Insufficient overlap for clustering"} · {data.tolerance}-{unit} tolerance · {periods.length} eligible {periods.length===1?"period":"periods"}</p>{/if}
     {#if periods.length}
       <div class="legend"><span>● {algorithmName(cell.a)} · solid</span><span>◆ {algorithmName(cell.b)} · dashed</span></div>
       <p class="note">{ylabel}. Points show configuration means at shared levels. Lines show the linear fit for each algorithm.</p>
@@ -80,15 +91,20 @@
         <article><h3>{dateLabel(p)}</h3>
         <EChart option={chart(values,cell,axes,resources[metric]??metric,ylabel)} replace label={pairLabel(key(cell))+" on "+dateLabel(p)} style="height:195px;width:100%"/>
         </article>{/each}</div>
-      <h3>Period measurements</h3>
-      <div class="scroll"><table><thead><tr><th>Collection date (UTC)</th><th>Shared levels</th><th>{short(cell.a)} slope</th><th>{short(cell.b)} slope</th><th>Gap ({unit})</th><th>Profile ρ</th></tr></thead><tbody>
-      {#each periods as [p,v]}<tr><td>{dateLabel(p)}</td><td>{v.points.length}</td><td>{fixed(100*v.slopeA)}</td><td>{fixed(100*v.slopeB)}</td><td>{fixed(v.gap)}</td><td>{fixed(v.rho)}</td></tr>{/each}</tbody></table></div>
+      <h3>How much did the fitted trends differ in each window?</h3>
+      <div class="scroll"><table><thead><tr><th>Collection date (UTC)</th><th>Shared levels</th><th>{short(cell.a)} slope</th><th>{short(cell.b)} slope</th><th>{directional ? `Extra loss of ${short(column)} vs ${short(row)}` : "Gap"} ({unit})</th><th>Profile ρ</th></tr></thead><tbody>
+      {#each periods as [p,v]}<tr><td>{dateLabel(p)}</td><td>{v.points.length}</td><td>{fixed(100*v.slopeA)}</td><td>{fixed(100*v.slopeB)}</td><td>{directional ? signed(extraLoss(v,reversed)) : fixed(v.gap)}</td><td>{fixed(v.rho)}</td></tr>{/each}</tbody></table></div>
       <p class="note">Slopes use {unit} per resource unit. The gap compares fitted changes across the shared range. Spearman ρ compares the rankings of the observed means.</p>
     {:else}
       <p>No period has the required {data.minLevels} shared levels. The largest overlap is {Math.max(0,...Object.values(cell.overlap))}.</p>
     {/if}
     <h3>All algorithm pairs</h3>
-    <p id="matrix-guide">How differently does {targets[outcome].toLowerCase()} change as {resources[metric]?.toLowerCase()??metric} increases?
+    <Select label="Matrix view" value={choices.matrix} options={["similarity","direction"]} format={v=>v==="direction"?"Direction":"Similarity"} onchange={matrix=>change({matrix})}/>
+    {#if directional}
+      <h4 id="matrix-guide">Which algorithm shows the larger fitted decrease in {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?</h4>
+      <p>Read from row to column. Positive means the column algorithm fell more or gained less. Negative means the row algorithm did. Each value is the median signed difference across eligible windows, in {unit}. Select a cell to see its individual windows.</p>
+    {:else}
+    <p id="matrix-guide">Which algorithm pairs show similar changes in {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?
       In each period, compare how much each fitted line rises or falls from the smallest to the largest shared resource value.
       Each cell shows the median absolute difference between those changes, in {outcome==="success"?"percentage points":"points on the target × 100 scale"}.</p>
     {#if periods.length >= data.minPeriods && cell.gap !== null}
@@ -96,13 +112,16 @@
         Period gaps ({unit}): {periods.map(([,v])=>fixed(v.gap)).join(", ")}.
         Median <strong>{fixed(cell.gap)} {unit}</strong>, displayed as <strong>{cell.gap.toFixed(1)}</strong> in the matrix.</p>
     {/if}
-    <div class="scroll"><table class="matrix"><thead><tr><th>Pair</th>{#each ids as a}<th>{short(a)}</th>{/each}</tr></thead><tbody>
+    {/if}
+    <div class="scroll"><table class="matrix" aria-labelledby="matrix-guide"><thead><tr><th>Pair</th>{#each ids as a}<th>{short(a)}</th>{/each}</tr></thead><tbody>
     {#each ids as a}<tr><th>{short(a)}</th>{#each ids as b}{@const c=lookup(a,b)}<td>
-    {#if c}<button class:close={c.grouped===true} class:chosen={key(c)===key(cell)} aria-pressed={key(c)===key(cell)} aria-label={pairLabel(key(c))} onclick={()=>change({pair:key(c)})}
-      style:background-color={c.grouped===null||c.gap===null?"#f1f2ee":`hsl(162 36% ${94-50*Math.exp(-c.gap/data.tolerance)}%)`}>
-      {c.grouped===null?"—":c.gap?.toFixed(1)}</button>{:else}·{/if}</td>{/each}</tr>{/each}
-    </tbody></table></div><p class="note">Closer to zero means more similar fitted changes. Two algorithms can have a small gap even when both lose a lot of success. Darker cells mark smaller gaps. The clustering tolerance is {data.tolerance} {unit}.
-      A dash means fewer than {data.minPeriods} eligible periods. A dot marks the same algorithm. Select a cell to inspect its lines.</p>
+    {#if c}{@const selected=directional ? a===row && b===column : key(c)===key(cell)}
+      {@const delta=directionValue(c,a)}
+      <button class:close={!directional && c.grouped===true} class:chosen={selected} aria-pressed={selected} aria-label={directional ? `${short(a)} to ${short(b)}: ${signed(delta)} ${unit}` : pairLabel(key(c))} onclick={()=>change({pair:directional ? a+"/"+b : key(c)})}
+      style:background-color={directional ? (delta === null || delta === 0 ? "#f1f2ee" : delta > 0 ? "#f6ddca" : "#d9ece6") : c.grouped===null||c.gap===null?"#f1f2ee":`hsl(162 36% ${94-50*Math.exp(-c.gap/data.tolerance)}%)`}>
+      {directional ? signed(delta,1) : c.grouped===null?"—":c.gap?.toFixed(1)}</button>{:else}·{/if}</td>{/each}</tr>{/each}
+    </tbody></table></div>{#if directional}<p class="note">A dash means no window has {data.minLevels} shared levels. A dot marks the same algorithm.</p>{:else}<p class="note">Closer to zero means more similar fitted changes. Two algorithms can have a small gap even when both lose a lot of success. Darker cells mark smaller gaps. The clustering tolerance is {data.tolerance} {unit}.
+      A dash means fewer than {data.minPeriods} eligible periods. A dot marks the same algorithm. Select a cell to inspect its lines.</p>{/if}
   {/if}
 </section>
 <style>

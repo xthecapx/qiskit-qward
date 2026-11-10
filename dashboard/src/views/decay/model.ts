@@ -26,6 +26,22 @@ export const roles: Record<string,string> = {fourier:"Fourier family", oracle:"O
 export const short = (a:string) => ({"BERNSTEIN-VAZIRANI":"BV", "PHASE-ESTIMATION":"PE", "RANDOM-VOLUMETRIC":"RV"}[a] ?? algorithmName(a));
 export const key = (c:Cell) => c.a + "/" + c.b;
 export const fixed = (v:number|null) => v == null ? "—" : v.toFixed(2);
+// The row and column use the same observed resource range in each period.
+export function extraLoss(period: Period, reversed = false): number {
+  const span = period.points[period.points.length - 1][0] - period.points[0][0];
+  return (reversed ? -1 : 1) * 100 * (period.slopeA - period.slopeB) * span;
+}
+export function medianLoss(cell: Cell): number | null {
+  const values = Object.values(cell.periods).map(p => extraLoss(p)).sort((a, b) => a - b);
+  if (!values.length) return null;
+  const mid = Math.floor(values.length / 2);
+  return values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+}
+export function signed(value: number | null, digits = 2): string {
+  if (value === null) return "—";
+  const rounded = Number(value.toFixed(digits));
+  return (rounded > 0 ? "+" : "") + rounded.toFixed(digits);
+}
 export function bounds(periods:Period[]) {
   const ys=periods.flatMap(p=>p.points.flatMap(t=>t.slice(1).map(v=>100*v)));
   const xs=periods.flatMap(p=>p.points.map(t=>t[0]));
