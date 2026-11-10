@@ -110,6 +110,27 @@ def test_bound_and_refill_as_soon_as_a_batch_finishes(tmp_path, monkeypatch, lim
         assert ("submit", "vtp", 1) in service.events  # GHZ is still queued.
 
 
+def test_submit_only_releases_laptop_with_jobs_still_queued(tmp_path, monkeypatch):
+    service = Runtime(tmp_path, monkeypatch)
+    for _ in range(2):
+        S.submit_window(service.paths, 2, service, recover_results=False, submit_only=True)
+    assert len(service.events) == len(service.paths)
+    assert all(event == "submit" for event, _, _ in service.events)
+    assert service.peak == 2 and max(service.end.values()) > service.tick
+
+
+def test_uncapped_submission_resumes_all_parts_without_waiting(tmp_path, monkeypatch):
+    service = Runtime(tmp_path, monkeypatch)
+    service.save("ghz", "submitted")
+    service.end["ghz"] = 10
+    monkeypatch.setattr(service, "job", lambda _: pytest.fail("polled IBM during submission"))
+    for _ in range(2):
+        S.submit_window(service.paths, None, service, recover_results=False, submit_only=True)
+    assert service.peak == len(service.paths)
+    assert len(service.events) == len(service.paths) - 1
+    assert service.tick == 0
+
+
 def test_resume_counts_existing_batches_before_opening_new_ones(tmp_path, monkeypatch):
     service = Runtime(tmp_path, monkeypatch)
     service.save("rv", "completed")
