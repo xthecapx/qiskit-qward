@@ -99,7 +99,9 @@
       <p>No period has the required {data.minLevels} shared levels. The largest overlap is {Math.max(0,...Object.values(cell.overlap))}.</p>
     {/if}
     <h3>All algorithm pairs</h3>
-    <Select label="Matrix view" value={choices.matrix} options={["similarity","direction"]} format={v=>v==="direction"?"Direction":"Similarity"} onchange={matrix=>change({matrix})}/>
+    <div class="settings matrix-settings">
+      <Select label="Matrix view" value={choices.matrix} options={["similarity","direction"]} format={v=>v==="direction"?"Direction":"Similarity"} onchange={matrix=>change({matrix})}/>
+    </div>
     {#if directional}
       <h4 id="matrix-guide">Which algorithm shows the larger fitted decrease in {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?</h4>
       <p>Read from row to column. Positive means the column algorithm fell more or gained less. Negative means the row algorithm did. Each value is the median signed difference across eligible windows, in {unit}. Select a cell to see its individual windows.</p>
@@ -125,6 +127,7 @@
   {/if}
 </section>
 <style>
+  .matrix-settings { margin: 0; max-width: 18rem; }
   .matrix-example{border-left:3px solid var(--teal);background:#f1f6f3;padding:10px 14px;line-height:1.5}
 .compare{padding:clamp(12px,2.3vw,28px);display:grid;gap:14px}.controls{border-bottom:1px solid var(--line);padding-bottom:16px}.controls :global(label){flex:1 1 145px;min-width:0}.controls :global(select){width:100%;min-width:0}
 .heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.heading h2{font:500 clamp(1.6rem,3vw,2.5rem) Georgia,serif}.stat{border-left:3px solid var(--teal);padding-left:14px;display:grid}.stat strong{font-size:1.55rem}.stat span{font-size:.78rem;color:var(--muted)}.verdict{font-weight:650}.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:.85rem;font-weight:650}.legend span:first-child{color:var(--teal)}.legend span:last-child{color:#a03e10}.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:10px}.panels article{min-width:0;border:1px solid var(--line);padding:12px 6px 0;border-radius:9px}.panels h3{padding:0 8px}.scroll{max-width:100%;overflow:auto}.compare{min-width:0}.matrix{table-layout:fixed;min-width:500px}.matrix th,.matrix td{text-align:center;padding:2px}.matrix button{width:100%;min-height:34px;border:0;border-radius:3px;color:var(--ink);cursor:pointer;font:inherit}.matrix button.chosen{outline:2px solid var(--ink);outline-offset:-2px}.matrix button:hover{box-shadow:inset 0 0 0 1px var(--teal)}
