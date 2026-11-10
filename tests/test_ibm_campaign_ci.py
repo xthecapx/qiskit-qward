@@ -314,6 +314,35 @@ def test_full_submit_only_keeps_batches_and_recovers_later(ci, cloud_runtime, ca
     assert len(batches) == len(cloud_runtime.recovered) == len(cloud_runtime.sent)
 
 
+def test_submit_only_verifies_while_windows_plan_reads_are_locked(
+    ci, cloud_runtime, monkeypatch, capsys
+):
+    from types import SimpleNamespace
+
+    from qward.examples.papers import campaign_submit
+
+    locks = []
+    original = SimpleNamespace(read_text=Path.read_text, lock_plan=campaign_submit.lock_plan)
+
+    def deny_locked_read(path, *args, **kwargs):
+        if any(not lock.closed and path == Path(lock.name) for lock in locks):
+            raise PermissionError("Windows plan lock prevents reading through EOF")
+        return original.read_text(path, *args, **kwargs)
+
+    def capture_lock(lock):
+        original.lock_plan(lock)
+        locks.append(lock)
+
+    monkeypatch.setattr(Path, "read_text", deny_locked_read)
+    monkeypatch.setattr(campaign_submit, "lock_plan", capture_lock)
+    options = {"backend": "ibm_kingston", "profile": "full", "max_jobs_per_batch": 6}
+    ci.execute("2026-11-09", "prepare", 3, **options)
+    ci.execute("2026-11-09", "submit-only", None, **options)
+    assert "391 distinct IBM job IDs saved" in capsys.readouterr().out
+    assert len(cloud_runtime.sent) == 66 and not cloud_runtime.recovered
+    assert locks and all(lock.closed for lock in locks)
+
+
 def test_recovery_retries_reads_continues_other_parts_and_never_replaces_jobs(ci, cloud_runtime):
     ci.execute("2026-11-06", "prepare", 3)
     ci.execute("2026-11-06", "submit", 3)

@@ -272,7 +272,7 @@ def recover_batches(state, service, *, attempts=3, retry_seconds=5):
             time.sleep(retry_seconds)
 
 
-def verify_complete(paths, state, *, require_results=True):
+def verify_complete(paths, state, *, require_results=True, planned_executions=None):
     """Require the complete, unique planned submission set across the collection."""
     from qward.examples.papers.campaign_parts import sync_parents
 
@@ -282,7 +282,11 @@ def verify_complete(paths, state, *, require_results=True):
         if not path.exists():
             raise ValueError(f"Campaign incomplete: missing {path}")
         manifest = json.loads(path.read_text(encoding="utf-8"))
-        expected = json.loads(paths[key].read_text(encoding="utf-8"))["planned_executions"]
+        expected = (
+            json.loads(paths[key].read_text(encoding="utf-8"))["planned_executions"]
+            if planned_executions is None
+            else planned_executions[key]
+        )
         ids = [job for item in manifest["items"] for job in item["job_ids"]]
         if (
             (require_results and manifest["status"] != "completed")
@@ -390,6 +394,11 @@ def execute(
         if profile in ("oracle-growth", "full-oracle-growth"):
             oracle_overlap(state)
     if mode in ("run", "submit", "submit-only"):
+        # Windows may reject reads that reach the byte locked beyond the plan's EOF.
+        planned_executions = {
+            key: json.loads(path.read_text(encoding="utf-8"))["planned_executions"]
+            for key, path in paths.items()
+        }
         with next(iter(paths.values())).open("rb") as lock:
             lock_plan(lock)
             parts = manifest_parts(state)
@@ -413,7 +422,9 @@ def execute(
                 sync_parents(state)
                 checkpoint()
             if mode == "submit-only":
-                verify_complete(paths, state, require_results=False)
+                verify_complete(
+                    paths, state, require_results=False, planned_executions=planned_executions
+                )
                 print(
                     f"Submission complete: {job_count} distinct IBM job IDs saved. Recover later.",
                     flush=True,
