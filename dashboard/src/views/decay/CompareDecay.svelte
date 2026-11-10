@@ -98,37 +98,67 @@
     {:else}
       <p>No period has the required {data.minLevels} shared levels. The largest overlap is {Math.max(0,...Object.values(cell.overlap))}.</p>
     {/if}
-    <h3>All algorithm pairs</h3>
-    <div class="settings matrix-settings">
-      <Select label="Matrix view" value={choices.matrix} options={["similarity","direction"]} format={v=>v==="direction"?"Direction":"Similarity"} onchange={matrix=>change({matrix})}/>
+    <div class="matrix-heading">
+      <h3>All algorithm pairs</h3>
+      <div class="settings matrix-settings">
+        <Select label="Matrix view" value={choices.matrix} options={["similarity","direction"]} format={v=>v==="direction"?"Direction":"Similarity"} onchange={matrix=>change({matrix})}/>
+      </div>
     </div>
-    {#if directional}
-      <h4 id="matrix-guide">Which algorithm shows the larger fitted decrease in {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?</h4>
-      <p>Read from row to column. Positive means the column algorithm fell more or gained less. Negative means the row algorithm did. Each value is the median signed difference across eligible windows, in {unit}. Select a cell to see its individual windows.</p>
-    {:else}
-    <p id="matrix-guide">Which algorithm pairs show similar changes in {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?
-      In each period, compare how much each fitted line rises or falls from the smallest to the largest shared resource value.
-      Each cell shows the median absolute difference between those changes, in {outcome==="success"?"percentage points":"points on the target × 100 scale"}.</p>
-    {#if periods.length >= data.minPeriods && cell.gap !== null}
-      <p class="matrix-example" aria-live="polite"><strong>{short(cell.a)} / {short(cell.b)}</strong> ·
-        Period gaps ({unit}): {periods.map(([,v])=>fixed(v.gap)).join(", ")}.
-        Median <strong>{fixed(cell.gap)} {unit}</strong>, displayed as <strong>{cell.gap.toFixed(1)}</strong> in the matrix.</p>
-    {/if}
-    {/if}
-    <div class="scroll"><table class="matrix" aria-labelledby="matrix-guide"><thead><tr><th>Pair</th>{#each ids as a}<th>{short(a)}</th>{/each}</tr></thead><tbody>
+    <div class="matrix-intro">
+      <h4 id="matrix-guide">
+        {directional ? "Which algorithm shows the larger fitted decrease in" : "Which algorithm pairs show similar changes in"}
+        {targets[outcome].toLowerCase()} across the shared range of {resources[metric].toLowerCase()}?
+      </h4>
+      <div class="matrix-callout">
+        <p id="matrix-reading">
+          {#if directional}
+            Read from row to column. A positive value means the column algorithm fell more or gained less.
+            A negative value means the row algorithm did.
+          {:else}
+            Values closer to zero mean the two fitted lines changed by similar amounts over the shared range.
+            Darker cells indicate smaller gaps.
+          {/if}
+          Each cell shows the median {directional ? "signed difference" : "absolute gap"} across eligible windows,
+          in {outcome === "success" ? "percentage points" : "points on the outcome × 100 scale"}.
+        </p>
+        <p class="matrix-example" aria-live="polite">
+          <strong>{directional ? short(row) + " → " + short(column) : short(cell.a) + " / " + short(cell.b)}</strong>
+          {#if periods.length >= (directional ? 1 : data.minPeriods)}
+            · Window {directional ? "differences" : "gaps"} ({unit}):
+            {periods.map(([,v]) => directional ? signed(extraLoss(v,reversed)) : fixed(v.gap)).join(", ")}.
+            Median <strong>{directional ? signed(directionValue(cell,row)) : fixed(cell.gap)} {unit}</strong>.
+          {:else}
+            · {periods.length} of {directional ? 1 : data.minPeriods} required windows have at least {data.minLevels} shared resource levels.
+          {/if}
+        </p>
+      </div>
+    </div>
+    <div class="scroll"><table class="matrix" aria-labelledby="matrix-guide" aria-describedby="matrix-reading"><thead><tr><th>Pair</th>{#each ids as a}<th>{short(a)}</th>{/each}</tr></thead><tbody>
     {#each ids as a}<tr><th>{short(a)}</th>{#each ids as b}{@const c=lookup(a,b)}<td>
     {#if c}{@const selected=directional ? a===row && b===column : key(c)===key(cell)}
       {@const delta=directionValue(c,a)}
       <button class:close={!directional && c.grouped===true} class:chosen={selected} aria-pressed={selected} aria-label={directional ? `${short(a)} to ${short(b)}: ${signed(delta)} ${unit}` : pairLabel(key(c))} onclick={()=>change({pair:directional ? a+"/"+b : key(c)})}
       style:background-color={directional ? (delta === null || delta === 0 ? "#f1f2ee" : delta > 0 ? "#f6ddca" : "#d9ece6") : c.grouped===null||c.gap===null?"#f1f2ee":`hsl(162 36% ${94-50*Math.exp(-c.gap/data.tolerance)}%)`}>
       {directional ? signed(delta,1) : c.grouped===null?"—":c.gap?.toFixed(1)}</button>{:else}·{/if}</td>{/each}</tr>{/each}
-    </tbody></table></div>{#if directional}<p class="note">A dash means no window has {data.minLevels} shared levels. A dot marks the same algorithm.</p>{:else}<p class="note">Closer to zero means more similar fitted changes. Two algorithms can have a small gap even when both lose a lot of success. Darker cells mark smaller gaps. The clustering tolerance is {data.tolerance} {unit}.
-      A dash means fewer than {data.minPeriods} eligible periods. A dot marks the same algorithm. Select a cell to inspect its lines.</p>{/if}
+    </tbody></table></div>
+    <p class="note">
+      {#if directional}
+        A dash means no window has {data.minLevels} shared levels.
+      {:else}
+        The clustering tolerance is {data.tolerance} {unit}. A dash means fewer than {data.minPeriods} eligible windows.
+      {/if}
+      A dot marks the same algorithm. Select a cell to inspect its fitted lines.
+    </p>
   {/if}
 </section>
 <style>
-  .matrix-settings { margin: 0; max-width: 18rem; }
-  .matrix-example{border-left:3px solid var(--teal);background:#f1f6f3;padding:10px 14px;line-height:1.5}
+  .matrix-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .matrix-settings { margin: 0; width: min(100%, 12rem); }
+  .matrix-intro { display: grid; gap: 8px; }
+  #matrix-guide { margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.45; }
+  .matrix-callout { background: #f1f6f3; border-inline-start: 3px solid var(--teal); padding: 10px 14px; line-height: 1.5; }
+  .matrix-callout p { margin: 0; }
+  .matrix-callout .matrix-example { margin-top: 6px; }
 .compare{padding:clamp(12px,2.3vw,28px);display:grid;gap:14px}.controls{border-bottom:1px solid var(--line);padding-bottom:16px}.controls :global(label){flex:1 1 145px;min-width:0}.controls :global(select){width:100%;min-width:0}
 .heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.heading h2{font:500 clamp(1.6rem,3vw,2.5rem) Georgia,serif}.stat{border-left:3px solid var(--teal);padding-left:14px;display:grid}.stat strong{font-size:1.55rem}.stat span{font-size:.78rem;color:var(--muted)}.verdict{font-weight:650}.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:.85rem;font-weight:650}.legend span:first-child{color:var(--teal)}.legend span:last-child{color:#a03e10}.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:10px}.panels article{min-width:0;border:1px solid var(--line);padding:12px 6px 0;border-radius:9px}.panels h3{padding:0 8px}.scroll{max-width:100%;overflow:auto}.compare{min-width:0}.matrix{table-layout:fixed;min-width:500px}.matrix th,.matrix td{text-align:center;padding:2px}.matrix button{width:100%;min-height:34px;border:0;border-radius:3px;color:var(--ink);cursor:pointer;font:inherit}.matrix button.chosen{outline:2px solid var(--ink);outline-offset:-2px}.matrix button:hover{box-shadow:inset 0 0 0 1px var(--teal)}
 </style>
