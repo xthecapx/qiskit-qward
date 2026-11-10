@@ -10,7 +10,7 @@ from pathlib import Path
 
 from qward.examples.papers.campaign_matrix import RUNNERS, load_runner
 from qward.examples.papers.campaign_progress import report, stage
-from qward.examples.papers.ibm_campaign import service_from_env
+from qward.examples.papers.ibm_campaign import service_from_env, write_json
 from qward.examples.papers.ibm_experiment_base import resolve_ibm_credentials
 
 
@@ -40,15 +40,28 @@ def submit_window(
     recover_results=True,
     batch_max_time=None,
     refresh_service=None,
+    submit_only=False,
 ):
     """Track existing batches first. With a client factory, drain each wave before reconnecting."""
-    if max_batches not in (1, 2, 3):
+    if submit_only and max_batches is None and refresh_service is None:
+        # Offer every part to IBM; service-side admission still applies.
+        max_batches = len(paths)
+    elif max_batches not in (1, 2, 3):
         raise ValueError("max_batches must be 1, 2 or 3")
     pending, active = deque(), {}
     campaigns = {}
     window_keys = set()
+    group_jobs = [0, 0, 0]
+    groups = {}
     for key, path in paths.items():
         manifest = json.loads(path.read_text())
+        if submit_only:
+            # Balance intact parts in plan order, independently of their submission status.
+            group = group_jobs.index(min(group_jobs))
+            groups[key] = group + 1
+            group_jobs[group] += manifest["jobs_planned"]
+            if manifest.get("submission_group", group + 1) != group + 1:
+                raise ValueError(f"{path}: submission group changed")
         window_keys.add((manifest["backend_name"], manifest["campaign_id"], manifest["window"]))
         status = manifest["status"]
         if status == "prepared":
@@ -68,12 +81,23 @@ def submit_window(
 
     if len(window_keys) != 1:
         raise ValueError("Manifests must belong to the same backend, campaign and window")
+    if submit_only:
+        if recover_results:
+            raise ValueError("Submit-only mode requires deferred recovery")
+        pending = deque(sorted(pending, key=lambda entry: groups[entry[0]]))
+        print(f"Planned jobs in submission groups 1–3: {group_jobs}", flush=True)
     if campaigns and service is None:
         service = service_from_env(**resolve_ibm_credentials())
-    while pending or active:
+    while pending or (active and not submit_only):
         can_open = refresh_service is None or not active
         while can_open and pending and len(active) < max_batches:
             key, backend = pending.popleft()
+            if submit_only:
+                path = paths[key]
+                manifest = json.loads(path.read_text())
+                manifest["submission_group"] = groups[key]
+                write_json(path, manifest)
+                print(f"Submission group {groups[key]}/3: {key}", flush=True)
             print(f"{key}: opening Batch", flush=True)
             with stage(f"{key}: submit Batch"):
                 options = {} if batch_max_time is None else {"batch_max_time": batch_max_time}
@@ -85,10 +109,12 @@ def submit_window(
             active[key] = submitted_ids(manifest)
             print(f"{key}: tracking {manifest['batch_id']} ({len(active)} active)", flush=True)
 
+        if submit_only and not pending:
+            break
         for key, ids in list(active.items()):
             # A single unfinished job keeps this Batch in its slot. Finished
             # IDs can be discarded here; recovery uses the durable manifest.
-            if refresh_service is not None:
+            if refresh_service is not None or submit_only:
                 for job_id in tuple(ids):
                     job = service.job(job_id)
                     status = job.status()
