@@ -37,13 +37,3 @@ def bash():
         if git_bash.is_file():
             return str(git_bash)
     return "bash"
-
-
-@pytest.fixture(autouse=True)
-def _isolated_quantum_specific_cache(tmp_path_factory, monkeypatch):
-    """Never read or write the repository's QuantumSpecific cache from tests."""
-    from qward.examples.papers import dataset_features
-
-    monkeypatch.setattr(
-        dataset_features, "QUANTUM_SPECIFIC_CACHE", tmp_path_factory.mktemp("qs_cache")
-    )

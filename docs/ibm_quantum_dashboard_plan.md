@@ -1,3 +1,5 @@
+> Historical research note: current collection scripts, datasets, and dashboard hosting are maintained in [estimating-quantum-circuit](https://github.com/xthecapx/estimating-quantum-circuit). Commands below describe the pre-migration QWARD layout. Retained with the report pending its later migration.
+
 # IBM Quantum experiment dashboard plan
 
 Working draft, 4 November 2026. Interface and figures are open for iteration.

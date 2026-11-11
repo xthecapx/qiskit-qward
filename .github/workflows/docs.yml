@@ -8,16 +8,10 @@ on:
       - 'stable/**'
     paths:
       - 'docs/**'
-      - 'dashboard/**'
-      - '!dashboard/README.md'
-      - '!dashboard/dist/**'
-      - '!dashboard/tests/e2e/**'
       # API pages import library code, but do not import the research examples.
       - 'qward/**/*.py'
       - '!qward/examples/**'
       - 'qward/VERSION.txt'
-      # The dashboard builds from exported tables, not raw QPU journals or plans.
-      - 'qward/examples/papers/dataset_out/**'
       - 'setup.py'
       - 'pyproject.toml'
       - 'MANIFEST.in'
@@ -44,21 +38,6 @@ jobs:
       - name: Build docs
         run: |
           uvx tox -edocs
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: dashboard/package-lock.json
-      - name: Install dashboard dependencies
-        run: npm ci --prefix dashboard
-      - name: Validate exported tables into dashboard data
-        run: python dashboard/build.py
-      - name: Type-check and unit-test the dashboard
-        run: |
-          npm run check --prefix dashboard
-          npm test --prefix dashboard
-      - name: Build the static dashboard into the docs site
-        run: npm run build --prefix dashboard -- --outDir ../docs/_build/html/dashboard
       - name: Copy slides into docs output
         run: |
           cp -r docs/slides ./docs/_build/html/slides

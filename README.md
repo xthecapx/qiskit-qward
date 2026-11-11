@@ -39,22 +39,13 @@ dashboards = visualizer.create_dashboard(save=True)
 
 ## 📚 Documentation
 
-### Thesis experiments
+### Thesis experiments and dataset
 
-See the [thesis workspace](thesis/README.md) for the IBM/Rigetti experiment catalog,
-local collection and data-generation commands, dashboard data ownership, and a
-portable snapshot tool for a future thesis repository or collaborator handoff.
-
-### QPU Benchmark dashboard
-
-Explore the collected experiment results, job histograms, and QPU calibration history in the standalone static dashboard:
-
-```sh
-python3 dashboard/build.py
-python3 -m http.server 8774 --bind 127.0.0.1 --directory dashboard/dist
-```
-
-Open **http://127.0.0.1:8774/**. See the [dashboard README](dashboard/README.md) for prerequisites, data exports, development checks, GitHub Pages deployment, and troubleshooting. Building the dashboard from the committed tables requires only Python's standard library; no IBM credentials are needed.
+Thesis collection scripts, datasets, reproduction instructions, and the research
+website are maintained in [estimating-quantum-circuit](https://github.com/xthecapx/estimating-quantum-circuit).
+Explore the [experiment dashboard](https://xthecapx.github.io/estimating-quantum-circuit/dashboard/).
+QWARD provides the reusable circuit-analysis library used by that repository.
+Existing manuscript/report files remain here pending a separate migration.
 
 ### For Users
 - **[Project Overview](docs/project_overview.md)** - Learn about QWARD's goals and capabilities
