@@ -1,3 +1,5 @@
+> Historical research note: current collection scripts, datasets, and dashboard hosting are maintained in [estimating-quantum-circuit](https://github.com/xthecapx/estimating-quantum-circuit). Commands below describe the pre-migration QWARD layout. Retained with the report pending its later migration.
+
 # Run the Shor growth campaign locally
 
 Branch: `codex/shor-growth-2026-11-05`, created from `main`.
