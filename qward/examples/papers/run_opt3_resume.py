@@ -1,10 +1,11 @@
 """Resume opt3 campaign from job 33 onward. Skips M3-4, increases timeout."""
 
+import os
 import subprocess
 import sys
 import time
 
-TOKEN = "REDACTED_IBM_CREDENTIAL"
+TOKEN = os.environ["IBM_QUANTUM_TOKEN"]
 CHANNEL = "ibm_cloud"
 INSTANCE = "thecap"
 

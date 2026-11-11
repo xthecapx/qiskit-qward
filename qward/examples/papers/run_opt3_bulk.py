@@ -1,10 +1,11 @@
 """Bulk opt3 campaign: 92 jobs for 2q and 3q Grover + QFT."""
 
+import os
 import subprocess
 import sys
 import time
 
-TOKEN = "REDACTED_IBM_CREDENTIAL"
+TOKEN = os.environ["IBM_QUANTUM_TOKEN"]
 CHANNEL = "ibm_cloud"
 INSTANCE = "thecap"
 
