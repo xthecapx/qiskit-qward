@@ -19,6 +19,7 @@ Explore measured circuit limits on IBM hardware in the `thesis experiment dashbo
 - **Simple Unified API**: All metric classes use `get_metrics()` for consistent, type-safe access
 - **Schema Validation**: Automatic data validation with IDE support and error prevention
 - **Comprehensive Metrics**: Circuit structure, complexity analysis, and performance evaluation
+- **Quality and Cost Prediction**: Estimate how well a circuit will run on IBM Fez and Kingston, and what the job will cost, before using any QPU time
 - **Rich Visualization**: Beautiful plots and dashboards for analysis results
 - **Extensible Design**: Easy to add custom metrics and success criteria
 
@@ -32,6 +33,7 @@ Explore measured circuit limits on IBM hardware in the `thesis experiment dashbo
   project_overview
   architecture
   visualization_guide
+  qaqs
   Tutorials <tutorials/index>
   User Guide <how_tos/index>
   API References <apidocs/index>

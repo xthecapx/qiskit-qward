@@ -109,7 +109,10 @@ class TestFootprintParity(unittest.TestCase):
                 mine = quantum_specific(circuit)
                 self.assertEqual(mine["a.quantum_specific_present"], 1.0)
                 for column, value in stored.items():
-                    self.assertAlmostEqual(mine[column], value, places=6)
+                    # The metric is computed in float32 (PyTorch complex64), whose spacing at
+                    # values near 7 is 4.8e-7, and different CPU builds of PyTorch differ by a
+                    # few float32 steps. Compare to float32 precision, not to 6 decimals.
+                    self.assertAlmostEqual(mine[column], value, delta=max(1e-5, 1e-5 * abs(value)))
                 checked += 1
         self.assertGreater(checked, 0)
 

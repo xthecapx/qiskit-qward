@@ -4,7 +4,7 @@
 the job will cost, from the circuit alone. It computes the circuit's *footprint* (pre-runtime
 metrics of the logical and the compiled circuit) and applies frozen models trained on 2,409
 real executions. A runnable demo is in
-[`qward/examples/qaqs_predict_quality_and_cost.ipynb`](../qward/examples/qaqs_predict_quality_and_cost.ipynb).
+[`qward/examples/qaqs_predict_quality_and_cost.ipynb`](https://github.com/xthecapx/qiskit-qward/blob/main/qward/examples/qaqs_predict_quality_and_cost.ipynb).
 
 ```python
 from qiskit_ibm_runtime.fake_provider import FakeFez

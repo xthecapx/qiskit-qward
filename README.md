@@ -23,6 +23,21 @@ circuit.cx(0, 1)
 Scanner(circuit).scan().summary()
 ```
 
+Predict how a circuit will run, and what it will cost, before spending any QPU time:
+
+```python
+from qiskit_ibm_runtime.fake_provider import FakeFez
+from qward.qaqs import predict
+
+measured = circuit.copy()
+measured.measure_all()
+result = predict(measured, FakeFez())        # or a real backend: service.backend("ibm_fez")
+result.quality["ibm_fez/success"].value      # predicted success rate, with its validation score
+result.cost.resource_units                   # predicted billed QPU time in IBM resource units
+```
+
+See [Quality and Cost Prediction](docs/qaqs.md) for what is predicted and how far to trust it.
+
 ### Full Control
 
 ```python
@@ -54,6 +69,7 @@ Existing manuscript/report files remain here pending a separate migration.
 - **[Quickstart Guide](docs/quickstart_guide.md)** - Jump right into using QWARD
 - **[Architecture Overview](docs/architecture.md)** - Understand QWARD's design and components
 - **[Visualization Guide](docs/visualization_guide.md)** - Learn about QWARD's visualization capabilities
+- **[Quality and Cost Prediction](docs/qaqs.md)** - Predict how a circuit will run and what it will cost before you run it
 
 ### For Developers
 - **[Developer Guide](docs/developer_guide.md)** - Development setup and code quality standards
@@ -66,6 +82,7 @@ Existing manuscript/report files remain here pending a separate migration.
 - **Circuit Analysis**: Comprehensive metrics for quantum circuit complexity and structure
 - **Performance Monitoring**: Track success rates, fidelity, and execution statistics
 - **Dual Primitive Support**: Automatic detection of Sampler (counts) and Estimator (expectation values) results
+- **Quality and Cost Prediction**: Predict execution quality (success rate, fidelity, TVD) on IBM Fez and Kingston, and billed QPU cost, from the circuit alone with `qward.qaqs.predict` — no QPU time needed
 - **Visualization**: Rich, interactive plots and dashboards for metric analysis
 - **Schema Validation**: Type-safe metrics with Pydantic-based validation
 - **Extensible Architecture**: Plugin-based system for custom metrics and visualizations
@@ -97,6 +114,7 @@ Explore comprehensive examples in the [`qward/examples/`](qward/examples/) direc
 - **[Visualization Demo](qward/examples/visualization_demo.py)** - Visualization capabilities
 - **[Aer Integration](qward/examples/aer.py)** - Using QWARD with Qiskit Aer
 - **[Estimator on IBM QPU](qward/examples/estimator_ibm_experiment.py)** - Estimator primitive with real hardware
+- **[Predict quality and cost](qward/examples/qaqs_predict_quality_and_cost.ipynb)** - Frozen thesis models: predictions with validation scores, before running
 
 ## 🧪 Development & Linting
 

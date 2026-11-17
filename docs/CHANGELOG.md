@@ -1,6 +1,6 @@
 # QWARD Changelog
 
-## Unreleased - QAQS inference
+## Version 0.31.0 - QAQS inference (2026)
 
 ### New: `qward.qaqs`
 - `predict(circuit, backend)` computes a circuit's pre-runtime footprint and predicts execution
