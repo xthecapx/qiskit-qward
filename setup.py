@@ -116,6 +116,8 @@ setuptools.setup(
         ],
     },
     include_package_data=True,
+    # Frozen QAQS inference models: plain JSON, bundled so predictions work offline.
+    package_data={"qward.qaqs": ["data/models/*.json"]},
     python_requires=">=3.11",
     project_urls={
         "Bug Tracker": "https://github.com/xthecapx/qiskit-qward/issues",

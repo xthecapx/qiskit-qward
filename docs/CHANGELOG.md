@@ -1,5 +1,18 @@
 # QWARD Changelog
 
+## Unreleased - QAQS inference
+
+### New: `qward.qaqs`
+- `predict(circuit, backend)` computes a circuit's pre-runtime footprint and predicts execution
+  quality (success rate, Hellinger fidelity, TVD, DSR) on IBM Fez and IBM Kingston, plus billed QPU
+  time in resource units, before the circuit runs.
+- Frozen models from the thesis ship as plain JSON and run on NumPy alone (no pickles, no
+  scikit-learn or XGBoost at install time).
+- Each prediction carries its validation score and warnings for circuits outside the training
+  range, missing quantum-specific metrics, fake backends and unvalidated shot counts.
+- `model_card()` exposes training and validation details of every model.
+- Demo notebook: `qward/examples/qaqs_predict_quality_and_cost.ipynb`; guide: `docs/qaqs.md`.
+
 ## Version 0.25.0 - Estimator Primitive Support (2026)
 
 ### Estimator Metrics
