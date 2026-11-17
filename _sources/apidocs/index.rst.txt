@@ -34,6 +34,12 @@ QWARD API Reference
 
 .. toctree::
    :maxdepth: 2
+   :caption: Quality and Cost Prediction:
+
+   qaqs
+
+.. toctree::
+   :maxdepth: 2
    :caption: Visualization System:
 
    visualization_base
